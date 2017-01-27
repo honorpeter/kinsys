@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 module serial_vec
  #( parameter DWIDTH = 16
   , parameter LWIDTH = 12
@@ -33,7 +35,7 @@ module serial_vec
         else if (serial_we)
           r_data[i] <= in_data[i];
         else
-          if (i == CORE -1)
+          if (i == CORE - 1)
             r_data[i] <= 0;
           else
             r_data[i] <= r_data[i+1];

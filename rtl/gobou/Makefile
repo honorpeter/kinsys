@@ -3,8 +3,8 @@ SIMULATOR = vsim
 MODULE    = serial_vec.sv
 SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard test/*.sv)
-TESTBENCH = test_$(shell echo $(MODULE) | cut -d / -f 2)
-PACKAGE   = $(shell echo $(MODULE) | cut -d / -f 1)
+PACKAGE   = $(shell echo $(MODULE) | cut -d/ -f1)
+TESTBENCH = test_$(shell echo $(MODULE) | cut -d/ -f1)
 TARGET    = test/$(TESTBENCH)
 
 .PHONY: test clean
@@ -17,10 +17,10 @@ TARGET    = test/$(TESTBENCH)
 all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.com)
 
 ifeq ($(VERBOSE),1)
-test: $(MODULE:.sv=.com) $(TARGET:.sv=.com) $(TESTBENCH:.sv=.log)
+test: $(MODULE:.sv=.com) $(TARGET:.sv=.log)
 test-all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.log)
 else
-test: $(MODULE:.sv=.com) $(TARGET:.sv=.com) $(TESTBENCH:.sv=.sim)
+test: $(MODULE:.sv=.com) $(TARGET:.sv=.sim)
 test-all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.sim)
 endif
 
@@ -33,20 +33,17 @@ clean:
 	rm -f $(TESTSUITE:.sv=.com.log)
 	rm -f $(TESTSUITE:.sv=.sim)
 	rm -f $(TESTSUITE:.sv=.log)
-
 	### vsim
 	rm -f vsim.wlf transcript
 	rm -rf work csrc
-
 	### xsim
 	rm -rf xsim.dir
-	rm -f *.jou *.pb
-	rm -f *.wdb
-
+	rm -f xvlog.log xvlog.pb
+	rm -f xelab.log xsim*.log
+	rm -f *.jou *.pb *.wdb
 	### vcs
 	rm -f default.cfg vcdplus.vpd vcs.key
 	rm -rf *.daidir
-
 	### iverilog
 	rm -f $(SOURCES:.sv=.out)
 
@@ -62,34 +59,33 @@ else
 endif
 IVERILOG = iverilog
 
+V_TARGET    = $(shell echo $* | tac -s/ | head -1)
 ifeq ($(SIMULATOR),xsim)
-  XVLOG_OPT   = --verbose 2 \
-                #-work work #+acc=rnbp +define+FAST_FUNC # -novopt # -lint
-  XSIMOPTION  = -R #$(XVLOG_OPT)
-  XELABOPTION = -debug typical
-  ELAB_SIM    = xelab $(XELABOPTION) $* -s $*_sim
-  DO_SIM      = test -f $*_sim && rm -f $*_sim \
-              ; time xsim $*_sim $(XSIMOPTION) | sed 's/^\# //'
-  V_COMPILE   = (xvlog $(XVLOG_OPT) $< > $@.log && touch $@) \
-             && (grep "^\*\* " $@.log || true) \
-             || (cat $@.log ; false)
+  XVLOG_OPT = --verbose 2 --sv
+  V_COMPILE = (xvlog $(XVLOG_OPT) $< > $@.log && touch $@) \
+           && (grep "^\*\* " $@.log || true) \
+           || (cat $@.log ; false)
+  XSIM_OPT  = -R #$(XVLOG_OPT)
+  XELAB_OPT = -relax -debug typical
+  DO_ELAB   = xelab $(XELAB_OPT) $(V_TARGET) -s $(V_TARGET)_sim
+  DO_SIM    = test -f $(V_TARGET)_sim && rm -f $(V_TARGET)_sim \
+            ; time xsim $(V_TARGET)_sim $(XSIM_OPT) | sed 's/^\# //'
 endif
 ifeq ($(SIMULATOR),vsim)
-  VLOG_OPT    = -sv12compat +acc=rnbp +define+FAST_FUNC # -novopt # -lint
-  VSIMOPTION  = -c -do 'run -all; quit' # $(VLOG_OPT)
-  DO_SIM      = test -f $* && rm -f $* \
-              ; time vsim $* $(VSIMOPTION) | sed 's/^\# //'
-  V_COMPILE   = (test -d work || vlib work) \
-             && (vlog $(VLOG_OPT) $< > $@.log && touch $@) \
-             && (grep "^\*\* " $@.log || true) || (cat $@.log ; false)
+  VLOG_OPT  = -sv12compat +acc=rnbp +define+FAST_FUNC # -novopt # -lint
+  V_COMPILE = (test -d work || vlib work) \
+           && (vlog $(VLOG_OPT) $< > $@.log && touch $@) \
+           && (grep "^\*\* " $@.log || true) || (cat $@.log ; false)
+  XSIM_OPT  = -c -do 'run -all; quit' # $(VLOG_OPT)
+  DO_SIM    = time vsim $(V_TARGET) $(XSIM_OPT) | sed 's/^\# //'
 endif
 ifeq ($(SIMULATOR),vcs)
-  DO_SIM      = make $* && time ./$*
-  V_COMPILE   = touch $@
+  V_COMPILE = touch $@
+  DO_SIM    = make $*.out && time ./$(V_TARGET).out
 endif
 ifeq ($(SIMULATOR),iverilog)
-  DO_SIM      = make $* && time ./$*.out
-  V_COMPILE   = touch $@
+  V_COMPILE = touch $@
+  DO_SIM    = make $*.out && time ./$(V_TARGET).out
 endif
 
 ifeq ($(VERBOSE),1)
@@ -106,8 +102,8 @@ endif
 
 .com.sim:
 ifeq ($(SIMULATOR),xsim)
-	@$(E) echo "  ELABORATE         $*"
-	$(Q)$(ELAB_SIM)
+	@$(E) echo "  ELABORATE         $(V_TARGET)"
+	$(Q)$(DO_ELAB)
 	$(Q)$(DO_SIM)
 else
 	$(Q)$(DO_SIM)
@@ -115,8 +111,8 @@ endif
 
 .com.log:
 ifeq ($(SIMULATOR),xsim)
-	@echo "  ELABORATE         $*"
-	$(Q)$(ELAB_SIM) | tee $@
+	@$(E) echo "  ELABORATE         $(V_TARGET)"
+	$(Q)$(DO_ELAB) | tee $@
 	$(DO_SIM) 2>&1 | tee -a $@
 else
 	$(DO_SIM) 2>&1 | tee $@

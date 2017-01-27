@@ -1,6 +1,7 @@
 `timescale 1ns/1ps
 
 module test_serial_vec ();
+
   parameter DWIDTH = 16;
   parameter LWIDTH = 10;
   parameter CORE   = 8;
