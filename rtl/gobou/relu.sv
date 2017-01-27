@@ -1,4 +1,6 @@
 module relu
+ #( parameter DWIDTH = 16
+  )
   ( input clk
   , input xrst
   , input out_en
@@ -6,18 +8,18 @@ module relu
   , output signed [DWIDTH-1:0] pixel_out
   );
 
-  reg signed [DWIDTH-1:0] r_pixel_in
+  reg signed [DWIDTH-1:0] r_pixel_in;
   reg signed [DWIDTH-1:0] r_pixel_out;
 
   assign pixel_out = r_pixel_out;
 
-  always_ff @(posedge clk)
+  always @(posedge clk)
     if (!xrst)
       r_pixel_in <= 0;
     else
       r_pixel_in <= pixel_in;
 
-  always_ff @(posedge clk)
+  always @(posedge clk)
     if (!xrst)
       r_pixel_out <= 0;
     else if (out_en)

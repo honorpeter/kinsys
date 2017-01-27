@@ -1,8 +1,8 @@
 `timescale 1ns/1ps
 
 module test_serial_vec ();
-  parameter DWIDTH = 32;
-  parameter LWIDTH = 12;
+  parameter DWIDTH = 16;
+  parameter LWIDTH = 10;
   parameter CORE   = 8;
   parameter STEP   = 10;
   reg                      clk;

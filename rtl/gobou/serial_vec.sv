@@ -1,7 +1,5 @@
-// TODO: Eliminate erb
-
 module serial_vec
- #( parameter DWIDTH = 32
+ #( parameter DWIDTH = 16
   , parameter LWIDTH = 12
   , parameter CORE   = 8
   )
@@ -28,8 +26,7 @@ module serial_vec
       else
         r_cnt <= r_cnt + 1;
 
-    genvar i;
-    for (i = 0; i < CORE; i=i+1)
+    for (genvar i = 0; i < CORE; i++)
       always @(posedge clk)
         if (!xrst)
           r_data[i] <= 0;

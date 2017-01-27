@@ -1,4 +1,6 @@
 module bias
+ #( parameter DWIDTH = 16
+  )
   ( input clk
   , input xrst
   , input breg_we
