@@ -33,7 +33,9 @@ module gobou
 `endif
   );
 
-  wire [DWIDTH-1:0]
+  wire                     mem_net_we [CORE-1:0];
+  wire signed [DWIDTH-1:0] read_net   [CORE-1:0];
+  wire signed [DWIDTH-1:0] result     [CORE-1:0];
 
   ctrl ctrl(.*);
 

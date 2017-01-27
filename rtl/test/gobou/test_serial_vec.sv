@@ -1,11 +1,8 @@
 `timescale 1ns/1ps
 
 module test_serial_vec ();
+`include "gobou.svh"
 
-  parameter DWIDTH = 16;
-  parameter LWIDTH = 10;
-  parameter CORE   = 8;
-  parameter STEP   = 10;
   reg                      clk;
   reg                      xrst;
   reg                      serial_we;
@@ -24,13 +21,13 @@ module test_serial_vec ();
   // flow
   initial begin
     xrst = 0;
-    #STEP;
+    #(STEP);
     xrst = 1;
-    #STEP;
+    #(STEP);
     serial_we = 1;
     for (int i = 0; i < CORE; i++)
       in_data[i] = i;
-    #STEP;
+    #(STEP);
     serial_we = 0;
     #(STEP*10);
     $finish();

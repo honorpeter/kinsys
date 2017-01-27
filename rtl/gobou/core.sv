@@ -1,9 +1,21 @@
 module core
  #( parameter DWIDTH = 16
   )
-  (
+  ( input                     clk
+  , input                     xrst
+  , input                     mac_oe
+  , input                     accum_rst
+  , input                     accum_we
+  , input                     breg_we
+  , input                     bias_oe
+  , input                     relu_oe
+  , input signed [DWIDTH-1:0] pixel
+  , input signed [DWIDTH-1:0] weight
   , output signed [DWIDTH-1:0] result
   );
+
+  wire signed [DWIDTH-1:0] biased;
+  wire signed [DWIDTH-1:0] dotted;
 
   mac mac(
     .out_en   (mac_oe),

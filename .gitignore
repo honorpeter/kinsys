@@ -2,4 +2,8 @@ work/
 transcript
 *.out
 *.com
-*.com.log
+*.log
+*.pb
+*.wdb
+*.dir
+*.jou

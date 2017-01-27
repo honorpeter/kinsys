@@ -1,5 +1,5 @@
 VERBOSE   = 0
-SIMULATOR = vsim
+SIMULATOR = xsim
 MODULE    = gobou/serial_vec.sv
 SOURCES   = \
 	$(wildcard gobou/*.sv)  \
@@ -51,7 +51,8 @@ clean:
 	rm -f *.jou *.pb *.wdb
 	### vcs
 	rm -f default.cfg vcdplus.vpd vcs.key
-	rm -rf *.daidir
+	rm -rf $(SOURCES:.sv=.com.daidir)
+	rm -rf $(TESTSUITE:.sv=.com.daidir)
 	### iverilog
 	rm -f $(SOURCES:.sv=.out)
 
@@ -65,7 +66,6 @@ ifeq ($(ARCH),x86_64)
 else
   VCS = vcs +v2k
 endif
-IVERILOG = iverilog
 
 V_TARGET    = $(shell echo $* | tac -s/ | head -1)
 ifeq ($(SIMULATOR),xsim)
@@ -78,7 +78,7 @@ ifeq ($(SIMULATOR),xsim)
   DO_ELAB   = xelab $(XELAB_OPT) $(V_TARGET) -s $(V_TARGET)_sim
   DO_SIM    = test -f $(V_TARGET)_sim && rm -f $(V_TARGET)_sim \
             ; time xsim $(V_TARGET)_sim $(XSIM_OPT) | sed 's/^\# //'
-endif
+else
 ifeq ($(SIMULATOR),vsim)
   VLOG_OPT  = -sv12compat +acc=rnbp +define+FAST_FUNC # -novopt # -lint
   V_COMPILE = (test -d work || vlib work) \
@@ -86,14 +86,18 @@ ifeq ($(SIMULATOR),vsim)
            && (grep "^\*\* " $@.log || true) || (cat $@.log ; false)
   XSIM_OPT  = -c -do 'run -all; quit' # $(VLOG_OPT)
   DO_SIM    = time vsim $(V_TARGET) $(XSIM_OPT) | sed 's/^\# //'
-endif
+else
 ifeq ($(SIMULATOR),vcs)
+  VSIM_OPT  = -full64 -sverilog -R
   V_COMPILE = touch $@
-  DO_SIM    = make $*.out && time ./$(V_TARGET).out
-endif
+	DO_SIM    = vcs $(VSIM_OPT) $*.sv $(SOURCES)
+else
 ifeq ($(SIMULATOR),iverilog)
   V_COMPILE = touch $@
   DO_SIM    = make $*.out && time ./$(V_TARGET).out
+endif
+endif
+endif
 endif
 
 ifeq ($(VERBOSE),1)
