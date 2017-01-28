@@ -15,22 +15,15 @@ INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl
 
 all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.com)
 
-ifeq ($(VERBOSE),1)
 test: $(MODULE:.sv=.com) $(TARGET:.sv=.log)
 test-all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.log)
-else
-test: $(MODULE:.sv=.com) $(TARGET:.sv=.sim)
-test-all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.sim)
-endif
 
 clean:
 	rm -f $(SOURCES:.sv=.com)
 	rm -f $(SOURCES:.sv=.com.log)
-	rm -f $(SOURCES:.sv=.sim)
 	rm -f $(SOURCES:.sv=.log)
 	rm -f $(TESTSUITE:.sv=.com)
 	rm -f $(TESTSUITE:.sv=.com.log)
-	rm -f $(TESTSUITE:.sv=.sim)
 	rm -f $(TESTSUITE:.sv=.log)
 	### vsim
 	rm -f vsim.wlf transcript
@@ -64,7 +57,7 @@ ifeq ($(SIMULATOR),xsim)
             ; time xsim $(V_TARGET)_sim $(XSIM_OPT) | sed 's/^\# //'
 else
 ifeq ($(SIMULATOR),vsim)
-  VLOG_OPT  = -sv12compat +incdir+$(INCLUDE)
+  VLOG_OPT  = -sv12compat +incdir+$(INCLUDE) -lint
   V_COMPILE = (test -d work || vlib work) \
            && (vlog $(VLOG_OPT) $< > $@.log && touch $@) \
            && (grep "^\*\* " $@.log || true) || (cat $@.log ; false)
@@ -95,15 +88,6 @@ endif
 ############################################################
 # General Rules
 ############################################################
-
-.com.sim:
-ifeq ($(SIMULATOR),xsim)
-	$(E) echo "  ELABORATE         $(V_TARGET)"
-	$(Q) $(DO_ELAB)
-	$(Q) $(DO_SIM)
-else
-	$(Q) $(DO_SIM)
-endif
 
 .com.log:
 ifeq ($(SIMULATOR),xsim)
