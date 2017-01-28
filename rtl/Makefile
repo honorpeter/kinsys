@@ -64,7 +64,8 @@ ifeq ($(SIMULATOR),xsim)
   XELAB_OPT = -relax -debug typical
   DO_ELAB   = xelab $(XELAB_OPT) $(V_TARGET) -s $(V_TARGET)_sim
   DO_SIM    = test -f $(V_TARGET)_sim && rm -f $(V_TARGET)_sim \
-            ; time xsim $(V_TARGET)_sim $(XSIM_OPT) | sed 's/^\# //'
+            ; xsim $(V_TARGET)_sim $(XSIM_OPT) | sed 's/^\# //'
+            # ; time xsim $(V_TARGET)_sim $(XSIM_OPT) | sed 's/^\# //'
 else
 ifeq ($(SIMULATOR),vsim)
   VLOG_OPT  = -sv12compat +incdir+$(INCLUDE) -lint
@@ -102,10 +103,24 @@ endif
 .com.log:
 ifeq ($(SIMULATOR),xsim)
 	$(E) echo "  ELABORATE         $(V_TARGET)"
-	$(Q) $(DO_ELAB) 2>&1 | tee $@
-	$(Q) $(DO_SIM) 2>&1 | tee -a $@
+  ifeq ($(VERBOSE),1)
+		$(Q) $(DO_ELAB) 2>&1 | tee $@
+  else
+		$(Q) $(DO_ELAB) 2>&1 > $@
+  endif
+	$(E) echo "  SIMULATE          $(V_TARGET)"
+  ifeq ($(VERBOSE),1)
+		$(Q) $(DO_SIM) 2>&1 | tee -a $@
+  else
+		$(Q) $(DO_SIM) 2>&1 >> $@
+  endif
 else
-	$(Q) $(DO_SIM) 2>&1 | tee $@
+	$(E) echo "  SIMULATE          $(V_TARGET)"
+  ifeq ($(VERBOSE),1)
+		$(Q) $(DO_SIM) 2>&1 | tee $@
+  else
+		$(Q) $(DO_ELAB) 2>&1 > $@
+  endif
 endif
 
 .v.com:
