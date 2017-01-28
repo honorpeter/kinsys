@@ -1,10 +1,6 @@
-`timescale 1ns/1ps
+`include "gobou.svh"
 
 module serial_vec
- #( parameter DWIDTH = 16
-  , parameter LWIDTH = 12
-  , parameter CORE   = 8
-  )
   ( input                       clk
   , input                       xrst
   , input                       serial_we

@@ -1,11 +1,10 @@
 VERBOSE   = 0
 SIMULATOR = xsim
 MODULE    = mac.sv
+TARGET    = test/test_$(MODULE)
 SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard test/*.sv)
-PACKAGE   = $(shell echo $(MODULE) | cut -d/ -f1)
-TESTBENCH = test_$(shell echo $(MODULE) | cut -d/ -f1)
-TARGET    = test/$(TESTBENCH)
+INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl
 
 .PHONY: test clean
 .SUFFIXES: .com .v .sv .log .vh .svh .sim .dot .png
@@ -52,16 +51,9 @@ clean:
 # Attributes Definition
 ############################################################
 
-ARCH = $(shell uname -m)
-ifeq ($(ARCH),x86_64)
-  VCS = vcs +v2k -full64
-else
-  VCS = vcs +v2k
-endif
-
 V_TARGET    = $(shell echo $* | tac -s/ | head -1)
 ifeq ($(SIMULATOR),xsim)
-  XVLOG_OPT = --verbose 2 --sv
+  XVLOG_OPT = --sv -i $(INCLUDE) # --verbose 2
   V_COMPILE = (xvlog $(XVLOG_OPT) $< > $@.log && touch $@) \
            && (grep "^\*\* " $@.log || true) \
            || (cat $@.log ; false)
@@ -72,7 +64,7 @@ ifeq ($(SIMULATOR),xsim)
             ; time xsim $(V_TARGET)_sim $(XSIM_OPT) | sed 's/^\# //'
 else
 ifeq ($(SIMULATOR),vsim)
-  VLOG_OPT  = -sv12compat +acc=rnbp +define+FAST_FUNC # -novopt # -lint
+  VLOG_OPT  = -sv12compat +incdir+$(INCLUDE)
   V_COMPILE = (test -d work || vlib work) \
            && (vlog $(VLOG_OPT) $< > $@.log && touch $@) \
            && (grep "^\*\* " $@.log || true) || (cat $@.log ; false)
@@ -93,10 +85,10 @@ endif
 endif
 
 ifeq ($(VERBOSE),1)
-  E = true
+  E = @true
   Q =
 else
-  E =
+  E = @
   Q = @
 endif
 
@@ -106,27 +98,27 @@ endif
 
 .com.sim:
 ifeq ($(SIMULATOR),xsim)
-	@$(E) echo "  ELABORATE         $(V_TARGET)"
-	$(Q)$(DO_ELAB)
-	$(Q)$(DO_SIM)
+	$(E) echo "  ELABORATE         $(V_TARGET)"
+	$(Q) $(DO_ELAB)
+	$(Q) $(DO_SIM)
 else
-	$(Q)$(DO_SIM)
+	$(Q) $(DO_SIM)
 endif
 
 .com.log:
 ifeq ($(SIMULATOR),xsim)
-	@$(E) echo "  ELABORATE         $(V_TARGET)"
-	$(Q)$(DO_ELAB) | tee $@
-	$(DO_SIM) 2>&1 | tee -a $@
+	$(E) echo "  ELABORATE         $(V_TARGET)"
+	$(Q) $(DO_ELAB) 2>&1 | tee $@
+	$(Q) $(DO_SIM) 2>&1 | tee -a $@
 else
-	$(DO_SIM) 2>&1 | tee $@
+	$(Q) $(DO_SIM) 2>&1 | tee $@
 endif
 
 .v.com:
-	@echo "  COMPILE (.v)      $<"
-	$(Q)$(V_COMPILE)
+	$(E) echo "  COMPILE (.v)      $<"
+	$(Q) $(V_COMPILE)
 
 .sv.com:
-	@echo "  COMPILE (.sv)     $<"
-	$(Q)$(V_COMPILE)
+	$(E) echo "  COMPILE (.sv)     $<"
+	$(Q) $(V_COMPILE)
 

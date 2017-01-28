@@ -1,6 +1,6 @@
+`include "gobou.svh"
+
 module core
- #( parameter DWIDTH = 16
-  )
   ( input                     clk
   , input                     xrst
   , input                     mac_oe

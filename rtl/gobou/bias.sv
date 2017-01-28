@@ -1,12 +1,12 @@
+`include "gobou.svh"
+
 module bias
- #( parameter DWIDTH = 16
-  )
   ( input clk
   , input xrst
   , input breg_we
   , input out_en
-  , input signed [DWIDTH-1:0] read_bias
-  , input signed [DWIDTH-1:0] pixel_in
+  , input  signed [DWIDTH-1:0] read_bias
+  , input  signed [DWIDTH-1:0] pixel_in
   , output signed [DWIDTH-1:0] pixel_out
   );
 

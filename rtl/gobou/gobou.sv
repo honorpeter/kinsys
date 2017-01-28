@@ -1,13 +1,7 @@
-`include "../common/mem_sp.sv"
+`include "gobou.svh"
+`include "common/mem_sp.sv"
 
 module gobou
- #( parameter DWIDTH  = 16
-  , parameter LWIDTH  = 10
-  , parameter CORE    = 16
-  , parameter IMGSIZE = 12
-  , parameter NETSIZE = 14
-  , localparam CORELOG = $clog2(CORE)
-  )
   ( input                     clk
   , input                     xrst
   , input                     req
@@ -49,7 +43,7 @@ module gobou
   );
 `endif
 
-  for (genvar i = 0; i < CORE; i++) begin
+  for (genvar i = 0; i < CORE; i++) begin : pe
     mem_sp #(DWIDTH, NETSIZE) mem_net(
       .read_data (read_net[i]),
       .write_data (write_net),
@@ -64,7 +58,7 @@ module gobou
       .result (result[i]),
       .*
     );
-  end
+  end : pe
 
   serial_vec serial(
     .in_data (result),

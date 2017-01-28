@@ -1,6 +1,6 @@
+`include "gobou.svh"
+
 module relu
- #( parameter DWIDTH = 16
-  )
   ( input clk
   , input xrst
   , input out_en
