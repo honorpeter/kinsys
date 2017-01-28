@@ -1,4 +1,4 @@
-`include "gobou.svh"
+`include "gobou/gobou.svh"
 `include "common/mem_sp.sv"
 
 module gobou

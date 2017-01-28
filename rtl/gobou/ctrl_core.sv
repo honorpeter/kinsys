@@ -1,4 +1,4 @@
-`include "gobou.svh"
+`include "gobou/gobou.svh"
 `include "common/ctrl_bus.sv"
 
 module ctrl_core

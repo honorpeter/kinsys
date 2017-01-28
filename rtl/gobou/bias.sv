@@ -1,4 +1,4 @@
-`include "gobou.svh"
+`include "gobou/gobou.svh"
 
 module bias
   ( input clk

@@ -1,7 +1,6 @@
-`timescale 1ns/1ps
+`include "gobou/gobou.svh"
 
 module test_serial_vec ();
-`include "gobou.svh"
 
   reg                      clk;
   reg                      xrst;
