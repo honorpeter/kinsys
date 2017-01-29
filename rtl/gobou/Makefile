@@ -1,6 +1,6 @@
 VERBOSE   = 0
 SIMULATOR = xsim
-MODULE    = mac.sv
+MODULE    = ctrl_core.sv
 TARGET    = test/test_$(MODULE)
 SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard test/*.sv)
@@ -26,17 +26,17 @@ clean:
 	rm -f $(TESTSUITE:.sv=.com.log)
 	rm -f $(TESTSUITE:.sv=.log)
 	### vsim
-	rm -f vsim.wlf transcript
 	rm -rf work csrc
+	rm -f vsim.wlf transcript
 	### xsim
 	rm -rf xsim.dir
 	rm -f xvlog.log xvlog.pb
 	rm -f xelab.log xsim*.log
 	rm -f *.jou *.pb *.wdb
 	### vcs
-	rm -f default.cfg vcdplus.vpd vcs.key
 	rm -rf $(SOURCES:.sv=.com.daidir)
 	rm -rf $(TESTSUITE:.sv=.com.daidir)
+	rm -f default.cfg vcdplus.vpd vcs.key
 	### iverilog
 	rm -f $(SOURCES:.sv=.out)
 
@@ -44,9 +44,17 @@ clean:
 # Attributes Definition
 ############################################################
 
+ifeq ($(VERBOSE),1)
+  E = @true
+  Q =
+else
+  E = @
+  Q = @
+endif
+
 V_TARGET    = $(shell echo $* | tac -s/ | head -1)
 ifeq ($(SIMULATOR),xsim)
-  XVLOG_OPT = --sv -i $(INCLUDE) # --verbose 2
+  XVLOG_OPT = --sv -i $(INCLUDE) --verbose 2
   V_COMPILE = (xvlog $(XVLOG_OPT) $< > $@.log && touch $@) \
            && (grep "^\*\* " $@.log || true) \
            || (cat $@.log ; false)
@@ -54,7 +62,8 @@ ifeq ($(SIMULATOR),xsim)
   XELAB_OPT = -relax -debug typical
   DO_ELAB   = xelab $(XELAB_OPT) $(V_TARGET) -s $(V_TARGET)_sim
   DO_SIM    = test -f $(V_TARGET)_sim && rm -f $(V_TARGET)_sim \
-            ; time xsim $(V_TARGET)_sim $(XSIM_OPT) | sed 's/^\# //'
+            ; xsim $(V_TARGET)_sim $(XSIM_OPT) | sed 's/^\# //'
+            # ; time xsim $(V_TARGET)_sim $(XSIM_OPT) | sed 's/^\# //'
 else
 ifeq ($(SIMULATOR),vsim)
   VLOG_OPT  = -sv12compat +incdir+$(INCLUDE) -lint
@@ -62,7 +71,8 @@ ifeq ($(SIMULATOR),vsim)
            && (vlog $(VLOG_OPT) $< > $@.log && touch $@) \
            && (grep "^\*\* " $@.log || true) || (cat $@.log ; false)
   XSIM_OPT  = -c -do 'run -all; quit' # $(VLOG_OPT)
-  DO_SIM    = time vsim $(V_TARGET) $(XSIM_OPT) | sed 's/^\# //'
+  DO_SIM    = vsim $(V_TARGET) $(XSIM_OPT) | sed 's/^\# //'
+  # DO_SIM    = time vsim $(V_TARGET) $(XSIM_OPT) | sed 's/^\# //'
 else
 ifeq ($(SIMULATOR),vcs)
   VSIM_OPT  = -full64 -sverilog -R
@@ -77,26 +87,9 @@ endif
 endif
 endif
 
-ifeq ($(VERBOSE),1)
-  E = @true
-  Q =
-else
-  E = @
-  Q = @
-endif
-
 ############################################################
 # General Rules
 ############################################################
-
-.com.log:
-ifeq ($(SIMULATOR),xsim)
-	$(E) echo "  ELABORATE         $(V_TARGET)"
-	$(Q) $(DO_ELAB) 2>&1 | tee $@
-	$(Q) $(DO_SIM) 2>&1 | tee -a $@
-else
-	$(Q) $(DO_SIM) 2>&1 | tee $@
-endif
 
 .v.com:
 	$(E) echo "  COMPILE (.v)      $<"
@@ -105,4 +98,27 @@ endif
 .sv.com:
 	$(E) echo "  COMPILE (.sv)     $<"
 	$(Q) $(V_COMPILE)
+
+.com.log:
+ifeq ($(SIMULATOR),xsim)
+	$(E) echo "  ELABORATE         $(V_TARGET)"
+  ifeq ($(VERBOSE),1)
+		$(Q) $(DO_ELAB) 2>&1 | tee $@
+  else
+		$(Q) $(DO_ELAB) 2>&1 > $@
+  endif
+	$(E) echo "  SIMULATE          $(V_TARGET)"
+  ifeq ($(VERBOSE),1)
+		$(Q) $(DO_SIM) 2>&1 | tee -a $@
+  else
+		$(Q) $(DO_SIM) 2>&1 >> $@
+  endif
+else
+	$(E) echo "  SIMULATE          $(V_TARGET)"
+  ifeq ($(VERBOSE),1)
+		$(Q) $(DO_SIM) 2>&1 | tee $@
+  else
+		$(Q) $(DO_SIM) 2>&1 > $@
+  endif
+endif
 

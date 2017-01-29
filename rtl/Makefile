@@ -36,23 +36,31 @@ clean:
 	rm -f $(TESTSUITE:.sv=.com.log)
 	rm -f $(TESTSUITE:.sv=.log)
 	### vsim
-	rm -f vsim.wlf transcript
 	rm -rf work csrc
+	rm -f vsim.wlf transcript
 	### xsim
 	rm -rf xsim.dir
 	rm -f xvlog.log xvlog.pb
 	rm -f xelab.log xsim*.log
 	rm -f *.jou *.pb *.wdb
 	### vcs
-	rm -f default.cfg vcdplus.vpd vcs.key
 	rm -rf $(SOURCES:.sv=.com.daidir)
 	rm -rf $(TESTSUITE:.sv=.com.daidir)
+	rm -f default.cfg vcdplus.vpd vcs.key
 	### iverilog
 	rm -f $(SOURCES:.sv=.out)
 
 ############################################################
 # Attributes Definition
 ############################################################
+
+ifeq ($(VERBOSE),1)
+  E = @true
+  Q =
+else
+  E = @
+  Q = @
+endif
 
 V_TARGET    = $(shell echo $* | tac -s/ | head -1)
 ifeq ($(SIMULATOR),xsim)
@@ -88,17 +96,17 @@ endif
 endif
 endif
 
-ifeq ($(VERBOSE),1)
-  E = @true
-  Q =
-else
-  E = @
-  Q = @
-endif
-
 ############################################################
 # General Rules
 ############################################################
+
+.v.com:
+	$(E) echo "  COMPILE (.v)      $<"
+	$(Q) $(V_COMPILE)
+
+.sv.com:
+	$(E) echo "  COMPILE (.sv)     $<"
+	$(Q) $(V_COMPILE)
 
 .com.log:
 ifeq ($(SIMULATOR),xsim)
@@ -122,12 +130,4 @@ else
 		$(Q) $(DO_ELAB) 2>&1 > $@
   endif
 endif
-
-.v.com:
-	$(E) echo "  COMPILE (.v)      $<"
-	$(Q) $(V_COMPILE)
-
-.sv.com:
-	$(E) echo "  COMPILE (.sv)     $<"
-	$(Q) $(V_COMPILE)
 

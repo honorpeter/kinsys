@@ -26,7 +26,6 @@ module ctrl_core
   , output                      serial_we
   );
 
-  enum {S_WAIT, S_WEIGHT, S_BIAS, S_OUTPUT} state;
 
   wire                s_weight_end;
   wire                s_bias_end;
@@ -35,7 +34,9 @@ module ctrl_core
   wire [IMGSIZE-1:0]  w_img_addr;
   wire [IMGSIZE-1:0]  w_img_offset;
 
-  reg [2-1:0]       r_state;
+  enum reg [2-1:0] {
+    S_WAIT, S_WEIGHT, S_BIAS, S_OUTPUT
+  } r_state;
   ctrl_reg          r_out_ctrl;
   reg               r_ack;
   reg [LWIDTH-1:0]  r_total_out;
@@ -229,7 +230,7 @@ module ctrl_core
 
   always @(posedge clk)
     if (!xrst)
-      r_out_ctrl <= {0, 0, 0};
+      r_out_ctrl <= '{0, 0, 0};
     else begin
       r_out_ctrl.start <= req
                        || s_output_end && (r_count_out + CORE < r_total_out);

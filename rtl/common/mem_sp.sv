@@ -12,7 +12,7 @@ module mem_sp
   localparam WORDS = 2 ** MEMSIZE;
 
   reg signed [DWIDTH-1:0] mem [WORDS-1:0];
-  reg [DWIDTH-1:0]        r_addr;
+  reg [MEMSIZE-1:0]       r_addr;
 
   assign read_data = mem[r_addr];
 

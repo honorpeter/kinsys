@@ -38,11 +38,13 @@ module ctrl_mac
     else
       r_accum_rst <= mac_oe;
 
-  assign out_ctrl = r_out_ctrl;
+  assign out_ctrl.start = r_out_ctrl.start;
+  assign out_ctrl.valid = r_out_ctrl.valid;
+  assign out_ctrl.stop  = r_out_ctrl.stop;
 
   always @(posedge clk)
     if (!xrst)
-      r_out_ctrl <= {0, 0, 0};
+      r_out_ctrl <= '{0, 0, 0};
     else begin
       r_out_ctrl.start <= in_ctrl.stop;
       r_out_ctrl.valid <= r_mac_oe;

@@ -1,6 +1,6 @@
 `include "gobou/gobou.svh"
 
-module test_serial_vec ();
+module test_serial_vec;
 
   reg                      clk;
   reg                      xrst;

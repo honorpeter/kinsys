@@ -1,6 +1,6 @@
 `include "gobou/gobou.svh"
 
-module test_mac ();
+module test_mac;
 
   reg                     clk;
   reg                     xrst;

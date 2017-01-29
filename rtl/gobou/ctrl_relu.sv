@@ -20,13 +20,13 @@ module ctrl_relu
     if (i == 0)
       always @(posedge clk)
         if (!xrst)
-          r_out_ctrl[0] <= {0, 0, 0};
+          r_out_ctrl[0] <= '{0, 0, 0};
         else
           r_out_ctrl[0] <= in_ctrl;
     else
       always @(posedge clk)
         if (!xrst)
-          r_out_ctrl[0] <= {0, 0, 0};
+          r_out_ctrl[0] <= '{0, 0, 0};
         else
           r_out_ctrl[i] <= r_out_ctrl[i-1];
 
