@@ -12,6 +12,7 @@ set xpr     $top_dir/$board/$design.xpr
 
 open_project $xpr
 update_compile_order -fileset sources_1
+set_property top $design [current_fileset]
 
 reset_run   synth_1
 launch_runs synth_1 -jobs 8

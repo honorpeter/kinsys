@@ -2,7 +2,7 @@
 `define _GOBOU_SVH_
 
 `timescale 1ns/1ps
-// `define DIST
+`define DIST
 
 parameter STEP    = 10;
 parameter DWIDTH  = 16;
