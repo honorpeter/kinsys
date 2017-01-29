@@ -1,3 +1,6 @@
+`ifndef _CTRL_BUS_SVH_
+`define _CTRL_BUS_SVH_
+
 interface ctrl_bus;
   wire start;
   wire valid;
@@ -18,3 +21,5 @@ typedef struct {
   reg valid;
   reg stop;
 } ctrl_reg;
+
+`endif

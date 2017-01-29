@@ -1,3 +1,6 @@
+`ifndef _GOBOU_SVH_
+`define _GOBOU_SVH_
+
 `timescale 1ns/1ps
 // `define DIST
 
@@ -12,3 +15,5 @@ parameter NETSIZE = 15;
 parameter D_MAC   = 3;
 parameter D_BIAS  = 2;
 parameter D_RELU  = 2;
+
+`endif

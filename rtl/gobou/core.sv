@@ -1,4 +1,4 @@
-`include "gobou/gobou.svh"
+`include "gobou.svh"
 
 module core
   ( input                     clk

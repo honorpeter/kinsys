@@ -1,6 +1,6 @@
 VERBOSE   = 0
-SIMULATOR = xsim
-MODULE    = gobou/serial_vec.sv
+SIMULATOR = vsim
+MODULE    = gobou/gobou.sv
 PACKAGE   = $(shell echo $(MODULE) | cut -d/ -f1)
 TESTBENCH = test_$(shell echo $(MODULE) | cut -d/ -f2)
 TARGET    = test/$(PACKAGE)/$(TESTBENCH)
@@ -14,7 +14,7 @@ TESTSUITE = \
 	$(wildcard test/renkon/*.sv) \
 	$(wildcard test/ninjin/*.sv) \
 	$(wildcard test/common/*.sv)
-INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl
+INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl/common
 
 .PHONY: test clean
 .SUFFIXES: .com .v .sv .log .vh .svh .sim .dot .png
@@ -38,6 +38,7 @@ clean:
 	### vsim
 	rm -rf work csrc
 	rm -f vsim.wlf transcript
+	rm -f vish_stacktrace.vstf
 	### xsim
 	rm -rf xsim.dir
 	rm -f xvlog.log xvlog.pb
@@ -64,7 +65,7 @@ endif
 
 V_TARGET    = $(shell echo $* | tac -s/ | head -1)
 ifeq ($(SIMULATOR),xsim)
-  XVLOG_OPT = --sv -i $(INCLUDE) # --verbose 2
+  XVLOG_OPT = --sv -i $(INCLUDE) --verbose 2
   V_COMPILE = (xvlog $(XVLOG_OPT) $< > $@.log && touch $@) \
            && (grep "^\*\* " $@.log || true) \
            || (cat $@.log ; false)
@@ -81,7 +82,8 @@ ifeq ($(SIMULATOR),vsim)
            && (vlog $(VLOG_OPT) $< > $@.log && touch $@) \
            && (grep "^\*\* " $@.log || true) || (cat $@.log ; false)
   XSIM_OPT  = -c -do 'run -all; quit' # $(VLOG_OPT)
-  DO_SIM    = time vsim $(V_TARGET) $(XSIM_OPT) | sed 's/^\# //'
+  DO_SIM    = vsim $(V_TARGET) $(XSIM_OPT) | sed 's/^\# //'
+  # DO_SIM    = time vsim $(V_TARGET) $(XSIM_OPT) | sed 's/^\# //'
 else
 ifeq ($(SIMULATOR),vcs)
   VSIM_OPT  = -full64 -sverilog -R
@@ -127,7 +129,8 @@ else
   ifeq ($(VERBOSE),1)
 		$(Q) $(DO_SIM) 2>&1 | tee $@
   else
-		$(Q) $(DO_ELAB) 2>&1 > $@
+		$(Q) $(DO_SIM) 2>&1 | tee $@
+		@# $(Q) $(DO_SIM) 2>&1 > $@
   endif
 endif
 

@@ -7,7 +7,7 @@ DEPENDS   = bias.sv ctrl.sv ctrl_core.sv ctrl_relu.sv \
 TARGET    = test/test_$(MODULE)
 SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard test/*.sv)
-INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl
+INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl/common
 
 .PHONY: test test-all clean
 .SUFFIXES: .com .v .sv .log .vh .svh .sim .dot .png

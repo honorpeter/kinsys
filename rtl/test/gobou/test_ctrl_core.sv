@@ -1,5 +1,5 @@
-`include "gobou/gobou.svh"
-`include "common/ctrl_bus.sv"
+`include "gobou.svh"
+`include "ctrl_bus.svh"
 
 module test_ctrl_core;
 

@@ -1,4 +1,4 @@
-`include "gobou/gobou.svh"
+`include "gobou.svh"
 
 int N_IN  = 800;
 int N_OUT = 500;

@@ -1,5 +1,5 @@
-`include "gobou/gobou.svh"
-`include "common/mem_sp.sv"
+`include "gobou.svh"
+`include "mem_sp.sv"
 
 module gobou
   ( input                     clk

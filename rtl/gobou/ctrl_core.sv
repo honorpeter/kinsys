@@ -1,5 +1,5 @@
-`include "gobou/gobou.svh"
-`include "common/ctrl_bus.sv"
+`include "gobou.svh"
+`include "ctrl_bus.svh"
 
 module ctrl_core
   ( input                     clk
@@ -25,7 +25,6 @@ module ctrl_core
   , output                      breg_we
   , output                      serial_we
   );
-
 
   wire                s_weight_end;
   wire                s_bias_end;

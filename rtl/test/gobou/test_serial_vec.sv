@@ -1,4 +1,4 @@
-`include "gobou/gobou.svh"
+`include "gobou.svh"
 
 module test_serial_vec;
 
