@@ -1,5 +1,5 @@
 VERBOSE   = 0
-SIMULATOR = vsim
+SIMULATOR = xsim
 MODULE    = gobou.sv
 DEPENDS   = bias.sv ctrl.sv ctrl_core.sv ctrl_relu.sv \
 						mac.sv serial_vec.sv core.sv ctrl_bias.sv \
@@ -36,6 +36,7 @@ clean:
 	rm -rf xsim.dir
 	rm -f xvlog.log xvlog.pb
 	rm -f xelab.log xsim*.log
+	rm -f webtalk*.log
 	rm -f *.jou *.pb *.wdb
 	### vcs
 	rm -rf $(SOURCES:.sv=.com.daidir)

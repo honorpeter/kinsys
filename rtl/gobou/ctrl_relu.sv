@@ -29,7 +29,7 @@ module ctrl_relu
     else
       always @(posedge clk)
         if (!xrst)
-          r_out_ctrl[0] <= '{0, 0, 0};
+          r_out_ctrl[i] <= '{0, 0, 0};
         else begin
           r_out_ctrl[i].start <= r_out_ctrl[i-1].start;
           r_out_ctrl[i].valid <= r_out_ctrl[i-1].valid;

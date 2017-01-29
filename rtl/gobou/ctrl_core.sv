@@ -173,27 +173,14 @@ module ctrl_core
   assign mem_net_addr = r_net_addr + r_net_offset;
   assign breg_we      = r_breg_we;
 
-  for (genvar i = -1; i <= CORE+1; i++)
-    if (i == -1) begin
-      always @(posedge clk)
-        if (!xrst)
-          r_net_we <= 0;
-    end
-    else if (i == 0) begin
-      always @(posedge clk)
-        if (net_we == 0)
-          r_net_we <= 0;
-    end
-    else if (0 < i && i < CORE+1) begin
-      always @(posedge clk)
-        if (net_we == i)
-          r_net_we <= 2 ** (i-1);
-    end
-    else if (i == CORE+1) begin
-      always @(posedge clk)
-        if (net_we >= CORE+1)
-          r_net_we <= 0;
-    end
+  for (genvar i = 0; i < CORE; i++)
+    always @(posedge clk)
+      if (!xrst)
+        r_net_we[i] <= 0;
+      else if (net_we == i+1)
+        r_net_we[i] <= 1;
+      else
+        r_net_we[i] <= 0;
 
   always @(posedge clk)
     if (!xrst)

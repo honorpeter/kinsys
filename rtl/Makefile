@@ -1,5 +1,5 @@
 VERBOSE   = 0
-SIMULATOR = vsim
+SIMULATOR = xsim
 MODULE    = gobou/gobou.sv
 PACKAGE   = $(shell echo $(MODULE) | cut -d/ -f1)
 TESTBENCH = test_$(shell echo $(MODULE) | cut -d/ -f2)

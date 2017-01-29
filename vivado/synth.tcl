@@ -25,6 +25,7 @@ report_timing_summary -delay_type max -report_unconstrained \
   -check_timing_verbose -max_paths 10 -input_pins \
   -file $report_dir/syn_timing.rpt
 report_power -file $report_dir/syn_power.rpt
+report_utilization -file $report_dir/syn_util.rpt
 #write_hwdef -file $design.hwdef
 reportCriticalPaths $report_dir/post_synth_critpath_report.csv
 write_verilog -force $result_dir/${design}_synth_netlist.v

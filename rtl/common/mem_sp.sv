@@ -1,3 +1,6 @@
+`ifndef _MEM_SP_SV_
+`define _MEM_SP_SV_
+
 module mem_sp
  #( parameter DWIDTH  = 16
   , parameter MEMSIZE = 8
@@ -27,3 +30,5 @@ module mem_sp
       mem[i] = 0;
 
 endmodule
+
+`endif
