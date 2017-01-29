@@ -3,11 +3,11 @@
 
 parameter STEP    = 10;
 parameter DWIDTH  = 16;
-parameter LWIDTH  = 12;
-parameter CORE    = 8;
+parameter LWIDTH  = 10;
+parameter CORE    = 16;
 parameter CORELOG = $clog2(CORE);
 parameter IMGSIZE = 12;
-parameter NETSIZE = 14;
+parameter NETSIZE = 15;
 
 parameter D_MAC   = 3;
 parameter D_BIAS  = 2;

@@ -1,12 +1,15 @@
 VERBOSE   = 0
-SIMULATOR = xsim
-MODULE    = ctrl_core.sv
+SIMULATOR = vsim
+MODULE    = gobou.sv
+DEPENDS   = bias.sv ctrl.sv ctrl_core.sv ctrl_relu.sv \
+						mac.sv serial_vec.sv core.sv ctrl_bias.sv \
+						ctrl_mac.sv gobou.sv relu.sv
 TARGET    = test/test_$(MODULE)
 SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard test/*.sv)
 INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl
 
-.PHONY: test clean
+.PHONY: test test-all clean
 .SUFFIXES: .com .v .sv .log .vh .svh .sim .dot .png
 
 ############################################################
@@ -15,7 +18,7 @@ INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl
 
 all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.com)
 
-test: $(MODULE:.sv=.com) $(TARGET:.sv=.log)
+test: $(MODULE:.sv=.com) $(DEPENDS:.sv=.com) $(TARGET:.sv=.log)
 test-all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.log)
 
 clean:
@@ -28,6 +31,7 @@ clean:
 	### vsim
 	rm -rf work csrc
 	rm -f vsim.wlf transcript
+	rm -f vish_stacktrace.vstf
 	### xsim
 	rm -rf xsim.dir
 	rm -f xvlog.log xvlog.pb
@@ -118,7 +122,8 @@ else
   ifeq ($(VERBOSE),1)
 		$(Q) $(DO_SIM) 2>&1 | tee $@
   else
-		$(Q) $(DO_SIM) 2>&1 > $@
+		$(Q) $(DO_SIM) 2>&1 | tee $@
+		@# $(Q) $(DO_SIM) 2>&1 > $@
   endif
 endif
 

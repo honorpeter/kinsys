@@ -1,5 +1,6 @@
 work/
 transcript
+vish_stacktrace.vstf
 *.out
 *.com
 *.log
@@ -7,3 +8,4 @@ transcript
 *.wdb
 *.dir
 *.jou
+*.dat

@@ -21,13 +21,19 @@ module ctrl_bias
       always @(posedge clk)
         if (!xrst)
           r_out_ctrl[0] <= '{0, 0, 0};
-        else
-          r_out_ctrl[0] <= in_ctrl;
+        else begin
+          r_out_ctrl[0].start <= in_ctrl.start;
+          r_out_ctrl[0].valid <= in_ctrl.valid;
+          r_out_ctrl[0].stop  <= in_ctrl.stop;
+        end
     else
       always @(posedge clk)
         if (!xrst)
           r_out_ctrl[0] <= '{0, 0, 0};
-        else
-          r_out_ctrl[i] <= r_out_ctrl[i-1];
+        else begin
+          r_out_ctrl[i].start <= r_out_ctrl[i-1].start;
+          r_out_ctrl[i].valid <= r_out_ctrl[i-1].valid;
+          r_out_ctrl[i].stop  <= r_out_ctrl[i-1].stop;
+        end
 
 endmodule

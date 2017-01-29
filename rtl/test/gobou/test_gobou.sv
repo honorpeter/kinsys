@@ -2,6 +2,7 @@
 
 int N_IN  = 800;
 int N_OUT = 500;
+string infile = "test_gobou_input.dat";
 string weight = "/home/work/takau/bhewtek/data/mnist/lenet/bwb_3";
 
 module test_gobou;
@@ -31,7 +32,10 @@ module test_gobou;
 `endif
 
   reg [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
-  reg [DWIDTH-1:0] mem_n [2**NETSIZE-1:0][CORE-1:0];
+  reg [DWIDTH-1:0] mem_n [CORE-1:0][2**NETSIZE-1:0];
+
+  int req_time = 2**30;
+  int now_time = 0;
 
   gobou dut(.*);
 
@@ -70,6 +74,7 @@ module test_gobou;
     #(STEP);
 
     req = 1;
+    req_time = $time/STEP;
     #(STEP);
     req = 0;
 
@@ -82,10 +87,10 @@ module test_gobou;
   task read_input;
     begin // {{{
       $readmemh(
-        "test_gobou_input.dat",
+        infile,
         mem_i,
         0,
-        799
+        N_IN-1
       );
 
       img_we = 1;
@@ -105,23 +110,12 @@ module test_gobou;
     end // }}}
   endtask
 
-  // task read_input_direct;
-  //   begin // {{{
-  //     $readmemh(
-  //       "test_gobou_input.dat",
-  //       dut.mem_img.mem,
-  //       0,
-  //       799
-  //     );
-  //   end // }}}
-  // endtask
-
   task read_weight;
     begin // {{{
       for (int i = 0; i < N_OUT/CORE; i++)
         for (int j = 0; j < CORE; j++)
           $readmemb(
-            $sformatf("%s/data%d.bin", weight, CORE*i+j),
+            $sformatf("%s/data%0d.bin", weight, CORE*i+j),
             mem_n[j],
             (N_IN+1)*(i),
             (N_IN+1)*(i+1)-1
@@ -131,7 +125,7 @@ module test_gobou;
         for (int j = 0; j < CORE; j++)
           if ((CORE * (N_OUT/CORE) + j) <  N_OUT)
             $readmemb(
-              $sformatf("%s/data%d.bin", weight, CORE*(N_OUT/CORE)+j),
+              $sformatf("%s/data%0d.bin", weight, CORE*(N_OUT/CORE)+j),
               mem_n[j],
               (N_IN+1)*(N_OUT/CORE),
               (N_IN+1)*(N_OUT/CORE+1)-1
@@ -162,35 +156,6 @@ module test_gobou;
     end // }}}
   endtask
 
-  // task read_weight_direct;
-  //   begin // {{{
-  //     for (int i = 0; i < N_OUT/CORE; i++)
-  //       for (int j = 0; j < CORE; j++)
-  //         $readmemb(
-  //           $sformatf("%s/data%d.bin", weight, CORE*i+j),
-  //           dut.pe[j].mem_net.mem,
-  //           (N_IN+1)*(i),
-  //           (N_IN+1)*(i+1)-1
-  //         );
-  //     if (N_OUT % CORE != 0)
-  //       for (int j = 0; j < CORE; j++)
-  //         if ((CORE * (N_OUT/CORE) + j) <  N_OUT)
-  //           $readmemb(
-  //             $sformatf("%s/data%d.bin", weight, CORE*(N_OUT/CORE)+j),
-  //             dut.pe[j].mem_net.mem,
-  //             (N_IN+1)*(N_OUT/CORE),
-  //             (N_IN+1)*(N_OUT/CORE+1)-1
-  //           );
-  //         else
-  //           $readmemb(
-  //             $sformatf("%s/null_net.bin", weight),
-  //             dut.pe[j].mem_net.mem,
-  //             (N_IN+1)*(N_OUT/CORE),
-  //             (N_IN+1)*(N_OUT/CORE+1)-1
-  //           );
-  //   end // }}}
-  // endtask
-
   task write_output;
     integer fd;
     integer out_size;
@@ -207,12 +172,16 @@ module test_gobou;
   always
   begin
     #(STEP/2-1);
-    $display(
-      "%d: ", $time/STEP,
-      "%d ", xrst,
-      "%d ", dut.ctrl.ctrl_core.r_state,
-      "| ",
-    );
+    now_time = $time/STEP;
+    if (now_time >= req_time)
+      $display(
+        "%5d: ", now_time - req_time,
+        "%d ", xrst,
+        "%d ", req,
+        "%d ", ack,
+        "%d ", dut.ctrl.ctrl_core.r_state,
+        "| ",
+      );
     #(STEP/2+1);
   end
 
