@@ -1,0 +1,13 @@
+set search_path [concat $search_path {
+  /home/default/techlib/sotb65/150701_REL/LIB/LE8U_V02.00.01/liberty/LP
+} \
+]
+
+set target_library [list \
+  LE8UM_LP_Ptt_V0p55_T25.db
+]
+
+set link_library [list {*} \
+  LE8UM_LP_Ptt_V0p55_T25.db
+]
+
