@@ -21,25 +21,25 @@ module core
     .out_en   (mac_oe),
     .accum_we (accum_we),
     .reset    (accum_rst),
-    .x        (pixel[DWIDTH-1:0]),
-    .w        (weight[DWIDTH-1:0]),
-    .y        (dotted[DWIDTH-1:0]),
+    .x        (pixel),
+    .w        (weight),
+    .y        (dotted),
     .*
   );
 
   bias bias(
-    .read_bias  (weight[DWIDTH-1:0]),
+    .read_bias  (weight),
     .breg_we    (breg_we),
     .out_en     (bias_oe),
-    .pixel_in   (dotted[DWIDTH-1:0]),
-    .pixel_out  (biased[DWIDTH-1:0]),
+    .pixel_in   (dotted),
+    .pixel_out  (biased),
     .*
   );
 
   relu relu(
     .out_en     (relu_oe),
-    .pixel_in   (biased[DWIDTH-1:0]),
-    .pixel_out  (result[DWIDTH-1:0]),
+    .pixel_in   (biased),
+    .pixel_out  (result),
     .*
   );
 

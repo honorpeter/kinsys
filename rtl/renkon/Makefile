@@ -1,9 +1,7 @@
 VERBOSE   = 0
 SIMULATOR = vsim
-MODULE    = gobou.sv
-DEPENDS   = bias.sv ctrl.sv ctrl_core.sv ctrl_relu.sv \
-						mac.sv serial_vec.sv core.sv ctrl_bias.sv \
-						ctrl_mac.sv gobou.sv relu.sv
+MODULE    = renkon.sv
+DEPENDS   =
 TARGET    = tests/test_$(MODULE)
 SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard tests/*.sv)

@@ -50,10 +50,10 @@ module gobou
 
 `ifndef DIST
   mem_sp #(DWIDTH, IMGSIZE) mem_img(
-    .read_data  (read_img[DWIDTH-1:0]),
-    .write_data (write_mem_img[DWIDTH-1:0]),
+    .read_data  (read_img),
+    .write_data (write_mem_img),
     .mem_we     (mem_img_we),
-    .mem_addr   (mem_img_addr[IMGSIZE-1:0]),
+    .mem_addr   (mem_img_addr),
     .*
   );
 `endif

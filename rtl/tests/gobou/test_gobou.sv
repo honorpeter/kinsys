@@ -168,7 +168,7 @@ module test_gobou;
     end // }}}
   endtask
 
-  //display
+  // display
   always
   begin
     #(STEP/2-1);

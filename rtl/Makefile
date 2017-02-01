@@ -3,17 +3,17 @@ SIMULATOR = xsim
 MODULE    = gobou/gobou.sv
 PACKAGE   = $(shell echo $(MODULE) | cut -d/ -f1)
 TESTBENCH = test_$(shell echo $(MODULE) | cut -d/ -f2)
-TARGET    = test/$(PACKAGE)/$(TESTBENCH)
+TARGET    = tests/$(PACKAGE)/$(TESTBENCH)
 SOURCES   = \
 	$(wildcard gobou/*.sv)  \
 	$(wildcard renkon/*.sv) \
 	$(wildcard ninjin/*.sv) \
 	$(wildcard common/*.sv)
 TESTSUITE = \
-	$(wildcard test/gobou/*.sv)  \
-	$(wildcard test/renkon/*.sv) \
-	$(wildcard test/ninjin/*.sv) \
-	$(wildcard test/common/*.sv)
+	$(wildcard tests/gobou/*.sv)  \
+	$(wildcard tests/renkon/*.sv) \
+	$(wildcard tests/ninjin/*.sv) \
+	$(wildcard tests/common/*.sv)
 INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl/common
 
 .PHONY: test clean
