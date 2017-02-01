@@ -32,7 +32,7 @@ module conv_tree9
   reg signed [DWIDTH-1:0]   r_sum1_1;
   reg signed [DWIDTH-1:0]   r_sum2_0;
   reg signed [DWIDTH-1:0]   r_sum3_0;
-  reg signed [DWIDTH-1:0]   r_pixel_out;
+  reg signed [DWIDTH-1:0]   r_fmap;
 
   for (genvar i = 0; i < 9; i++)
     assign pro[i] = r_pixel[i] * r_weight[i];
@@ -50,7 +50,7 @@ module conv_tree9
   assign sum3_0 = sum2_0 + pro_short[8];
   assign fmap = sum3_0;
 
-  assign pixel_out = r_pixel_out;
+  assign pixel_out = r_fmap;
 
   for (genvar i = 0; i < 9; i++)
     always @(posedge clk)
@@ -89,9 +89,9 @@ module conv_tree9
 
   always @(posedge clk or negedge xrst)
     if(!xrst)
-      r_pixel_out <= 0;
+      r_fmap <= 0;
     else
-      r_pixel_out <= fmap;
+      r_fmap <= fmap;
 
 ////////////////////////////////////////////////////////////
 //  Function
