@@ -25,14 +25,20 @@ module serial_vec
         r_cnt <= r_cnt + 1;
 
     for (genvar i = 0; i < CORE; i++)
-      always @(posedge clk)
-        if (!xrst)
-          r_data[i] <= 0;
-        else if (serial_we)
-          r_data[i] <= in_data[i];
-        else
-          if (i == CORE - 1)
+      if (i == CORE - 1)
+        always @(posedge clk)
+          if (!xrst)
             r_data[i] <= 0;
+          else if (serial_we)
+            r_data[i] <= in_data[i];
+          else
+            r_data[i] <= 0;
+      else
+        always @(posedge clk)
+          if (!xrst)
+            r_data[i] <= 0;
+          else if (serial_we)
+            r_data[i] <= in_data[i];
           else
             r_data[i] <= r_data[i+1];
 

@@ -7,23 +7,22 @@ set_host_options -max_cores 4
 
 sh date
 source ./synopsys_dc.setup
-set search_path [concat $search_path  ../rtl/common]
+set search_path [concat $search_path ../rtl/common]
 read_file -format sverilog [glob ../rtl/$design/*.sv]
 # read_file -format sverilog ../rtl/$design.sv
 
-source -echo -verbose const.tcl
 current_design $design
-
+source -echo -verbose const.tcl
 link
 #set dont_touch_network true
 set_wire_load_mode enclosed
 
 set_max_area 0
-compile_ultra -gate_clock
-#compile_ultra
-#set_fix_multiple_port_nets -all -buffer_constants
-# compile -power_effort high
-ungroup -flatten -all
+# compile_ultra -gate_clock
+# compile_ultra
+# set_fix_multiple_port_nets -all -buffer_constants
+compile -power_effort high
+# ungroup -flatten -all
 define_name_rules verilog -allowed "a-zA-Z0-9_" -remove_port_bus
 change_names -rules verilog -hierarchy
 check_design

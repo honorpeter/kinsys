@@ -27,9 +27,12 @@ module gobou
 `endif
   );
 
-  wire        [IMGSIZE-1:0] mem_img_addr;
+`ifndef DIST
   wire                      mem_img_we;
+  wire        [IMGSIZE-1:0] mem_img_addr;
   wire signed [DWIDTH-1:0]  write_mem_img;
+`endif
+
   wire         [CORE-1:0]   mem_net_we;
   wire        [NETSIZE-1:0] mem_net_addr;
   wire signed [DWIDTH-1:0]  read_net   [CORE-1:0];

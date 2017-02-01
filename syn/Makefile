@@ -4,7 +4,7 @@ DESIGN=serial_vec
 dc:
 	#make link
 	#make clock
-	TMPDIR=~/tmp dc_shell -f ./dc.tcl | tee dc.log | sed 's/^\# //'
+	TMPDIR=~/tmp dc_shell -f ./dc.tcl | tee dc.log
 
 pt:
 	pt_shell -f ./pt.tcl | tee pt.log
