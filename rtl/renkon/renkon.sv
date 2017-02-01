@@ -35,4 +35,23 @@ module renkon
   );
 `endif
 
+  for (genvar i = 0; i < CORE; i++) begin : pe
+    mem_sp #(DWIDTH, NETSIZE) mem_net(
+      .read_data  (read_net[i]),
+      .write_data (write_net),
+      .mem_we     (mem_net_we[i]),
+      .mem_addr   (mem_net_addr),
+      .*
+    );
+
+    core core(
+      .read_net     (read_net[i]),
+      .pixel        (pixel),
+      .pmap         (pmap[i]),
+      .*
+    );
+  end : pe
+
+  serial_mat serial(.*);
+
 endmodule
