@@ -1,7 +1,7 @@
 VERBOSE   = 0
-SIMULATOR = vsim
+SIMULATOR = iverilog
 MODULE    = renkon.sv
-DEPENDS   =
+DEPENDS   = core.sv
 TARGET    = tests/test_$(MODULE)
 SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard tests/*.sv)
@@ -94,7 +94,7 @@ ifeq ($(SIMULATOR),vcs)
 else
 ifeq ($(SIMULATOR),iverilog)
   V_COMPILE = touch $@
-  DO_SIM    = make $*.out && time ./$(V_TARGET).out
+  DO_SIM    = iverilog -O $(V_TARGET).out $(SOURCES) && time ./$(V_TARGET).out
 endif
 endif
 endif
