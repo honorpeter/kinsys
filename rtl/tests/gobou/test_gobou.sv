@@ -1,7 +1,8 @@
 `include "gobou.svh"
 
-int N_IN  = 800;
-int N_OUT = 500;
+int N_IN  = 512;
+int N_OUT = 256;
+
 string infile = "test_gobou_input.dat";
 string weight = "/home/work/takau/bhewtek/data/mnist/lenet/bwb_3";
 
@@ -123,7 +124,7 @@ module test_gobou;
 
       if (N_OUT % CORE != 0)
         for (int j = 0; j < CORE; j++)
-          if ((CORE * (N_OUT/CORE) + j) <  N_OUT)
+          if ((CORE * (N_OUT/CORE) + j) < N_OUT)
             $readmemb(
               $sformatf("%s/data%0d.bin", weight, CORE*(N_OUT/CORE)+j),
               mem_n[j],
