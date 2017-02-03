@@ -1,6 +1,3 @@
-work/
-transcript
-vish_stacktrace.vstf
 *.out
 *.com
 *.log
@@ -9,3 +6,9 @@ vish_stacktrace.vstf
 *.dir
 *.jou
 *.dat
+work/
+transcript
+vish_stacktrace.vstf
+vivado/results
+vivado/reports
+zedboard

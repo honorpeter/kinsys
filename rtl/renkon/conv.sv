@@ -1,7 +1,7 @@
 `include "renkon.svh"
 
 module conv
-  (
+  ( .*
   );
 
   if (FSIZE == 3)

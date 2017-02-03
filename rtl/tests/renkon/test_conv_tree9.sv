@@ -2,11 +2,16 @@
 
 module test_conv_tree9;
 
-  localparam DATA_NUM = FSIZE**2;
+  parameter NUM = 100;
 
-  reg clk;
-  reg signed [DWIDTH-1:0] mem_x [NUM-1:0][DATA_NUM-1:0];
-  reg signed [DWIDTH-1:0] mem_w [NUM-1:0][DATA_NUM-1:0];
+  reg                     clk;
+  reg                     xrst;
+  reg signed [DWIDTH-1:0] pixel  [9-1:0];
+  reg signed [DWIDTH-1:0] weight [9-1:0];
+  reg signed [DWIDTH-1:0] fmap;
+
+  reg signed [DWIDTH-1:0] mem_x [NUM-1:0][9-1:0];
+  reg signed [DWIDTH-1:0] mem_w [NUM-1:0][9-1:0];
   reg signed [DWIDTH-1:0] mem_o [NUM-1:0];
 
   conv_tree9 dut(.*);
@@ -24,7 +29,7 @@ module test_conv_tree9;
     #(STEP);
 
     xrst = 1;
-    for (int i = 0; i < FSIZE**2; i++) begin
+    for (int i = 0; i < 9; i++) begin
       pixel[i]  = 0;
       weight[i] = 0;
     end
@@ -34,7 +39,7 @@ module test_conv_tree9;
     #(STEP);
 
     for (int n = 0; n < NUM; n++) begin
-      for (int i = 0; i < FSIZE**2; i++) begin
+      for (int i = 0; i < 9; i++) begin
         pixel[i]  = mem_x[n][i];
         weight[i] = mem_w[n][i];
       end

@@ -11,6 +11,8 @@ parameter CORE    = 16;
 parameter CORELOG = $clog2(CORE);
 parameter IMGSIZE = 12;
 parameter NETSIZE = 14;
+parameter FSIZE   = 5;
+parameter PSIZE   = 2;
 
 parameter D_MAC   = 3;
 parameter D_BIAS  = 2;

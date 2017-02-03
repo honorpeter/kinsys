@@ -30,6 +30,8 @@ module renkon
 `endif
   );
 
+  wire signed [DWIDTH-1:0] read_net [CORE-1:0];
+
 `ifndef DIST
   mem_sp #(DWIDTH, IMGSIZE) mem_img(
   );
