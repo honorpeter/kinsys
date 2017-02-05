@@ -1,7 +1,7 @@
 VERBOSE   = 0
 SIMULATOR = vsim
-MODULE    = renkon.sv
-DEPENDS   = core.sv
+MODULE    = bias.sv
+DEPENDS   =
 TARGET    = test/test_$(MODULE)
 SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard test/*.sv)
@@ -21,6 +21,9 @@ test-all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.log)
 
 log:
 	@vim $(TARGET:.sv=.log)
+
+com:
+	@vim $(TARGET:.sv=.com)
 
 edit:
 	@vim -O $(TARGET) $(MODULE)

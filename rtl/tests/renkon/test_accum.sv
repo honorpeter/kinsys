@@ -22,7 +22,6 @@ module test_accum;
 
   //flow
   initial begin
-    $display("reset out_en | pixel_in sum_old | total sum_new");
     #(STEP);
 
     //xrst = 0;
@@ -53,21 +52,25 @@ module test_accum;
   end
 
   //display
-  always begin
-    #(STEP/2-1);
-    $display(
-      "%d: ", $time/STEP,
-      "| ",
-      "%5d ", reset,
-      "%4d ", out_en,
-      "| ",
-      "%6d ", pixel_in,
-      "%7d ", sum_old,
-      "| ",
-      "%5d ", pixel_out,
-      "%6d ", sum_new
-    );
-    #(STEP/2+1);
+  initial begin
+    $display("clk: reset out_en | pixel_in sum_old | total sum_new");
+    forever begin
+      #(STEP/2-1);
+      $display(
+        "%3d: ", $time/STEP,
+        "| ",
+        "%5d ", reset,
+        "%4d ", out_en,
+        "| ",
+        "%6d ", pixel_in,
+        "%7d ", sum_old,
+        "| ",
+        "%5d ", pixel_out,
+        "%6d ", sum_new,
+        "|"
+      );
+      #(STEP/2+1);
+    end
   end
 
 endmodule
