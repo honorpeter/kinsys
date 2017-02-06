@@ -2,26 +2,26 @@
 `include "ctrl_bus.svh"
 
 module ctrl_core
-  ( input                     clk
-  , input                     xrst
-  , ctrl_bus.in               in_ctrl
-  , input                     req
-  , input                     img_we
-  , input [IMGSIZE-1:0]       input_addr
-  , input [IMGSIZE-1:0]       output_addr
-  , input signed [DWIDTH-1:0] write_img
-  , input signed [DWIDTH-1:0] write_result
-  , input [CORELOG:0]         net_we
-  , input [NETSIZE-1:0]       net_addr
-  , input [LWIDTH-1:0]        total_out
-  , input [LWIDTH-1:0]        total_in
+  ( input                       clk
+  , input                       xrst
+  , ctrl_bus.in                 in_ctrl
+  , input                       req
+  , input                       img_we
+  , input         [IMGSIZE-1:0] input_addr
+  , input         [IMGSIZE-1:0] output_addr
+  , input  signed [DWIDTH-1:0]  write_img
+  , input  signed [DWIDTH-1:0]  write_result
+  , input         [CORELOG:0]   net_we
+  , input         [NETSIZE-1:0] net_addr
+  , input         [LWIDTH-1:0]  total_out
+  , input         [LWIDTH-1:0]  total_in
   , ctrl_bus.out                out_ctrl
   , output                      ack
   , output                      mem_img_we
-  , output [IMGSIZE-1:0]        mem_img_addr
+  , output        [IMGSIZE-1:0] mem_img_addr
   , output signed [DWIDTH-1:0]  write_mem_img
-  , output [CORE-1:0]           mem_net_we
-  , output [NETSIZE-1:0]        mem_net_addr
+  , output        [CORE-1:0]    mem_net_we
+  , output        [NETSIZE-1:0] mem_net_addr
   , output                      breg_we
   , output                      serial_we
   );

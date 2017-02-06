@@ -3,24 +3,19 @@
 module ctrl_pool
   ( input               clk
   , input               xrst
-  , input               in_begin
-  , input               in_valid
-  , input               in_end
-  , input [LWIDTH-1:0]  w_fea_size
-  , input [LWIDTH-1:0]  pool_size
+  , ctrl_bus.in         in_ctrl
+  , input  [LWIDTH-1:0] w_fea_size
+  , input  [LWIDTH-1:0] pool_size
   , output              buf_feat_en
-  , output              out_begin
-  , output              out_valid
-  , output              out_end
+  , ctrl_bus.out        out_ctrl
   , output              pool_oe
   , output [LWIDTH-1:0] w_pool_size
   );
 
-  wire pool_begin;
-  wire pool_valid;
-  wire pool_end;
+  ctrl_bus pool_ctrl;
 
   reg              r_state;
+  reg              r_buf_feat_en;
   reg [LWIDTH-1:0] r_fea_size;
   reg [LWIDTH-1:0] r_pool_size;
   reg [LWIDTH-1:0] r_d_poolbuf;
@@ -28,13 +23,8 @@ module ctrl_pool
   reg [LWIDTH-1:0] r_pool_y;
   reg [LWIDTH-1:0] r_pool_exec_x;
   reg [LWIDTH-1:0] r_pool_exec_y;
-  reg              r_pool_begin_d [D_POOLBUF-1:0];
-  reg              r_pool_valid_d [D_POOLBUF-1:0];
-  reg              r_pool_end_d [D_POOLBUF-1:0];
-  reg              r_out_begin_d [D_POOL-1:0];
-  reg              r_out_valid_d [D_POOL-1:0];
-  reg              r_out_end_d [D_POOL-1:0];
-  reg              r_buf_feat_en;
+  ctrl_reg         r_pool_ctrl [D_POOL-1:0];
+  ctrl_reg         r_out_ctrl [D_POOL-1:0];
 
 //==========================================================
 // main FSM
@@ -46,10 +36,10 @@ module ctrl_pool
     else
       case (r_state)
         S_WAIT:
-          if (in_begin)
+          if (in_start)
             r_state <= S_ACTIVE;
         S_ACTIVE:
-          if (out_end)
+          if (out_stop)
             r_state <= S_WAIT;
       endcase
 
@@ -61,7 +51,7 @@ module ctrl_pool
       r_pool_size <= 0;
       r_d_poolbuf <= 0;
     end
-    else if (r_state == S_WAIT && in_begin) begin
+    else if (r_state == S_WAIT && in_start) begin
       r_fea_size  <= w_fea_size;
       r_pool_size <= pool_size;
       r_d_poolbuf <= w_fea_size - pool_size + 8 - 1;
@@ -114,79 +104,66 @@ module ctrl_pool
     if (!xrst)
       r_buf_feat_en <= 0;
     else
-      r_buf_feat_en <= in_begin;
+      r_buf_feat_en <= in_start;
 
-  assign pool_begin = r_pool_begin_d[r_d_poolbuf];
-  assign pool_valid = r_pool_valid_d[r_d_poolbuf];
-  assign pool_end   =   r_pool_end_d[r_d_poolbuf];
+  assign pool_ctrl.start = r_pool_ctrl[r_d_poolbuf].start;
+  assign pool_ctrl.valid = r_pool_ctrl[r_d_poolbuf].valid;
+  assign pool_ctrl.stop  = r_pool_ctrl[r_d_poolbuf].stop ;
 
-  <%- for n in ["begin", "valid", "end"] -%>
-  <%-   for i in 0...$d_poolbuf -%>
-  always @(posedge clk)
-    <%- if i == 0 -%>
-    if (!xrst)
-      r_pool_<%=n%>_d[0] <= 0;
+  for (genvar i = 0; i < D_POOLBUF; i++)
+    if (i == 0)
+      always @(posedge clk)
+        if (!xrst)
+          r_pool_ctrl[0] <= '{0, 0, 0};
+        else begin
+          r_pool_ctrl[0].start <= r_state == S_ACTIVE
+                                    && r_pool_x == r_pool_size - 2
+                                    && r_pool_y == r_pool_size - 1;
+          r_pool_ctrl[0].valid <= r_state == S_ACTIVE
+                                    && r_pool_exec_x == r_pool_size - 1
+                                    && r_pool_exec_y == r_pool_size - 1;
+          r_pool_ctrl[0].stop  <= r_state == S_ACTIVE
+                                    && r_pool_x == r_fea_size - 1
+                                    && r_pool_y == r_fea_size - 1;
+        end
     else
-      <%- case n -%>
-      <%- when "begin" -%>
-      r_pool_begin_d[0] <= (r_state == S_ACTIVE)
-                            && r_pool_x == r_pool_size - 2
-                            && r_pool_y == r_pool_size - 1;
-      <%- when "valid" -%>
-      r_pool_valid_d[0] <= (r_state == S_ACTIVE)
-                            && r_pool_exec_x == r_pool_size - 1
-                            && r_pool_exec_y == r_pool_size - 1;
-      <%- when "end" -%>
-      r_pool_end_d[0]   <= (r_state == S_ACTIVE)
-                            && r_pool_x == r_fea_size - 1
-                            && r_pool_y == r_fea_size - 1;
-      <%- else -%>
-      <%- end -%>
-    <%- else -%>
-    if (!xrst)
-      r_pool_<%=n%>_d[<%=i%>] <= 0;
-    else
-      r_pool_<%=n%>_d[<%=i%>] <= r_pool_<%=n%>_d[<%=i-1%>];
-    <%- end -%>
-  <%-   end -%>
-  <%- end -%>
+      always @(posedge clk)
+        if (!xrst)
+          r_pool_ctrl[0] <= '{0, 0, 0};
+        else begin
+          r_pool_ctrl[i].start <= r_pool_ctrl[i-1].start;
+          r_pool_ctrl[i].valid <= r_pool_ctrl[i-1].valid;
+          r_pool_ctrl[i].stop  <= r_pool_ctrl[i-1].stop;
+        end
 
 //==========================================================
 // output control
 //==========================================================
 
-  assign out_begin  = r_out_begin_d<%=$d_pool-1%>;
-  assign out_valid  = r_out_valid_d<%=$d_pool-1%>;
-  assign out_end    = r_out_end_d<%=$d_pool-1%>;
-
-  assign pool_oe    = r_out_valid_d<%=$d_pool-2%>;
+  assign out_ctrl.start = r_out_ctrl[D_POOL-1].start;
+  assign out_ctrl.valid = r_out_ctrl[D_POOL-1].valid;
+  assign out_ctrl.stop  = r_out_ctrl[D_POOL-1].stop;
+  assign pool_oe        = r_out_ctrl[D_POOL-2].valid;
 
   for (genvar i = 0; i < D_POOL; i++)
     if (i == 0)
       always @(posedge clk)
         if (!xrst)
-        else
+          r_out_ctrl[0] <= '{0, 0, 0};
+        else begin
+          r_out_ctrl[0].start <= pool_ctrl.start;
+          r_out_ctrl[0].valid <= pool_ctrl.valid;
+          r_out_ctrl[0].stop  <= pool_ctrl.stop;
+        end
     else
       always @(posedge clk)
         if (!xrst)
-        else
-
-  <%- for n in ["begin", "valid", "end"] -%>
-  <%-   for i in 0...$d_pool -%>
-  always @(posedge clk)
-    <%- if i == 0 -%>
-    if (!xrst)
-      r_out_<%=n%>_d0 <= 0;
-    else
-      r_out_<%=n%>_d0 <= pool_<%=n%>;
-    <%- else -%>
-    if (!xrst)
-      r_out_<%=n%>_d<%=i%> <= 0;
-    else
-      r_out_<%=n%>_d<%=i%> <= r_out_<%=n%>_d<%=i-1%>;
-    <%- end -%>
-  <%-   end -%>
-  <%- end -%>
+          r_out_ctrl[i] <= '{0, 0, 0};
+        else begin
+          r_out_ctrl[i].start <= r_out_ctrl[i-1].start;
+          r_out_ctrl[i].valid <= r_out_ctrl[i-1].valid;
+          r_out_ctrl[i].stop  <= r_out_ctrl[i-1].stop;
+        end
 
   assign buf_feat_en = r_buf_feat_en;
 
@@ -194,6 +171,6 @@ module ctrl_pool
     if (!xrst)
       r_buf_feat_en <= 0;
     else
-      r_buf_feat_en <= in_begin;
+      r_buf_feat_en <= in_start;
 
 endmodule

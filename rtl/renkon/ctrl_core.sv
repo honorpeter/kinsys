@@ -4,10 +4,8 @@
 module ctrl_core
   ( input                       clk
   , input                       xrst
+  , ctrl_bus.in                 in_ctrl
   , input                       req
-  , input                       in_begin
-  , input                       in_valid
-  , input                       in_end
   , input                       img_we
   , input         [IMGSIZE-1:0] input_addr
   , input         [IMGSIZE-1:0] output_addr
@@ -19,11 +17,9 @@ module ctrl_core
   , input         [LWIDTH-1:0]  total_in
   , input         [LWIDTH-1:0]  img_size
   , input         [LWIDTH-1:0]  fil_size
+  , ctrl_bus.out                out_ctrl
   , output                      ack
   , output        [2-1:0]       core_state
-  , output                      out_begin
-  , output                      out_valid
-  , output                      out_end
   , output                      mem_img_we
   , output        [IMGSIZE-1:0] mem_img_addr
   , output signed [DWIDTH-1:0]  write_mem_img
@@ -41,14 +37,14 @@ module ctrl_core
   , output        [LWIDTH-1:0]  w_fil_size
   );
 
-  wire                s_network_end;
-  wire                s_input_end;
-  wire                s_output_end;
-  wire                s_w_weight_end;
-  wire                s_w_bias_end;
-  wire                final_iter;
-  wire [IMGSIZE-1:0]  w_img_addr;
-  wire [IMGSIZE-1:0]  w_img_offset;
+  wire               s_network_end;
+  wire               s_input_end;
+  wire               s_output_end;
+  wire               s_w_weight_end;
+  wire               s_w_bias_end;
+  wire               final_iter;
+  wire [IMGSIZE-1:0] w_img_addr;
+  wire [IMGSIZE-1:0] w_img_offset;
 
   enum reg [2-1:0] {
     S_WAIT, S_NETWORK, S_INPUT, S_OUTPUT
@@ -180,6 +176,16 @@ module ctrl_core
 
   assign first_input = r_first_input_d[r_d_pixelbuf];
   assign last_input  = r_last_input_d[r_d_pixelbuf];
+
+  for (genvar i = 0; i < D_PIXELBUF; i++)
+    if (i == 0)
+      always @(posedge clk)
+        if (!xrst)
+        else
+    else
+      always @(posedge clk)
+        if (!xrst)
+        else
 
   <%- for i in 0...$d_pixelbuf -%>
   always @(posedge clk)
