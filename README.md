@@ -11,13 +11,13 @@ Ninjin is a interface with AXI4 protocol for connecting to other systems.
 TODOs
 ==================================================
 
-* Gobou
+* Gobou (1D-Coprocessor)
   - Bypass relu module for last layer.
     + usually with identity or softmax
   - Use another mechanism for caching weights.
     + we have just a little BRAM today
 
-* Renkon
+* Renkon (2D-Coprocessor)
   - Implement the padding option for conv module.
   - Implement the universal filter-size conv module.
     + with 1 MAC for each module
@@ -25,7 +25,7 @@ TODOs
   - Implement the stride option for pool module.
   - Implement the universal filter-size pool module.
 
-* Ninjin
+* Ninjin (AXI4-Interface)
   - Use DRAM for image memory with Central-DMA.
   - Use memory-mapped AXI4.
 
