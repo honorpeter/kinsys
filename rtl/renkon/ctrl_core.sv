@@ -37,21 +37,21 @@ module ctrl_core
   , output        [LWIDTH-1:0]  w_fil_size
   );
 
-  wire               s_network_end;
-  wire               s_input_end;
-  wire               s_output_end;
-  wire               s_w_weight_end;
-  wire               s_w_bias_end;
+  wire               s_network_stop;
+  wire               s_input_stop;
+  wire               s_output_stop;
+  wire               s_w_weight_stop;
+  wire               s_w_bias_stop;
   wire               final_iter;
   wire [IMGSIZE-1:0] w_img_addr;
   wire [IMGSIZE-1:0] w_img_offset;
 
   enum reg [2-1:0] {
     S_WAIT, S_NETWORK, S_INPUT, S_OUTPUT
-  } r_state;
+  } r_state [D_PIXELBUF:0];
   enum reg {
     S_W_WEIGHT, S_W_BIAS
-  } r_state_weight;
+  } r_state_weight [D_PIXELBUF:0];
   reg               r_ack;
   reg [LWIDTH-1:0]  r_total_out;
   reg [LWIDTH-1:0]  r_total_in;
@@ -69,8 +69,8 @@ module ctrl_core
   reg               r_img_we;
   reg               r_out_we;
   reg [IMGSIZE-1:0] r_input_offset;
-  reg [IMGSIZE-1:0] r_output_offset;
   reg [IMGSIZE-1:0] r_input_addr;
+  reg [IMGSIZE-1:0] r_output_offset;
   reg [IMGSIZE-1:0] r_output_addr;
   reg [CORE-1:0]    r_net_we;
   reg [NETSIZE-1:0] r_net_addr;
@@ -79,16 +79,12 @@ module ctrl_core
   reg [CORELOG:0]   r_serial_re;
   reg [LWIDTH-1:0]  r_serial_cnt;
   reg [OUTSIZE-1:0] r_serial_addr;
-  reg               r_serial_end;
-  reg               r_output_end;
-  reg [2-1:0]       r_state_d         [D_PIXELBUF:0];
-  reg               r_state_weight_d  [D_PIXELBUF:0];
+  reg               r_serial_stop;
+  reg               r_output_stop;
   reg               r_wreg_we_d       [D_PIXELBUF-1:0];
   reg               r_first_input_d   [D_PIXELBUF-1:0];
   reg               r_last_input_d    [D_PIXELBUF-1:0];
-  reg               r_out_begin_d     [D_PIXELBUF-1:0];
-  reg               r_out_valid_d     [D_PIXELBUF-1:0];
-  reg               r_out_end_d       [D_PIXELBUF-1:0];
+  ctrl_reg          r_out_ctrl    [D_PIXELBUF-1:0];
 
 //==========================================================
 // core control
@@ -100,59 +96,48 @@ module ctrl_core
   //main FSM
   always @(posedge clk)
     if (!xrst) begin
-      r_state     <= S_WAIT;
+      r_state[0]     <= S_WAIT;
       r_count_in  <= 0;
       r_count_out <= 0;
     end
     else
-      case (r_state)
+      case (r_state[0])
         S_WAIT:
           if (req)
-            r_state <= S_NETWORK;
+            r_state[0] <= S_NETWORK;
         S_NETWORK:
-          if (s_network_end)
-            r_state <= S_INPUT;
+          if (s_network_stop)
+            r_state[0] <= S_INPUT;
         S_INPUT:
-          if (s_input_end)
+          if (s_input_stop)
             if (r_count_in == r_total_in - 1) begin
-              r_state     <= S_OUTPUT;
+              r_state[0]     <= S_OUTPUT;
               r_count_in  <= 0;
             end
             else begin
-              r_state     <= S_NETWORK;
+              r_state[0]     <= S_NETWORK;
               r_count_in  <= r_count_in + 1;
             end
         S_OUTPUT:
-          if (s_output_end)
+          if (s_output_stop)
             if (r_count_out + CORE >= r_total_out) begin
-              r_state     <= S_WAIT;
+              r_state[0]     <= S_WAIT;
               r_count_out <= 0;
             end
             else begin
-              r_state     <= S_NETWORK;
+              r_state[0]     <= S_NETWORK;
               r_count_out <= r_count_out + CORE;
             end
       endcase
 
   assign core_state = r_state_d[r_d_pixelbuf];
 
-  <%- for i in 0..$d_pixelbuf -%>
-  always @(posedge clk)
-    <%- if i == 0 -%>
-    if (!xrst)
-      r_state_d[<%=i%>] <= 0;
-    <%- elsif i == 1 -%>
-    if (!xrst)
-      r_state_d[<%=i%>] <= 0;
-    else
-      r_state_d[<%=i%>] <= r_state;
-    <%- else -%>
-    if (!xrst)
-      r_state_d[<%=i%>] <= 0;
-    else
-      r_state_d[<%=i%>] <= r_state_d[<%=i-1%>];
-    <%- end -%>
-  <%- end -%>
+  for (genvar i = 1; i < D_PIXELBUF+1; i++)
+    always @(posedge clk)
+      if (!xrst)
+        r_state[i] <= 0;
+      else
+        r_state[i] <= r_state[i-1];
 
   assign w_img_size = r_img_size;
   assign w_fil_size = r_fil_size;
@@ -166,7 +151,7 @@ module ctrl_core
       r_fil_size    <= 0;
       r_d_pixelbuf  <= 0;
     end
-    else if (r_state == S_WAIT && req) begin
+    else if (r_state[0] == S_WAIT && req) begin
       r_total_in    <= total_in;
       r_total_out   <= total_out;
       r_img_size    <= img_size;
@@ -180,35 +165,24 @@ module ctrl_core
   for (genvar i = 0; i < D_PIXELBUF; i++)
     if (i == 0)
       always @(posedge clk)
-        if (!xrst)
-        else
+        if (!xrst) begin
+          r_first_input_d[0] <= 0;
+          r_last_input_d[0]  <= 0;
+        end
+        else begin
+          r_first_input_d[0] <= r_state[0] == S_INPUT && r_count_in == 0;
+          r_last_input_d[0]  <= r_state[0] == S_INPUT && r_count_in == r_total_in - 1;
+        end
     else
       always @(posedge clk)
-        if (!xrst)
-        else
-
-  <%- for i in 0...$d_pixelbuf -%>
-  always @(posedge clk)
-    <%- if i == 0 -%>
-    if (!xrst) begin
-      r_first_input_d[0] <= 0;
-      r_last_input_d[0]  <= 0;
-    end
-    else begin
-      r_first_input_d[0] <= r_state == S_INPUT && r_count_in == 0;
-      r_last_input_d[0]  <= r_state == S_INPUT && r_count_in == r_total_in - 1;
-    end
-    <%- else -%>
-    if (!xrst) begin
-      r_first_input_d[<%=i%>] <= 0;
-      r_last_input_d[<%=i%>]  <= 0;
-    end
-    else begin
-      r_first_input_d[<%=i%>] <= r_first_input_d[<%=i-1%>];
-      r_last_input_d[<%=i%>]  <= r_last_input_d[<%=i-1%>];
-    end
-    <%- end -%>
-  <%- end -%>
+        if (!xrst) begin
+          r_first_input_d[i] <= 0;
+          r_last_input_d[i]  <= 0;
+        end
+        else begin
+          r_first_input_d[i] <= r_first_input_d[i-1];
+          r_last_input_d[i]  <= r_last_input_d[i-1];
+        end
 
 //==========================================================
 // network control
@@ -217,70 +191,59 @@ module ctrl_core
   assign mem_net_we   = r_net_we;
   assign mem_net_addr = r_net_addr + r_net_offset;
 
-  assign s_network_end  = r_state == S_NETWORK && r_count_in == r_total_in - 1
-                        ? s_w_bias_end
-                        : s_w_weight_end;
+  assign s_network_stop = r_state[0] == S_NETWORK
+                            && r_count_in == r_total_in - 1
+                        ? s_w_bias_stop
+                        : s_w_weight_stop;
 
-  assign s_w_weight_end = r_state_weight == S_W_WEIGHT
-                       && r_weight_x == r_fil_size - 1
-                       && r_weight_y == r_fil_size - 1;
+  assign s_w_weight_stop = r_state_weight[0] == S_W_WEIGHT
+                        && r_weight_x == r_fil_size - 1
+                        && r_weight_y == r_fil_size - 1;
 
-  assign s_w_bias_end   = r_state_weight == S_W_BIAS;
+  assign s_w_bias_stop   = r_state_weight[0] == S_W_BIAS;
 
   always @(posedge clk)
     if (!xrst)
-      r_state_weight <= S_W_WEIGHT;
+      r_state_weight[0] <= S_W_WEIGHT;
     else
-      case (r_state_weight)
+      case (r_state_weight[0])
         S_W_WEIGHT:
-          if (s_w_weight_end && r_count_in == r_total_in - 1)
-            r_state_weight <= S_W_BIAS;
+          if (s_w_weight_stop && r_count_in == r_total_in - 1)
+            r_state_weight[0] <= S_W_BIAS;
         S_W_BIAS:
-          if (s_w_bias_end)
-            r_state_weight <= S_W_WEIGHT;
+          if (s_w_bias_stop)
+            r_state_weight[0] <= S_W_WEIGHT;
         default:
-          r_state_weight <= S_W_WEIGHT;
+          r_state_weight[0] <= S_W_WEIGHT;
       endcase
 
-  always @(posedge clk)
-    if (!xrst)
-      r_net_we <= 0;
-    else
-      case (net_we)
-        <%- for i in 0..$core -%>
-        <%=$core_log+1%>'d<%=i%>:
-          r_net_we <= <%=$core%>'b<%=sprintf("%0#{$core}b", 1<<(i-1))%>;
-        <%- end -%>
-        default:
-          r_net_we <= <%=$core%>'b<%=sprintf("%0#{$core}b", 0)%>;
-      endcase
+  for (genvar i = 1; i < D_PIXELBUF+1; i++)
+    always @(posedge clk)
+      if (!xrst)
+        r_state_weight[i] <= 0;
+      else
+        r_state_weight[i] <= r_state_weight[i-1];
 
-  <%- for i in 1..$d_pixelbuf -%>
-  always @(posedge clk)
-    <%- if i == 1 -%>
-    if (!xrst)
-      r_state_weight_d[<%=i%>] <= 0;
-    else
-      r_state_weight_d[<%=i%>] <= r_state_weight;
-    <%- else -%>
-    if (!xrst)
-      r_state_weight_d[<%=i%>] <= 0;
-    else
-      r_state_weight_d[<%=i%>] <= r_state_weight_d[<%=i-1%>];
-    <%- end -%>
-  <%- end -%>
+  for (genvar i = 0; i < CORE; i++)
+    always @(posedge clk)
+      if (!xrst)
+        r_net_we[i] <= 0;
+      else if (net_we == i+1)
+        r_net_we[i] <= 1;
+      else
+        r_net_we[i] <= 0;
 
   always @(posedge clk)
     if (!xrst)
       r_net_addr <= 0;
-    else if (final_iter && r_state_weight_d[r_d_pixelbuf] == S_W_BIAS)
+    else if (final_iter && r_state_weight[r_d_pixelbuf] == S_W_BIAS)
       r_net_addr <= 0;
     else if (r_state_d[r_d_pixelbuf] == S_NETWORK)
-      case (r_state_weight_d[r_d_pixelbuf])
+      case (r_state_weight[r_d_pixelbuf])
         S_W_WEIGHT:
           r_net_addr <= r_net_addr + 1;
         S_W_BIAS:
-          r_net_addr   <= r_net_addr + 1;
+          r_net_addr <= r_net_addr + 1;
         default:
           r_net_addr <= r_net_addr;
       endcase
@@ -297,9 +260,9 @@ module ctrl_core
       r_weight_y <= 0;
     end
     else
-      case (r_state)
+      case (r_state[0])
         S_NETWORK:
-          case (r_state_weight)
+          case (r_state_weight[0])
             S_W_WEIGHT:
               if (r_weight_x == r_fil_size - 1) begin
                 r_weight_x <= 0;
@@ -326,10 +289,10 @@ module ctrl_core
 //==========================================================
 
   assign wreg_we  = r_state_d[r_d_pixelbuf+1] == S_NETWORK
-                 && r_state_weight_d[r_d_pixelbuf+1] == S_W_WEIGHT;
+                 && r_state_weight[r_d_pixelbuf+1] == S_W_WEIGHT;
 
   assign breg_we  = r_state_d[r_d_pixelbuf+1] == S_NETWORK
-                 && r_state_weight_d[r_d_pixelbuf+1] == S_W_BIAS;
+                 && r_state_weight[r_d_pixelbuf+1] == S_W_BIAS;
 
   assign buf_pix_en = r_buf_pix_en;
 
@@ -337,29 +300,29 @@ module ctrl_core
     if (!xrst)
       r_buf_pix_en <= 0;
     else
-      r_buf_pix_en <= r_state == S_INPUT
-                   && r_out_begin_d[0];
+      r_buf_pix_en <= r_state[0] == S_INPUT
+                   && r_out_start_d[0];
 
 //==========================================================
 // input control
 //==========================================================
 
-  assign s_input_end  = r_state == S_INPUT
+  assign s_input_stop = r_state[0] == S_INPUT
                      && r_input_x == r_img_size - 1
                      && r_input_y == r_img_size - 1;
 
   assign mem_img_we   = r_img_we;
   assign mem_img_addr = w_img_addr + w_img_offset;
 
-  assign write_mem_img = r_state == S_OUTPUT
+  assign write_mem_img = r_state[0] == S_OUTPUT
                        ? write_result
                        : write_img;
 
-  assign w_img_addr = r_state == S_OUTPUT
+  assign w_img_addr = r_state[0] == S_OUTPUT
                     ? r_output_addr
                     : r_input_addr;
 
-  assign w_img_offset = r_state == S_OUTPUT
+  assign w_img_offset = r_state[0] == S_OUTPUT
                       ? r_output_offset
                       : r_input_offset;
 
@@ -369,7 +332,7 @@ module ctrl_core
       r_input_y <= 0;
     end
     else
-      case (r_state)
+      case (r_state[0])
         S_INPUT:
           if (r_input_x == r_img_size - 1) begin
             r_input_x <= 0;
@@ -390,7 +353,7 @@ module ctrl_core
     if (!xrst)
       r_img_we <= 0;
     else
-      case (r_state)
+      case (r_state[0])
         S_WAIT:
           r_img_we <= img_we;
         S_OUTPUT:
@@ -402,9 +365,9 @@ module ctrl_core
   always @(posedge clk)
     if (!xrst)
       r_input_addr <= 0;
-    else if (r_state == S_OUTPUT)
+    else if (r_state[0] == S_OUTPUT)
       r_input_addr <= 0;
-    else if (r_state == S_INPUT)
+    else if (r_state[0] == S_INPUT)
       r_input_addr <= r_input_addr + 1;
 
   always @(posedge clk)
@@ -435,24 +398,24 @@ module ctrl_core
   assign serial_re    = r_serial_re;
   assign serial_addr  = r_serial_addr;
 
-  assign out_begin    = r_out_begin_d[r_d_pixelbuf];
+  assign out_start    = r_out_start_d[r_d_pixelbuf];
   assign out_valid    = r_out_valid_d[r_d_pixelbuf];
-  assign out_end      = r_out_end_d[r_d_pixelbuf];
+  assign out_stop      = r_out_stop_d[r_d_pixelbuf];
 
-  assign s_output_end = r_output_end;
+  assign s_output_stop = r_output_stop;
 
   always @(posedge clk)
     if (!xrst)
-      r_serial_end <= 0;
+      r_serial_stop <= 0;
     else
-      r_serial_end <= r_serial_re == CORE
+      r_serial_stop <= r_serial_re == CORE
                    && r_serial_addr == r_serial_cnt - 1;
 
   always @(posedge clk)
     if (!xrst)
-      r_output_end <= 0;
+      r_output_stop <= 0;
     else
-      r_output_end <= r_state == S_OUTPUT && r_serial_end;
+      r_output_stop <= r_state[0] == S_OUTPUT && r_serial_stop;
 
   always @(posedge clk)
     if (!xrst)
@@ -465,22 +428,22 @@ module ctrl_core
       r_ack <= 1;
     else if (req)
       r_ack <= 0;
-    else if (s_output_end && r_count_out + CORE >= r_total_out)
+    else if (s_output_stop && r_count_out + CORE >= r_total_out)
       r_ack <= 1;
 
   always @(posedge clk)
     if (!xrst)
       r_serial_we <= 0;
-    else if (r_state == S_OUTPUT)
-      if (in_begin)
+    else if (r_state[0] == S_OUTPUT)
+      if (in_start)
         r_serial_we <= 1;
-      else if (in_end)
+      else if (in_stop)
         r_serial_we <= 0;
 
   always @(posedge clk)
     if (!xrst)
       r_serial_re <= 0;
-    else if (in_end)
+    else if (in_stop)
       r_serial_re <= 1;
     else if (r_serial_re > 0 && r_serial_addr == r_serial_cnt - 1)
       if (r_serial_re == CORE)
@@ -491,18 +454,18 @@ module ctrl_core
   always @(posedge clk)
     if (!xrst)
       r_serial_cnt <= 0;
-    else if (s_output_end)
+    else if (s_output_stop)
       r_serial_cnt <= 0;
-    else if (r_state == S_OUTPUT && in_valid)
+    else if (r_state[0] == S_OUTPUT && in_valid)
       r_serial_cnt <= r_serial_cnt + 1;
 
   always @(posedge clk)
     if (!xrst)
       r_serial_addr <= 0;
-    else if (s_output_end)
+    else if (s_output_stop)
       r_serial_addr <= 0;
-    else if (r_state == S_OUTPUT && in_valid)
-      if (in_end)
+    else if (r_state[0] == S_OUTPUT && in_valid)
+      if (in_stop)
         r_serial_addr <= 0;
         else
         r_serial_addr <= r_serial_addr + 1;
@@ -512,32 +475,28 @@ module ctrl_core
       else
         r_serial_addr <= r_serial_addr + 1;
 
-  <%- for n in ["begin", "valid", "end"] -%>
-  <%-   for i in 0...$d_pixelbuf -%>
-  always @(posedge clk)
-    <%- if i == 0 -%>
-    if (!xrst)
-      r_out_<%=n%>_d[0] <= 0;
+  for (genvar i = 0; i < D_PIXELBUF; i++)
+    if (i == 0)
+      always @(posedge clk)
+        if (!xrst)
+          r_out_ctrl[0] <= '{0, 0, 0};
+        else begin
+          r_out_ctrl.start[0] <= req
+                              || s_network_stop
+                              || s_input_stop
+                                  && r_count_in != r_total_in - 1;
+          r_out_ctrl.valid[0] <= r_state[0] == S_NETWORK
+                              || r_state[0] == S_INPUT;
+          r_out_ctrl.stop[0]  <= s_network_stop || s_input_stop;
+        end
     else
-      <%- case n -%>
-      <%- when "begin" -%>
-      r_out_begin_d[0] <= req
-                       || s_network_end
-                       || s_input_end
-                          && r_count_in != r_total_in - 1;
-      <%- when "valid" -%>
-      r_out_valid_d[0] <= r_state == S_NETWORK || r_state == S_INPUT;
-      <%- when "end" -%>
-      r_out_end_d[0]   <= s_network_end || s_input_end;
-      <%- else -%>
-      <%- end -%>
-    <%- else -%>
-    if (!xrst)
-      r_out_<%=n%>_d[<%=i%>] <= 0;
-    else
-      r_out_<%=n%>_d[<%=i%>] <= r_out_<%=n%>_d[<%=i-1%>];
-    <%- end -%>
-  <%-   end -%>
-  <%- end -%>
+      always @(posedge clk)
+        if (!xrst)
+          r_out_ctrl[i] <= '{0, 0, 0};
+        else begin
+          r_out_ctrl[i].start <= r_out_ctrl[i-1].start;
+          r_out_ctrl[i].valid <= r_out_ctrl[i-1].valid;
+          r_out_ctrl[i].stop  <= r_out_ctrl[i-1].stop;
+        end
 
 endmodule
