@@ -494,18 +494,22 @@ void LeNet_del(void)
 {
   del_imap(&input);
   del_wmap(&w_conv0);
+  del_bmap(&b_conv0);
   del_imap(&conv0);
   del_imap(&relu0);
   del_imap(&pool0);
   del_wmap(&w_conv1);
+  del_bmap(&b_conv1);
   del_imap(&conv1);
   del_imap(&relu1);
   del_imap(&pool1);
   del_ivec(&xflat);
   del_wvec(&w_full2);
+  del_bvec(&b_full2);
   del_ivec(&full2);
   del_ivec(&relu2);
   del_wvec(&w_full3);
+  del_bvec(&b_full3);
   del_ivec(&full3);
   del_ivec(&output);
 }
