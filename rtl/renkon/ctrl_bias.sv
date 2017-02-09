@@ -1,4 +1,5 @@
 `include "renkon.svh"
+`include "ctrl_bus.svh"
 
 module ctrl_bias
   ( input         clk
