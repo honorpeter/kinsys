@@ -12,3 +12,7 @@ vish_stacktrace.vstf
 vivado/results
 vivado/reports
 zedboard
+doc/build/*
+doc/!.gitkeep
+doc/__pycache__
+doc/*.pdf
