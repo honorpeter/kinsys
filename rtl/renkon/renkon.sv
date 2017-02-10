@@ -30,7 +30,12 @@ module renkon
 `endif
   );
 
-  wire signed [DWIDTH-1:0] read_net [CORE-1:0];
+  wire        [CORE-1:0]    mem_net_we;
+  wire        [NETSIZE-1:0] mem_net_addr;
+  wire signed [DWIDTH-1:0]  read_net [CORE-1:0];
+  wire signed [DWIDTH-1:0]  pmap [CORE-1:0];
+  wire signed [DWIDTH-1:0]  pixel [FSIZE**2-1:0];
+  wire signed [DWIDTH-1:0]  write_result;
 
 `ifndef DIST
   mem_sp #(DWIDTH, IMGSIZE) mem_img(
@@ -54,6 +59,10 @@ module renkon
     );
   end : pe
 
-  serial_mat serial(.*);
+  serial_mat serial(
+    .in_data  (pmap),
+    .out_data (write_result),
+    .*
+  );
 
 endmodule

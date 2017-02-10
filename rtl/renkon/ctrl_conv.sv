@@ -1,4 +1,5 @@
 `include "renkon.svh"
+`include "ctrl_bus.svh"
 
 module ctrl_conv
   ( input               clk
@@ -18,10 +19,8 @@ module ctrl_conv
   , output [LWIDTH-1:0] w_fea_size
   );
 
-  ctrl_bus conv_ctrl;
-  wire conv_start;
-  wire conv_vaild;
-  wire conv_stop;
+  ctrl_bus conv_ctrl();
+  ctrl_bus accum_ctrl();
 
   enum reg {
     S_WAIT, S_ACTIVE
@@ -35,15 +34,13 @@ module ctrl_conv
   reg [LWIDTH-1:0]  r_img_size;
   reg [LWIDTH-1:0]  r_fil_size;
   reg [LWIDTH-1:0]  r_fea_size;
-  reg               r_feat_we_d   [D_CONV-1:0];
-  reg               r_feat_rst_d  [D_CONV-1:0];
-  reg [FACCUM-1:0]  r_feat_addr_d [D_CONV:0];
+  reg               r_feat_we   [D_CONV-1:0];
+  reg               r_feat_rst  [D_CONV-1:0];
+  reg [FACCUM-1:0]  r_feat_addr [D_CONV:0];
   reg [LWIDTH-1:0]  r_conv_x;
   reg [LWIDTH-1:0]  r_conv_y;
   ctrl_reg          r_conv_ctrl;
-  reg               r_conv_start;
-  reg               r_conv_valid;
-  reg               r_conv_stop;
+  ctrl_reg          r_accum_ctrl;
   ctrl_reg          r_out_ctrl    [D_CONV+D_ACCUM-1:0];
 
 //==========================================================
@@ -56,10 +53,10 @@ module ctrl_conv
     else
       case (r_state)
         S_WAIT:
-          if (in_start)
+          if (in_ctrl.start)
             r_state <= S_ACTIVE;
         S_ACTIVE:
-          if (out_stop)
+          if (out_ctrl.stop)
             r_state <= S_WAIT;
       endcase
 
@@ -77,7 +74,7 @@ module ctrl_conv
       r_fil_size <= 0;
       r_fea_size <= 0;
     end
-    else if (r_state == S_WAIT && in_start) begin
+    else if (r_state == S_WAIT && in_ctrl.start) begin
       r_img_size <= w_img_size;
       r_fil_size <= w_fil_size;
       r_fea_size <= w_img_size - w_fil_size + 1;
@@ -95,7 +92,7 @@ module ctrl_conv
           r_conv_y <= 0;
         end
         S_ACTIVE:
-          if (r_core_state == S_CORE_INPUT && in_valid)
+          if (r_core_state == S_CORE_INPUT && in_ctrl.valid)
             if (r_conv_x == r_img_size - 1) begin
               r_conv_x <= 0;
               if (r_conv_y == r_img_size - 1)
@@ -127,7 +124,7 @@ module ctrl_conv
 
   always @(posedge clk)
     if (!xrst)
-      r_conv_ctrl[0] <= '{0, 0, 0};
+      r_conv_ctrl <= '{0, 0, 0};
     else begin
       r_conv_ctrl.start <= r_state == S_ACTIVE
                             && r_core_state == S_CORE_INPUT
@@ -156,135 +153,124 @@ module ctrl_conv
     end
 
 //==========================================================
-// feat-accum control
+// mem_feat control
 //==========================================================
 
-  assign mem_feat_we      = r_feat_we_d[D_CONV-1];
-  assign mem_feat_rst     = r_feat_rst_d[D_CONV-1];
-  assign mem_feat_addr    = r_feat_addr_d[D_CONV-1];
-  assign mem_feat_addr_d1 = r_feat_addr_d[D_CONV];
+  assign mem_feat_we     = r_feat_we[D_CONV-1];
+  assign mem_feat_rst    = r_feat_rst[D_CONV-1];
+  assign mem_feat_addr   = r_feat_addr[D_CONV-1];
+  assign mem_feat_addr_d = r_feat_addr[D_CONV];
 
   for (genvar i = 0; i < D_CONV; i++)
     if (i == 0)
       always @(posedge clk)
         if (!xrst)
+          r_feat_we[0] <= 0;
         else
+          r_feat_we[0] <= conv_ctrl.valid;
     else
       always @(posedge clk)
         if (!xrst)
+          r_feat_we[i] <= 0;
         else
-
-  <%- for i in 0...$d_conv -%>
-  always @(posedge clk)
-    <%- if i == 0 -%>
-    if (!xrst)
-      r_feat_we_d0 <= 0;
-    else
-      r_feat_we_d0 <= conv_valid;
-    <%- else -%>
-    if (!xrst)
-      r_feat_we_d<%=i%> <= 0;
-    else
-      r_feat_we_d<%=i%> <= r_feat_we_d<%=i-1%>;
-    <%- end -%>
-  <%- end -%>
+          r_feat_we[i] <= r_feat_we[i-1];
 
   for (genvar i = 0; i < D_CONV; i++)
     if (i == 0)
       always @(posedge clk)
         if (!xrst)
+          r_feat_rst[0] <= 0;
         else
+          r_feat_rst[0] <= conv_ctrl.valid && r_first_input;
     else
       always @(posedge clk)
         if (!xrst)
+          r_feat_rst[i] <= 0;
         else
-
-  <%- for i in 0...$d_conv -%>
-  always @(posedge clk)
-    <%- if i == 0 -%>
-    if (!xrst)
-      r_feat_rst_d0 <= 0;
-    else
-      r_feat_rst_d0 <= conv_valid && r_first_input;
-    <%- else -%>
-    if (!xrst)
-      r_feat_rst_d<%=i%> <= 0;
-    else
-      r_feat_rst_d<%=i%> <= r_feat_rst_d<%=i-1%>;
-    <%- end -%>
-  <%- end -%>
+          r_feat_rst[i] <= r_feat_rst[i-1];
 
   for (genvar i = 0; i < D_CONV+1; i++)
-    if (i == 0)
-      always @(posedge clk)
-        if (!xsrt)
-        else if ()
-        else if ()
-    else
+    if (i == 0) begin
       always @(posedge clk)
         if (!xrst)
+          r_feat_addr[0] <= 0;
+        else if (conv_ctrl.stop || r_wait_back)
+          r_feat_addr[0] <= 0;
+        else if (conv_ctrl.valid
+                  || (r_core_state == S_CORE_OUTPUT
+                        && r_conv_x <= r_fea_size - 1
+                        && r_conv_y <= r_fea_size - 1))
+          r_feat_addr[0] <= r_feat_addr[0] + 1;
+    end
+    else begin
+      always @(posedge clk)
+        if (!xrst)
+          r_feat_addr[i] <= 0;
         else
+          r_feat_addr[i] <= r_feat_addr[i-1];
+    end
 
-  <%- for i in 0..$d_conv -%>
+//==========================================================
+// accum control
+//==========================================================
+
+  assign accum_ctrl.start = r_accum_ctrl.start;
+  assign accum_ctrl.valid = r_accum_ctrl.valid;
+  assign accum_ctrl.stop  = r_accum_ctrl.stop;
+
   always @(posedge clk)
-    <%- if i == 0 -%>
     if (!xrst)
-      r_feat_addr_d0 <= 0;
-    else if (conv_stop || r_wait_back)
-      r_feat_addr_d0 <= 0;
-    else if (conv_valid
-              || (r_core_state == S_CORE_OUTPUT
-                    && r_conv_x <= r_fea_size - 1
-                    && r_conv_y <= r_fea_size - 1))
-      r_feat_addr_d0 <= r_feat_addr_d0 + 1;
-    <%- else -%>
-    if (!xrst)
-      r_feat_addr_d<%=i%> <= 0;
-    else
-      r_feat_addr_d<%=i%> <= r_feat_addr_d<%=i-1%>;
-    <%- end -%>
-  <%- end -%>
+      r_accum_ctrl <= '{0, 0, 0};
+    else begin
+      r_accum_ctrl.start <= r_state == S_ACTIVE
+                              && r_core_state == S_CORE_INPUT
+                              && r_last_input
+                              && r_conv_x == r_img_size - 1
+                              && r_conv_y == r_img_size - 1;
+      r_accum_ctrl.valid <= r_state == S_ACTIVE
+                              && r_core_state == S_CORE_OUTPUT
+                              && r_conv_x <= r_fea_size - 1
+                              && r_conv_y <= r_fea_size - 1
+                              && !r_wait_back;
+      r_accum_ctrl.stop  <= r_state == S_ACTIVE
+                              && r_core_state == S_CORE_OUTPUT
+                              && r_conv_x == r_fea_size - 1
+                              && r_conv_y == r_fea_size - 1;
+    end
 
 //==========================================================
 // output control
 //==========================================================
 
-  assign out_start = r_out_start_d[D_CONV+D_ACCUM-1];
-  assign out_valid = r_out_valid_d[D_CONV+D_ACCUM-1];
-  assign out_stop   = r_out_stop_d[D_CONV+D_ACCUM-1];
-  assign conv_oe   = r_out_valid_d[D_CONV+D_ACCUM-2];
+  assign out_ctrl.start = r_out_ctrl[D_CONV+D_ACCUM-1].start;
+  assign out_ctrl.valid = r_out_ctrl[D_CONV+D_ACCUM-1].valid;
+  assign out_ctrl.stop  = r_out_ctrl[D_CONV+D_ACCUM-1].stop;
+  assign conv_oe        = r_out_ctrl[D_CONV+D_ACCUM-2].valid;
 
   for (genvar i = 0; i < D_CONV+D_ACCUM; i++)
     if (i == 0)
       always @(posedge clk)
         if (!xrst)
-        else
+          r_out_ctrl[0] <= '{0, 0, 0};
+        else begin
+          r_out_ctrl[0].start <= accum_ctrl.start;
+          r_out_ctrl[0].valid <= accum_ctrl.valid;
+          r_out_ctrl[0].stop  <= accum_ctrl.stop;
+        end
     else
       always @(posedge clk)
         if (!xrst)
-        else
-
-  <%- for n in ["begin", "valid", "end"] -%>
-  <%-   for i in 0...$d_conv+$d_accum -%>
-  always @(posedge clk)
-    <%- if i == 0 -%>
-    if (!xrst)
-      r_out_<%=n%>_d0 <= 0;
-    else
-      r_out_<%=n%>_d0 <= r_out_<%=n%>;
-    <%- else -%>
-    if (!xrst)
-      r_out_<%=n%>_d<%=i%> <= 0;
-    else
-      r_out_<%=n%>_d<%=i%> <= r_out_<%=n%>_d<%=i-1%>;
-    <%- end -%>
-  <%-   end -%>
-  <%- end -%>
+          r_out_ctrl[i] <= '{0, 0, 0};
+        else begin
+          r_out_ctrl[i].start <= r_out_ctrl[i-1].start;
+          r_out_ctrl[i].valid <= r_out_ctrl[i-1].valid;
+          r_out_ctrl[i].stop  <= r_out_ctrl[i-1].stop;
+        end
 
   always @(posedge clk)
     if (!xrst)
       r_wait_back <= 0;
-    else if (in_start)
+    else if (in_ctrl.start)
       r_wait_back <= 0;
     else if ((r_state == S_ACTIVE)
                 && (r_core_state == S_CORE_OUTPUT)

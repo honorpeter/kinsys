@@ -12,6 +12,7 @@ parameter CORELOG = $clog2(CORE);
 parameter IMGSIZE = 12;
 parameter NETSIZE = 14;
 
+// Delay for each module (corresponds to the number of stages)
 parameter D_MAC   = 3;
 parameter D_BIAS  = 2;
 parameter D_RELU  = 2;

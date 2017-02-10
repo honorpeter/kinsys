@@ -30,6 +30,8 @@ TODOs
   - Use memory-mapped AXI4.
 
 * Other parts
+  - Provide sufficient documents
+    + include in-code comments
   - Synthesis API with simple syntax like major DL frameworks.
   - simple module definition DSL.
 
