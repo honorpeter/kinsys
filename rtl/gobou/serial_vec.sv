@@ -13,7 +13,7 @@ module serial_vec
 
   assign out_data = r_data[0];
 
-  always @(posedge clk or negedge xrst)
+  always @(posedge clk)
     if (!xrst)
       r_cnt <= 0;
     else if (serial_we)

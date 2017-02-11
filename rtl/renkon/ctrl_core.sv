@@ -47,7 +47,7 @@ module ctrl_core
   wire [IMGSIZE-1:0] w_img_offset;
 
   enum reg [2-1:0] {
-    S_WAIT, S_NETWORK, S_INPUT, S_OUTPUT
+    S_WAIT=0, S_NETWORK=1, S_INPUT=2, S_OUTPUT=3
   } r_state [D_PIXELBUF:0];
   enum reg {
     S_W_WEIGHT, S_W_BIAS

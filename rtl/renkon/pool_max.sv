@@ -36,7 +36,7 @@ module pool_max4
       else
         r_pixel[i] <= pixel[i];
 
-  always @(posedge clk or negedge xrst)
+  always @(posedge clk)
     if(!xrst)
       r_pmap <= 0;
     else if (out_en)

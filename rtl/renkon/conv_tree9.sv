@@ -77,7 +77,7 @@ module conv_tree9
         r_pro_short[i] <= pro_short[i];
   end
 
-  always @(posedge clk or negedge xrst)
+  always @(posedge clk)
     if(!xrst)
       r_fmap <= 0;
     else

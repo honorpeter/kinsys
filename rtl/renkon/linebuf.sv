@@ -41,7 +41,7 @@ module linebuf
   for (genvar i = 0; i < MAXLINE**2; i++)
     assign buf_output[i] = r_pixel[i];
 
-  always @(posedge clk or negedge xrst)
+  always @(posedge clk)
     if (!xrst)
       r_state <= S_WAIT;
     else
@@ -65,13 +65,13 @@ module linebuf
   assign s_active_end = r_line_count == img_size
                         && r_addr_count == img_size - 1;
 
-  always @(posedge clk or negedge xrst)
+  always @(posedge clk)
     if (!xrst)
       r_buf_input <= 0;
     else
       r_buf_input <= buf_input;
 
-  always @(posedge clk or negedge xrst)
+  always @(posedge clk)
     if (!xrst)
       r_addr_count <= 0;
     else if (r_state == S_WAIT)
@@ -82,7 +82,7 @@ module linebuf
       else
         r_addr_count <= r_addr_count + 1;
 
-  always @(posedge clk or negedge xrst)
+  always @(posedge clk)
     if (!xrst)
       r_mem_count <= 0;
     else if  (r_state == S_WAIT)
@@ -94,7 +94,7 @@ module linebuf
       else if (r_addr_count == img_size - 1)
         r_mem_count <= r_mem_count + 1;
 
-  always @(posedge clk or negedge xrst)
+  always @(posedge clk)
     if (!xrst)
       r_line_count <= 0;
     else if  (r_state == S_WAIT)

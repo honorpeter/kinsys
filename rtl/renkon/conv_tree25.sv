@@ -40,6 +40,7 @@ module conv_tree25
   reg signed [DWIDTH-1:0]   r_weight    [25-1:0];
   reg signed [2*DWIDTH-1:0] r_pro       [25-1:0];
   reg signed [DWIDTH-1:0]   r_pro_short [25-1:0];
+  reg signed [DWIDTH-1:0]   r_pro_short24_d;
   reg signed [DWIDTH-1:0]   r_sum0_0;
   reg signed [DWIDTH-1:0]   r_sum0_1;
   reg signed [DWIDTH-1:0]   r_sum0_2;
@@ -72,18 +73,18 @@ module conv_tree25
   for (genvar i = 0; i < 25; i++)
     assign pro_short[i] = round(r_pro[i]);
 
-  assign sum0_0 = pro_short[0] + pro_short[1];
-  assign sum0_1 = pro_short[2] + pro_short[3];
-  assign sum0_2 = pro_short[4] + pro_short[5];
-  assign sum0_3 = pro_short[6] + pro_short[7];
-  assign sum0_4 = pro_short[8] + pro_short[9];
-  assign sum0_5 = pro_short[10] + pro_short[11];
-  assign sum0_6 = pro_short[12] + pro_short[13];
-  assign sum0_7 = pro_short[14] + pro_short[15];
-  assign sum0_8 = pro_short[16] + pro_short[17];
-  assign sum0_9 = pro_short[18] + pro_short[19];
-  assign sum0_10 = pro_short[20] + pro_short[21];
-  assign sum0_11 = pro_short[22] + pro_short[23];
+  assign sum0_0  = r_pro_short[0]  + r_pro_short[1];
+  assign sum0_1  = r_pro_short[2]  + r_pro_short[3];
+  assign sum0_2  = r_pro_short[4]  + r_pro_short[5];
+  assign sum0_3  = r_pro_short[6]  + r_pro_short[7];
+  assign sum0_4  = r_pro_short[8]  + r_pro_short[9];
+  assign sum0_5  = r_pro_short[10] + r_pro_short[11];
+  assign sum0_6  = r_pro_short[12] + r_pro_short[13];
+  assign sum0_7  = r_pro_short[14] + r_pro_short[15];
+  assign sum0_8  = r_pro_short[16] + r_pro_short[17];
+  assign sum0_9  = r_pro_short[18] + r_pro_short[19];
+  assign sum0_10 = r_pro_short[20] + r_pro_short[21];
+  assign sum0_11 = r_pro_short[22] + r_pro_short[23];
   assign sum1_0 = sum0_0 + sum0_1;
   assign sum1_1 = sum0_2 + sum0_3;
   assign sum1_2 = sum0_4 + sum0_5;
@@ -93,8 +94,8 @@ module conv_tree25
   assign sum2_0 = sum1_0 + sum1_1;
   assign sum2_1 = sum1_2 + sum1_3;
   assign sum2_2 = sum1_4 + sum1_5;
-  assign sum3_0 = sum2_0 + sum2_1;
-  assign sum3_1 = sum2_2 + pro_short[24];
+  assign sum3_0 = r_sum2_0 + r_sum2_1;
+  assign sum3_1 = r_sum2_2 + r_pro_short24_d;
   assign sum4_0 = sum3_0 + sum3_1;
 
   assign fmap = r_fmap;
@@ -125,7 +126,14 @@ module conv_tree25
         r_pro_short[i] <= pro_short[i];
   end
 
-  always @(posedge clk or negedge xrst)
+  always @(posedge clk) begin
+    r_sum2_0        <= sum2_0;
+    r_sum2_1        <= sum2_1;
+    r_sum2_2        <= sum2_2;
+    r_pro_short24_d <= r_pro_short[24];
+  end
+
+  always @(posedge clk)
     if(!xrst)
       r_fmap <= 0;
     else
