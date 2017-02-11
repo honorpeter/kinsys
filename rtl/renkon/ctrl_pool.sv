@@ -26,7 +26,7 @@ module ctrl_pool
   reg [LWIDTH-1:0] r_pool_y;
   reg [LWIDTH-1:0] r_pool_exec_x;
   reg [LWIDTH-1:0] r_pool_exec_y;
-  ctrl_reg         r_pool_ctrl  [D_POOL-1:0];
+  ctrl_reg         r_pool_ctrl  [D_POOLBUF-1:0];
   ctrl_reg         r_out_ctrl   [D_POOL-1:0];
 
 //==========================================================

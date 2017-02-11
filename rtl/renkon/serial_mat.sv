@@ -10,8 +10,8 @@ module serial_mat
   , output signed [DWIDTH-1:0]  out_data
   );
 
-  wire signed [DWIDTH-1:0] mem_addr [CORE-1:0];
-  wire signed [DWIDTH-1:0] mem_data [CORE-1:0];
+  wire signed [OUTSIZE-1:0] mem_addr [CORE-1:0];
+  wire signed [DWIDTH-1:0]  mem_data [CORE-1:0];
 
   reg [CORELOG:0] r_serial_re;
 
