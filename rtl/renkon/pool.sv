@@ -13,7 +13,7 @@ module pool
 
   wire signed [DWIDTH-1:0] pixel_feat [PSIZE**2-1:0];
 
-  linebuf buf_feat(
+  linebuf #(PSIZE) buf_feat(
     .buf_en     (buf_feat_en),
     .buf_input  (pixel_in[DWIDTH-1:0]),
     .img_size   (w_fea_size[LWIDTH-1:0]),

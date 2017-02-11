@@ -48,6 +48,7 @@ module ctrl_pool
 
   assign w_pool_size = r_pool_size;
 
+  initial r_d_poolbuf = 0;
   always @(posedge clk)
     if (!xrst) begin
       r_fea_size  <= 0;

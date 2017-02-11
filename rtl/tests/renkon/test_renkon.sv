@@ -1,18 +1,19 @@
 `include "renkon.svh"
 
-int N_IN  = 16;
-int N_OUT = 32;
+// `define SAIF
+
+int N_IN  = 20;
+int N_OUT = 50;
 int ISIZE = 12;
-int OSIZE = ISIZE - FSIZE + 1;
+int OSIZE = (ISIZE - FSIZE + 1) / PSIZE;
 int IMG_OFFSET = 0;
 int OUT_OFFSET = 5000;
 int NET_OFFSET = 0;
 
 int label = 2;
 int file  = 4;
-string indir = "/home/work/takau/bhewtek/data/mnist/bpmap1";
-string wdir  = "/home/work/takau/bhewtek/data/mnist/lenet/bwb_2";
-bit saif_mode = 0;
+string indir = "/home/work/takau/1.hw/bhewtek/data/mnist/bpmap1";
+string wdir  = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_2";
 
 module test_renkon;
 
@@ -34,7 +35,10 @@ module test_renkon;
   reg                      ack;
   reg signed [DWIDTH-1:0]  read_img;
   reg        [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
-  reg        [DWIDTH-1:0] mem_n [2**NETSIZE-1:0][CORE-1:0];
+  reg        [DWIDTH-1:0] mem_n [CORE-1:0][2**NETSIZE-1:0];
+
+  int req_time = 2**30;
+  int now_time = 0;
 
   renkon dut(.*);
 
@@ -47,8 +51,9 @@ module test_renkon;
 
   // flow
   initial begin
-    if (saif_mode)
-      $set_toggle_region(test_renkon.dut);
+`ifdef SAIF
+    $set_toggle_region(test_renkon.dut);
+`endif
 
     xrst        = 0;
     #(STEP);
@@ -63,31 +68,34 @@ module test_renkon;
     input_addr  = IMG_OFFSET;
     output_addr = OUT_OFFSET;
     net_addr    = NET_OFFSET;
+    #(STEP);
 
     mem_clear;
     read_network(wdir);
 
     read_image(indir, label, file);
 
-    if (saif_mode)
-      $toggle_start();
+`ifdef SAIF
+    $toggle_start();
+`endif
     #(STEP);
 
     req = 1;
+    req_time = $time/STEP;
     #(STEP);
     req = 0;
 
     while(!ack) #(STEP);
     #(STEP*10);
 
-    if (saif_mode) begin
-      $toggle_stop();
-      $toggle_report(
-        $sformatf("renkon%d_%d.saif", label, file),
-        1.0e-9,
-        "test_renkon.dut"
-      );
-    end
+`ifdef SAIF
+    $toggle_stop();
+    $toggle_report(
+      $sformatf("renkon%d_%d.saif", label, file),
+      1.0e-9,
+      "test_renkon.dut"
+    );
+`endif
 
     write_output;
     $finish();
@@ -111,7 +119,7 @@ module test_renkon;
     begin // {{{
       for (int i = 0; i < N_IN; i++)
         $readmemb(
-          $sformatf("%s/%d/data%d_%d.bin", indir, label, file, i),
+          $sformatf("%s/%0d/data%0d_%0d.bin", indir, label, file, i),
           mem_i,
           (ISIZE**2)*(i),
           (ISIZE**2)*(i+1) - 1
@@ -142,14 +150,14 @@ module test_renkon;
         for (int j = 0; j < CORE; j++) begin
           for (int k = 0; k < N_IN; k++) begin
             $readmemb(
-              $sformatf("%s/data%d_%d.bin", wdir, CORE*i+j, k),
+              $sformatf("%s/data%0d_%0d.bin", wdir, CORE*i+j, k),
               mem_n[j],
               (FSIZE**2) * (N_IN*i+k) + (i) + NET_OFFSET,
               (FSIZE**2) * (N_IN*i+k+1) + (i-1) + NET_OFFSET
             );
           end
           $readmemb(
-            $sformatf("%s/data%d.bin", wdir, CORE*i+j),
+            $sformatf("%s/data%0d.bin", wdir, CORE*i+j),
             mem_n[j],
             (FSIZE**2) * (N_IN*(i+1)) + (i) + NET_OFFSET,
             (FSIZE**2) * (N_IN*(i+1)) + (i) + NET_OFFSET
@@ -165,17 +173,17 @@ module test_renkon;
           if ((CORE * (N_OUT/CORE) + j) < N_OUT) begin
             for (int k = 0; k < N_IN; k++) begin
               $readmemb(
-                $sformatf("%s/data%d_%d.bin", wdir, CORE*(N_OUT/CORE)+j, k),
+                $sformatf("%s/data%0d_%0d.bin", wdir, CORE*(N_OUT/CORE)+j, k),
                 mem_n[j],
                 (FSIZE**2) * (N_IN*(N_OUT/CORE)+k) + (N_OUT/CORE) + NET_OFFSET,
-                (FSIZE**2) * (N_IN*(N_OUT/CORE)+k+1) + (N_OUT/CORE-1) + NET_OFFSET,
+                (FSIZE**2) * (N_IN*(N_OUT/CORE)+k+1) + (N_OUT/CORE-1) + NET_OFFSET
               );
             end
             $readmemb(
-              $sformatf("%s/data%d.bin", wdir, CORE*(N_OUT/CORE)+j),
+              $sformatf("%s/data%0d.bin", wdir, CORE*(N_OUT/CORE)+j),
               mem_n[j],
               (FSIZE**2) * (N_IN*(N_OUT/CORE+1)) + (N_OUT/CORE) + NET_OFFSET,
-              (FSIZE**2) * (N_IN*(N_OUT/CORE+1)) + (N_OUT/CORE) + NET_OFFSET,
+              (FSIZE**2) * (N_IN*(N_OUT/CORE+1)) + (N_OUT/CORE) + NET_OFFSET
             );
           end
           // put null (zero) values to unused cores
@@ -185,14 +193,14 @@ module test_renkon;
                 $sformatf("%s/null_w.bin", wdir),
                 mem_n[j],
                 (FSIZE**2) * (N_IN*(N_OUT/CORE)+k) + (N_OUT/CORE) + NET_OFFSET,
-                (FSIZE**2) * (N_IN*(N_OUT/CORE)+k+1) + (N_OUT/CORE-1) + NET_OFFSET,
+                (FSIZE**2) * (N_IN*(N_OUT/CORE)+k+1) + (N_OUT/CORE-1) + NET_OFFSET
               );
             end
             $readmemb(
               $sformatf("%s/null_b.bin", wdir),
               mem_n[j],
               (FSIZE**2) * (N_IN*(N_OUT/CORE+1)) + (N_OUT/CORE) + NET_OFFSET,
-              (FSIZE**2) * (N_IN*(N_OUT/CORE+1)) + (N_OUT/CORE) + NET_OFFSET,
+              (FSIZE**2) * (N_IN*(N_OUT/CORE+1)) + (N_OUT/CORE) + NET_OFFSET
             );
           end
         end
@@ -242,10 +250,12 @@ module test_renkon;
 
   always begin
     #(STEP/2-1);
-    $display(
-      "%5d: ", $time/STEP, // {{{
-      "|" // }}}
-    );
+    now_time = $time/STEP;
+    if (now_time >= req_time)
+      $display(
+        "%5d: ", now_time - req_time, // {{{
+        "|" // }}}
+      );
     #(STEP/2+1);
   end
 

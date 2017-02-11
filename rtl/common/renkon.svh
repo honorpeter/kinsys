@@ -17,8 +17,8 @@ parameter FSIZE   = 5;
 parameter PSIZE   = 2;
 
 // Delay for each module (corresponds to the number of stages)
-parameter D_PIXELBUF = 32;
-parameter D_POOLBUF  = 32;
+parameter D_PIXELBUF = 32; // max size (image height or width)
+parameter D_POOLBUF  = 32; // max size (image height or width)
 parameter D_CONV     = 5;
 parameter D_ACCUM    = 1;
 parameter D_BIAS     = 2;

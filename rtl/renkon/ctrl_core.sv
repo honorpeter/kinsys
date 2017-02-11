@@ -111,26 +111,24 @@ module ctrl_core
         S_INPUT:
           if (s_input_end)
             if (r_count_in == r_total_in - 1) begin
-              r_state[0]     <= S_OUTPUT;
+              r_state[0]  <= S_OUTPUT;
               r_count_in  <= 0;
             end
             else begin
-              r_state[0]     <= S_NETWORK;
+              r_state[0]  <= S_NETWORK;
               r_count_in  <= r_count_in + 1;
             end
         S_OUTPUT:
           if (s_output_end)
             if (r_count_out + CORE >= r_total_out) begin
-              r_state[0]     <= S_WAIT;
+              r_state[0]  <= S_WAIT;
               r_count_out <= 0;
             end
             else begin
-              r_state[0]     <= S_NETWORK;
+              r_state[0]  <= S_NETWORK;
               r_count_out <= r_count_out + CORE;
             end
       endcase
-
-  assign core_state = r_state[r_d_pixelbuf];
 
   for (genvar i = 1; i < D_PIXELBUF+1; i++)
     always @(posedge clk)
@@ -143,6 +141,7 @@ module ctrl_core
   assign w_fil_size = r_fil_size;
 
   //wait exec (initialize)
+  initial r_d_pixelbuf = 0;
   always @(posedge clk)
     if (!xrst) begin
       r_total_in    <= 0;
@@ -183,6 +182,8 @@ module ctrl_core
           r_first_input[i] <= r_first_input[i-1];
           r_last_input[i]  <= r_last_input[i-1];
         end
+
+  assign core_state = r_state[r_d_pixelbuf];
 
 //==========================================================
 // network control
