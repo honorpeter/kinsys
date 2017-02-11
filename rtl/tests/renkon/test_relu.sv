@@ -23,7 +23,6 @@ module test_relu;
     #(STEP);
 
     xrst = 1;
-    breg_we = 0;
     out_en = 0;
     pixel_in = 0;
     #(STEP);

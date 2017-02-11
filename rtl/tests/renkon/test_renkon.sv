@@ -2,8 +2,8 @@
 
 int N_IN  = 16;
 int N_OUT = 32;
-int INSIZE  = 12;
-int OUTSIZE = INSIZE - FSIZE + 1;
+int ISIZE = 12;
+int OSIZE = ISIZE - FSIZE + 1;
 int IMG_OFFSET = 0;
 int OUT_OFFSET = 5000;
 int NET_OFFSET = 0;
@@ -16,9 +16,25 @@ bit saif_mode = 0;
 
 module test_renkon;
 
-  reg clk;
-  reg [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
-  reg [DWIDTH-1:0] mem_n [2**NETSIZE-1:0][CORE-1:0];
+  reg                      clk;
+  reg                      xrst;
+  reg                      req;
+  reg                      img_we;
+  reg        [IMGSIZE-1:0] input_addr;
+  reg        [IMGSIZE-1:0] output_addr;
+  reg signed [DWIDTH-1:0]  write_img;
+  reg        [CORELOG:0]   net_we;
+  reg        [NETSIZE-1:0] net_addr;
+  reg signed [DWIDTH-1:0]  write_net;
+  reg        [LWIDTH-1:0]  total_out;
+  reg        [LWIDTH-1:0]  total_in;
+  reg        [LWIDTH-1:0]  img_size;
+  reg        [LWIDTH-1:0]  fil_size;
+  reg        [LWIDTH-1:0]  pool_size;
+  reg                      ack;
+  reg signed [DWIDTH-1:0]  read_img;
+  reg        [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
+  reg        [DWIDTH-1:0] mem_n [2**NETSIZE-1:0][CORE-1:0];
 
   renkon dut(.*);
 
@@ -41,7 +57,7 @@ module test_renkon;
     req         = 0;
     total_out   = N_OUT;
     total_in    = N_IN;
-    img_size    = INSIZE;
+    img_size    = ISIZE;
     fil_size    = FSIZE;
     pool_size   = PSIZE;
     input_addr  = IMG_OFFSET;
@@ -97,13 +113,13 @@ module test_renkon;
         $readmemb(
           $sformatf("%s/%d/data%d_%d.bin", indir, label, file, i),
           mem_i,
-          (INSIZE**2)*(i),
-          (INSIZE**2)*(i+1) - 1
+          (ISIZE**2)*(i),
+          (ISIZE**2)*(i+1) - 1
         );
       #(STEP);
 
       img_we = 1;
-      for (i=0; i<2**IMGSIZE; i=i+1) begin
+      for (int i = 0; i < 2**IMGSIZE; i++) begin
         input_addr = i;
         #(STEP);
 
@@ -142,8 +158,8 @@ module test_renkon;
       end
 
       // reading iterate for a boundary weight set (if exists)
-      if (N_OUT % CORE != 0)
-        for (int j = 0; j < CORE; j++)
+      if (N_OUT % CORE != 0) begin
+        for (int j = 0; j < CORE; j++) begin
 
           // put remainder weights to cores
           if ((CORE * (N_OUT/CORE) + j) < N_OUT) begin
@@ -156,13 +172,14 @@ module test_renkon;
               );
             end
             $readmemb(
-              $sformatf("%s/data%d_%d.bin", wdir, CORE*(N_OUT/CORE)+j, k),
+              $sformatf("%s/data%d.bin", wdir, CORE*(N_OUT/CORE)+j),
               mem_n[j],
               (FSIZE**2) * (N_IN*(N_OUT/CORE+1)) + (N_OUT/CORE) + NET_OFFSET,
               (FSIZE**2) * (N_IN*(N_OUT/CORE+1)) + (N_OUT/CORE) + NET_OFFSET,
             );
+          end
           // put null (zero) values to unused cores
-          else
+          else begin
             for (int k = 0; k < N_IN; k++) begin
               $readmemb(
                 $sformatf("%s/null_w.bin", wdir),
@@ -182,7 +199,7 @@ module test_renkon;
       end
 
       for (int n = 0; n < CORE; n++) begin
-        net_we = n+1;
+        net_we = n + 1;
         #(STEP);
 
         for (int i = 0; i < 2**NETSIZE; i++) begin
@@ -207,7 +224,7 @@ module test_renkon;
     int out_size;
     begin // {{{
       fd = $fopen("test_renkon.dat", "w");
-      out_size = N_OUT * OUTSIZE**2;
+      out_size = N_OUT * OSIZE**2;
 
       for (int i = 0; i < out_size; i++) begin
         input_addr = i + 5000;
@@ -227,31 +244,6 @@ module test_renkon;
     #(STEP/2-1);
     $display(
       "%5d: ", $time/STEP, // {{{
-      "%d ", dut0.ctrl.ctrl_core.r_state,
-      "%d ", dut0.ctrl.ctrl_core.r_state_weight,
-      "%d ", dut0.ctrl.ctrl_core.r_count_out,
-      "%d ", dut0.ctrl.ctrl_core.r_count_in,
-      "|o: ",
-      "%d ", ack,
-      "%4d ", read_img,
-      "|r: ",
-      "%d ", dut0.mem_img_we,
-      "%d ", dut0.mem_img_addr,
-      "%4d ", dut0.read_img,
-      "; ",
-      "%d ", dut0.mem_net_we,
-      "%d ", dut0.mem_net_addr,
-      "%4d ", dut0.read_net0,
-      "; ",
-      "%4d ", dut0.pmap0,
-      "; ",
-      <%- 16.times do |i| -%>
-      "%0d ", dut0.serial.mem_serial0.mem[<%=i%>],
-      <%- end -%>
-      "; ",
-      <%- 16.times do |i| -%>
-      "%0d ", dut0.serial.mem_serial7.mem[<%=i%>],
-      <%- end -%>
       "|" // }}}
     );
     #(STEP/2+1);
