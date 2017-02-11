@@ -16,10 +16,18 @@ module ctrl
   , input         [LWIDTH-1:0]  total_out
   , input         [LWIDTH-1:0]  img_size
   , input         [LWIDTH-1:0]  fil_size
+  , input         [LWIDTH-1:0]  pool_size
   , output                      ack
+  , output                      buf_pix_en
   , output                      wreg_we
   , output                      conv_oe
+  , output                      breg_we
+  , output                      bias_oe
+  , output                      relu_oe
   , output                      pool_oe
+  , output                      serial_we
+  , output        [CORELOG:0]   serial_re
+  , output        [OUTSIZE-1:0] serial_addr
   , output                      buf_feat_en
   , output                      mem_img_we
   , output        [IMGSIZE-1:0] mem_img_addr
@@ -35,6 +43,10 @@ module ctrl
   , output        [LWIDTH-1:0]  w_fea_size
   , output        [LWIDTH-1:0]  w_pool_size
   );
+
+  wire [1:0] core_state;
+  wire       first_input;
+  wire       last_input;
 
   ctrl_bus bus_core();
   ctrl_bus bus_conv();

@@ -14,7 +14,7 @@ module ctrl_conv
   , output              mem_feat_we
   , output              mem_feat_rst
   , output [FACCUM-1:0] mem_feat_addr
-  , output [FACCUM-1:0] mem_feat_addr_d
+  , output [FACCUM-1:0] mem_feat_addr_d1
   , output              conv_oe
   , output [LWIDTH-1:0] w_fea_size
   );
@@ -159,10 +159,10 @@ module ctrl_conv
 // mem_feat control
 //==========================================================
 
-  assign mem_feat_we     = r_feat_we[D_CONV-1];
-  assign mem_feat_rst    = r_feat_rst[D_CONV-1];
-  assign mem_feat_addr   = r_feat_addr[D_CONV-1];
-  assign mem_feat_addr_d = r_feat_addr[D_CONV];
+  assign mem_feat_we      = r_feat_we[D_CONV-1];
+  assign mem_feat_rst     = r_feat_rst[D_CONV-1];
+  assign mem_feat_addr    = r_feat_addr[D_CONV-1];
+  assign mem_feat_addr_d1 = r_feat_addr[D_CONV];
 
   for (genvar i = 0; i < D_CONV; i++)
     if (i == 0)
