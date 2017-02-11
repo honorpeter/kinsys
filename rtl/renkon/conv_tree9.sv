@@ -11,14 +11,14 @@ module conv_tree9
 
   wire signed [2*DWIDTH-1:0] pro       [9-1:0];
   wire signed [DWIDTH-1:0]   pro_short [9-1:0];
-  wire signed [DWIDTH-1:0] sum0_0;
-  wire signed [DWIDTH-1:0] sum0_1;
-  wire signed [DWIDTH-1:0] sum0_2;
-  wire signed [DWIDTH-1:0] sum0_3;
-  wire signed [DWIDTH-1:0] sum1_0;
-  wire signed [DWIDTH-1:0] sum1_1;
-  wire signed [DWIDTH-1:0] sum2_0;
-  wire signed [DWIDTH-1:0] sum3_0;
+  wire signed [DWIDTH-1:0]   sum0_0;
+  wire signed [DWIDTH-1:0]   sum0_1;
+  wire signed [DWIDTH-1:0]   sum0_2;
+  wire signed [DWIDTH-1:0]   sum0_3;
+  wire signed [DWIDTH-1:0]   sum1_0;
+  wire signed [DWIDTH-1:0]   sum1_1;
+  wire signed [DWIDTH-1:0]   sum2_0;
+  wire signed [DWIDTH-1:0]   sum3_0;
 
   reg signed [DWIDTH-1:0]   r_pixel     [9-1:0];
   reg signed [DWIDTH-1:0]   r_weight    [9-1:0];
@@ -51,40 +51,31 @@ module conv_tree9
 
   assign fmap = r_fmap;
 
-  for (genvar i = 0; i < 9; i++)
+  for (genvar i = 0; i < 9; i++) begin
     always @(posedge clk)
       if (!xrst)
         r_pixel[i] <= 0;
       else
         r_pixel[i] <= pixel[i];
 
-  for (genvar i = 0; i < 9; i++)
     always @(posedge clk)
       if (!xrst)
         r_weight[i] <= 0;
       else
         r_weight[i] <= weight[i];
 
-  for (genvar i = 0; i < 9; i++)
     always @(posedge clk)
       if (!xrst)
         r_pro[i] <= 0;
       else
         r_pro[i] <= pro[i];
 
-  for (genvar i = 0; i < 9; i++)
     always @(posedge clk)
       if (!xrst)
         r_pro_short[i] <= 0;
       else
         r_pro_short[i] <= pro_short[i];
-
-  for (genvar i = 0; i < 9; i++)
-    always @(posedge clk)
-      if (!xrst)
-        r_pro_short[i] <= 0;
-      else
-        r_pro_short[i] <= pro_short[i];
+  end
 
   always @(posedge clk or negedge xrst)
     if(!xrst)

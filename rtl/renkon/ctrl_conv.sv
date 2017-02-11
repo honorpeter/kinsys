@@ -19,15 +19,18 @@ module ctrl_conv
   , output [LWIDTH-1:0] w_fea_size
   );
 
+  localparam S_CORE_WAIT    = 'd0;
+  localparam S_CORE_NETWORK = 'd1;
+  localparam S_CORE_INPUT   = 'd2;
+  localparam S_CORE_OUTPUT  = 'd3;
+
   ctrl_bus conv_ctrl();
   ctrl_bus accum_ctrl();
 
   enum reg {
     S_WAIT, S_ACTIVE
   } r_state;
-  enum reg [2-1:0] {
-    S_CORE_WAIT, S_CORE_NETWORK, S_CORE_INPUT, S_CORE_OUTPUT
-  } r_core_state;
+  reg [2-1:0]       r_core_state;
   reg               r_wait_back;
   reg               r_first_input;
   reg               r_last_input;

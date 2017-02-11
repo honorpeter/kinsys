@@ -1,4 +1,5 @@
 `include "renkon.svh"
+`include "ctrl_bus.svh"
 
 module ctrl_pool
   ( input               clk
@@ -12,9 +13,11 @@ module ctrl_pool
   , output [LWIDTH-1:0] w_pool_size
   );
 
-  ctrl_bus pool_ctrl;
+  ctrl_bus pool_ctrl();
 
-  reg              r_state;
+  enum reg {
+    S_WAIT, S_ACTIVE
+  } r_state;
   reg              r_buf_feat_en;
   reg [LWIDTH-1:0] r_fea_size;
   reg [LWIDTH-1:0] r_pool_size;
@@ -23,8 +26,8 @@ module ctrl_pool
   reg [LWIDTH-1:0] r_pool_y;
   reg [LWIDTH-1:0] r_pool_exec_x;
   reg [LWIDTH-1:0] r_pool_exec_y;
-  ctrl_reg         r_pool_ctrl [D_POOL-1:0];
-  ctrl_reg         r_out_ctrl [D_POOL-1:0];
+  ctrl_reg         r_pool_ctrl  [D_POOL-1:0];
+  ctrl_reg         r_out_ctrl   [D_POOL-1:0];
 
 //==========================================================
 // main FSM
@@ -36,10 +39,10 @@ module ctrl_pool
     else
       case (r_state)
         S_WAIT:
-          if (in_start)
+          if (in_ctrl.start)
             r_state <= S_ACTIVE;
         S_ACTIVE:
-          if (out_stop)
+          if (out_ctrl.stop)
             r_state <= S_WAIT;
       endcase
 
@@ -51,7 +54,7 @@ module ctrl_pool
       r_pool_size <= 0;
       r_d_poolbuf <= 0;
     end
-    else if (r_state == S_WAIT && in_start) begin
+    else if (r_state == S_WAIT && in_ctrl.start) begin
       r_fea_size  <= w_fea_size;
       r_pool_size <= pool_size;
       r_d_poolbuf <= w_fea_size - pool_size + 8 - 1;
@@ -73,7 +76,7 @@ module ctrl_pool
           r_pool_exec_y <= 0;
         end
         S_ACTIVE:
-          if (in_valid) begin
+          if (in_ctrl.valid) begin
             if (r_pool_x == r_fea_size - 1) begin
               r_pool_x <= 0;
               if (r_pool_y == r_fea_size - 1)
@@ -104,7 +107,7 @@ module ctrl_pool
     if (!xrst)
       r_buf_feat_en <= 0;
     else
-      r_buf_feat_en <= in_start;
+      r_buf_feat_en <= in_ctrl.start;
 
   assign pool_ctrl.start = r_pool_ctrl[r_d_poolbuf].start;
   assign pool_ctrl.valid = r_pool_ctrl[r_d_poolbuf].valid;
@@ -171,6 +174,6 @@ module ctrl_pool
     if (!xrst)
       r_buf_feat_en <= 0;
     else
-      r_buf_feat_en <= in_start;
+      r_buf_feat_en <= in_ctrl.start;
 
 endmodule
