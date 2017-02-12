@@ -25,17 +25,17 @@ test: $(DEPENDS:.sv=.com) $(MODULE:.sv=.com) $(TARGET:.sv=.log)
 test-all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.log)
 
 log:
-	@vim $(TARGET:.sv=.log)
+	@nvim $(TARGET:.sv=.log)
 
 com:
-	@vim $(TARGET:.sv=.com)
+	@nvim $(TARGET:.sv=.com)
 
 edit:
-	@vim -O $(TARGET) $(MODULE)
+	@nvim -O $(TARGET) $(MODULE)
 
 diff:
-	@vimdiff $(shell echo $(TARGET) | cut -d/ -f2 | cut -d. -f1).dat \
-           $(shell echo $(TARGET) | cut -d/ -f2 | cut -d. -f1)_true.dat
+	@vimdiff ../../data/renkon/output_$(shell echo $(MODULE) | cut -d. -f1).dat \
+           ../../data/renkon/true_$(shell echo $(MODULE) | cut -d. -f1).dat
 
 clean:
 	rm -f $(SOURCES:.sv=.com)

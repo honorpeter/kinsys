@@ -231,7 +231,7 @@ module test_renkon;
     int fd;
     int out_size;
     begin // {{{
-      fd = $fopen("test/output_renkon.dat", "w");
+      fd = $fopen("../../data/renkon/output_renkon.dat", "w");
       out_size = N_OUT * OSIZE**2;
 
       for (int i = 0; i < out_size; i++) begin
@@ -248,28 +248,30 @@ module test_renkon;
     end // }}}
   endtask
 
-  always begin
-    #(STEP/2-1);
-    now_time = $time/STEP;
-    if (now_time >= req_time)
-      $display(
-        "%5d: ", now_time - req_time, // {{{
-        "%d ", dut.ctrl.ctrl_core.r_state[0],
-        "|c: ",
-        "%3d ", dut.pe[0].core.pixel[1],
-        "%3d ", dut.pe[0].core.fmap,
-        "%3d ", dut.pe[0].core.biased,
-        "%3d ", dut.pe[0].core.actived,
-        "%3d ", dut.pe[0].core.pmap,
-        "|p: ",
-        "%3d ", dut.pe[0].core.pool.pixel_in,
-        "%3d ", dut.pe[0].core.pool.pixel_feat[0],
-        "%3d ", dut.pe[0].core.pool.pixel_feat[1],
-        "%3d ", dut.pe[0].core.pool.pixel_feat[2],
-        "%3d ", dut.pe[0].core.pool.pixel_feat[3],
-        "|" // }}}
-      );
-    #(STEP/2+1);
+  initial begin
+    forever begin
+      #(STEP/2-1);
+      now_time = $time/STEP;
+      if (now_time >= req_time)
+        $display(
+          "%5d: ", now_time - req_time, // {{{
+          "%d ", dut.ctrl.ctrl_core.r_state[0],
+          "|c: ",
+          "%3d ", dut.pe[0].core.pixel[1],
+          "%3d ", dut.pe[0].core.fmap,
+          "%3d ", dut.pe[0].core.biased,
+          "%3d ", dut.pe[0].core.actived,
+          "%3d ", dut.pe[0].core.pmap,
+          "|p: ",
+          "%3d ", dut.pe[0].core.pool.pixel_in,
+          "%3d ", dut.pe[0].core.pool.pixel_feat[0],
+          "%3d ", dut.pe[0].core.pool.pixel_feat[1],
+          "%3d ", dut.pe[0].core.pool.pixel_feat[2],
+          "%3d ", dut.pe[0].core.pool.pixel_feat[3],
+          "|" // }}}
+        );
+      #(STEP/2+1);
+    end
   end
 
 endmodule

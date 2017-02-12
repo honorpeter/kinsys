@@ -120,8 +120,8 @@ module linebuf
   for (genvar i = 0; i < MAXLINE; i++)
     for (genvar j = 0; j < MAXLINE; j++)
       if (j == 4)
-        for (genvar k = 0; k < MAXLINE+1; k++)
-          if (k == 0) begin
+        for (genvar k = -1; k < MAXLINE+1; k++)
+          if (k == -1) begin
             always @(posedge clk)
               if (!xrst)
                 r_pixel[MAXLINE * i + j] <= 0;
@@ -130,9 +130,7 @@ module linebuf
           end
           else begin
             always @(posedge clk)
-              if (!xrst)
-                r_pixel[MAXLINE * i + j] <= 0;
-              else if (r_select == k + 1)
+              if (r_select == k + 1)
                 r_pixel[MAXLINE * i + j] <= read_mem[(i + k) % (MAXLINE + 1)];
           end
       else

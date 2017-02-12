@@ -1,10 +1,10 @@
 `include "gobou.svh"
 
-int N_IN  = 512;
-int N_OUT = 256;
+int N_IN  = 800;
+int N_OUT = 500;
 
-string infile = "test_gobou_input.dat";
-string weight = "/home/work/takau/bhewtek/data/mnist/lenet/bwb_3";
+string infile = "../../data/gobou/input_gobou.dat";
+string weight = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_3";
 
 module test_gobou;
 
@@ -161,7 +161,7 @@ module test_gobou;
     integer fd;
     integer out_size;
     begin // {{{
-      fd = $fopen("test_gobou.dat", "w");
+      fd = $fopen("../../data/gobou/output_gobou.dat", "w");
       out_size = N_OUT;
       for (int i = 1000; i < 1000+out_size; i++)
         $fdisplay(fd, "%0d", dut.mem_img.mem[i]);
