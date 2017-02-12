@@ -10,8 +10,8 @@ int IMG_OFFSET = 0;
 int OUT_OFFSET = 5000;
 int NET_OFFSET = 0;
 
-int label = 2;
-int file  = 4;
+int label = 3;
+int file  = 6;
 string indir = "/home/work/takau/1.hw/bhewtek/data/mnist/bpmap1";
 string wdir  = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_2";
 
@@ -231,7 +231,7 @@ module test_renkon;
     int fd;
     int out_size;
     begin // {{{
-      fd = $fopen("test_renkon.dat", "w");
+      fd = $fopen("test/output_renkon.dat", "w");
       out_size = N_OUT * OSIZE**2;
 
       for (int i = 0; i < out_size; i++) begin
@@ -254,6 +254,19 @@ module test_renkon;
     if (now_time >= req_time)
       $display(
         "%5d: ", now_time - req_time, // {{{
+        "%d ", dut.ctrl.ctrl_core.r_state[0],
+        "|c: ",
+        "%3d ", dut.pe[0].core.pixel[1],
+        "%3d ", dut.pe[0].core.fmap,
+        "%3d ", dut.pe[0].core.biased,
+        "%3d ", dut.pe[0].core.actived,
+        "%3d ", dut.pe[0].core.pmap,
+        "|p: ",
+        "%3d ", dut.pe[0].core.pool.pixel_in,
+        "%3d ", dut.pe[0].core.pool.pixel_feat[0],
+        "%3d ", dut.pe[0].core.pool.pixel_feat[1],
+        "%3d ", dut.pe[0].core.pool.pixel_feat[2],
+        "%3d ", dut.pe[0].core.pool.pixel_feat[3],
         "|" // }}}
       );
     #(STEP/2+1);

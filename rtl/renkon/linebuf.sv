@@ -1,4 +1,5 @@
 `include "renkon.svh"
+`include "mem_sp.sv"
 
 module linebuf
  #( parameter MAXLINE = 5
@@ -13,22 +14,22 @@ module linebuf
   , output signed [DWIDTH-1:0] buf_output [MAXLINE**2-1:0]
   );
 
-  localparam BUFSIZE = $clog2(MAXLINE);
+  localparam BUFLINE = $clog2(MAXLINE+1);
+  localparam BUFSIZE = $clog2(MAXSIZE);
 
   wire                      s_charge_end;
   wire                      s_active_end;
-  wire        [8-1:0]       mem_linebuf_we;
+  wire        [MAXLINE:0]   mem_linebuf_we;
   wire        [BUFSIZE-1:0] mem_linebuf_addr;
   wire signed [DWIDTH-1:0]  read_mem [MAXLINE:0];
 
   enum reg [2-1:0] {
     S_WAIT, S_CHARGE, S_ACTIVE
   } r_state;
-  reg        [4-1:0]       r_select;
-  reg        [BUFSIZE-1:0] r_addr_count;
-  reg        [3-1:0]       r_mem_count;
+  reg        [BUFLINE-1:0] r_select;
+  reg        [LWIDTH-1:0]  r_addr_count;
+  reg        [LWIDTH-1:0]  r_mem_count;
   reg        [LWIDTH-1:0]  r_line_count;
-  reg        [8-1:0]       r_linebuf_we;
   reg signed [DWIDTH-1:0]  r_buf_input;
   reg signed [DWIDTH-1:0]  r_pixel [MAXLINE**2-1:0];
 
@@ -119,7 +120,7 @@ module linebuf
   for (genvar i = 0; i < MAXLINE; i++)
     for (genvar j = 0; j < MAXLINE; j++)
       if (j == 4)
-        for (genvar k = 0; k <= MAXLINE; k++)
+        for (genvar k = 0; k < MAXLINE+1; k++)
           if (k == 0) begin
             always @(posedge clk)
               if (!xrst)
@@ -131,7 +132,7 @@ module linebuf
             always @(posedge clk)
               if (!xrst)
                 r_pixel[MAXLINE * i + j] <= 0;
-              else if (r_select == k+1)
+              else if (r_select == k + 1)
                 r_pixel[MAXLINE * i + j] <= read_mem[(i + k) % (MAXLINE + 1)];
           end
       else

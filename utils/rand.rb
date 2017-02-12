@@ -1,12 +1,11 @@
 #!/usr/bin/env ruby
 # Generate random pattern for testbenches
 
-require 'pp'
-
-len = ARGV[0].to_i
+len   = ARGV[0].to_i
+base  = 16
 range = 256
 
-(-range...range).to_a.sample(len).each do |i|
-  puts(i)
+len.times do |i|
+  puts rand(-range...range).to_s(base)
 end
 
