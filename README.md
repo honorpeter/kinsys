@@ -8,6 +8,18 @@ Gobou is a coprocessor for computing fully-connected layer.
 Renkon is a coprocessor for computing 2D-convolution layer.
 Ninjin is a interface with AXI4 protocol for connecting to other systems.
 
+Requirements
+==================================================
+
+Kinsys is tested on Debian 8.7 and CentOS 6.8.
+Each modules and scripts are run using the tools listed below.
+
+* Modelsim >= 10.4c
+* Vivado >= 2016.4
+* Design Compiler >= L-2016.03-SP4
+* gcc >= 4.9.2
+* ruby >= 2.3.1
+
 TODOs
 ==================================================
 
@@ -35,3 +47,7 @@ TODOs
   - Synthesis API with simple syntax like major DL frameworks.
   - simple module definition DSL.
 
+License
+==================================================
+
+MIT License (see `LICENSE` file).
