@@ -2,10 +2,10 @@
 # Generate random pattern for testbenches
 
 len   = ARGV[0].to_i
-base  = 16
 range = 256
+mask  = 0xffff
 
 len.times do |i|
-  puts rand(-range...range).to_s(base)
+  puts format("%.4x", rand(-range...range) & mask)
 end
 

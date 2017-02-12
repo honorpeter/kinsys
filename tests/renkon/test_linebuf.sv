@@ -51,7 +51,7 @@ module test_linebuf;
   endtask
 
   //display
-  initial show_signal;
+  initial show_format;
 
   task show_format;
     begin
@@ -75,6 +75,15 @@ module test_linebuf;
         #(STEP/2-1);
         $display(
           "%5d: ", $time/STEP,
+          "%d ", dut.r_state,
+          "|i: ",
+          "%d ", xrst,
+          "%d ", buf_en,
+          "%d ", img_size,
+          "%d ", fil_size,
+          "%d ", buf_input,
+          "|o: ",
+          "%d ", buf_output[0],
           "|"
         );
         #(STEP/2+1);
