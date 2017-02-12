@@ -5,7 +5,7 @@
 *.wdb
 *.dir
 *.jou
-!(output_)*.dat
+*.dat
 work/
 transcript
 vish_stacktrace.vstf
