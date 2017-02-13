@@ -1,6 +1,6 @@
-VERBOSE   = 0
+VERBOSE   = 1
 SIMULATOR = vsim
-MODULE    = linebuf.sv
+MODULE    = ctrl_conv.sv
 # MODULE    = renkon.sv
 # DEPENDS   = ctrl_core.sv ctrl_conv.sv ctrl_bias.sv \
 # 						ctrl_relu.sv ctrl_pool.sv ctrl.sv linebuf.sv \

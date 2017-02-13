@@ -1,6 +1,7 @@
 `include "renkon.svh"
 
-parameter ISIZE = 28;
+parameter IMAGE = 28;
+parameter FILTER = 2;
 
 module test_linebuf;
 
@@ -10,11 +11,11 @@ module test_linebuf;
   reg        [LWIDTH-1:0] img_size;
   reg        [LWIDTH-1:0] fil_size;
   reg signed [DWIDTH-1:0] buf_input;
-  reg signed [DWIDTH-1:0] buf_output [FSIZE**2-1:0];
+  reg signed [DWIDTH-1:0] buf_output [FILTER**2-1:0];
 
-  reg signed [DWIDTH-1:0] mem_input [ISIZE**2-1:0];
+  reg signed [DWIDTH-1:0] mem_input [IMAGE**2-1:0];
 
-  linebuf #(5, 32) dut(.*);
+  linebuf #(2, 32) dut(.*);
 
   // clock
   initial begin
@@ -31,13 +32,13 @@ module test_linebuf;
 
     xrst      = 1;
     buf_en    = 1;
-    img_size  = ISIZE;
-    fil_size  = FSIZE;
+    img_size  = 28;
+    fil_size  = 2;
     buf_input = mem_input[0];
     #(STEP);
 
     buf_en = 0;
-    for (int i = 1; i < ISIZE**2; i++) begin
+    for (int i = 1; i < IMAGE**2; i++) begin
       buf_input = mem_input[i];
       #(STEP);
     end
@@ -66,15 +67,15 @@ module test_linebuf;
       i = 0; j = 0;
       forever begin
         #(STEP/2-1);
-        if (r_line_count_d2 >= FSIZE && r_addr_count_d2 >= FSIZE-1) begin
-          $fwrite(fd, "Block %0d:\n", (ISIZE-FSIZE+1)*i+j);
-          for (int di = 0; di < FSIZE; di++) begin
-            for (int dj = 0; dj < FSIZE; dj++)
-              $fwrite(fd, "%5d", buf_output[FSIZE*di+dj]);
+        if (r_line_count_d2 >= FILTER && r_addr_count_d2 >= FILTER-1) begin
+          $fwrite(fd, "Block %0d:\n", (IMAGE-FILTER+1)*i+j);
+          for (int di = 0; di < FILTER; di++) begin
+            for (int dj = 0; dj < FILTER; dj++)
+              $fwrite(fd, "%5d", buf_output[FILTER*di+dj]);
             $fwrite(fd, "\n");
           end
           $fwrite(fd, "\n");
-          if (j == (ISIZE-FSIZE+1) - 1) begin
+          if (j == (IMAGE-FILTER+1) - 1) begin
             i++; j=0;
           end
           else j++;
@@ -100,10 +101,7 @@ module test_linebuf;
         "%d ", buf_input,
         "|o: ",
         "%4d ", buf_output[0],
-        "%4d ", buf_output[5],
-        "%4d ", buf_output[10],
-        "%4d ", buf_output[15],
-        "%4d ", buf_output[20],
+        "%4d ", buf_output[2],
         "|w: ",
         "%d ", dut.s_charge_end,
         "%d ", dut.s_active_end,

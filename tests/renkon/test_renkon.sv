@@ -10,8 +10,8 @@ int IMG_OFFSET = 0;
 int OUT_OFFSET = 5000;
 int NET_OFFSET = 0;
 
-int label = 3;
-int file  = 6;
+int label = 2;
+int file  = 4;
 string indir = "/home/work/takau/1.hw/bhewtek/data/mnist/bpmap1";
 string wdir  = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_2";
 
@@ -68,7 +68,6 @@ module test_renkon;
     input_addr  = IMG_OFFSET;
     output_addr = OUT_OFFSET;
     net_addr    = NET_OFFSET;
-    #(STEP);
 
     mem_clear;
     read_network(wdir);
@@ -264,6 +263,9 @@ module test_renkon;
           "%3d ", dut.pe[0].core.pmap,
           "|p: ",
           "%3d ", dut.pe[0].core.pool.pixel_in,
+          "%3d ", dut.pe[0].core.pool.buf_feat_en,
+          "%3d ", dut.pe[0].core.pool.w_fea_size,
+          "%3d ", dut.pe[0].core.pool.w_pool_size,
           "%3d ", dut.pe[0].core.pool.pixel_feat[0],
           "%3d ", dut.pe[0].core.pool.pixel_feat[1],
           "%3d ", dut.pe[0].core.pool.pixel_feat[2],

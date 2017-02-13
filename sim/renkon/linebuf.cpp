@@ -2,7 +2,7 @@
 #include <lib.hpp>
 
 const int isize = 28;
-const int fsize = 5;
+const int fsize = 2;
 
 int main(void)
 {

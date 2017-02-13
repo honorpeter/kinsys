@@ -119,7 +119,7 @@ module linebuf
 
   for (genvar i = 0; i < MAXLINE; i++)
     for (genvar j = 0; j < MAXLINE; j++)
-      if (j == 4)
+      if (j == MAXLINE-1)
         for (genvar k = -1; k < MAXLINE+1; k++)
           if (k == -1) begin
             always @(posedge clk)
