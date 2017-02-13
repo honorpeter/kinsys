@@ -1,12 +1,11 @@
-VERBOSE   = 1
+VERBOSE   = 0
 SIMULATOR = vsim
-MODULE    = ctrl_conv.sv
-# MODULE    = renkon.sv
-# DEPENDS   = ctrl_core.sv ctrl_conv.sv ctrl_bias.sv \
-# 						ctrl_relu.sv ctrl_pool.sv ctrl.sv linebuf.sv \
-# 						conv_tree25.sv conv_wreg.sv accum.sv conv.sv \
-# 						bias.sv relu.sv pool_max4.sv pool.sv core.sv \
-# 						serial_mat.sv mux_output.sv
+MODULE    = renkon.sv
+DEPENDS   = ctrl_core.sv ctrl_conv.sv ctrl_bias.sv \
+						ctrl_relu.sv ctrl_pool.sv ctrl.sv linebuf.sv \
+						conv_tree25.sv conv_wreg.sv accum.sv conv.sv \
+						bias.sv relu.sv pool_max4.sv pool.sv core.sv \
+						serial_mat.sv mux_output.sv
 TARGET    = test/test_$(MODULE)
 SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard test/*.sv)

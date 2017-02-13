@@ -40,7 +40,7 @@ module conv_tree25
   reg signed [DWIDTH-1:0]   r_weight    [25-1:0];
   reg signed [2*DWIDTH-1:0] r_pro       [25-1:0];
   reg signed [DWIDTH-1:0]   r_pro_short [25-1:0];
-  reg signed [DWIDTH-1:0]   r_pro_short24_d;
+  reg signed [DWIDTH-1:0]   r_pro_short24_d1;
   reg signed [DWIDTH-1:0]   r_sum0_0;
   reg signed [DWIDTH-1:0]   r_sum0_1;
   reg signed [DWIDTH-1:0]   r_sum0_2;
@@ -95,7 +95,7 @@ module conv_tree25
   assign sum2_1 = sum1_2 + sum1_3;
   assign sum2_2 = sum1_4 + sum1_5;
   assign sum3_0 = r_sum2_0 + r_sum2_1;
-  assign sum3_1 = r_sum2_2 + r_pro_short24_d;
+  assign sum3_1 = r_sum2_2 + r_pro_short24_d1;
   assign sum4_0 = sum3_0 + sum3_1;
 
   assign fmap = r_fmap;
@@ -127,10 +127,10 @@ module conv_tree25
   end
 
   always @(posedge clk) begin
-    r_sum2_0        <= sum2_0;
-    r_sum2_1        <= sum2_1;
-    r_sum2_2        <= sum2_2;
-    r_pro_short24_d <= r_pro_short[24];
+    r_sum2_0         <= sum2_0;
+    r_sum2_1         <= sum2_1;
+    r_sum2_2         <= sum2_2;
+    r_pro_short24_d1 <= r_pro_short[24];
   end
 
   always @(posedge clk)

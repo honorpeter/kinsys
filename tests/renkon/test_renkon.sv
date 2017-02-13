@@ -234,7 +234,7 @@ module test_renkon;
       out_size = N_OUT * OSIZE**2;
 
       for (int i = 0; i < out_size; i++) begin
-        input_addr = i + 5000;
+        input_addr = i + OUT_OFFSET;
         #(STEP*2);
 
         $fdisplay(fd, "%0d", read_img);
@@ -255,6 +255,8 @@ module test_renkon;
         $display(
           "%5d: ", now_time - req_time, // {{{
           "%d ", dut.ctrl.ctrl_core.r_state[0],
+          "|i: ",
+          "%d ", dut.read_img,
           "|c: ",
           "%3d ", dut.pe[0].core.pixel[1],
           "%3d ", dut.pe[0].core.fmap,
