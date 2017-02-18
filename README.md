@@ -20,6 +20,19 @@ Each modules and scripts are run using the tools listed below.
 * gcc >= 4.9.2
 * ruby >= 2.3.1
 
+Documentation
+==================================================
+
+We have documentations in `doc` directory.
+Documentations are written using Sphinx,
+so you can build the HTML version of documentations by running:
+```
+cd doc
+make html
+```
+or by running similar commands for other format
+(you can confirm which formats are available by running `make`).
+
 TODOs
 ==================================================
 
