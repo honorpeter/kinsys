@@ -58,7 +58,8 @@ TODOs
   - Provide sufficient documents
     + include in-code comments
   - Synthesis API with simple syntax like major DL frameworks.
-  - simple module definition DSL.
+    + simple module / pe definition DSL.
+    + like MapReduce
 
 License
 ==================================================
