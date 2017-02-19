@@ -56,7 +56,7 @@ module test_conv_tree25;
 
       for (int n = 0; n < NUMBER; n++)
         for (int i = 0; i < 25; i++)
-          r = $fscanf(fd, "%h", mem_images[n][i]);
+          r = $fscanf(fd, "%x", mem_images[n][i]);
 
       $fclose(fd);
     end // }}}
@@ -70,7 +70,7 @@ module test_conv_tree25;
 
       for (int n = 0; n < NUMBER; n++)
         for (int i = 0; i < 25; i++)
-          r = $fscanf(fd, "%h", mem_filters[n][i]);
+          r = $fscanf(fd, "%x", mem_filters[n][i]);
 
       $fclose(fd);
     end // }}}

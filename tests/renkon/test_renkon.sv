@@ -2,8 +2,8 @@
 
 // `define SAIF
 
-int N_IN  = 20;
-int N_OUT = 50;
+int N_OUT = 32;
+int N_IN  = 16;
 int ISIZE = 12;
 int OSIZE = (ISIZE - FSIZE + 1) / PSIZE;
 int IMG_OFFSET = 0;
@@ -70,9 +70,10 @@ module test_renkon;
     net_addr    = NET_OFFSET;
 
     mem_clear;
-    read_network(wdir);
-
-    read_image(indir, label, file);
+    read_input;
+    read_params;
+    // read_network(wdir);
+    // read_image(indir, label, file);
 
 `ifdef SAIF
     $toggle_start();
@@ -112,6 +113,40 @@ module test_renkon;
     end // }}}
   endtask
 
+  task read_input;
+    int idx;
+    int fd;
+    int r;
+    begin // {{{
+      idx = 0;
+      fd = $fopen("../../data/renkon/input_renkon.dat", "r");
+
+      for (int m = 0; m < N_IN; m++)
+        for (int i = 0; i < ISIZE; i++)
+          for (int j = 0; j < ISIZE; j++) begin
+            r = $fscanf(fd, "%x", mem_i[idx]);
+            idx++;
+          end
+
+      $fclose(fd);
+      #(STEP);
+
+      img_we = 1;
+      for (int i = 0; i < 2**IMGSIZE; i++) begin
+        input_addr = i;
+        #(STEP);
+
+        write_img = mem_i[i];
+        #(STEP);
+      end
+
+      img_we = 0;
+      input_addr = 0;
+      write_img = 0;
+      #(STEP);
+    end // }}}
+  endtask
+
   task read_image;
     input string indir;
     input int label;
@@ -142,10 +177,83 @@ module test_renkon;
     end // }}}
   endtask
 
+  task read_params;
+    int idx[CORE-1:0];
+    int wd, bd;
+    int r;
+    begin
+      for (int dn = 0; dn < CORE; dn++)
+        idx[dn] = 0;
+      wd = $fopen("../../data/renkon/weight_renkon.dat", "r");
+      bd = $fopen("../../data/renkon/bias_renkon.dat", "r");
+
+      // reading iterations for normal weight sets
+      for (int n = 0; n < N_OUT/CORE; n++)
+        for (int dn = 0; dn < CORE; dn++) begin
+          for (int m = 0; m < N_IN; m++) begin
+            for (int i = 0; i < FSIZE; i++)
+              for (int j = 0; j < FSIZE; j++) begin
+                r = $fscanf(wd, "%x", mem_n[dn][idx[dn]]);
+                idx[dn]++;
+              end
+          end
+          r = $fscanf(bd, "%x", mem_n[dn][idx[dn]]);
+          idx[dn]++;
+        end
+
+      // reading iteration for a boundary weight set (if exists)
+      if (N_OUT % CORE != 0)
+        for (int dn = 0; dn < CORE; dn++) begin
+          // put remainder weights to cores
+          if ((CORE * (N_OUT/CORE) + dn) < N_OUT) begin
+            for (int m = 0; m < N_IN; m++) begin
+              for (int i = 0; i < FSIZE; i++)
+                for (int j = 0; j < FSIZE; j++) begin
+                  r = $fscanf(wd, "%x", mem_n[dn][idx[dn]]);
+                  idx[dn]++;
+                end
+            end
+            r = $fscanf(bd, "%x", mem_n[dn][idx[dn]]);
+            idx[dn]++;
+          end
+          // put null (zero) values to unused cores
+          else begin
+            for (int m = 0; m < N_IN; m++) begin
+              for (int i = 0; i < FSIZE; i++)
+                for (int j = 0; j < FSIZE; j++) begin
+                  mem_n[dn][idx[dn]] = 0;
+                  idx[dn]++;
+                end
+            end
+            mem_n[dn][idx[dn]] = 0;
+            idx[dn]++;
+          end
+        end
+
+      $fclose(wd);
+      $fclose(bd);
+
+      for (int n = 0; n < CORE; n++) begin
+        net_we = n + 1;
+        #(STEP);
+        for (int i = 0; i < 2**NETSIZE; i++) begin
+          net_addr = i;
+          #(STEP);
+          write_net = mem_n[n][i];
+          #(STEP);
+        end
+        net_we    = 0;
+        net_addr  = 0;
+        write_net = 0;
+        #(STEP);
+      end
+    end
+  endtask
+
   task read_network;
     input string wdir;
     begin // {{{
-      // reading iterates for normal weight sets
+      // reading iterations for normal weight sets
       for (int i = 0; i < N_OUT/CORE; i++) begin
         for (int j = 0; j < CORE; j++) begin
           for (int k = 0; k < N_IN; k++) begin
@@ -165,7 +273,7 @@ module test_renkon;
         end
       end
 
-      // reading iterate for a boundary weight set (if exists)
+      // reading iteration for a boundary weight set (if exists)
       if (N_OUT % CORE != 0) begin
         for (int j = 0; j < CORE; j++) begin
 

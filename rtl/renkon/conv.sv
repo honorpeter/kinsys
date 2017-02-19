@@ -22,13 +22,13 @@ module conv
 
   conv_wreg wreg(.*);
 
-  // if (FSIZE == 3)
-  //   conv_tree9  tree(
-  //     .pixel  (pixel_in),
-  //     .fmap   (result),
-  //     .*
-  //   );
-  // else if (FSIZE == 5)
+  if (FSIZE == 3)
+    conv_tree9  tree(
+      .pixel  (pixel_in),
+      .fmap   (result),
+      .*
+    );
+  else if (FSIZE == 5)
     conv_tree25 tree(
       .pixel  (pixel_in),
       .fmap   (result),

@@ -73,7 +73,7 @@ module renkon
   );
 `endif
 
-  linebuf #(FSIZE) buf_pix(
+  linebuf #(FSIZE, D_PIXELBUF) buf_pix(
     .buf_en     (buf_pix_en),
     .buf_input  (read_img),
     .img_size   (w_img_size),
