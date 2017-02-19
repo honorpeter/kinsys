@@ -131,18 +131,16 @@ module ctrl_conv
     else begin
       r_conv_ctrl.start <= r_state == S_ACTIVE
                             && r_core_state == S_CORE_INPUT
-                            && r_last_input
+                            && r_conv_x == r_fil_size - 2
+                            && r_conv_y == r_fil_size - 1;
+      r_conv_ctrl.valid <= r_state == S_ACTIVE
+                            && r_core_state == S_CORE_INPUT
+                            && r_conv_x >= r_fil_size - 1
+                            && r_conv_y >= r_fil_size - 1;
+      r_conv_ctrl.stop  <= r_state == S_ACTIVE
+                            && r_core_state == S_CORE_INPUT
                             && r_conv_x == r_img_size - 1
                             && r_conv_y == r_img_size - 1;
-      r_conv_ctrl.valid <= r_state == S_ACTIVE
-                            && r_core_state == S_CORE_OUTPUT
-                            && r_conv_x <= r_fea_size - 1
-                            && r_conv_y <= r_fea_size - 1
-                            && !r_wait_back;
-      r_conv_ctrl.stop  <= r_state == S_ACTIVE
-                            && r_core_state == S_CORE_OUTPUT
-                            && r_conv_x == r_fea_size - 1
-                            && r_conv_y == r_fea_size - 1;
     end
 
   always @(posedge clk)
@@ -227,9 +225,9 @@ module ctrl_conv
     else begin
       r_accum_ctrl.start <= r_state == S_ACTIVE
                               && r_core_state == S_CORE_INPUT
-                              && r_last_input
                               && r_conv_x == r_img_size - 1
-                              && r_conv_y == r_img_size - 1;
+                              && r_conv_y == r_img_size - 1
+                              && r_last_input;
       r_accum_ctrl.valid <= r_state == S_ACTIVE
                               && r_core_state == S_CORE_OUTPUT
                               && r_conv_x <= r_fea_size - 1
@@ -251,7 +249,7 @@ module ctrl_conv
   assign conv_oe        = r_out_ctrl[D_CONV+D_ACCUM-2].valid;
 
   for (genvar i = 0; i < D_CONV+D_ACCUM; i++)
-    if (i == 0)
+    if (i == 0) begin
       always @(posedge clk)
         if (!xrst)
           r_out_ctrl[0] <= '{0, 0, 0};
@@ -260,7 +258,8 @@ module ctrl_conv
           r_out_ctrl[0].valid <= accum_ctrl.valid;
           r_out_ctrl[0].stop  <= accum_ctrl.stop;
         end
-    else
+    end
+    else begin
       always @(posedge clk)
         if (!xrst)
           r_out_ctrl[i] <= '{0, 0, 0};
@@ -269,6 +268,7 @@ module ctrl_conv
           r_out_ctrl[i].valid <= r_out_ctrl[i-1].valid;
           r_out_ctrl[i].stop  <= r_out_ctrl[i-1].stop;
         end
+    end
 
   always @(posedge clk)
     if (!xrst)

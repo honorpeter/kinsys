@@ -7,7 +7,7 @@
 parameter STEP    = 10;
 parameter DWIDTH  = 16;
 parameter LWIDTH  = 10;
-parameter CORE    = 16;
+parameter CORE    = 8;
 parameter CORELOG = $clog2(CORE);
 parameter IMGSIZE = 12;
 // parameter NETSIZE = 14;

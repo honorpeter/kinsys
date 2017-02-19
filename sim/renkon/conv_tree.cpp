@@ -8,7 +8,7 @@ const int size   = 25;
 template <typename T>
 T mult(T x, T y)
 {
-  int prod = x * y;
+  T prod = x * y;
 
   if (prod >= 0)
     return prod / static_cast<T>(pow(2, 8));

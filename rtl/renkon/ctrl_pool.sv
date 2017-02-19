@@ -48,6 +48,7 @@ module ctrl_pool
 
   assign w_pool_size = r_pool_size;
 
+  // TODO: parameterize
   initial r_d_poolbuf = 0;
   always @(posedge clk)
     if (!xrst) begin
@@ -58,7 +59,7 @@ module ctrl_pool
     else if (r_state == S_WAIT && in_ctrl.start) begin
       r_fea_size  <= w_fea_size;
       r_pool_size <= pool_size;
-      r_d_poolbuf <= w_fea_size - pool_size + 8 - 1;
+      r_d_poolbuf <= w_fea_size - pool_size + 5 - 1;
     end
 
   always @(posedge clk)

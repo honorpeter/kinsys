@@ -155,7 +155,7 @@ module conv_tree25
     if (data[2*DWIDTH-DWIDTH/2-2] == 1 && data[DWIDTH/2-1:0] == 0)
       round = $signed({
                 data[2*DWIDTH-DWIDTH/2-2],
-                data[2*DWIDTH-DWIDTH/2-2:DWIDTH/2] - 1
+                data[2*DWIDTH-DWIDTH/2-2:DWIDTH/2] - 1'b1
               });
     else
       round = $signed({

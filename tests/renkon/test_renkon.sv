@@ -34,8 +34,8 @@ module test_renkon;
   reg        [LWIDTH-1:0]  pool_size;
   reg                      ack;
   reg signed [DWIDTH-1:0]  read_img;
-  reg        [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
-  reg        [DWIDTH-1:0] mem_n [CORE-1:0][2**NETSIZE-1:0];
+  reg signed [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
+  reg signed [DWIDTH-1:0] mem_n [CORE-1:0][2**NETSIZE-1:0];
 
   int req_time = 2**30;
   int now_time = 0;
@@ -273,21 +273,25 @@ module test_renkon;
           "%2d ", dut.ctrl.ctrl_core.r_input_y,
           "%2d ", dut.ctrl.ctrl_core.r_weight_x,
           "%2d ", dut.ctrl.ctrl_core.r_weight_y,
+          "|c: ",
+          "%4d ", dut.pe[0].core.pixel[0],
+          "%4d ", dut.pe[0].core.fmap,
+          "%4d ", dut.pe[0].core.bmap,
+          "%4d ", dut.pe[0].core.amap,
+          "%4d ", dut.pe[0].core.pmap,
           "| ",
-          "%3d ", dut.pe[0].core.pixel[0],
-          "%3d ", dut.pe[0].core.fmap,
-          "%3d ", dut.pe[0].core.bmap,
-          "%3d ", dut.pe[0].core.amap,
-          "%3d ", dut.pe[0].core.pmap,
+          "%1d ", dut.ctrl.ctrl_conv.conv_ctrl.start,
+          "%1d ", dut.ctrl.ctrl_conv.conv_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_conv.conv_ctrl.stop,
           "| ",
           "%1d ", dut.pe[0].core.conv.mem_feat_rst,
-          "%5d ", dut.pe[0].core.conv.result,
-          "| ",
-          "@%1d ", dut.pe[0].core.conv.mem_feat_we,
+          "%1d ", dut.pe[0].core.conv.mem_feat_we,
           "%3d ", dut.pe[0].core.conv.mem_feat_addr,
           "%3d ", dut.pe[0].core.conv.mem_feat_addr_d1,
           "%4d ", dut.pe[0].core.conv.read_feat,
-          "%5d ", dut.pe[0].core.conv.write_feat,
+          "%4d ", dut.pe[0].core.conv.write_feat,
+          "%4d ", dut.pe[0].core.conv.result,
+          "@%1d ", dut.pe[0].core.conv.out_en,
           "| ",
           "%3d ", dut.pe[0].core.pool.pixel_in,
           "%1d ", dut.pe[0].core.pool.buf_feat_en,

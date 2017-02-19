@@ -96,7 +96,7 @@ module ctrl_core
   //main FSM
   always @(posedge clk)
     if (!xrst) begin
-      r_state[0]     <= S_WAIT;
+      r_state[0]  <= S_WAIT;
       r_count_in  <= 0;
       r_count_out <= 0;
     end
@@ -169,8 +169,10 @@ module ctrl_core
           r_last_input[0]  <= 0;
         end
         else begin
-          r_first_input[0] <= r_state[0] == S_INPUT && r_count_in == 0;
-          r_last_input[0]  <= r_state[0] == S_INPUT && r_count_in == r_total_in - 1;
+          r_first_input[0] <= r_state[0] == S_INPUT
+                                && r_count_in == 0;
+          r_last_input[0]  <= r_state[0] == S_INPUT
+                                && r_count_in == r_total_in - 1;
         end
     else
       always @(posedge clk)
