@@ -6,10 +6,22 @@
 Welcome to kinsys's documentation!
 ==================================
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+Contents:
 
+.. toctree::
+  :maxdepth: 1
+  :caption: Contents:
+
+  howto
+  overview
+  gobou
+  renkon
+  ninjin
+  app
+  sim
+  test
+  vivado
+  syn
 
 
 Indices and tables
