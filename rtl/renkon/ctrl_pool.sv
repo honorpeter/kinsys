@@ -59,7 +59,7 @@ module ctrl_pool
     else if (r_state == S_WAIT && in_ctrl.start) begin
       r_fea_size  <= w_fea_size;
       r_pool_size <= pool_size;
-      r_d_poolbuf <= w_fea_size - pool_size + 5 - 1;
+      r_d_poolbuf <= w_fea_size + 2;
     end
 
   always @(posedge clk)

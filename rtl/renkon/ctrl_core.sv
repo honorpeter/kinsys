@@ -155,7 +155,7 @@ module ctrl_core
       r_total_out   <= total_out;
       r_img_size    <= img_size;
       r_fil_size    <= fil_size;
-      r_d_pixelbuf  <= img_size - fil_size + 8 - 1;
+      r_d_pixelbuf  <= img_size + 2;
     end
 
   assign first_input = r_first_input[r_d_pixelbuf];

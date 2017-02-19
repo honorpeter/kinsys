@@ -1,8 +1,8 @@
 #include <cstdio>
 #include <lib.hpp>
 
-const int isize = 28;
-const int fsize = 2;
+const int isize = 32;
+const int fsize = 3;
 
 int main(void)
 {

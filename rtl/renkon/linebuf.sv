@@ -14,7 +14,7 @@ module linebuf
   , output signed [DWIDTH-1:0] buf_output [MAXLINE**2-1:0]
   );
 
-  localparam BUFLINE = $clog2(MAXLINE+1);
+  localparam BUFLINE = $clog2(MAXLINE+2);
   localparam BUFSIZE = $clog2(MAXSIZE);
 
   wire                      s_charge_end;

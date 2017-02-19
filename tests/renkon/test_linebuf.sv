@@ -1,7 +1,7 @@
 `include "renkon.svh"
 
-parameter IMAGE = 28;
-parameter FILTER = 2;
+parameter IMAGE = 32;
+parameter FILTER = 3;
 
 module test_linebuf;
 
@@ -15,7 +15,7 @@ module test_linebuf;
 
   reg signed [DWIDTH-1:0] mem_input [IMAGE**2-1:0];
 
-  linebuf #(2, 32) dut(.*);
+  linebuf #(FILTER, IMAGE) dut(.*);
 
   // clock
   initial begin
@@ -32,8 +32,8 @@ module test_linebuf;
 
     xrst      = 1;
     buf_en    = 1;
-    img_size  = 28;
-    fil_size  = 2;
+    img_size  = IMAGE;
+    fil_size  = FILTER;
     buf_input = mem_input[0];
     #(STEP);
 
@@ -42,7 +42,7 @@ module test_linebuf;
       buf_input = mem_input[i];
       #(STEP);
     end
-    #(STEP*32);
+    #(STEP*(IMAGE+FILTER));
 
     $finish();
   end
@@ -53,12 +53,14 @@ module test_linebuf;
 
   //display
   initial write_output;
-  reg [LWIDTH-1:0] r_addr_count_d1, r_addr_count_d2;
-  reg [LWIDTH-1:0] r_line_count_d1, r_line_count_d2;
-  always @(posedge clk) r_addr_count_d1 <= dut.r_addr_count;
-  always @(posedge clk) r_addr_count_d2 <=     r_addr_count_d1;
-  always @(posedge clk) r_line_count_d1 <= dut.r_line_count;
-  always @(posedge clk) r_line_count_d2 <=     r_line_count_d1;
+  reg [LWIDTH-1:0] r_addr_count_d [2:1];
+  reg [LWIDTH-1:0] r_line_count_d [2:1];
+  always @(posedge clk) begin
+    r_addr_count_d[1] <= dut.r_addr_count;
+    r_line_count_d[1] <= dut.r_line_count;
+    r_addr_count_d[2] <= r_addr_count_d[1];
+    r_line_count_d[2] <= r_line_count_d[1];
+  end
   task write_output;
     int fd;
     int i, j;
@@ -67,7 +69,8 @@ module test_linebuf;
       i = 0; j = 0;
       forever begin
         #(STEP/2-1);
-        if (r_line_count_d2 >= FILTER && r_addr_count_d2 >= FILTER-1) begin
+        if (r_line_count_d[2] >= FILTER
+              && r_addr_count_d[2] >= FILTER-1) begin
           $fwrite(fd, "Block %0d:\n", (IMAGE-FILTER+1)*i+j);
           for (int di = 0; di < FILTER; di++) begin
             for (int dj = 0; dj < FILTER; dj++)
@@ -94,29 +97,29 @@ module test_linebuf;
         "%5d: ", $time/STEP,
         "%d ", dut.r_state,
         "|i: ",
-        "%d ", xrst,
-        "%d ", buf_en,
-        "%d ", img_size,
-        "%d ", fil_size,
-        "%d ", buf_input,
+        "%1d ", xrst,
+        "%1d ", buf_en,
+        "%2d ", img_size,
+        "%1d ", fil_size,
+        "%4d ", buf_input,
+        "|r: ",
+        "%b ", dut.r_select,
+        "%2d ", dut.r_addr_count,
+        "%1d ", dut.r_mem_count,
+        "%2d ", dut.r_line_count,
+        "%4d ", dut.r_buf_input,
         "|o: ",
         "%4d ", buf_output[0],
+        "%4d ", buf_output[1],
         "%4d ", buf_output[2],
-        "|w: ",
-        "%d ", dut.s_charge_end,
-        "%d ", dut.s_active_end,
-        "%d ", dut.mem_linebuf_we,
-        "%d ", dut.mem_linebuf_addr,
-        "%d ", dut.read_mem[0],
-        "|r: ",
-        "%d ", dut.r_select,
-        "%2d ", dut.r_addr_count,
-        "%2d ", r_addr_count_d2,
-        "%2d ", dut.r_mem_count,
-        "%2d ", dut.r_line_count,
-        "%2d ", r_line_count_d2,
-        "%4d ", dut.r_buf_input,
-        "%4d ", dut.r_pixel[0],
+        "; ",
+        "%4d ", buf_output[3],
+        "%4d ", buf_output[4],
+        "%4d ", buf_output[5],
+        "; ",
+        "%4d ", buf_output[6],
+        "%4d ", buf_output[7],
+        "%4d ", buf_output[8],
         "|"
       );
       #(STEP/2+1);
