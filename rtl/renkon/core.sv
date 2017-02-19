@@ -22,8 +22,8 @@ module core
   );
 
   wire signed [DWIDTH-1:0] fmap;
-  wire signed [DWIDTH-1:0] biased;
-  wire signed [DWIDTH-1:0] actived;
+  wire signed [DWIDTH-1:0] bmap;
+  wire signed [DWIDTH-1:0] amap;
 
   conv conv(
     .wreg_we      (wreg_we),
@@ -39,20 +39,20 @@ module core
     .out_en     (bias_oe),
     .read_bias  (read_net),
     .pixel_in   (fmap),
-    .pixel_out  (biased),
+    .pixel_out  (bmap),
     .*
   );
 
   relu relu(
     .out_en     (relu_oe),
-    .pixel_in   (biased),
-    .pixel_out  (actived),
+    .pixel_in   (bmap),
+    .pixel_out  (amap),
     .*
   );
 
   pool pool(
     .out_en     (pool_oe),
-    .pixel_in   (actived),
+    .pixel_in   (amap),
     .pixel_out  (pmap),
     .*
   );

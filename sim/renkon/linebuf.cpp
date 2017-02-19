@@ -10,17 +10,15 @@ int main(void)
 
   load(img, "../../data/renkon/input_linebuf.dat");
 
-  for range(i, isize - fsize + 1) {
-    for range(j, isize - fsize + 1) {
-      printf("Block %d:\n", (isize-fsize+1)*i+j);
-      for range(di, fsize) {
-        for range(dj, fsize) {
-          printf("%5d", img[i+di][j+dj]);
-        }
-        printf("\n");
-      }
+  for range(i, isize - fsize + 1)
+  for range(j, isize - fsize + 1) {
+    printf("Block %d:\n", (isize-fsize+1)*i+j);
+    for range(di, fsize) {
+      for range(dj, fsize)
+        printf("%5d", img[i+di][j+dj]);
       printf("\n");
     }
+    printf("\n");
   }
 
   return 0;

@@ -7,7 +7,7 @@ int N_OUT = 50;
 int ISIZE = 12;
 int OSIZE = (ISIZE - FSIZE + 1) / PSIZE;
 int IMG_OFFSET = 0;
-int OUT_OFFSET = 5000;
+int OUT_OFFSET = 3000;
 int NET_OFFSET = 0;
 
 int label = 2;
@@ -86,6 +86,7 @@ module test_renkon;
 
     while(!ack) #(STEP);
     #(STEP*10);
+    req_time = 2**30;
 
 `ifdef SAIF
     $toggle_stop();
@@ -253,26 +254,48 @@ module test_renkon;
       now_time = $time/STEP;
       if (now_time >= req_time)
         $display(
-          "%5d: ", now_time - req_time, // {{{
+          "%5d: ", now_time - req_time,
           "%d ", dut.ctrl.ctrl_core.r_state[0],
-          "|i: ",
-          "%d ", dut.read_img,
-          "|c: ",
-          "%3d ", dut.pe[0].core.pixel[1],
+          "| ",
+          "%d ", dut.mem_img_we,
+          "%d ", dut.mem_img_addr,
+          "%4d ", dut.read_img,
+          "%4d ", dut.write_mem_img,
+          "| ",
+          "%1d ", dut.mem_net_we,
+          "%d ", dut.mem_net_addr,
+          "%4d ", dut.read_net[0],
+          "%4d ", dut.write_net,
+          "| ",
+          "%2d ", dut.ctrl.ctrl_core.r_count_out,
+          "%2d ", dut.ctrl.ctrl_core.r_count_in,
+          "%2d ", dut.ctrl.ctrl_core.r_input_x,
+          "%2d ", dut.ctrl.ctrl_core.r_input_y,
+          "%2d ", dut.ctrl.ctrl_core.r_weight_x,
+          "%2d ", dut.ctrl.ctrl_core.r_weight_y,
+          "| ",
+          "%3d ", dut.pe[0].core.pixel[0],
           "%3d ", dut.pe[0].core.fmap,
-          "%3d ", dut.pe[0].core.biased,
-          "%3d ", dut.pe[0].core.actived,
+          "%3d ", dut.pe[0].core.bmap,
+          "%3d ", dut.pe[0].core.amap,
           "%3d ", dut.pe[0].core.pmap,
-          "|p: ",
+          "| ",
+          "%1d ", dut.pe[0].core.conv.mem_feat_rst,
+          "%5d ", dut.pe[0].core.conv.result,
+          "| ",
+          "@%1d ", dut.pe[0].core.conv.mem_feat_we,
+          "%3d ", dut.pe[0].core.conv.mem_feat_addr,
+          "%3d ", dut.pe[0].core.conv.mem_feat_addr_d1,
+          "%4d ", dut.pe[0].core.conv.read_feat,
+          "%5d ", dut.pe[0].core.conv.write_feat,
+          "| ",
           "%3d ", dut.pe[0].core.pool.pixel_in,
-          "%3d ", dut.pe[0].core.pool.buf_feat_en,
-          "%3d ", dut.pe[0].core.pool.w_fea_size,
-          "%3d ", dut.pe[0].core.pool.w_pool_size,
+          "%1d ", dut.pe[0].core.pool.buf_feat_en,
           "%3d ", dut.pe[0].core.pool.pixel_feat[0],
           "%3d ", dut.pe[0].core.pool.pixel_feat[1],
           "%3d ", dut.pe[0].core.pool.pixel_feat[2],
           "%3d ", dut.pe[0].core.pool.pixel_feat[3],
-          "|" // }}}
+          "|"
         );
       #(STEP/2+1);
     end

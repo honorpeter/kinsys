@@ -10,7 +10,7 @@ module conv
   , input                       mem_feat_rst
   , input         [FACCUM-1:0]  mem_feat_addr
   , input         [FACCUM-1:0]  mem_feat_addr_d1
-  , input         [DWIDTH-1:0]  pixel_in [FSIZE**2-1:0]
+  , input  signed [DWIDTH-1:0]  pixel_in [FSIZE**2-1:0]
   , input  signed [DWIDTH-1:0]  read_weight
   , output signed [DWIDTH-1:0]  pixel_out
   );
@@ -22,13 +22,13 @@ module conv
 
   conv_wreg wreg(.*);
 
-  if (FSIZE == 3)
-    conv_tree9  tree(
-      .pixel  (pixel_in),
-      .fmap   (result),
-      .*
-    );
-  else if (FSIZE == 5)
+  // if (FSIZE == 3)
+  //   conv_tree9  tree(
+  //     .pixel  (pixel_in),
+  //     .fmap   (result),
+  //     .*
+  //   );
+  // else if (FSIZE == 5)
     conv_tree25 tree(
       .pixel  (pixel_in),
       .fmap   (result),

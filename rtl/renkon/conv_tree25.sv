@@ -126,12 +126,19 @@ module conv_tree25
         r_pro_short[i] <= pro_short[i];
   end
 
-  always @(posedge clk) begin
-    r_sum2_0         <= sum2_0;
-    r_sum2_1         <= sum2_1;
-    r_sum2_2         <= sum2_2;
-    r_pro_short24_d1 <= r_pro_short[24];
-  end
+  always @(posedge clk)
+    if (!xrst) begin
+      r_sum2_0         <= 0;
+      r_sum2_1         <= 0;
+      r_sum2_2         <= 0;
+      r_pro_short24_d1 <= 0;
+    end
+    else begin
+      r_sum2_0         <= sum2_0;
+      r_sum2_1         <= sum2_1;
+      r_sum2_2         <= sum2_2;
+      r_pro_short24_d1 <= r_pro_short[24];
+    end
 
   always @(posedge clk)
     if(!xrst)
@@ -144,7 +151,7 @@ module conv_tree25
 ////////////////////////////////////////////////////////////
 
   function signed [DWIDTH-1:0] round;
-    input [2*DWIDTH-1:0] data;
+    input signed [2*DWIDTH-1:0] data;
     if (data[2*DWIDTH-DWIDTH/2-2] == 1 && data[DWIDTH/2-1:0] == 0)
       round = $signed({
                 data[2*DWIDTH-DWIDTH/2-2],
