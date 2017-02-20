@@ -5,11 +5,12 @@ Kinpira is the hardware accelerator, or platform for neural networks.
 This project aims for the flexibility and the performance
 for various network structures.
 
+
 Directory Structure
 ----------------------------------------
 
-This project contains several directories for each independent parts.
-The contents of each directory is described below:
+This project contains several subdirectories for each independent parts.
+The contents of each directory is summarized as below:
 
 * data
   - Contains various type of data.
@@ -32,7 +33,7 @@ The contents of each directory is described below:
   - Contains scripts for synthesizing the design using Design Compiler.
   - TODO: Performance could be evaluated using tcl scripts for PrimeTime.
 * (icc)
-  - TODO: Contains scripts for route and placing netlists from the design
+  - TODO: Contains scripts for routing and placing netlists from the design
     using IC Compiler.
 * tests
   - Contains testbench modules for each module in ``rtl``.
@@ -45,7 +46,19 @@ The contents of each directory is described below:
 * vivado
   - Contains general scripts for synthesizing and implementing the design
     using Vivado.
-* (zedboard)
-  - Contains the implemented design for Avnet ZedBoard using Vivado.
+* zedboard
+  - Contains the implemented design or/and tcl scripts
+    for Avnet ZedBoard using Vivado.
   - Not commited on the repository currently.
+
+
+Overall architecture
+----------------------------------------
+
+Kinpira's overall architecture is summarized in Figure :ref:`kinpira` .
+
+.. _kinpira::
+.. figure:: figure/kinpira.svg
+  :scale: 50%
+  :align: center
 
