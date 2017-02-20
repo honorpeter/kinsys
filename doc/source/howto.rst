@@ -1,7 +1,7 @@
 How to edit
 ==================================================
 
-.. todo:: Rewrite in English
+.. todo:: Format in English
 Sphinxドキュメントの文章記法として採用されているreStructuredTextの簡易まとめ．
 
 基本的な文章記法
@@ -89,6 +89,8 @@ code block begins with ``.. code-block:: <lang>``.
 Block Samples
 """"""""""""""""""""""""""""""
 
+code blocks by ``python`` and ``ruby``,
+
 .. code-block:: python
 
   import numpy as np
@@ -105,7 +107,7 @@ Block Samples
     pp i
   end
 
-As a text block (and with 2-Tab),
+As a text block (or you can use code blocks of ``c``),
 
 ::
 
@@ -129,31 +131,43 @@ As a text block (and with 2-Tab),
     return 0;
   }
 
-As a code block (and with 4-Tab),
+by ``systemverilog`` or ``sv``,
 
-.. code-block:: c
+.. code-block:: systemverilog
 
-  #include <stdio.h>
+  `include "gobou.svh"
 
-  int main(void)
-  {
-      FILE *fp;
-      char buf[1024];
+  module relu
+    ( input clk
+    , input xrst
+    , input out_en
+    , input signed [DWIDTH-1:0] pixel_in
+    , output signed [DWIDTH-1:0] pixel_out
+    );
 
-      if ((fp = fopen("what_a_day.rst", "r")) == NULL) {
-          fprintf(stderr, "dame desu\n");
-          exit(1);
-      }
+    reg signed [DWIDTH-1:0] r_pixel_in;
+    reg signed [DWIDTH-1:0] r_pixel_out;
 
-      while (fgets(buf, sizeof(buf), fp) != NULL) {
-          printf("%s", buf);
-      }
+    assign pixel_out = r_pixel_out;
 
-      fclose(fp);
-      return 0;
-  }
+    always @(posedge clk)
+      if (!xrst)
+        r_pixel_in <= 0;
+      else
+        r_pixel_in <= pixel_in;
 
-の概念．4-Tabの方が若干見栄えいいっぽい
+    always @(posedge clk)
+      if (!xrst)
+        r_pixel_out <= 0;
+      else if (out_en)
+        if (r_pixel_in > 0)
+          r_pixel_out <= r_pixel_in;
+        else
+          r_pixel_out <= 0;
+
+  endmodule
+
+
 
 数式の書き方
 ----------------------------------------
@@ -275,15 +289,39 @@ jpg, png, pdf, svgのどれか辺りで貼りましょう．
 
 ::
 
-  .. image:: fig/sine.svg
+  .. image:: fig/kinpira.svg
     :scale: 50%
     :align: center
 
 **レンダリング結果**
 
-.. image:: fig/sine.svg
+.. image:: figure/kinpira.svg
   :scale: 50%
   :align: center
 
 箇条書き
 ----------------------------------------
+
+::
+
+  * This is a bulleted list.
+  * It has two items, the second
+    item uses two lines.
+
+  1. This is a numbered list.
+  2. It has two items too.
+
+  #. This is a numbered list.
+  #. It has two items too.
+
+
+* This is a bulleted list.
+* It has two items, the second
+  item uses two lines.
+
+1. This is a numbered list.
+2. It has two items too.
+
+#. This is a numbered list.
+#. It has two items too.
+
