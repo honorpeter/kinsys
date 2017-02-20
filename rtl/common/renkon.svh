@@ -1,7 +1,7 @@
 `ifndef _RENKON_SVH_
 `define _RENKON_SVH_
 
-`timescale 1ns/1ps
+`timescale 1 ns / 1 ps
 // `define DIST
 
 parameter STEP    = 10;
