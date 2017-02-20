@@ -60,6 +60,9 @@ TODOs
   - Synthesis API with simple syntax like major DL frameworks.
     + simple module / pe definition DSL.
     + like MapReduce
+  - Integrate DL frameworks
+    + weight dumping script (utils/kinpira.py (dump))
+    + define API for synthesizable layers
 
 License
 ==================================================
