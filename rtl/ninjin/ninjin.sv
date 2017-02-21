@@ -15,38 +15,8 @@ module ninjin
   (
     // Users to add ports here
 
-    output [C_S_AXI_DATA_WIDTH-1:0] port0,
-    output [C_S_AXI_DATA_WIDTH-1:0] port1,
-    output [C_S_AXI_DATA_WIDTH-1:0] port2,
-    output [C_S_AXI_DATA_WIDTH-1:0] port3,
-    output [C_S_AXI_DATA_WIDTH-1:0] port4,
-    output [C_S_AXI_DATA_WIDTH-1:0] port5,
-    output [C_S_AXI_DATA_WIDTH-1:0] port6,
-    output [C_S_AXI_DATA_WIDTH-1:0] port7,
-    output [C_S_AXI_DATA_WIDTH-1:0] port8,
-    output [C_S_AXI_DATA_WIDTH-1:0] port9,
-    output [C_S_AXI_DATA_WIDTH-1:0] port10,
-    output [C_S_AXI_DATA_WIDTH-1:0] port11,
-    output [C_S_AXI_DATA_WIDTH-1:0] port12,
-    output [C_S_AXI_DATA_WIDTH-1:0] port13,
-    output [C_S_AXI_DATA_WIDTH-1:0] port14,
-    output [C_S_AXI_DATA_WIDTH-1:0] port15,
-    input [C_S_AXI_DATA_WIDTH-1:0] port16,
-    input [C_S_AXI_DATA_WIDTH-1:0] port17,
-    input [C_S_AXI_DATA_WIDTH-1:0] port18,
-    input [C_S_AXI_DATA_WIDTH-1:0] port19,
-    input [C_S_AXI_DATA_WIDTH-1:0] port20,
-    input [C_S_AXI_DATA_WIDTH-1:0] port21,
-    input [C_S_AXI_DATA_WIDTH-1:0] port22,
-    input [C_S_AXI_DATA_WIDTH-1:0] port23,
-    input [C_S_AXI_DATA_WIDTH-1:0] port24,
-    input [C_S_AXI_DATA_WIDTH-1:0] port25,
-    input [C_S_AXI_DATA_WIDTH-1:0] port26,
-    input [C_S_AXI_DATA_WIDTH-1:0] port27,
-    input [C_S_AXI_DATA_WIDTH-1:0] port28,
-    input [C_S_AXI_DATA_WIDTH-1:0] port29,
-    input [C_S_AXI_DATA_WIDTH-1:0] port30,
-    input [C_S_AXI_DATA_WIDTH-1:0] port31,
+    output [C_S_AXI_DATA_WIDTH-1:0] port[PORT/2-1:0],
+    input  [C_S_AXI_DATA_WIDTH-1:0] port[PORT-1:PORT/2],
 
     // User ports ends
     // Do not modify the ports beyond this line
@@ -135,39 +105,8 @@ module ninjin
   //----------------------------------------------
   //-- Signals for user logic register space example
   //------------------------------------------------
-  //-- Number of Slave Registers 32
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg0;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg1;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg2;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg3;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg4;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg5;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg6;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg7;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg8;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg9;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg10;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg11;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg12;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg13;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg14;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg15;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg16;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg17;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg18;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg19;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg20;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg21;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg22;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg23;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg24;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg25;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg26;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg27;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg28;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg29;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg30;
-  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg31;
+  //-- Number of Slave Registers PORT
+  reg [C_S_AXI_DATA_WIDTH-1:0]  slv_reg [PORT-1:0];
   wire   slv_reg_rden;
   wire   slv_reg_wren;
   reg [C_S_AXI_DATA_WIDTH-1:0]   reg_data_out;
@@ -267,6 +206,13 @@ module ninjin
   // Slave register write enable is asserted when valid address and data are available
   // and the slave is ready to accept the write address and write data.
   assign slv_reg_wren = axi_wready && S_AXI_WVALID && axi_awready && S_AXI_AWVALID;
+
+  for (genvar i = 0; i < PORT; i++)
+    always @( posedge S_AXI_ACLK )
+      if ( S_AXI_ARESETN == 1'b0 )
+        slv_reg[i] <= 0;
+      else begin
+        if (slv_reg_wren)
 
   always @( posedge S_AXI_ACLK )
   begin
@@ -750,22 +696,8 @@ module ninjin
 
   // Add user logic here
 
-  assign port0 = slv_reg0[C_S_AXI_DATA_WIDTH-1:0];
-  assign port1 = slv_reg1[C_S_AXI_DATA_WIDTH-1:0];
-  assign port2 = slv_reg2[C_S_AXI_DATA_WIDTH-1:0];
-  assign port3 = slv_reg3[C_S_AXI_DATA_WIDTH-1:0];
-  assign port4 = slv_reg4[C_S_AXI_DATA_WIDTH-1:0];
-  assign port5 = slv_reg5[C_S_AXI_DATA_WIDTH-1:0];
-  assign port6 = slv_reg6[C_S_AXI_DATA_WIDTH-1:0];
-  assign port7 = slv_reg7[C_S_AXI_DATA_WIDTH-1:0];
-  assign port8 = slv_reg8[C_S_AXI_DATA_WIDTH-1:0];
-  assign port9 = slv_reg9[C_S_AXI_DATA_WIDTH-1:0];
-  assign port10 = slv_reg10[C_S_AXI_DATA_WIDTH-1:0];
-  assign port11 = slv_reg11[C_S_AXI_DATA_WIDTH-1:0];
-  assign port12 = slv_reg12[C_S_AXI_DATA_WIDTH-1:0];
-  assign port13 = slv_reg13[C_S_AXI_DATA_WIDTH-1:0];
-  assign port14 = slv_reg14[C_S_AXI_DATA_WIDTH-1:0];
-  assign port15 = slv_reg15[C_S_AXI_DATA_WIDTH-1:0];
+  for (genvar i = 0; i < PORT/2; i++)
+    assign port[i] = slv_reg[i][C_S_AXI_DATA_WIDTH-1:0];
 
   // User logic ends
 
