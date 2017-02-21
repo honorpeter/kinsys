@@ -1,6 +1,7 @@
 `ifndef _MEM_SP_SV_
 `define _MEM_SP_SV_
 
+// Standard single port memory definition
 module mem_sp
  #( parameter DWIDTH  = 16
   , parameter MEMSIZE = 8

@@ -1,6 +1,7 @@
 `ifndef _MEM_DP_SV_
 `define _MEM_DP_SV_
 
+// Standard simple dual port memory definition
 module mem_dp
  #( parameter DWIDTH  = 16
   , parameter MEMSIZE = 8

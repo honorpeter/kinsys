@@ -1,15 +1,10 @@
 `ifndef _RENKON_SVH_
 `define _RENKON_SVH_
 
-`timescale 1 ns / 1 ps
-// `define DIST
+`include "common.svh"
 
-parameter STEP    = 10;
-parameter DWIDTH  = 16;
-parameter LWIDTH  = 10;
 parameter CORE    = 8;
 parameter CORELOG = $clog2(CORE);
-parameter IMGSIZE = 12;
 // parameter NETSIZE = 14;
 parameter NETSIZE = 15;
 parameter FACCUM  = 10; // expected max featuremap size (cf. $clog2(24x24))
