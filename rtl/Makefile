@@ -1,6 +1,6 @@
 VERBOSE   = 0
 SIMULATOR = vsim
-MODULE    = gobou/gobou.sv
+MODULE    = gobou/gobou_top.sv
 DEPENDS   =
 PACKAGE   = $(shell echo $(MODULE) | cut -d/ -f1)
 TESTBENCH = test_$(shell echo $(MODULE) | cut -d/ -f2)

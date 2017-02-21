@@ -15,7 +15,7 @@ int file  = 4;
 string indir = "/home/work/takau/1.hw/bhewtek/data/mnist/bpmap1";
 string wdir  = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_2";
 
-module test_renkon_renkon;
+module test_renkon_top;
 
   reg                      clk;
   reg                      xrst;
