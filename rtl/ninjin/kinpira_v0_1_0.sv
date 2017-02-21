@@ -226,7 +226,7 @@ module kinpira_v0_1_0
     .write_data (write_mem_img[DWIDTH-1:0])
   );
 
-  renkon renkon(/*AUTOINST*/
+  renkon_top renkon(/*AUTOINST*/
     // Outputs
     .ack            (renkon_ack),
     .mem_img_we     (renkon_mem_img_we),
@@ -251,7 +251,7 @@ module kinpira_v0_1_0
     .read_img       (renkon_read_img[DWIDTH-1:0])
   );
 
-  gobou gobou(/*AUTOINST*/
+  gobou_top gobou(/*AUTOINST*/
     // Outputs
     .ack            (gobou_ack),
     .mem_img_we     (gobou_mem_img_we),
