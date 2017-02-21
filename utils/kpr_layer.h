@@ -7,7 +7,9 @@ extern "C" {
 
 #include <stdint.h>
 
-char *layer_type[] = {
+#define N_TYPE 5
+
+char layer_type[N_TYPE][32] = {
   "convolution_2d",
   "max_pooling_2d",
   "batch_normalization",
@@ -28,6 +30,8 @@ typedef struct {
       int16_t kernel;
     } max_pooling_2d;
 
+    // preprocessing is needed to compress
+    // 5-params w/ div to 2-params w/o div (TODO: see doc)
     struct {
       int16_t alpha;
       int16_t beta;
