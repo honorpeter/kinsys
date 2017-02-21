@@ -1,7 +1,7 @@
 `include "gobou.svh"
 `include "ctrl_bus.svh"
 
-module test_ctrl_core;
+module test_gobou_ctrl_core;
 
   reg clk;
   reg xrst;
@@ -28,7 +28,7 @@ module test_ctrl_core;
   reg                      breg_we;
   reg                      serial_we;
 
-  ctrl_core dut(.*);
+  gobou_ctrl_core dut(.*);
 
   assign in_ctrl.start  = r_in_ctrl.start;
   assign in_ctrl.valid  = r_in_ctrl.valid;

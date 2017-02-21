@@ -1,6 +1,6 @@
 `include "gobou.svh"
 
-module core
+module gobou_core
   ( input                     clk
   , input                     xrst
   , input                     mac_oe
@@ -17,7 +17,7 @@ module core
   wire signed [DWIDTH-1:0] biased;
   wire signed [DWIDTH-1:0] dotted;
 
-  mac mac(
+  gobou_mac mac(
     .out_en   (mac_oe),
     .accum_we (accum_we),
     .reset    (accum_rst),
@@ -27,7 +27,7 @@ module core
     .*
   );
 
-  bias bias(
+  gobou_bias bias(
     .read_bias  (weight),
     .breg_we    (breg_we),
     .out_en     (bias_oe),
@@ -36,7 +36,7 @@ module core
     .*
   );
 
-  relu relu(
+  gobou_relu relu(
     .out_en     (relu_oe),
     .pixel_in   (biased),
     .pixel_out  (result),

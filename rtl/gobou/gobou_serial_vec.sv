@@ -1,6 +1,6 @@
 `include "gobou.svh"
 
-module serial_vec
+module gobou_serial_vec
   ( input                       clk
   , input                       xrst
   , input                       serial_we

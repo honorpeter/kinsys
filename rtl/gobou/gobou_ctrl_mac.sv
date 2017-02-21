@@ -1,7 +1,7 @@
 `include "gobou.svh"
 `include "ctrl_bus.svh"
 
-module ctrl_mac
+module gobou_ctrl_mac
   ( input         clk
   , input         xrst
   , ctrl_bus.in   in_ctrl

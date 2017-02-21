@@ -1,7 +1,7 @@
 `include "gobou.svh"
 `include "ctrl_bus.svh"
 
-module ctrl
+module gobou_ctrl
   ( input                       clk
   , input                       xrst
   , input                       req
@@ -34,25 +34,25 @@ module ctrl
   ctrl_bus bus_bias();
   ctrl_bus bus_relu();
 
-  ctrl_core ctrl_core(
+  gobou_ctrl_core ctrl_core(
     .in_ctrl  (bus_relu),
     .out_ctrl (bus_core),
     .*
   );
 
-  ctrl_mac ctrl_mac(
+  gobou_ctrl_mac ctrl_mac(
     .in_ctrl  (bus_core),
     .out_ctrl (bus_mac),
     .*
   );
 
-  ctrl_bias ctrl_bias(
+  gobou_ctrl_bias ctrl_bias(
     .in_ctrl  (bus_mac),
     .out_ctrl (bus_bias),
     .*
   );
 
-  ctrl_relu ctrl_relu(
+  gobou_ctrl_relu ctrl_relu(
     .in_ctrl  (bus_bias),
     .out_ctrl (bus_relu),
     .*

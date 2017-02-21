@@ -1,6 +1,6 @@
 `include "gobou.svh"
 
-module test_mac;
+module test_gobou_mac;
 
   reg                     clk;
   reg                     xrst;
@@ -11,7 +11,7 @@ module test_mac;
   reg signed [DWIDTH-1:0] w;
   reg signed [DWIDTH-1:0] y;
 
-  mac dut(.*);
+  gobou_mac dut(.*);
 
   // clock
   initial begin

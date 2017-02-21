@@ -1,6 +1,6 @@
 `include "gobou.svh"
 
-module test_serial_vec;
+module test_gobou_serial_vec;
 
   reg                      clk;
   reg                      xrst;
@@ -8,7 +8,7 @@ module test_serial_vec;
   reg signed [DWIDTH-1:0]  in_data [CORE-1:0];
   reg signed [DWIDTH-1:0]  out_data;
 
-  serial_vec dut(.*);
+  gobou_serial_vec dut(.*);
 
   // clock
   initial begin

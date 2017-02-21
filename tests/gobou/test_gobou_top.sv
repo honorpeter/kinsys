@@ -6,7 +6,7 @@ int N_OUT = 500;
 string infile = "../../data/gobou/input_gobou.dat";
 string weight = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_3";
 
-module test_gobou;
+module test_gobou_top;
 
   reg                     clk;
   reg                     xrst;
@@ -38,7 +38,7 @@ module test_gobou;
   int req_time = 2**30;
   int now_time = 0;
 
-  gobou dut(.*);
+  gobou_top dut(.*);
 
   // clock
   initial begin

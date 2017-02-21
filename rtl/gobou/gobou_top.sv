@@ -1,7 +1,7 @@
 `include "gobou.svh"
 `include "mem_sp.sv"
 
-module gobou
+module gobou_top
   ( input                     clk
   , input                     xrst
   , input                     req
@@ -46,7 +46,7 @@ module gobou
   wire                      bias_oe;
   wire                      relu_oe;
 
-  ctrl ctrl(.*);
+  gobou_ctrl ctrl(.*);
 
 `ifndef DIST
   mem_sp #(DWIDTH, IMGSIZE) mem_img(
@@ -67,7 +67,7 @@ module gobou
       .*
     );
 
-    core core(
+    gobou_core core(
       .pixel  (read_img),
       .weight (read_net[i]),
       .result (result[i]),
@@ -75,7 +75,7 @@ module gobou
     );
   end : pe
 
-  serial_vec serial(
+  gobou_serial_vec serial(
     .in_data  (result),
     .out_data (write_result),
     .*

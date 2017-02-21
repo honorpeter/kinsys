@@ -1,7 +1,7 @@
 `include "gobou.svh"
 `include "ctrl_bus.svh"
 
-module test_ctrl_mac;
+module test_gobou_ctrl_mac;
 
   reg clk;
   reg xrst;
@@ -13,7 +13,7 @@ module test_ctrl_mac;
   reg accum_we;
   reg accum_rst;
 
-  ctrl_mac dut(.*);
+  gobou_ctrl_mac dut(.*);
 
   assign in_ctrl.start  = r_in_ctrl.start;
   assign in_ctrl.valid  = r_in_ctrl.valid;

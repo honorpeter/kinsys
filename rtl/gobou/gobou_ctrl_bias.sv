@@ -1,22 +1,22 @@
 `include "gobou.svh"
 `include "ctrl_bus.svh"
 
-module ctrl_relu
+module gobou_ctrl_bias
   ( input         clk
   , input         xrst
   , ctrl_bus.in   in_ctrl
   , ctrl_bus.out  out_ctrl
-  , output        relu_oe
+  , output        bias_oe
   );
 
-  ctrl_reg r_out_ctrl [D_RELU-1:0];
+  ctrl_reg r_out_ctrl [D_BIAS-1:0];
 
-  assign out_ctrl.start = r_out_ctrl[D_RELU-1].start;
-  assign out_ctrl.valid = r_out_ctrl[D_RELU-1].valid;
-  assign out_ctrl.stop  = r_out_ctrl[D_RELU-1].stop;
-  assign relu_oe        = r_out_ctrl[D_RELU-2].valid;
+  assign out_ctrl.start = r_out_ctrl[D_BIAS-1].start;
+  assign out_ctrl.valid = r_out_ctrl[D_BIAS-1].valid;
+  assign out_ctrl.stop  = r_out_ctrl[D_BIAS-1].stop;
+  assign bias_oe  = r_out_ctrl[D_BIAS-2].valid;
 
-  for (genvar i = 0; i < D_RELU; i++)
+  for (genvar i = 0; i < D_BIAS; i++)
     if (i == 0)
       always @(posedge clk)
         if (!xrst)

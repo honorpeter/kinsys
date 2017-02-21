@@ -1,6 +1,6 @@
 `include "gobou.svh"
 
-module mac
+module gobou_mac
   ( input                      clk
   , input                      xrst
   , input                      out_en
