@@ -104,8 +104,16 @@ The contents of each directory is summarized as below:
     using Vivado.
 
 * zedboard
+
   - Contains the implemented design or/and tcl scripts
     for Avnet ZedBoard using Vivado.
+
+  - Not commited on the repository currently.
+
+* zcu102
+
+  - Contains the implemented design or/and tcl scripts
+    for Xilinx Zynq UltraScale+ MPSoC ZCU102 using Vivado.
 
   - Not commited on the repository currently.
 
