@@ -9,7 +9,7 @@ for various network structures.
 Overall architecture
 ----------------------------------------
 
-Kinpira's overall architecture is summarized in Figure :ref:`kinpira` .
+Kinpira's overall architecture is summarized in Figure 1.
 The hardware consists of three major modules: gobou, renkon, ninjin.
 Gobou is a coprocessor for computing fully-connected layer.
 Renkon is a coprocessor for computing 2D-convolution layer.
@@ -30,6 +30,8 @@ and then ack signal comes back if the operation get finished.
 .. figure:: figure/kinpira.svg
   :scale: 50%
   :align: center
+
+  Figure 1: Overview of Kinpira architecture
 
 
 Directory Tree
