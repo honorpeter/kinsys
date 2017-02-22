@@ -6,7 +6,14 @@
 Welcome to kinsys's documentation!
 ==================================
 
-Contents:
+This documentation describes the architecture, methodology, and usage of
+Kinpira.
+
+For contributers who have the will to modify this documentation,
+first see "How to edit".
+
+For users of Kinpira, first see "Overview of Kinpira",
+and next you can see necessary sections in any order.
 
 .. toctree::
   :maxdepth: 1
@@ -22,6 +29,7 @@ Contents:
   test
   vivado
   syn
+  lib
 
 
 Indices and tables

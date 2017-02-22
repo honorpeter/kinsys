@@ -1,3 +1,2 @@
-Ninjin: Interface with external systems
+Library usage for Kinpira
 ==================================================
-

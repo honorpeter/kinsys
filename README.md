@@ -3,10 +3,9 @@ Kinpira by System Verilog
 
 This is the ported version of "Kinpira" project.
 
-Kinpira consists of three major modules: gobou, renkon, ninjin.
-Gobou is a coprocessor for computing fully-connected layer.
-Renkon is a coprocessor for computing 2D-convolution layer.
-Ninjin is a interface with AXI4 protocol for connecting to other systems.
+Kinpira is the hardware accelerator, or platform for neural networks.
+This project aims for the flexibility and the performance
+for various network structures.
 
 Requirements
 ==================================================
@@ -63,6 +62,9 @@ TODOs
   - Integrate DL frameworks
     + weight dumping script (utils/kinpira.py (dump))
     + define API for synthesizable layers
+  - Split library
+    + dumping weights
+    + integrated interface with kinpira
 
 License
 ==================================================
