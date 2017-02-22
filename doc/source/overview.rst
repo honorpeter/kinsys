@@ -26,9 +26,8 @@ Operations for Gobou and Renkon are issued from Ninjin by req signal
 accompanying network hyper-parameters (number of units, filter size, etc...),
 and then ack signal comes back if the operation get finished.
 
-.. _kinpira::
 .. figure:: figure/kinpira.svg
-  :scale: 50%
+  :width: 50%
   :align: center
 
   Figure 1: Overview of Kinpira architecture

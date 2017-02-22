@@ -2,6 +2,7 @@ How to edit
 ==================================================
 
 .. todo:: Format in English
+
 Sphinxドキュメントの文章記法として採用されているreStructuredTextの簡易まとめ．
 
 基本的な文章記法
@@ -118,8 +119,8 @@ As a text block (or you can use code blocks of ``c``),
     FILE *fp;
     char buf[1024];
 
-    if ((fp = fopen("what_a_day.rst", "r")) == NULL) {
-      fprintf(stderr, "dame desu\n");
+    if ((fp = fopen("umakarou.rst", "r")) == NULL) {
+      fprintf(stderr, "yasukarou\n");
       exit(1);
     }
 
@@ -290,13 +291,13 @@ jpg, png, pdf, svgのどれか辺りで貼りましょう．
 ::
 
   .. image:: fig/kinpira.svg
-    :scale: 50%
+    :width: 50%
     :align: center
 
 **レンダリング結果**
 
 .. image:: figure/kinpira.svg
-  :scale: 50%
+  :width: 50%
   :align: center
 
 箇条書き
