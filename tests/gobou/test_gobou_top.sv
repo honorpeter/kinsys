@@ -3,7 +3,7 @@
 int N_IN  = 800;
 int N_OUT = 500;
 
-string infile = "../../data/gobou/input_gobou.dat";
+string infile = "../../data/gobou/input_gobou_top.dat";
 string weight = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_3";
 
 module test_gobou_top;
@@ -161,7 +161,7 @@ module test_gobou_top;
     integer fd;
     integer out_size;
     begin // {{{
-      fd = $fopen("../../data/gobou/output_gobou.dat", "w");
+      fd = $fopen("../../data/gobou/output_gobou_top.dat", "w");
       out_size = N_OUT;
       for (int i = 1000; i < 1000+out_size; i++)
         $fdisplay(fd, "%0d", dut.mem_img.mem[i]);
