@@ -1,6 +1,8 @@
 `include "ninjin.svh"
+`include "gobou.svh"
+`include "renkon.svh"
 
-module kinpira_v0_1_0
+module kinpira_axi_lite
  #(
     // Users to add parameters here
 
@@ -46,10 +48,10 @@ module kinpira_v0_1_0
   wire [C_s_axi_DATA_WIDTH-1:0]	in_port [PORT/2-1:0];
   wire [C_s_axi_DATA_WIDTH-1:0]	out_port [PORT-1:PORT/2];
 
-  ninjin # (
+  ninjin_s_axi_lite # (
     .C_S_AXI_DATA_WIDTH(C_s_axi_DATA_WIDTH),
     .C_S_AXI_ADDR_WIDTH(C_s_axi_ADDR_WIDTH)
-  ) kinpira_v1_0_s_axi_inst (
+  ) ninjin_s_axi_lite_inst (
     .S_AXI_ACLK(s_axi_aclk),
     .S_AXI_ARESETN(s_axi_aresetn),
     .S_AXI_AWADDR(s_axi_awaddr),

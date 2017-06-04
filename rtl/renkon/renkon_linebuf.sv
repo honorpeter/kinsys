@@ -21,6 +21,7 @@ module renkon_linebuf
   wire        [MAXLINE:0]   mem_linebuf_we;
   wire        [BUFSIZE-1:0] mem_linebuf_addr;
   wire signed [DWIDTH-1:0]  read_mem [MAXLINE:0];
+  wire signed [DWIDTH-1:0]  mux [MAXLINE-1:0][MAXLINE+2-1:0];
 
   enum reg [2-1:0] {
     S_WAIT, S_CHARGE, S_ACTIVE
@@ -117,29 +118,41 @@ module renkon_linebuf
         r_select <= r_select+1;
 
   for (genvar i = 0; i < MAXLINE; i++)
-    for (genvar j = 0; j < MAXLINE; j++)
-      if (j == MAXLINE-1)
-        for (genvar k = -1; k < MAXLINE+1; k++)
-          if (k == -1) begin
-            always @(posedge clk)
-              if (!xrst)
-                r_pixel[MAXLINE * i + j] <= 0;
-              else if (r_select == 0)
-                r_pixel[MAXLINE * i + j] <= 0;
-          end
-          else begin
-            always @(posedge clk)
-              if (!xrst)
-                r_pixel[MAXLINE * i + j] <= 0;
-              else if (r_select == k + 1)
-                r_pixel[MAXLINE * i + j] <= read_mem[(i + k) % (MAXLINE + 1)];
-          end
+    for (genvar k = 0; k < MAXLINE+2; k++)
+      if (k == 0)
+        assign mux[i][0]   = 0;
       else
+        assign mux[i][k+1] = read_mem[(i + k) % (MAXLINE + 1)];
+
+  for (genvar i = 0; i < MAXLINE; i++)
+    for (genvar j = 0; j < MAXLINE; j++)
+      if (j == MAXLINE-1) begin
+        // for (genvar k = -1; k < MAXLINE+1; k++)
+        //   if (k == -1) begin
+        //     always @(posedge clk)
+        //       if (!xrst)
+        //         r_pixel[MAXLINE * i + j] <= 0;
+        //       else if (r_select == 0)
+        //         r_pixel[MAXLINE * i + j] <= 0;
+        //   end
+        //   else begin
+        //     always @(posedge clk)
+        //       if (r_select == k + 1)
+        //         r_pixel[MAXLINE * i + j] <= read_mem[(i + k) % (MAXLINE + 1)];
+        //   end
+        always @(posedge clk)
+          if (!xrst)
+            r_pixel[MAXLINE * i + j] <= 0;
+          else
+            r_pixel[MAXLINE * i + j] <= mux[i][r_select];
+      end
+      else begin
         always @(posedge clk)
           if (!xrst)
             r_pixel[MAXLINE * i + j] <= 0;
           else
             r_pixel[MAXLINE * i + j] <= r_pixel[MAXLINE * i + (j+1)];
+      end
 
   for (genvar i = 0; i < MAXLINE+1; i++)
     mem_sp #(DWIDTH, BUFSIZE) mem_buf(

@@ -12,18 +12,33 @@ module renkon_mux_output
 
   assign out_data = r_data;
 
-  for (genvar i = 0; i <= RENKON_CORE; i++)
-    if (i == RENKON_CORE) begin
-      always @(posedge clk)
-        if (!xrst)
-          r_data <= 0;
-        else if (output_re > RENKON_CORE)
-          r_data <= 0;
-    end
-    else begin
-      always @(posedge clk)
-        if (output_re == i+1)
-          r_data <= in_data[i];
-    end
+  // for (genvar i = 0; i <= RENKON_CORE; i++)
+  //   if (i == RENKON_CORE) begin
+  //     always @(posedge clk)
+  //       if (!xrst)
+  //         r_data <= 0;
+  //       else if (output_re > RENKON_CORE)
+  //         r_data <= 0;
+  //   end
+  //   else begin
+  //     always @(posedge clk)
+  //       if (output_re == i+1)
+  //         r_data <= in_data[i];
+  //   end
+  wire signed [DWIDTH-1:0] mux [2**(RENKON_CORELOG+1)-1:0];
+
+  for (genvar i = -1; i < 2**(RENKON_CORELOG+1); i++)
+    if (i == -1)
+      assign mux[i+1] = 0;
+    else if (i < RENKON_CORE)
+      assign mux[i+1] = in_data[i];
+    else
+      assign mux[i+1] = 0;
+
+  always @(posedge clk)
+    if (!xrst)
+      r_data <= 0;
+    else
+      r_data <= mux[output_re];
 
 endmodule

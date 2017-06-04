@@ -24,9 +24,10 @@ TARGET    = test/test_$(MODULE)
 SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard test/*.sv)
 INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl/common
+DIST      = ../../dist
 
 .PHONY: test test-all clean
-.SUFFIXES: .com .log .v .sv .vh .svh .sim .dot .png
+.SUFFIXES: .com .log .v .sv .vh .svh .dot .png
 
 ############################################################
 # Major Rules
@@ -47,8 +48,8 @@ edit:
 	@nvim -O $(TARGET) $(MODULE)
 
 diff:
-	@vimdiff ../../data/renkon/output_$(shell echo $(MODULE) | cut -d. -f1).dat \
-           ../../data/renkon/true_$(shell echo $(MODULE) | cut -d. -f1).dat
+	@nvim -d ../../data/renkon/$(MODULE:.sv=)_output.dat \
+		 ../../data/renkon/$(MODULE:.sv=)_true.dat
 
 clean:
 	rm -f $(SOURCES:.sv=.com)
@@ -71,6 +72,10 @@ clean:
 	rm -f default.cfg vcdplus.vpd vcs.key
 	### iverilog
 	rm -f $(SOURCES:.sv=.out)
+
+dist:
+	mkdir -p $(DIST)
+	rsync -L -avz $(MODULE) $(DEPENDS) $(TARGET) $(DIST)
 
 ############################################################
 # Attributes Definition

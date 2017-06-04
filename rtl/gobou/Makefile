@@ -1,5 +1,5 @@
 VERBOSE   = 0
-SIMULATOR = xsim
+SIMULATOR = vsim
 MODULE    = gobou_top.sv
 DEPENDS   = \
 	gobou_ctrl_core.sv \
@@ -16,9 +16,10 @@ TARGET    = test/test_$(MODULE)
 SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard test/*.sv)
 INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl/common
+DIST      = ../../dist
 
 .PHONY: test test-all clean
-.SUFFIXES: .com .v .sv .log .vh .svh .sim .dot .png
+.SUFFIXES: .com .log .v .sv .vh .svh .dot .png
 
 ############################################################
 # Major Rules
@@ -39,8 +40,8 @@ edit:
 	@nvim -O $(TARGET) $(MODULE)
 
 diff:
-	@vimdiff ../../data/gobou/output_$(shell echo $(MODULE) | cut -d. -f1).dat \
-           ../../data/gobou/true_$(shell echo $(MODULE) | cut -d. -f1).dat
+	@nvim -d ../../data/gobou/$(MODULE:.sv=)_output.dat \
+		 ../../data/gobou/$(MODULE:.sv=)_true.dat
 
 clean:
 	rm -f $(SOURCES:.sv=.com)
@@ -63,6 +64,10 @@ clean:
 	rm -f default.cfg vcdplus.vpd vcs.key
 	### iverilog
 	rm -f $(SOURCES:.sv=.out)
+
+dist:
+	mkdir -p $(DIST)
+	rsync -L -avz $(MODULE) $(DEPENDS) $(TARGET) $(DIST)
 
 ############################################################
 # Attributes Definition

@@ -1,17 +1,10 @@
 VERBOSE   = 0
 SIMULATOR = vsim
-SOURCES   = \
-	$(wildcard gobou/*.sv)  \
-	$(wildcard renkon/*.sv) \
-	$(wildcard ninjin/*.sv) \
-	$(wildcard common/*.sv)
-TESTSUITE = \
-	$(wildcard ../test/gobou/*.sv)  \
-	$(wildcard ../test/renkon/*.sv) \
-	$(wildcard ../test/ninjin/*.sv) \
-	$(wildcard ../test/common/*.sv)
-INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl/common
-DIST      = ../dist
+SOURCES   = $(wildcard *.sv)
+HEADERS   = $(wildcard *.svh)
+TESTSUITE = $(wildcard test/*.sv)
+INCLUDE   =
+DIST      = ../../dist
 
 .PHONY: test test-all clean
 .SUFFIXES: .com .log .v .sv .vh .svh .dot .png
@@ -35,8 +28,8 @@ edit:
 	@nvim -O $(TARGET) $(MODULE)
 
 diff:
-	@nvim -d ../data/$(MODULE:.sv=)_output.dat \
-		 ../data/$(MODULE:.sv=)_true.dat
+	@nvim -d ../../data/common/$(MODULE:.sv=)_output.dat \
+		 ../../data/common/$(MODULE:.sv=)_true.dat
 
 clean:
 	rm -f $(SOURCES:.sv=.com)
@@ -61,10 +54,8 @@ clean:
 	rm -f $(SOURCES:.sv=.out)
 
 dist:
-	make -C common dist DIST=../$(DIST)
-	make -C ninjin dist DIST=../$(DIST)
-	make -C renkon dist DIST=../$(DIST)
-	make -C gobou  dist DIST=../$(DIST)
+	mkdir -p $(DIST)
+	rsync -L -avz $(HEADERS) $(SOURCES) $(TESTSUITE) $(DIST)
 
 ############################################################
 # Attributes Definition

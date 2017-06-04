@@ -1,6 +1,6 @@
 `include "ninjin.svh"
 
-module ninjin
+module ninjin_s_axi_lite
  #(
     // Users to add parameters here
 

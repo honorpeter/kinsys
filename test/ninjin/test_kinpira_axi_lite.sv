@@ -1,8 +1,8 @@
-module test_ninjin;
+module test_kinpira_axi_lite;
 
   reg clk;
 
-  ninjin dut(.*);
+  kinpira_axi_lite dut(.*);
 
   // clock
   initial begin
