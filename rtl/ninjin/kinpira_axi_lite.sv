@@ -48,31 +48,31 @@ module kinpira_axi_lite
   wire [C_s_axi_DATA_WIDTH-1:0]	in_port [PORT/2-1:0];
   wire [C_s_axi_DATA_WIDTH-1:0]	out_port [PORT-1:PORT/2];
 
-  ninjin_s_axi_lite # (
-    .C_S_AXI_DATA_WIDTH(C_s_axi_DATA_WIDTH),
-    .C_S_AXI_ADDR_WIDTH(C_s_axi_ADDR_WIDTH)
+  ninjin_s_axi_lite #(
+    .S_AXI_DWIDTH (C_s_axi_DATA_WIDTH),
+    .S_AXI_AWIDTH (C_s_axi_ADDR_WIDTH)
   ) ninjin_s_axi_lite_inst (
-    .S_AXI_ACLK(s_axi_aclk),
-    .S_AXI_ARESETN(s_axi_aresetn),
-    .S_AXI_AWADDR(s_axi_awaddr),
-    .S_AXI_AWPROT(s_axi_awprot),
-    .S_AXI_AWVALID(s_axi_awvalid),
-    .S_AXI_AWREADY(s_axi_awready),
-    .S_AXI_WDATA(s_axi_wdata),
-    .S_AXI_WSTRB(s_axi_wstrb),
-    .S_AXI_WVALID(s_axi_wvalid),
-    .S_AXI_WREADY(s_axi_wready),
-    .S_AXI_BRESP(s_axi_bresp),
-    .S_AXI_BVALID(s_axi_bvalid),
-    .S_AXI_BREADY(s_axi_bready),
-    .S_AXI_ARADDR(s_axi_araddr),
-    .S_AXI_ARPROT(s_axi_arprot),
-    .S_AXI_ARVALID(s_axi_arvalid),
-    .S_AXI_ARREADY(s_axi_arready),
-    .S_AXI_RDATA(s_axi_rdata),
-    .S_AXI_RRESP(s_axi_rresp),
-    .S_AXI_RVALID(s_axi_rvalid),
-    .S_AXI_RREADY(s_axi_rready),
+    .clk      (s_axi_aclk),
+    .xrst     (s_axi_aresetn),
+    .awaddr   (s_axi_awaddr),
+    .awprot   (s_axi_awprot),
+    .awvalid  (s_axi_awvalid),
+    .awready  (s_axi_awready),
+    .wdata    (s_axi_wdata),
+    .wstrb    (s_axi_wstrb),
+    .wvalid   (s_axi_wvalid),
+    .wready   (s_axi_wready),
+    .bresp    (s_axi_bresp),
+    .bvalid   (s_axi_bvalid),
+    .bready   (s_axi_bready),
+    .araddr   (s_axi_araddr),
+    .arprot   (s_axi_arprot),
+    .arvalid  (s_axi_arvalid),
+    .arready  (s_axi_arready),
+    .rdata    (s_axi_rdata),
+    .rresp    (s_axi_rresp),
+    .rvalid   (s_axi_rvalid),
+    .rready   (s_axi_rready),
     .*
   );
 

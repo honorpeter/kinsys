@@ -64,5 +64,5 @@ write_sysdef -force \
   -hwdef $origin_dir/$proj_name/$proj_name.runs/impl_1/$top_module_name.hwdef \
   -bitfile $origin_dir/$proj_name/$proj_name.runs/impl_1/$top_module_name.bit \
   -meminfo $origin_dir/$proj_name/$proj_name.runs/impl_1/$top_module_name.mmi \
-$export_dir/$top_module_name.hdf
+  $export_dir/$top_module_name.hdf
 

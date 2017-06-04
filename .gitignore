@@ -13,13 +13,14 @@ transcript
 vish_stacktrace.vstf
 .Xil
 
+dist
+
 vivado/results
 vivado/reports
 vivado/ip
 vivado/zedboard
 vivado/zybo
 
-zedboard
 doc/build/*
 doc/!.gitkeep
 doc/__pycache__
