@@ -2,15 +2,15 @@
 `define _GOBOU_SVH_
 
 `include "common.svh"
+`ifndef DIST
+`include "mem_sp.sv"
+`endif
 
-parameter CORE    = 16;
-parameter CORELOG = $clog2(CORE);
-// parameter NETSIZE = 14;
-parameter NETSIZE = 15;
+parameter GOBOU_CORE    = 16;
+parameter GOBOU_CORELOG = $clog2(GOBOU_CORE);
+parameter GOBOU_NETSIZE = 15;
 
 // Delay for each module (corresponds to the number of stages)
 parameter D_MAC   = 3;
-parameter D_BIAS  = 2;
-parameter D_RELU  = 2;
 
 `endif

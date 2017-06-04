@@ -15,8 +15,8 @@ module ninjin
   (
     // Users to add ports here
 
-    output [C_S_AXI_DATA_WIDTH-1:0] port[PORT/2-1:0],
-    input  [C_S_AXI_DATA_WIDTH-1:0] port[PORT-1:PORT/2],
+    output [C_S_AXI_DATA_WIDTH-1:0] in_port[PORT/2-1:0],
+    input  [C_S_AXI_DATA_WIDTH-1:0] out_port[PORT-1:PORT/2],
 
     // User ports ends
     // Do not modify the ports beyond this line
@@ -518,22 +518,22 @@ module ninjin
         end
       else
       begin
-        slv_reg[16] <= port[16];
-        slv_reg[17] <= port[17];
-        slv_reg[18] <= port[18];
-        slv_reg[19] <= port[19];
-        slv_reg[20] <= port[20];
-        slv_reg[21] <= port[21];
-        slv_reg[22] <= port[22];
-        slv_reg[23] <= port[23];
-        slv_reg[24] <= port[24];
-        slv_reg[25] <= port[25];
-        slv_reg[26] <= port[26];
-        slv_reg[27] <= port[27];
-        slv_reg[28] <= port[28];
-        slv_reg[29] <= port[29];
-        slv_reg[30] <= port[30];
-        slv_reg[31] <= port[31];
+        slv_reg[16] <= out_port[16];
+        slv_reg[17] <= out_port[17];
+        slv_reg[18] <= out_port[18];
+        slv_reg[19] <= out_port[19];
+        slv_reg[20] <= out_port[20];
+        slv_reg[21] <= out_port[21];
+        slv_reg[22] <= out_port[22];
+        slv_reg[23] <= out_port[23];
+        slv_reg[24] <= out_port[24];
+        slv_reg[25] <= out_port[25];
+        slv_reg[26] <= out_port[26];
+        slv_reg[27] <= out_port[27];
+        slv_reg[28] <= out_port[28];
+        slv_reg[29] <= out_port[29];
+        slv_reg[30] <= out_port[30];
+        slv_reg[31] <= out_port[31];
       end
     end
   end
@@ -698,7 +698,7 @@ module ninjin
   // Add user logic here
 
   for (genvar i = 0; i < PORT/2; i++)
-    assign port[i] = slv_reg[i][C_S_AXI_DATA_WIDTH-1:0];
+    assign in_port[i] = slv_reg[i][C_S_AXI_DATA_WIDTH-1:0];
 
   // User logic ends
 

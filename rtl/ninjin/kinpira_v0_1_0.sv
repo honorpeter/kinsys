@@ -43,7 +43,8 @@ module kinpira_v0_1_0
     input wire  s_axi_rready
   );
 // Instantiation of Axi Bus Interface s_axi
-  wire [C_s_axi_DATA_WIDTH-1:0]	port [PORT-1:0];
+  wire [C_s_axi_DATA_WIDTH-1:0]	in_port [PORT/2-1:0];
+  wire [C_s_axi_DATA_WIDTH-1:0]	out_port [PORT-1:PORT/2];
 
   ninjin # (
     .C_S_AXI_DATA_WIDTH(C_s_axi_DATA_WIDTH),
@@ -152,24 +153,24 @@ module kinpira_v0_1_0
    */
   assign clk          = s_axi_aclk;
   assign xrst         = s_axi_aresetn;
-  assign which        =  port[0][0];
-  assign req          =  port[1][0];
-  assign img_we       =  port[2][0];
-  assign input_addr   =  port[3][IMGSIZE-1:0];
-  assign output_addr  =  port[4][IMGSIZE-1:0];
-  assign write_img    =  port[5][DWIDTH-1:0];
-  assign net_we       =  port[6][32-1:0];
-  assign net_addr     =  port[7][32-1:0];
-  assign write_net    =  port[8][DWIDTH-1:0];
-  assign total_out    =  port[9][LWIDTH-1:0];
-  assign total_in     = port[10][LWIDTH-1:0];
-  assign img_size     = port[11][LWIDTH-1:0];
-  assign fil_size     = port[12][LWIDTH-1:0];
-  assign pool_size    = port[13][LWIDTH-1:0];
+  assign which        = in_port[0][0];
+  assign req          = in_port[1][0];
+  assign img_we       = in_port[2][0];
+  assign input_addr   = in_port[3][IMGSIZE-1:0];
+  assign output_addr  = in_port[4][IMGSIZE-1:0];
+  assign write_img    = in_port[5][DWIDTH-1:0];
+  assign net_we       = in_port[6][32-1:0];
+  assign net_addr     = in_port[7][32-1:0];
+  assign write_net    = in_port[8][DWIDTH-1:0];
+  assign total_out    = in_port[9][LWIDTH-1:0];
+  assign total_in     = in_port[10][LWIDTH-1:0];
+  assign img_size     = in_port[11][LWIDTH-1:0];
+  assign fil_size     = in_port[12][LWIDTH-1:0];
+  assign pool_size    = in_port[13][LWIDTH-1:0];
 
-  assign port[31] = {31'b0, r_which};
-  assign port[30] = {31'b0, ack};
-  assign port[29] = {{(32-DWIDTH){read_img[DWIDTH-1]}}, read_img};
+  assign out_port[31] = {31'b0, r_which};
+  assign out_port[30] = {31'b0, ack};
+  assign out_port[29] = {{(32-DWIDTH){read_img[DWIDTH-1]}}, read_img};
 
   // For renkon
   assign renkon_req         = !which ? req                        : 0;
@@ -216,7 +217,7 @@ module kinpira_v0_1_0
       r_which <= which;
 
 
-  mem_img mem_img(/*AUTOINST*/
+  mem_sp #(DWIDTH, IMGSIZE) mem_img(/*AUTOINST*/
     // Outputs
     .read_data  (read_img[DWIDTH-1:0]),
     // Inputs

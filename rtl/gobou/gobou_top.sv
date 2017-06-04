@@ -1,5 +1,4 @@
 `include "gobou.svh"
-`include "mem_sp.sv"
 
 module gobou_top
   ( input                     clk
@@ -9,8 +8,8 @@ module gobou_top
   , input [IMGSIZE-1:0]       input_addr
   , input [IMGSIZE-1:0]       output_addr
   , input signed [DWIDTH-1:0] write_img
-  , input [CORELOG:0]         net_we
-  , input [NETSIZE-1:0]       net_addr
+  , input [GOBOU_CORELOG:0]         net_we
+  , input [GOBOU_NETSIZE-1:0]       net_addr
   , input signed [DWIDTH-1:0] write_net
   , input [LWIDTH-1:0]        total_out
   , input [LWIDTH-1:0]        total_in
@@ -33,10 +32,10 @@ module gobou_top
   wire signed [DWIDTH-1:0]  write_mem_img;
 `endif
 
-  wire         [CORE-1:0]   mem_net_we;
-  wire        [NETSIZE-1:0] mem_net_addr;
-  wire signed [DWIDTH-1:0]  read_net   [CORE-1:0];
-  wire signed [DWIDTH-1:0]  result     [CORE-1:0];
+  wire         [GOBOU_CORE-1:0]   mem_net_we;
+  wire        [GOBOU_NETSIZE-1:0] mem_net_addr;
+  wire signed [DWIDTH-1:0]  read_net   [GOBOU_CORE-1:0];
+  wire signed [DWIDTH-1:0]  result     [GOBOU_CORE-1:0];
   wire signed [DWIDTH-1:0]  write_result;
   wire                      breg_we;
   wire                      serial_we;
@@ -58,8 +57,8 @@ module gobou_top
   );
 `endif
 
-  for (genvar i = 0; i < CORE; i++) begin : pe
-    mem_sp #(DWIDTH, NETSIZE) mem_net(
+  for (genvar i = 0; i < GOBOU_CORE; i++) begin : pe
+    mem_sp #(DWIDTH, GOBOU_NETSIZE) mem_net(
       .read_data  (read_net[i]),
       .write_data (write_net),
       .mem_we     (mem_net_we[i]),

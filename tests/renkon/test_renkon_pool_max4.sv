@@ -1,8 +1,8 @@
-module test_gobou_core;
+module test_renkon_pool_max4;
 
   reg clk;
 
-  gobou_core dut(.*);
+  renkon_pool_max4 dut(.*);
 
   // clock
   initial begin

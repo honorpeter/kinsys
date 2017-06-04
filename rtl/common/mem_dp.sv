@@ -19,9 +19,9 @@ module mem_dp
 
   localparam WORDS = 2 ** MEMSIZE;
 
-  reg signed [DWIDTH-1:0] mem [WORDS-1:0];
-  reg [MEMSIZE-1:0]        r_addr1;
-  reg [MEMSIZE-1:0]        r_addr2;
+  reg signed [DWIDTH-1:0]   mem [WORDS-1:0];
+  reg        [MEMSIZE-1:0]  r_addr1;
+  reg        [MEMSIZE-1:0]  r_addr2;
 
   assign read_data1 = mem[r_addr1];
   assign read_data2 = mem[r_addr2];

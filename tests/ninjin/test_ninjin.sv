@@ -1,8 +1,8 @@
-module test_gobou_core;
+module test_ninjin;
 
   reg clk;
 
-  gobou_core dut(.*);
+  ninjin dut(.*);
 
   // clock
   initial begin

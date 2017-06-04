@@ -1,5 +1,4 @@
 `include "renkon.svh"
-`include "mem_dp.sv"
 
 module renkon_conv
   ( input                       clk

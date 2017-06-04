@@ -4,11 +4,11 @@
 module renkon_ctrl_pool
   ( input               clk
   , input               xrst
-  , ctrl_bus.in         in_ctrl
+  , ctrl_bus.slave      in_ctrl
   , input  [LWIDTH-1:0] w_fea_size
   , input  [LWIDTH-1:0] pool_size
   , output              buf_feat_en
-  , ctrl_bus.out        out_ctrl
+  , ctrl_bus.master     out_ctrl
   , output              pool_oe
   , output [LWIDTH-1:0] w_pool_size
   );

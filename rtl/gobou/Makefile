@@ -1,5 +1,5 @@
 VERBOSE   = 0
-SIMULATOR = vsim
+SIMULATOR = xsim
 MODULE    = gobou_top.sv
 DEPENDS   = \
 	gobou_ctrl_core.sv \

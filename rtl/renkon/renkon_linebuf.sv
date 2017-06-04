@@ -1,5 +1,4 @@
 `include "renkon.svh"
-`include "mem_sp.sv"
 
 module renkon_linebuf
  #( parameter MAXLINE = 5
@@ -130,7 +129,9 @@ module renkon_linebuf
           end
           else begin
             always @(posedge clk)
-              if (r_select == k + 1)
+              if (!xrst)
+                r_pixel[MAXLINE * i + j] <= 0;
+              else if (r_select == k + 1)
                 r_pixel[MAXLINE * i + j] <= read_mem[(i + k) % (MAXLINE + 1)];
           end
       else

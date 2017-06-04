@@ -4,34 +4,34 @@
 module renkon_ctrl_core
   ( input                       clk
   , input                       xrst
-  , ctrl_bus.in                 in_ctrl
+  , ctrl_bus.slave              in_ctrl
   , input                       req
   , input                       img_we
   , input         [IMGSIZE-1:0] input_addr
   , input         [IMGSIZE-1:0] output_addr
   , input  signed [DWIDTH-1:0]  write_img
   , input  signed [DWIDTH-1:0]  write_result
-  , input         [CORELOG:0]   net_we
-  , input         [NETSIZE-1:0] net_addr
+  , input         [RENKON_CORELOG:0]   net_we
+  , input         [RENKON_NETSIZE-1:0] net_addr
   , input         [LWIDTH-1:0]  total_out
   , input         [LWIDTH-1:0]  total_in
   , input         [LWIDTH-1:0]  img_size
   , input         [LWIDTH-1:0]  fil_size
-  , ctrl_bus.out                out_ctrl
+  , ctrl_bus.master             out_ctrl
   , output                      ack
   , output        [2-1:0]       core_state
   , output                      mem_img_we
   , output        [IMGSIZE-1:0] mem_img_addr
   , output signed [DWIDTH-1:0]  write_mem_img
-  , output        [CORE-1:0]    mem_net_we
-  , output        [NETSIZE-1:0] mem_net_addr
+  , output        [RENKON_CORE-1:0]    mem_net_we
+  , output        [RENKON_NETSIZE-1:0] mem_net_addr
   , output                      buf_pix_en
   , output                      first_input
   , output                      last_input
   , output                      wreg_we
   , output                      breg_we
   , output                      serial_we
-  , output        [CORELOG:0]   serial_re
+  , output        [RENKON_CORELOG:0]   serial_re
   , output        [OUTSIZE-1:0] serial_addr
   , output        [LWIDTH-1:0]  w_img_size
   , output        [LWIDTH-1:0]  w_fil_size
@@ -72,11 +72,11 @@ module renkon_ctrl_core
   reg [IMGSIZE-1:0] r_input_addr;
   reg [IMGSIZE-1:0] r_output_offset;
   reg [IMGSIZE-1:0] r_output_addr;
-  reg [CORE-1:0]    r_net_we;
-  reg [NETSIZE-1:0] r_net_addr;
-  reg [NETSIZE-1:0] r_net_offset;
+  reg [RENKON_CORE-1:0]    r_net_we;
+  reg [RENKON_NETSIZE-1:0] r_net_addr;
+  reg [RENKON_NETSIZE-1:0] r_net_offset;
   reg               r_serial_we;
-  reg [CORELOG:0]   r_serial_re;
+  reg [RENKON_CORELOG:0]   r_serial_re;
   reg [LWIDTH-1:0]  r_serial_cnt;
   reg [OUTSIZE-1:0] r_serial_addr;
   reg               r_serial_end;
@@ -91,7 +91,7 @@ module renkon_ctrl_core
 //==========================================================
 
   assign final_iter = r_count_in == r_total_in - 1
-                   && r_count_out + CORE >= r_total_out;
+                   && r_count_out + RENKON_CORE >= r_total_out;
 
   //main FSM
   always @(posedge clk)
@@ -120,13 +120,13 @@ module renkon_ctrl_core
             end
         S_OUTPUT:
           if (s_output_end)
-            if (r_count_out + CORE >= r_total_out) begin
+            if (r_count_out + RENKON_CORE >= r_total_out) begin
               r_state[0]  <= S_WAIT;
               r_count_out <= 0;
             end
             else begin
               r_state[0]  <= S_NETWORK;
-              r_count_out <= r_count_out + CORE;
+              r_count_out <= r_count_out + RENKON_CORE;
             end
       endcase
 
@@ -227,7 +227,7 @@ module renkon_ctrl_core
       else
         r_state_weight[i] <= r_state_weight[i-1];
 
-  for (genvar i = 0; i < CORE; i++)
+  for (genvar i = 0; i < RENKON_CORE; i++)
     always @(posedge clk)
       if (!xrst)
         r_net_we[i] <= 0;
@@ -411,7 +411,7 @@ module renkon_ctrl_core
     if (!xrst)
       r_serial_end <= 0;
     else
-      r_serial_end <= r_serial_re == CORE
+      r_serial_end <= r_serial_re == RENKON_CORE
                    && r_serial_addr == r_serial_cnt - 1;
 
   always @(posedge clk)
@@ -431,7 +431,7 @@ module renkon_ctrl_core
       r_ack <= 1;
     else if (req)
       r_ack <= 0;
-    else if (s_output_end && r_count_out + CORE >= r_total_out)
+    else if (s_output_end && r_count_out + RENKON_CORE >= r_total_out)
       r_ack <= 1;
 
   always @(posedge clk)
@@ -449,7 +449,7 @@ module renkon_ctrl_core
     else if (in_ctrl.stop)
       r_serial_re <= 1;
     else if (r_serial_re > 0 && r_serial_addr == r_serial_cnt - 1)
-      if (r_serial_re == CORE)
+      if (r_serial_re == RENKON_CORE)
         r_serial_re <= 0;
       else
         r_serial_re <= r_serial_re + 1;

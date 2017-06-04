@@ -1,8 +1,8 @@
-module test_gobou_core;
+module test_renkon_mux_output;
 
   reg clk;
 
-  gobou_core dut(.*);
+  renkon_mux_output dut(.*);
 
   // clock
   initial begin

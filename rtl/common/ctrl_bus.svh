@@ -6,14 +6,14 @@ interface ctrl_bus;
   wire valid;
   wire stop;
 
-  modport in  ( input start
-              , input valid
-              , input stop
-              );
-  modport out ( output start
-              , output valid
-              , output stop
-              );
+  modport slave ( input start
+                , input valid
+                , input stop
+                );
+  modport master ( output start
+                 , output valid
+                 , output stop
+                 );
 endinterface
 
 typedef struct {

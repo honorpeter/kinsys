@@ -1,5 +1,4 @@
 `include "renkon.svh"
-`include "mem_sp.sv"
 
 module renkon_top
   ( input                     clk
@@ -9,8 +8,8 @@ module renkon_top
   , input [IMGSIZE-1:0]       input_addr
   , input [IMGSIZE-1:0]       output_addr
   , input signed [DWIDTH-1:0] write_img
-  , input [CORELOG:0]         net_we
-  , input [NETSIZE-1:0]       net_addr
+  , input [RENKON_CORELOG:0]  net_we
+  , input [RENKON_NETSIZE-1:0]net_addr
   , input signed [DWIDTH-1:0] write_net
   , input [LWIDTH-1:0]        total_out
   , input [LWIDTH-1:0]        total_in
@@ -30,9 +29,9 @@ module renkon_top
 `endif
   );
 
-  wire        [CORE-1:0]    mem_net_we;
-  wire        [NETSIZE-1:0] mem_net_addr;
-  wire signed [DWIDTH-1:0]  read_net [CORE-1:0];
+  wire        [RENKON_CORE-1:0]    mem_net_we;
+  wire        [RENKON_NETSIZE-1:0] mem_net_addr;
+  wire signed [DWIDTH-1:0]  read_net [RENKON_CORE-1:0];
   wire                      buf_pix_en;
   wire        [LWIDTH-1:0]  w_fea_size;
   wire        [LWIDTH-1:0]  w_fil_size;
@@ -51,9 +50,9 @@ module renkon_top
   wire                      buf_feat_en;
   wire                      pool_oe;
   wire                      serial_we;
-  wire        [CORELOG:0]   serial_re;
+  wire        [RENKON_CORELOG:0]   serial_re;
   wire        [OUTSIZE-1:0] serial_addr;
-  wire signed [DWIDTH-1:0]  pmap [CORE-1:0];
+  wire signed [DWIDTH-1:0]  pmap [RENKON_CORE-1:0];
   wire signed [DWIDTH-1:0]  write_result;
 `ifndef DIST
   wire                      mem_img_we;
@@ -82,8 +81,8 @@ module renkon_top
     .*
   );
 
-  for (genvar i = 0; i < CORE; i++) begin : pe
-    mem_sp #(DWIDTH, NETSIZE) mem_net(
+  for (genvar i = 0; i < RENKON_CORE; i++) begin : pe
+    mem_sp #(DWIDTH, RENKON_NETSIZE) mem_net(
       .read_data  (read_net[i]),
       .write_data (write_net),
       .mem_we     (mem_net_we[i]),

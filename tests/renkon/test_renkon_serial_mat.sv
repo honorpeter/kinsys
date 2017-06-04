@@ -1,8 +1,8 @@
-module test_gobou_core;
+module test_renkon_serial_mat;
 
   reg clk;
 
-  gobou_core dut(.*);
+  renkon_serial_mat dut(.*);
 
   // clock
   initial begin

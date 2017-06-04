@@ -2,11 +2,11 @@
 `include "ctrl_bus.svh"
 
 module renkon_ctrl_relu
-  ( input         clk
-  , input         xrst
-  , ctrl_bus.in   in_ctrl
-  , ctrl_bus.out  out_ctrl
-  , output        relu_oe
+  ( input           clk
+  , input           xrst
+  , ctrl_bus.slave  in_ctrl
+  , ctrl_bus.master out_ctrl
+  , output          relu_oe
   );
 
   ctrl_reg r_out_ctrl [D_RELU-1:0];

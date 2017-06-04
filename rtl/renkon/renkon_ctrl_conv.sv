@@ -4,13 +4,13 @@
 module renkon_ctrl_conv
   ( input               clk
   , input               xrst
-  , ctrl_bus.in         in_ctrl
+  , ctrl_bus.slave      in_ctrl
   , input  [2-1:0]      core_state
   , input  [LWIDTH-1:0] w_img_size
   , input  [LWIDTH-1:0] w_fil_size
   , input               first_input
   , input               last_input
-  , ctrl_bus.out        out_ctrl
+  , ctrl_bus.master     out_ctrl
   , output              mem_feat_we
   , output              mem_feat_rst
   , output [FACCUM-1:0] mem_feat_addr

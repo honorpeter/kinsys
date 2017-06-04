@@ -26,7 +26,7 @@ TESTSUITE = $(wildcard test/*.sv)
 INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl/common
 
 .PHONY: test test-all clean
-.SUFFIXES: .com .v .sv .log .vh .svh .sim .dot .png
+.SUFFIXES: .com .log .v .sv .vh .svh .sim .dot .png
 
 ############################################################
 # Major Rules

@@ -1,8 +1,8 @@
-module test_gobou_core;
+module test_kinpira_v0_1_0;
 
   reg clk;
 
-  gobou_core dut(.*);
+  kinpira_v0_1_0 dut(.*);
 
   // clock
   initial begin

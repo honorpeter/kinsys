@@ -1,8 +1,8 @@
-module test_gobou_core;
+module test_mem_sp;
 
   reg clk;
 
-  gobou_core dut(.*);
+  mem_sp dut(.*);
 
   // clock
   initial begin

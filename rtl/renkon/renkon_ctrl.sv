@@ -10,8 +10,8 @@ module renkon_ctrl
   , input         [IMGSIZE-1:0] output_addr
   , input  signed [DWIDTH-1:0]  write_img
   , input  signed [DWIDTH-1:0]  write_result
-  , input         [CORELOG:0]   net_we
-  , input         [NETSIZE-1:0] net_addr
+  , input         [RENKON_CORELOG:0]   net_we
+  , input         [RENKON_NETSIZE-1:0] net_addr
   , input         [LWIDTH-1:0]  total_in
   , input         [LWIDTH-1:0]  total_out
   , input         [LWIDTH-1:0]  img_size
@@ -26,14 +26,14 @@ module renkon_ctrl
   , output                      relu_oe
   , output                      pool_oe
   , output                      serial_we
-  , output        [CORELOG:0]   serial_re
+  , output        [RENKON_CORELOG:0]   serial_re
   , output        [OUTSIZE-1:0] serial_addr
   , output                      buf_feat_en
   , output                      mem_img_we
   , output        [IMGSIZE-1:0] mem_img_addr
   , output signed [DWIDTH-1:0]  write_mem_img
-  , output        [CORE-1:0]    mem_net_we
-  , output        [NETSIZE-1:0] mem_net_addr
+  , output        [RENKON_CORE-1:0]    mem_net_we
+  , output        [RENKON_NETSIZE-1:0] mem_net_addr
   , output                      mem_feat_we
   , output                      mem_feat_rst
   , output        [FACCUM-1:0]  mem_feat_addr

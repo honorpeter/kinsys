@@ -2,13 +2,13 @@
 `include "ctrl_bus.svh"
 
 module gobou_ctrl_mac
-  ( input         clk
-  , input         xrst
-  , ctrl_bus.in   in_ctrl
-  , ctrl_bus.out  out_ctrl
-  , output        mac_oe
-  , output        accum_we
-  , output        accum_rst
+  ( input           clk
+  , input           xrst
+  , ctrl_bus.slave  in_ctrl
+  , ctrl_bus.master out_ctrl
+  , output          mac_oe
+  , output          accum_we
+  , output          accum_rst
   );
 
   ctrl_reg  r_out_ctrl;

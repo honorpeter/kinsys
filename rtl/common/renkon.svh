@@ -2,11 +2,14 @@
 `define _RENKON_SVH_
 
 `include "common.svh"
+`ifndef DIST
+`include "mem_sp.sv"
+`include "mem_dp.sv"
+`endif
 
-parameter CORE    = 8;
-parameter CORELOG = $clog2(CORE);
-// parameter NETSIZE = 14;
-parameter NETSIZE = 15;
+parameter RENKON_CORE    = 8;
+parameter RENKON_CORELOG = $clog2(RENKON_CORE);
+parameter RENKON_NETSIZE = 15;
 parameter FACCUM  = 10; // expected max featuremap size (cf. $clog2(24x24))
 parameter OUTSIZE = 8; // expected max output size (cf. $clog2(4x4x32))
 parameter FSIZE   = 5;
@@ -17,8 +20,6 @@ parameter D_PIXELBUF = 32; // max size (image height or width)
 parameter D_POOLBUF  = 32; // max size (image height or width)
 parameter D_CONV     = 5;
 parameter D_ACCUM    = 1;
-parameter D_BIAS     = 2;
-parameter D_RELU     = 2;
 parameter D_POOL     = 2;
 
 `endif
