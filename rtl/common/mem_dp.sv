@@ -11,10 +11,10 @@ module mem_dp
   , input                       mem_we2
   , input         [MEMSIZE-1:0] mem_addr1
   , input         [MEMSIZE-1:0] mem_addr2
-  , input  signed [DWIDTH-1:0]  write_data1
-  , input  signed [DWIDTH-1:0]  write_data2
-  , output signed [DWIDTH-1:0]  read_data1
-  , output signed [DWIDTH-1:0]  read_data2
+  , input  signed [DWIDTH-1:0]  mem_wdata1
+  , input  signed [DWIDTH-1:0]  mem_wdata2
+  , output signed [DWIDTH-1:0]  mem_rdata1
+  , output signed [DWIDTH-1:0]  mem_rdata2
   );
 
   localparam WORDS = 2 ** MEMSIZE;
@@ -23,18 +23,18 @@ module mem_dp
   reg        [MEMSIZE-1:0]  r_addr1;
   reg        [MEMSIZE-1:0]  r_addr2;
 
-  assign read_data1 = mem[r_addr1];
-  assign read_data2 = mem[r_addr2];
+  assign mem_rdata1 = mem[r_addr1];
+  assign mem_rdata2 = mem[r_addr2];
 
   always @(posedge clk) begin
     if (mem_we1)
-      mem[mem_addr1] <= write_data1;
+      mem[mem_addr1] <= mem_wdata1;
     r_addr1 <= mem_addr1;
   end
 
   always @(posedge clk) begin
     // if (mem_we2)
-    //   mem[mem_addr2] <= write_data2;
+    //   mem[mem_addr2] <= mem_wdata2;
     r_addr2 <= mem_addr2;
   end
 

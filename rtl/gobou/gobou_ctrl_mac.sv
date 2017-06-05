@@ -1,5 +1,4 @@
 `include "gobou.svh"
-`include "ctrl_bus.svh"
 
 module gobou_ctrl_mac
   ( input           clk
@@ -43,8 +42,12 @@ module gobou_ctrl_mac
   assign out_ctrl.stop  = r_out_ctrl.stop;
 
   always @(posedge clk)
-    if (!xrst)
-      r_out_ctrl <= '{0, 0, 0};
+    if (!xrst) begin
+      // r_out_ctrl <= '{0, 0, 0};
+      r_out_ctrl.start <= 0;
+      r_out_ctrl.valid <= 0;
+      r_out_ctrl.stop  <= 0;
+    end
     else begin
       r_out_ctrl.start <= in_ctrl.stop;
       r_out_ctrl.valid <= r_mac_oe;

@@ -1,40 +1,43 @@
 `include "renkon.svh"
-`include "ctrl_bus.svh"
 
 module renkon_ctrl_core
   ( input                       clk
   , input                       xrst
   , ctrl_bus.slave              in_ctrl
   , input                       req
+  , input  [RENKON_CORELOG:0]   net_we
+  , input  [RENKON_NETSIZE-1:0] net_addr
+  , input  [IMGSIZE-1:0]        in_offset
+  , input  [IMGSIZE-1:0]        out_offset
+  , input  [RENKON_NETSIZE-1:0] net_offset
+  , input  [LWIDTH-1:0]         total_out
+  , input  [LWIDTH-1:0]         total_in
+  , input  [LWIDTH-1:0]         img_size
+  , input  [LWIDTH-1:0]         fil_size
+  , input  signed [DWIDTH-1:0]  out_wdata
+`ifdef DIST
+`else
   , input                       img_we
-  , input         [IMGSIZE-1:0] input_addr
-  , input         [IMGSIZE-1:0] output_addr
-  , input  signed [DWIDTH-1:0]  write_img
-  , input  signed [DWIDTH-1:0]  write_result
-  , input         [RENKON_CORELOG:0]   net_we
-  , input         [RENKON_NETSIZE-1:0] net_addr
-  , input         [LWIDTH-1:0]  total_out
-  , input         [LWIDTH-1:0]  total_in
-  , input         [LWIDTH-1:0]  img_size
-  , input         [LWIDTH-1:0]  fil_size
+  , input  signed [DWIDTH-1:0]  img_wdata
+`endif
   , ctrl_bus.master             out_ctrl
   , output                      ack
-  , output        [2-1:0]       core_state
+  , output [2-1:0]              core_state
   , output                      mem_img_we
-  , output        [IMGSIZE-1:0] mem_img_addr
-  , output signed [DWIDTH-1:0]  write_mem_img
-  , output        [RENKON_CORE-1:0]    mem_net_we
-  , output        [RENKON_NETSIZE-1:0] mem_net_addr
+  , output [IMGSIZE-1:0]        mem_img_addr
+  , output signed [DWIDTH-1:0]  mem_img_wdata
+  , output [RENKON_CORE-1:0]    mem_net_we
+  , output [RENKON_NETSIZE-1:0] mem_net_addr
   , output                      buf_pix_en
   , output                      first_input
   , output                      last_input
   , output                      wreg_we
   , output                      breg_we
   , output                      serial_we
-  , output        [RENKON_CORELOG:0]   serial_re
-  , output        [OUTSIZE-1:0] serial_addr
-  , output        [LWIDTH-1:0]  w_img_size
-  , output        [LWIDTH-1:0]  w_fil_size
+  , output [RENKON_CORELOG:0]   serial_re
+  , output [OUTSIZE-1:0]        serial_addr
+  , output [LWIDTH-1:0]         w_img_size
+  , output [LWIDTH-1:0]         w_fil_size
   );
 
   wire               s_network_end;
@@ -317,9 +320,15 @@ module renkon_ctrl_core
   assign mem_img_we   = r_img_we;
   assign mem_img_addr = w_img_addr + w_img_offset;
 
-  assign write_mem_img = r_state[0] == S_OUTPUT
-                       ? write_result
-                       : write_img;
+`ifdef DIST
+  assign mem_img_wdata = r_state[0] == S_OUTPUT
+                       ? out_wdata
+                       : 0;
+`else
+  assign mem_img_wdata = r_state[0] == S_OUTPUT
+                       ? out_wdata
+                       : img_wdata;
+`endif
 
   assign w_img_addr = r_state[0] == S_OUTPUT
                     ? r_output_addr
@@ -352,6 +361,18 @@ module renkon_ctrl_core
         end
     endcase
 
+`ifdef DIST
+  always @(posedge clk)
+    if (!xrst)
+      r_img_we <= 0;
+    else
+      case (r_state[0])
+        S_OUTPUT:
+          r_img_we <= r_out_we;
+        default:
+          r_img_we <= 0;
+      endcase
+`else
   always @(posedge clk)
     if (!xrst)
       r_img_we <= 0;
@@ -364,6 +385,7 @@ module renkon_ctrl_core
         default:
           r_img_we <= 0;
       endcase
+`endif
 
   always @(posedge clk)
     if (!xrst)
@@ -387,8 +409,8 @@ module renkon_ctrl_core
       r_output_offset <= 0;
     end
     else if (req || ack) begin
-      r_input_offset <= input_addr;
-      r_output_offset <= output_addr;
+      r_input_offset <= in_offset;
+      r_output_offset <= out_offset;
     end
 
 //==========================================================

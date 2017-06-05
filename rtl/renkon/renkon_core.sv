@@ -17,7 +17,7 @@ module renkon_core
   , input         [LWIDTH-1:0]  w_fea_size
   , input         [LWIDTH-1:0]  w_pool_size
   , input  signed [DWIDTH-1:0]  pixel [FSIZE**2-1:0]
-  , input  signed [DWIDTH-1:0]  read_net
+  , input  signed [DWIDTH-1:0]  net_rdata
   , output signed [DWIDTH-1:0]  pmap
   );
 
@@ -28,7 +28,7 @@ module renkon_core
   renkon_conv conv(
     .wreg_we      (wreg_we),
     .out_en       (conv_oe),
-    .read_weight  (read_net),
+    .read_weight  (net_rdata),
     .pixel_in     (pixel),
     .pixel_out    (fmap),
     .*

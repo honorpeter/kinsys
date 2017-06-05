@@ -1,98 +1,45 @@
 #!/usr/bin/env vivado -mode batch -source
 
-#*******************************************************************************
-#
-# Vivado (TM) v2016.4 (64-bit)
-#
-# ip.tcl: Tcl script for re-creating project 'ip'
-#
-# This file contains the Vivado Tcl commands
-# for re-creating the project to the state* when this script was generated.
-# In order to re-create the project,
-# please source this file in the Vivado Tcl Shell.
-#
-# * Note that the runs in the created project will be configured
-#   the same way as the original project, however they will not be
-#   launched automatically. To regenerate the run results please
-#   launch the synthesis/implementation runs as needed.
-#
-#*******************************************************************************
+set origin_dir .
+set proj_name [lindex $argv 0]
+set ip_name  [lindex $argv 1]
 
-# Set the reference directory for source file relative paths
-# (by default the value is script directory path)
-set origin_dir "."
-set ip_name  [lindex $argv 0]
-
-# Use origin directory path location variable, if specified in the tcl shell
-if { [info exists ::origin_dir_loc] } {
-  set origin_dir $::origin_dir_loc
-}
-
-variable script_file
-set script_file "ip.tcl"
-
-# Help information for this script
-proc help {} {
-  variable script_file
-  puts "\nDescription:"
-  puts "Recreate a Vivado project from this script. The created project will be"
-  puts "functionally equivalent to the original project for which this script was"
-  puts "generated. The script contains commands for creating a project, filesets,"
-  puts "runs, adding/importing sources and setting properties on various objects.\n"
-  puts "Syntax:"
-  puts "$script_file"
-  puts "$script_file -tclargs \[--origin_dir <path>\]"
-  puts "$script_file -tclargs \[--help\]\n"
-  puts "Usage:"
-  puts "Name                   Description"
-  puts "-------------------------------------------------------------------------"
-  puts "\[--origin_dir <path>\]  Determine source file paths wrt this path. Default"
-  puts "                       origin_dir path value is \".\", otherwise, the value"
-  puts "                       that was set with the \"-paths_relative_to\" switch"
-  puts "                       when this script was generated.\n"
-  puts "\[--help\]               Print help information for this script"
-  puts "-------------------------------------------------------------------------\n"
-  exit 0
-}
-
-if { $::argc > 0 } {
-  for {set i 0} {$i < [llength $::argc]} {incr i} {
-    set option [string trim [lindex $::argv $i]]
-    switch -regexp -- $option {
-      "--origin_dir" { incr i; set origin_dir [lindex $::argv $i] }
-      "--help"       { help }
-      default {
-        if { [regexp {^-} $option] } {
-          puts "ERROR: Unknown option '$option' specified, please type '$script_file -tclargs --help' for usage info.\n"
-          return 1
-        }
-      }
-    }
+switch $proj_name {
+  "zybo" {
+    set part_name xc7z010clg400-1
+  }
+  "zedboard" {
+    set part_name xc7z020clg484-1
   }
 }
 
-# Set the directory path for the original project from where this script was exported
-set orig_proj_dir "[file normalize "$origin_dir/ip"]"
-
 # Create project
-create_project ip ./ip -part xc7z020clg484-1 -force
-
-# Set the directory path for the new project
-set proj_dir [get_property directory [current_project]]
-
-# Reconstruct message rules
-# None
+create_project ip ./ip -part $part_name -force
 
 # Set project properties
 set obj [get_projects ip]
-set_property "board_part" "em.avnet.com:zed:part0:1.3" $obj
-set_property "default_lib" "xil_defaultlib" $obj
-set_property "ip_cache_permissions" "read write" $obj
-set_property "ip_output_repo" "$origin_dir/ip/ip.cache/ip" $obj
-set_property "sim.ip.auto_export_scripts" "1" $obj
-set_property "simulator_language" "Mixed" $obj
-set_property "xsim.array_display_limit" "64" $obj
-set_property "xsim.trace_limit" "65536" $obj
+switch $proj_name {
+  "zybo" {
+    set_property "board_part" "digilentinc.com:zybo:part0:1.0" $obj
+    set_property "default_lib" "xil_defaultlib" $obj
+    set_property "ip_cache_permissions" "read write" $obj
+    set_property "ip_output_repo" "$origin_dir/ip/ip.cache/ip" $obj
+    set_property "sim.ip.auto_export_scripts" "1" $obj
+    set_property "simulator_language" "Mixed" $obj
+    set_property "xsim.array_display_limit" "64" $obj
+    set_property "xsim.trace_limit" "65536" $obj
+  }
+  "zedboard" {
+    set_property "board_part" "em.avnet.com:zed:part0:1.3" $obj
+    set_property "default_lib" "xil_defaultlib" $obj
+    set_property "ip_cache_permissions" "read write" $obj
+    set_property "ip_output_repo" "$origin_dir/ip/ip.cache/ip" $obj
+    set_property "sim.ip.auto_export_scripts" "1" $obj
+    set_property "simulator_language" "Mixed" $obj
+    set_property "xsim.array_display_limit" "64" $obj
+    set_property "xsim.trace_limit" "65536" $obj
+  }
+}
 
 # Create 'sources_1' fileset (if not found)
 if {[string equal [get_filesets -quiet sources_1] ""]} {
@@ -145,12 +92,14 @@ set files [list \
  "[file normalize "$origin_dir/../dist/gobou_ctrl.sv"]"\
  "[file normalize "$origin_dir/../dist/renkon_top.sv"]"\
  "[file normalize "$origin_dir/../dist/ninjin.svh"]"\
- "[file normalize "$origin_dir/../dist/ninjin_s_axi_lite.sv"]"\
+ "[file normalize "$origin_dir/../dist/ninjin_s_axi_params.sv"]"\
+ "[file normalize "$origin_dir/../dist/ninjin_s_axi_image.sv"]"\
+ "[file normalize "$origin_dir/../dist/ninjin_s_axi_renkon.sv"]"\
+ "[file normalize "$origin_dir/../dist/ninjin_s_axi_gobou.sv"]"\
  "[file normalize "$origin_dir/../dist/gobou_top.sv"]"\
- "[file normalize "$origin_dir/../dist/kinpira_axi_lite.sv"]"\
+ "[file normalize "$origin_dir/../dist/kinpira_axi.sv"]"\
 ]
 add_files -norecurse -fileset $obj $files
-#  "[file normalize "$origin_dir/../dist/component.xml"]"\
 
 # Set 'sources_1' fileset file properties for remote files
 set file "$origin_dir/../dist/mem_sp.sv"
@@ -338,7 +287,22 @@ set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 # set_property "file_type" "Verilog Header" $file_obj
 set_property "file_type" "SystemVerilog" $file_obj
 
-set file "$origin_dir/../dist/ninjin_s_axi_lite.sv"
+set file "$origin_dir/../dist/ninjin_s_axi_params.sv"
+set file [file normalize $file]
+set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
+set_property "file_type" "SystemVerilog" $file_obj
+
+set file "$origin_dir/../dist/ninjin_s_axi_image.sv"
+set file [file normalize $file]
+set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
+set_property "file_type" "SystemVerilog" $file_obj
+
+set file "$origin_dir/../dist/ninjin_s_axi_renkon.sv"
+set file [file normalize $file]
+set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
+set_property "file_type" "SystemVerilog" $file_obj
+
+set file "$origin_dir/../dist/ninjin_s_axi_gobou.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
@@ -348,7 +312,7 @@ set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
 
-set file "$origin_dir/../dist/kinpira_axi_lite.sv"
+set file "$origin_dir/../dist/kinpira_axi.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
@@ -388,7 +352,7 @@ if {[string equal [get_filesets -quiet sim_1] ""]} {
 set obj [get_filesets sim_1]
 set files [list \
  "[file normalize "$origin_dir/../dist/test_gobou_top.sv"]"\
- "[file normalize "$origin_dir/../dist/test_kinpira_axi_lite.sv"]"\
+ "[file normalize "$origin_dir/../dist/test_kinpira_axi.sv"]"\
  "[file normalize "$origin_dir/../dist/test_mem_dp.sv"]"\
  "[file normalize "$origin_dir/../dist/test_mem_sp.sv"]"\
  "[file normalize "$origin_dir/../dist/test_renkon_top.sv"]"\
@@ -401,7 +365,7 @@ set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sim_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
 
-set file "$origin_dir/../dist/test_kinpira_axi_lite.sv"
+set file "$origin_dir/../dist/test_kinpira_axi.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sim_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
@@ -436,7 +400,7 @@ set_property "xelab.unifast" "" $obj
 # Create 'synth_1' run (if not found)
 if {[string equal [get_runs -quiet synth_1] ""]} {
   create_run -name synth_1 \
-    -part xc7z020clg484-1 \
+    -part $part_name \
     -flow {Vivado Synthesis 2016} \
     -strategy "Vivado Synthesis Defaults" \
     -constrset constrs_1
@@ -452,7 +416,7 @@ current_run -synthesis [get_runs synth_1]
 # Create 'impl_1' run (if not found)
 if {[string equal [get_runs -quiet impl_1] ""]} {
   create_run -name impl_1 \
-    -part xc7z020clg484-1 \
+    -part $part_name \
     -flow {Vivado Implementation 2016} \
     -strategy "Vivado Implementation Defaults" \
     -constrset constrs_1 \

@@ -1,5 +1,4 @@
 `include "renkon.svh"
-`include "ctrl_bus.svh"
 
 module renkon_ctrl_conv
   ( input               clk
@@ -126,8 +125,12 @@ module renkon_ctrl_conv
   assign conv_ctrl.stop  = r_conv_ctrl.stop;
 
   always @(posedge clk)
-    if (!xrst)
-      r_conv_ctrl <= '{0, 0, 0};
+    if (!xrst) begin
+      // r_conv_ctrl <= '{0, 0, 0};
+      r_conv_ctrl.start <= 0;
+      r_conv_ctrl.valid <= 0;
+      r_conv_ctrl.stop  <= 0;
+    end
     else begin
       r_conv_ctrl.start <= r_state == S_ACTIVE
                             && r_core_state == S_CORE_INPUT
@@ -220,8 +223,11 @@ module renkon_ctrl_conv
   assign accum_ctrl.stop  = r_accum_ctrl.stop;
 
   always @(posedge clk)
-    if (!xrst)
-      r_accum_ctrl <= '{0, 0, 0};
+    if (!xrst) begin
+      r_accum_ctrl.start <= 0;
+      r_accum_ctrl.valid <= 0;
+      r_accum_ctrl.stop  <= 0;
+    end
     else begin
       r_accum_ctrl.start <= r_state == S_ACTIVE
                               && r_core_state == S_CORE_INPUT
@@ -251,8 +257,12 @@ module renkon_ctrl_conv
   for (genvar i = 0; i < D_CONV+D_ACCUM; i++)
     if (i == 0) begin
       always @(posedge clk)
-        if (!xrst)
-          r_out_ctrl[0] <= '{0, 0, 0};
+        if (!xrst) begin
+          // r_out_ctrl[0] <= '{0, 0, 0};
+          r_out_ctrl[0].start <= 0;
+          r_out_ctrl[0].valid <= 0;
+          r_out_ctrl[0].stop  <= 0;
+        end
         else begin
           r_out_ctrl[0].start <= accum_ctrl.start;
           r_out_ctrl[0].valid <= accum_ctrl.valid;
@@ -261,8 +271,12 @@ module renkon_ctrl_conv
     end
     else begin
       always @(posedge clk)
-        if (!xrst)
-          r_out_ctrl[i] <= '{0, 0, 0};
+        if (!xrst) begin
+          // r_out_ctrl[i] <= '{0, 0, 0};
+          r_out_ctrl[i].start <= 0;
+          r_out_ctrl[i].valid <= 0;
+          r_out_ctrl[i].stop  <= 0;
+        end
         else begin
           r_out_ctrl[i].start <= r_out_ctrl[i-1].start;
           r_out_ctrl[i].valid <= r_out_ctrl[i-1].valid;

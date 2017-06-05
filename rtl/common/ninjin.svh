@@ -7,7 +7,7 @@ parameter REGSIZE = 5;
 parameter MEMSIZE = 10;
 parameter BUFSIZE = 7;
 
-parameter PORT  = 2**REGSIZE;
+parameter PORT  = 32;
 parameter LSB   = 2;
 
 /* which:

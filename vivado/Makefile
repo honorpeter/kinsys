@@ -1,5 +1,5 @@
 BOARD = zedboard
-IP    = kinpira_axi_lite
+IP    = kinpira_axi
 APP   = iotest
 
 .PHONY: run sw hw zybo zedboard ip all clean
@@ -8,7 +8,7 @@ run:
 	# cp main.c ${BOARD}/${BOARD}.sdk/${APP}/src
 	xsct run.tcl ${BOARD} ${APP}
 
-all: clean dist ip ${BOARD} hw sw run
+all: clean dist ip proj hw sw run
 
 sw:
 	xsct sw.tcl ${BOARD} ${APP}
@@ -16,14 +16,11 @@ sw:
 hw:
 	vivado -nojournal -nolog -mode batch -source hw.tcl -tclargs ${BOARD} ${IP}
 
-zedboard:
-	vivado -nojournal -nolog -mode batch -source zedboard.tcl
+proj:
+	vivado -nojournal -nolog -mode batch -source proj.tcl -tclargs ${BOARD} ${IP}
 
-zybo:
-	vivado -nojournal -nolog -mode batch -source zybo.tcl
-
-ip:
-	vivado -nojournal -nolog -mode batch -source ip.tcl -tclargs ${IP}
+ip: dist
+	vivado -nojournal -nolog -mode batch -source ip.tcl -tclargs ${BOARD} ${IP}
 
 dist:
 	make -C ../rtl dist

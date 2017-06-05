@@ -1,22 +1,24 @@
 `include "renkon.svh"
-`include "ctrl_bus.svh"
 
 module renkon_ctrl
   ( input                       clk
   , input                       xrst
   , input                       req
+  , input  [IMGSIZE-1:0]        in_offset
+  , input  [IMGSIZE-1:0]        out_offset
+  , input  signed [DWIDTH-1:0]  out_wdata
+  , input  [RENKON_CORELOG:0]   net_we
+  , input  [RENKON_NETSIZE-1:0] net_addr
+  , input  [LWIDTH-1:0]         total_in
+  , input  [LWIDTH-1:0]         total_out
+  , input  [LWIDTH-1:0]         img_size
+  , input  [LWIDTH-1:0]         fil_size
+  , input  [LWIDTH-1:0]         pool_size
+`ifdef DIST
+`else
   , input                       img_we
-  , input         [IMGSIZE-1:0] input_addr
-  , input         [IMGSIZE-1:0] output_addr
-  , input  signed [DWIDTH-1:0]  write_img
-  , input  signed [DWIDTH-1:0]  write_result
-  , input         [RENKON_CORELOG:0]   net_we
-  , input         [RENKON_NETSIZE-1:0] net_addr
-  , input         [LWIDTH-1:0]  total_in
-  , input         [LWIDTH-1:0]  total_out
-  , input         [LWIDTH-1:0]  img_size
-  , input         [LWIDTH-1:0]  fil_size
-  , input         [LWIDTH-1:0]  pool_size
+  , input  signed [DWIDTH-1:0]  img_wdata
+`endif
   , output                      ack
   , output                      buf_pix_en
   , output                      wreg_we
@@ -26,22 +28,22 @@ module renkon_ctrl
   , output                      relu_oe
   , output                      pool_oe
   , output                      serial_we
-  , output        [RENKON_CORELOG:0]   serial_re
-  , output        [OUTSIZE-1:0] serial_addr
+  , output [RENKON_CORELOG:0]   serial_re
+  , output [OUTSIZE-1:0]        serial_addr
   , output                      buf_feat_en
   , output                      mem_img_we
-  , output        [IMGSIZE-1:0] mem_img_addr
-  , output signed [DWIDTH-1:0]  write_mem_img
-  , output        [RENKON_CORE-1:0]    mem_net_we
-  , output        [RENKON_NETSIZE-1:0] mem_net_addr
+  , output [IMGSIZE-1:0]        mem_img_addr
+  , output signed [DWIDTH-1:0]  mem_img_wdata
+  , output [RENKON_CORE-1:0]    mem_net_we
+  , output [RENKON_NETSIZE-1:0] mem_net_addr
   , output                      mem_feat_we
   , output                      mem_feat_rst
-  , output        [FACCUM-1:0]  mem_feat_addr
-  , output        [FACCUM-1:0]  mem_feat_addr_d1
-  , output        [LWIDTH-1:0]  w_img_size
-  , output        [LWIDTH-1:0]  w_fil_size
-  , output        [LWIDTH-1:0]  w_fea_size
-  , output        [LWIDTH-1:0]  w_pool_size
+  , output [FACCUM-1:0]         mem_feat_addr
+  , output [FACCUM-1:0]         mem_feat_addr_d1
+  , output [LWIDTH-1:0]         w_img_size
+  , output [LWIDTH-1:0]         w_fil_size
+  , output [LWIDTH-1:0]         w_fea_size
+  , output [LWIDTH-1:0]         w_pool_size
   );
 
   wire [1:0] core_state;

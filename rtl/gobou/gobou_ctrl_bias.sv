@@ -1,5 +1,4 @@
 `include "gobou.svh"
-`include "ctrl_bus.svh"
 
 module gobou_ctrl_bias
   ( input           clk

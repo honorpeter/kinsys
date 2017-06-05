@@ -9,8 +9,8 @@ module mem_sp
   ( input                       clk
   , input                       mem_we
   , input         [MEMSIZE-1:0] mem_addr
-  , input  signed [DWIDTH-1:0]  write_data
-  , output signed [DWIDTH-1:0]  read_data
+  , input  signed [DWIDTH-1:0]  mem_wdata
+  , output signed [DWIDTH-1:0]  mem_rdata
   );
 
   localparam WORDS = 2 ** MEMSIZE;
@@ -18,11 +18,11 @@ module mem_sp
   reg signed [DWIDTH-1:0] mem [WORDS-1:0];
   reg [MEMSIZE-1:0]       r_addr;
 
-  assign read_data = mem[r_addr];
+  assign mem_rdata = mem[r_addr];
 
   always @(posedge clk) begin
     if (mem_we)
-      mem[mem_addr] <= write_data;
+      mem[mem_addr] <= mem_wdata;
     r_addr <= mem_addr;
   end
 

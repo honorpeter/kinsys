@@ -1,27 +1,31 @@
 `include "gobou.svh"
-`include "ctrl_bus.svh"
 
 module gobou_ctrl_core
   ( input                       clk
   , input                       xrst
   , ctrl_bus.slave              in_ctrl
   , input                       req
+  , input  [GOBOU_CORELOG-1:0]  net_sel
+  , input                       net_we
+  , input  [GOBOU_NETSIZE-1:0]  net_addr
+  , input  [IMGSIZE-1:0]        in_offset
+  , input  [IMGSIZE-1:0]        out_offset
+  , input  [GOBOU_NETSIZE-1:0]  net_offset
+  , input  [LWIDTH-1:0]         total_out
+  , input  [LWIDTH-1:0]         total_in
+  , input  signed [DWIDTH-1:0]  out_wdata
+`ifdef DIST
+`else
   , input                       img_we
-  , input         [IMGSIZE-1:0] input_addr
-  , input         [IMGSIZE-1:0] output_addr
-  , input  signed [DWIDTH-1:0]  write_img
-  , input  signed [DWIDTH-1:0]  write_result
-  , input         [GOBOU_CORELOG:0]   net_we
-  , input         [GOBOU_NETSIZE-1:0] net_addr
-  , input         [LWIDTH-1:0]  total_out
-  , input         [LWIDTH-1:0]  total_in
+  , input  signed [DWIDTH-1:0]  img_wdata
+`endif
   , ctrl_bus.master             out_ctrl
   , output                      ack
   , output                      mem_img_we
-  , output        [IMGSIZE-1:0] mem_img_addr
-  , output signed [DWIDTH-1:0]  write_mem_img
-  , output        [GOBOU_CORE-1:0]    mem_net_we
-  , output        [GOBOU_NETSIZE-1:0] mem_net_addr
+  , output [IMGSIZE-1:0]        mem_img_addr
+  , output signed [DWIDTH-1:0]  mem_img_wdata
+  , output [GOBOU_CORE-1:0]     mem_net_we
+  , output [GOBOU_NETSIZE-1:0]  mem_net_addr
   , output                      breg_we
   , output                      serial_we
   );
@@ -43,8 +47,8 @@ module gobou_ctrl_core
   reg [LWIDTH-1:0]  r_count_out;
   reg [LWIDTH-1:0]  r_count_in;
   reg               r_img_we;
-  reg [IMGSIZE-1:0] r_input_offset;
-  reg [IMGSIZE-1:0] r_output_offset;
+  reg [IMGSIZE-1:0] r_in_offset;
+  reg [IMGSIZE-1:0] r_out_offset;
   reg [IMGSIZE-1:0] r_input_addr;
   reg [IMGSIZE-1:0] r_output_addr;
   reg [GOBOU_CORE-1:0]    r_net_we;
@@ -108,6 +112,19 @@ module gobou_ctrl_core
 
   assign mem_img_we = r_img_we;
 
+`ifdef DIST
+  always @(posedge clk)
+    if (!xrst)
+      r_img_we <= 0;
+    else
+      case (r_state)
+        S_OUTPUT:
+          r_img_we <= r_serial_we
+                   || (0 < r_serial_cnt && r_serial_cnt < GOBOU_CORE);
+        default:
+          r_img_we <= 0;
+      endcase
+`else
   always @(posedge clk)
     if (!xrst)
       r_img_we <= 0;
@@ -121,20 +138,27 @@ module gobou_ctrl_core
         default:
           r_img_we <= 0;
       endcase
+`endif
 
   assign mem_img_addr = w_img_addr + w_img_offset;
 
-  assign write_mem_img = r_state == S_OUTPUT
-                       ? write_result
-                       : write_img;
+`ifdef DIST
+  assign mem_img_wdata = r_state == S_OUTPUT
+                       ? out_wdata
+                       : 0;
+`else
+  assign mem_img_wdata = r_state == S_OUTPUT
+                       ? out_wdata
+                       : img_wdata;
+`endif
 
   assign w_img_addr = r_state == S_OUTPUT
                     ? r_output_addr
                     : r_input_addr;
 
   assign w_img_offset = r_state == S_OUTPUT
-                      ? r_output_offset
-                      : r_input_offset;
+                      ? r_out_offset
+                      : r_in_offset;
 
   always @(posedge clk)
     if (!xrst)
@@ -154,12 +178,12 @@ module gobou_ctrl_core
 
   always @(posedge clk)
     if (!xrst) begin
-      r_input_offset <= 0;
-      r_output_offset <= 0;
+      r_in_offset <= 0;
+      r_out_offset <= 0;
     end
     else if (req || ack) begin
-      r_input_offset <= input_addr;
-      r_output_offset <= output_addr;
+      r_in_offset <= in_offset;
+      r_out_offset <= out_offset;
     end
 
 //==========================================================
@@ -169,18 +193,23 @@ module gobou_ctrl_core
   assign s_weight_end = r_state == S_WEIGHT && r_count_in == r_total_in - 1;
   assign s_bias_end   = r_state == S_BIAS;
 
-  assign mem_net_we   = r_net_we;
-  assign mem_net_addr = r_net_addr + r_net_offset;
+  // assign mem_net_we   = r_net_we;
+  // assign mem_net_addr = r_net_addr + r_net_offset;
+  for (genvar i = 0; i < GOBOU_CORE; i++)
+    assign mem_net_we[i] = net_we & net_sel == i;
+  assign mem_net_addr = net_we
+                      ? net_addr
+                      : r_net_addr + r_net_offset;
   assign breg_we      = r_breg_we;
 
-  for (genvar i = 0; i < GOBOU_CORE; i++)
-    always @(posedge clk)
-      if (!xrst)
-        r_net_we[i] <= 0;
-      else if (net_we == i+1)
-        r_net_we[i] <= 1;
-      else
-        r_net_we[i] <= 0;
+  // for (genvar i = 0; i < GOBOU_CORE; i++)
+  //   always @(posedge clk)
+  //     if (!xrst)
+  //       r_net_we[i] <= 0;
+  //     else if (net_we == i+1)
+  //       r_net_we[i] <= 1;
+  //     else
+  //       r_net_we[i] <= 0;
 
   always @(posedge clk)
     if (!xrst)
@@ -215,8 +244,11 @@ module gobou_ctrl_core
   assign out_ctrl.stop  = r_out_ctrl.stop;
 
   always @(posedge clk)
-    if (!xrst)
-      r_out_ctrl <= '{0, 0, 0};
+    if (!xrst) begin
+      r_out_ctrl.start <= 0;
+      r_out_ctrl.valid <= 0;
+      r_out_ctrl.stop  <= 0;
+    end
     else begin
       r_out_ctrl.start <= req
                        || s_output_end && (r_count_out + GOBOU_CORE < r_total_out);

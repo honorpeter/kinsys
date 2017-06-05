@@ -7,7 +7,7 @@ module kinpira_axi
   , parameter C_s_axi_params_ADDR_WIDTH = 7
 
   // Parameters of Axi Slave Bus Interface s_axi_image
-  , parameter C_s_axi_image_ID_WIDTH      = 1
+  , parameter C_s_axi_image_ID_WIDTH      = 12
   , parameter C_s_axi_image_DATA_WIDTH    = 32
   , parameter C_s_axi_image_ADDR_WIDTH    = 12
   , parameter C_s_axi_image_AWUSER_WIDTH  = 0
@@ -17,7 +17,7 @@ module kinpira_axi
   , parameter C_s_axi_image_BUSER_WIDTH   = 0
 
   // Parameters of Axi Slave Bus Interface s_axi_renkon
-  , parameter C_s_axi_renkon_ID_WIDTH     = 1
+  , parameter C_s_axi_renkon_ID_WIDTH     = 12
   , parameter C_s_axi_renkon_DATA_WIDTH   = 32
   , parameter C_s_axi_renkon_ADDR_WIDTH   = 12
   , parameter C_s_axi_renkon_AWUSER_WIDTH = 0
@@ -27,7 +27,7 @@ module kinpira_axi
   , parameter C_s_axi_renkon_BUSER_WIDTH  = 0
 
   // Parameters of Axi Slave Bus Interface s_axi_gobou
-  , parameter C_s_axi_gobou_ID_WIDTH      = 1
+  , parameter C_s_axi_gobou_ID_WIDTH      = 12
   , parameter C_s_axi_gobou_DATA_WIDTH    = 32
   , parameter C_s_axi_gobou_ADDR_WIDTH    = 12
   , parameter C_s_axi_gobou_AWUSER_WIDTH  = 0
@@ -201,7 +201,7 @@ module kinpira_axi
   , output                                  s_axi_gobou_rlast
   , output [C_s_axi_gobou_RUSER_WIDTH-1:0]  s_axi_gobou_ruser
   , output                                  s_axi_gobou_rvalid
-  , input                                   s_axi_gobou_rread
+  , input                                   s_axi_gobou_rready
   );
 
 
@@ -411,8 +411,8 @@ module kinpira_axi
     .RUSER_WIDTH  (C_s_axi_image_RUSER_WIDTH),
     .BUSER_WIDTH  (C_s_axi_image_BUSER_WIDTH)
   ) ninjin_s_axi_image_inst (
-    .aclk     (s_axi_image_aclk),
-    .aresetn  (s_axi_image_aresetn),
+    .clk      (s_axi_image_aclk),
+    .xrst     (s_axi_image_aresetn),
     .awid     (s_axi_image_awid),
     .awaddr   (s_axi_image_awaddr),
     .awlen    (s_axi_image_awlen),
@@ -474,8 +474,8 @@ module kinpira_axi
     .RUSER_WIDTH  (C_s_axi_renkon_RUSER_WIDTH),
     .BUSER_WIDTH  (C_s_axi_renkon_BUSER_WIDTH)
   ) ninjin_s_axi_renkon_inst (
-    .aclk     (s_axi_renkon_aclk),
-    .aresetn  (s_axi_renkon_aresetn),
+    .clk      (s_axi_renkon_aclk),
+    .xrst     (s_axi_renkon_aresetn),
     .awid     (s_axi_renkon_awid),
     .awaddr   (s_axi_renkon_awaddr),
     .awlen    (s_axi_renkon_awlen),
@@ -537,8 +537,8 @@ module kinpira_axi
     .RUSER_WIDTH  (C_s_axi_gobou_RUSER_WIDTH),
     .BUSER_WIDTH  (C_s_axi_gobou_BUSER_WIDTH)
   ) ninjin_s_axi_gobou_inst (
-    .aclk     (s_axi_gobou_aclk),
-    .aresetn  (s_axi_gobou_aresetn),
+    .clk      (s_axi_gobou_aclk),
+    .xrst     (s_axi_gobou_aresetn),
     .awid     (s_axi_gobou_awid),
     .awaddr   (s_axi_gobou_awaddr),
     .awlen    (s_axi_gobou_awlen),

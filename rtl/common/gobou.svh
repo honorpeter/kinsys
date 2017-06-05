@@ -2,6 +2,7 @@
 `define _GOBOU_SVH_
 
 `include "common.svh"
+`include "ctrl_bus.svh"
 `ifndef DIST
 `include "mem_sp.sv"
 `endif

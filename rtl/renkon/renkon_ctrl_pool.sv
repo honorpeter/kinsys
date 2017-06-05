@@ -1,5 +1,4 @@
 `include "renkon.svh"
-`include "ctrl_bus.svh"
 
 module renkon_ctrl_pool
   ( input               clk

@@ -21,8 +21,8 @@ module renkon_serial_mat
                        : 0;
 
     mem_sp #(DWIDTH, OUTSIZE) mem_serial(
-      .read_data  (mem_data[i]),
-      .write_data (in_data[i]),
+      .mem_rdata  (mem_data[i]),
+      .mem_wdata  (in_data[i]),
       .mem_we     (serial_we),
       .mem_addr   (mem_addr[i]),
       .*

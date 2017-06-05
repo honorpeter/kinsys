@@ -158,8 +158,8 @@ module renkon_linebuf
     mem_sp #(DWIDTH, BUFSIZE) mem_buf(
       .mem_we     (mem_linebuf_we[i]),
       .mem_addr   (mem_linebuf_addr),
-      .write_data (r_buf_input),
-      .read_data  (read_mem[i]),
+      .mem_wdata  (r_buf_input),
+      .mem_rdata  (read_mem[i]),
       .*
     );
 

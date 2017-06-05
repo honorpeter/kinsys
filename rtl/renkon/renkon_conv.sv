@@ -15,9 +15,9 @@ module renkon_conv
   );
 
   wire signed [DWIDTH-1:0] weight [25-1:0];
-  wire signed [DWIDTH-1:0] read_feat;
+  wire signed [DWIDTH-1:0] feat_rdata;
+  wire signed [DWIDTH-1:0] feat_wdata;
   wire signed [DWIDTH-1:0] result;
-  wire signed [DWIDTH-1:0] write_feat;
 
   renkon_conv_wreg wreg(.*);
 
@@ -37,20 +37,20 @@ module renkon_conv
   renkon_accum feat_accum(
     .pixel_in (result),
     .reset    (mem_feat_rst),
-    .sum_old  (read_feat),
-    .sum_new  (write_feat),
+    .sum_old  (feat_rdata),
+    .sum_new  (feat_wdata),
     .*
   );
 
   mem_dp #(DWIDTH, FACCUM) mem_feat(
-    .read_data1   (),
-    .write_data1  (write_feat),
-    .mem_we1      (mem_feat_we),
-    .mem_addr1    (mem_feat_addr_d1),
-    .read_data2   (read_feat),
-    .write_data2  ({DWIDTH{1'b0}}),
-    .mem_we2      (1'b0),
-    .mem_addr2    (mem_feat_addr),
+    .mem_we1    (mem_feat_we),
+    .mem_addr1  (mem_feat_addr_d1),
+    .mem_wdata1 (feat_wdata),
+    .mem_rdata1 (),
+    .mem_we2    (1'b0),
+    .mem_addr2  (mem_feat_addr),
+    .mem_wdata2 ({DWIDTH{1'b0}}),
+    .mem_rdata2 (feat_rdata),
     .*
   );
 
