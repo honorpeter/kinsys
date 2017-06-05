@@ -1,4 +1,4 @@
-BOARD = zcu102
+BOARD = zedboard
 IP    = kinpira_axi
 APP   = iotest
 

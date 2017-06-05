@@ -31,7 +31,7 @@ module ninjin_s_axi_params
 
   wire                  port_we;
   wire                  port_re;
-  wire [DATA_WIDTH-1:0] mux [ADDR_WIDTH-LSB-1:0];
+  wire [DATA_WIDTH-1:0] mux [PORT-1:0];
 
   reg                   r_awready;
   reg  [ADDR_WIDTH-1:0] r_awaddr;

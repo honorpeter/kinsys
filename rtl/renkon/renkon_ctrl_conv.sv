@@ -126,7 +126,6 @@ module renkon_ctrl_conv
 
   always @(posedge clk)
     if (!xrst) begin
-      // r_conv_ctrl <= '{0, 0, 0};
       r_conv_ctrl.start <= 0;
       r_conv_ctrl.valid <= 0;
       r_conv_ctrl.stop  <= 0;
@@ -258,7 +257,6 @@ module renkon_ctrl_conv
     if (i == 0) begin
       always @(posedge clk)
         if (!xrst) begin
-          // r_out_ctrl[0] <= '{0, 0, 0};
           r_out_ctrl[0].start <= 0;
           r_out_ctrl[0].valid <= 0;
           r_out_ctrl[0].stop  <= 0;
@@ -272,7 +270,6 @@ module renkon_ctrl_conv
     else begin
       always @(posedge clk)
         if (!xrst) begin
-          // r_out_ctrl[i] <= '{0, 0, 0};
           r_out_ctrl[i].start <= 0;
           r_out_ctrl[i].valid <= 0;
           r_out_ctrl[i].stop  <= 0;

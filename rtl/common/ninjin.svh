@@ -7,8 +7,8 @@ parameter REGSIZE = 5;
 parameter MEMSIZE = 10;
 parameter BUFSIZE = 7;
 
-parameter PORT  = 32;
 parameter LSB   = 2;
+parameter PORT  = 32;
 
 /* which:
  *   0: renkon  (2D convolution)

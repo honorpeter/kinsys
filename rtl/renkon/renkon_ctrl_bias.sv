@@ -18,8 +18,11 @@ module renkon_ctrl_bias
   for (genvar i = 0; i < D_BIAS; i++)
     if (i == 0)
       always @(posedge clk)
-        if (!xrst)
-          r_out_ctrl[0] <= '{0, 0, 0};
+        if (!xrst) begin
+          r_out_ctrl[0].start <= 0;
+          r_out_ctrl[0].valid <= 0;
+          r_out_ctrl[0].stop  <= 0;
+        end
         else begin
           r_out_ctrl[0].start <= in_ctrl.start;
           r_out_ctrl[0].valid <= in_ctrl.valid;
@@ -27,8 +30,11 @@ module renkon_ctrl_bias
         end
     else
       always @(posedge clk)
-        if (!xrst)
-          r_out_ctrl[i] <= '{0, 0, 0};
+        if (!xrst) begin
+          r_out_ctrl[i].start <= 0;
+          r_out_ctrl[i].valid <= 0;
+          r_out_ctrl[i].stop  <= 0;
+        end
         else begin
           r_out_ctrl[i].start <= r_out_ctrl[i-1].start;
           r_out_ctrl[i].valid <= r_out_ctrl[i-1].valid;

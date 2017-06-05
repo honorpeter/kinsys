@@ -101,6 +101,11 @@ module ninjin_s_axi_gobou
 
   assign awready = r_awready;
 
+  assign aw_wrap_size   = DATA_WIDTH/8 * r_awlen;
+  assign aw_wrap_en     = (r_awaddr & aw_wrap_size) == aw_wrap_size
+                        ? 1'b1
+                        : 1'b0;
+
   always @(posedge clk)
     if (!xrst) begin
       r_awready    <= 0;
@@ -210,6 +215,11 @@ module ninjin_s_axi_gobou
 //==========================================================
 
   assign arready = r_arready;
+
+  assign ar_wrap_size   = DATA_WIDTH/8 * r_arlen;
+  assign ar_wrap_en     = (r_araddr & ar_wrap_size) == ar_wrap_size
+                        ? 1'b1
+                        : 1'b0;
 
   always @(posedge clk)
     if (!xrst) begin

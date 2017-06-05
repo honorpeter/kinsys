@@ -43,7 +43,6 @@ module gobou_ctrl_mac
 
   always @(posedge clk)
     if (!xrst) begin
-      // r_out_ctrl <= '{0, 0, 0};
       r_out_ctrl.start <= 0;
       r_out_ctrl.valid <= 0;
       r_out_ctrl.stop  <= 0;
