@@ -6,10 +6,16 @@ set ip_name  [lindex $argv 1]
 
 switch $proj_name {
   "zybo" {
-    set part_name xc7z010clg400-1
+    set part_name   xc7z010clg400-1
+    set board_name  digilentinc.com:zybo:part0:1.0
   }
   "zedboard" {
-    set part_name xc7z020clg484-1
+    set part_name   xc7z020clg484-1
+    set board_name  em.avnet.com:zed:part0:1.3
+  }
+  "zcu102" {
+    set part_name   xczu9eg-ffvb1156-2-i-es2
+    set board_name  xilinx.com:zcu102:part0:2.0
   }
 }
 
@@ -18,28 +24,14 @@ create_project ip ./ip -part $part_name -force
 
 # Set project properties
 set obj [get_projects ip]
-switch $proj_name {
-  "zybo" {
-    set_property "board_part" "digilentinc.com:zybo:part0:1.0" $obj
-    set_property "default_lib" "xil_defaultlib" $obj
-    set_property "ip_cache_permissions" "read write" $obj
-    set_property "ip_output_repo" "$origin_dir/ip/ip.cache/ip" $obj
-    set_property "sim.ip.auto_export_scripts" "1" $obj
-    set_property "simulator_language" "Mixed" $obj
-    set_property "xsim.array_display_limit" "64" $obj
-    set_property "xsim.trace_limit" "65536" $obj
-  }
-  "zedboard" {
-    set_property "board_part" "em.avnet.com:zed:part0:1.3" $obj
-    set_property "default_lib" "xil_defaultlib" $obj
-    set_property "ip_cache_permissions" "read write" $obj
-    set_property "ip_output_repo" "$origin_dir/ip/ip.cache/ip" $obj
-    set_property "sim.ip.auto_export_scripts" "1" $obj
-    set_property "simulator_language" "Mixed" $obj
-    set_property "xsim.array_display_limit" "64" $obj
-    set_property "xsim.trace_limit" "65536" $obj
-  }
-}
+set_property "board_part" $board_name $obj
+set_property "default_lib" "xil_defaultlib" $obj
+set_property "ip_cache_permissions" "read write" $obj
+set_property "ip_output_repo" "$origin_dir/ip/ip.cache/ip" $obj
+set_property "sim.ip.auto_export_scripts" "1" $obj
+set_property "simulator_language" "Mixed" $obj
+set_property "xsim.array_display_limit" "64" $obj
+set_property "xsim.trace_limit" "65536" $obj
 
 # Create 'sources_1' fileset (if not found)
 if {[string equal [get_filesets -quiet sources_1] ""]} {
