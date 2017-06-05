@@ -18,8 +18,9 @@ dist
 vivado/results
 vivado/reports
 vivado/ip
-vivado/zedboard
 vivado/zybo
+vivado/zedboard
+vivado/zcu102
 
 doc/build/*
 doc/!.gitkeep

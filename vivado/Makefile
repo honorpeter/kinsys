@@ -1,4 +1,4 @@
-BOARD = zedboard
+BOARD = zcu102
 IP    = kinpira_axi
 APP   = iotest
 
@@ -26,6 +26,6 @@ dist:
 	make -C ../rtl dist
 
 clean:
-	rm -rf ../dist ip zybo zedboard .Xil
+	rm -rf ../dist ip zybo zedboard zcu102 .Xil
 	rm -f vivado* hs_err_pid*.log
 
