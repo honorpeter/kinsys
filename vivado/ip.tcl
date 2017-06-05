@@ -475,7 +475,7 @@ set_property core_revision 1 [ipx::current_core]
 ipx::create_xgui_files [ipx::current_core]
 ipx::update_checksums [ipx::current_core]
 ipx::save_core [ipx::current_core]
-set_property  ip_repo_paths  /home/kaftulal/kinsys/dist [current_project]
+set_property  ip_repo_paths  $origin_dir/../dist [current_project]
 update_ip_catalog
 
 puts "INFO: Project packaged:ip"

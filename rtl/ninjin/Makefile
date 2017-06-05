@@ -1,8 +1,14 @@
 VERBOSE   = 0
 SIMULATOR = vsim
-MODULE    = kinpira_axi_lite.sv
+# MODULE    = kinpira_axi_lite.sv
+# DEPENDS   = \
+# 	ninjin_s_axi_lite.sv
+MODULE    = kinpira_axi.sv
 DEPENDS   = \
-	ninjin_s_axi_lite.sv
+	ninjin_s_axi_params.sv \
+	ninjin_s_axi_image.sv \
+	ninjin_s_axi_renkon.sv \
+	ninjin_s_axi_gobou.sv
 TARGET    = test/test_$(MODULE)
 SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard test/*.sv)

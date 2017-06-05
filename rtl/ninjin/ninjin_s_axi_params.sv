@@ -1,6 +1,6 @@
 `include "ninjin.svh"
 
-module ninjin_s_axi_lite
+module ninjin_s_axi_params
  #( parameter DATA_WIDTH  = 32
   , parameter ADDR_WIDTH  = 7
   )

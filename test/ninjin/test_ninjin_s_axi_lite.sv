@@ -1,3 +1,5 @@
+`include "ninjin.svh"
+
 module test_ninjin_s_axi_lite;
 
   reg clk;

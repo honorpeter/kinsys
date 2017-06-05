@@ -3,54 +3,39 @@
 `include "renkon.svh"
 
 module kinpira_axi_lite
- #(
-    // Users to add parameters here
-
-    // User parameters ends
-    // Do not modify the parameters beyond this line
-
-
-    // Parameters of Axi Slave Bus Interface s_axi
-    parameter integer C_s_axi_DATA_WIDTH  = 32,
-    parameter integer C_s_axi_ADDR_WIDTH  = 7
+ #( parameter C_s_axi_DATA_WIDTH  = 32
+  , parameter C_s_axi_ADDR_WIDTH  = 7
   )
-  (
-    // Users to add ports here
-
-    // User ports ends
-    // Do not modify the ports beyond this line
-
-
-    // Ports of Axi Slave Bus Interface s_axi
-    input wire  s_axi_aclk,
-    input wire  s_axi_aresetn,
-    input wire [C_s_axi_ADDR_WIDTH-1 : 0] s_axi_awaddr,
-    input wire [2 : 0] s_axi_awprot,
-    input wire  s_axi_awvalid,
-    output wire  s_axi_awready,
-    input wire [C_s_axi_DATA_WIDTH-1 : 0] s_axi_wdata,
-    input wire [(C_s_axi_DATA_WIDTH/8)-1 : 0] s_axi_wstrb,
-    input wire  s_axi_wvalid,
-    output wire  s_axi_wready,
-    output wire [1 : 0] s_axi_bresp,
-    output wire  s_axi_bvalid,
-    input wire  s_axi_bready,
-    input wire [C_s_axi_ADDR_WIDTH-1 : 0] s_axi_araddr,
-    input wire [2 : 0] s_axi_arprot,
-    input wire  s_axi_arvalid,
-    output wire  s_axi_arready,
-    output wire [C_s_axi_DATA_WIDTH-1 : 0] s_axi_rdata,
-    output wire [1 : 0] s_axi_rresp,
-    output wire  s_axi_rvalid,
-    input wire  s_axi_rready
+  // Ports of Axi Slave Bus Interface s_axi
+  ( input                             s_axi_aclk
+  , input                             s_axi_aresetn
+  , input  [C_s_axi_ADDR_WIDTH-1:0]   s_axi_awaddr
+  , input  [2:0]                      s_axi_awprot
+  , input                             s_axi_awvalid
+  , output                            s_axi_awready
+  , input  [C_s_axi_DATA_WIDTH-1:0]   s_axi_wdata
+  , input  [C_s_axi_DATA_WIDTH/8-1:0] s_axi_wstrb
+  , input                             s_axi_wvalid
+  , output                            s_axi_wready
+  , output [1:0]                      s_axi_bresp
+  , output                            s_axi_bvalid
+  , input                             s_axi_bready
+  , input  [C_s_axi_ADDR_WIDTH-1:0]   s_axi_araddr
+  , input  [2:0]                      s_axi_arprot
+  , input                             s_axi_arvalid
+  , output                            s_axi_arready
+  , output [C_s_axi_DATA_WIDTH-1:0]   s_axi_rdata
+  , output [1:0]                      s_axi_rresp
+  , output                            s_axi_rvalid
+  , input                             s_axi_rready
   );
 // Instantiation of Axi Bus Interface s_axi
   wire [C_s_axi_DATA_WIDTH-1:0]	in_port [PORT/2-1:0];
   wire [C_s_axi_DATA_WIDTH-1:0]	out_port [PORT-1:PORT/2];
 
   ninjin_s_axi_lite #(
-    .S_AXI_DWIDTH (C_s_axi_DATA_WIDTH),
-    .S_AXI_AWIDTH (C_s_axi_ADDR_WIDTH)
+    .DATA_WIDTH (C_s_axi_DATA_WIDTH),
+    .ADDR_WIDTH (C_s_axi_ADDR_WIDTH)
   ) ninjin_s_axi_lite_inst (
     .clk      (s_axi_aclk),
     .xrst     (s_axi_aresetn),

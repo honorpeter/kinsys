@@ -3,7 +3,7 @@
 # ref: http://www.fpgadeveloper.com/2016/11/tcl-automation-tips-for-vivado-xilinx-sdk.html
 
 set origin_dir .
-set jobs 4
+set jobs 24
 set proj_name [lindex $argv 0]
 set ip_name  [lindex $argv 1]
 

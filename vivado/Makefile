@@ -1,4 +1,4 @@
-BOARD = zybo
+BOARD = zedboard
 IP    = kinpira_axi_lite
 APP   = iotest
 

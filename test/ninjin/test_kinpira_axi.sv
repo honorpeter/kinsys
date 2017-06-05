@@ -1,10 +1,10 @@
 `include "ninjin.svh"
 
-module test_kinpira_axi_lite;
+module test_kinpira_axi;
 
   reg clk;
 
-  kinpira_axi_lite dut(.*);
+  kinpira_axi dut(.*);
 
   // clock
   initial begin

@@ -3,14 +3,20 @@
 
 `include "common.svh"
 
-parameter PORT  = 32;
+parameter REGSIZE = 5;
+parameter MEMSIZE = 10;
+parameter BUFSIZE = 7;
+
+parameter PORT  = 2**REGSIZE;
 parameter LSB   = 2;
 
-parameter ID_WIDTH      = 12;
-parameter AWUSER_WIDTH  = 0;
-parameter ARUSER_WIDTH  = 0;
-parameter WUSER_WIDTH   = 0;
-parameter RUSER_WIDTH   = 0;
-parameter BUSER_WIDTH   = 0;
+/* which:
+ *   0: renkon  (2D convolution)
+ *   1: gobou   (1D linear)
+ *   2: ninjin  (Interface)
+ */
+parameter WHICH_RENKON = 'd0;
+parameter WHICH_GOBOU  = 'd1;
+parameter WHICH_NINJIN = 'd2;
 
 `endif
