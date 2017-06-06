@@ -1,3 +1,5 @@
+`include "gobou.svh"
+
 module test_gobou_ctrl;
 
   reg clk;

@@ -1,5 +1,4 @@
 `include "gobou.svh"
-`include "ctrl_bus.svh"
 
 module test_gobou_ctrl_core;
 
@@ -8,13 +7,15 @@ module test_gobou_ctrl_core;
   ctrl_bus in_ctrl();
   ctrl_reg r_in_ctrl;
   reg                     req;
+  reg [GOBOU_CORELOG-1:0] net_sel;
+  reg                     net_we;
+  reg [GOBOU_NETSIZE-1:0] net_addr;
   reg                     img_we;
-  reg [IMGSIZE-1:0]       input_addr;
-  reg [IMGSIZE-1:0]       output_addr;
-  reg signed [DWIDTH-1:0] write_img;
-  reg signed [DWIDTH-1:0] write_result;
-  reg [CORELOG:0]         net_we;
-  reg [NETSIZE-1:0]       net_addr;
+  reg signed [DWIDTH-1:0] img_wdata;
+  reg [IMGSIZE-1:0]       in_offset;
+  reg [IMGSIZE-1:0]       out_offset;
+  reg [GOBOU_NETSIZE-1:0] net_offset;
+  reg signed [DWIDTH-1:0] out_wdata;
   reg [LWIDTH-1:0]        total_out;
   reg [LWIDTH-1:0]        total_in;
   ctrl_bus out_ctrl();
@@ -22,9 +23,9 @@ module test_gobou_ctrl_core;
   reg                      ack;
   reg                      mem_img_we;
   reg [IMGSIZE-1:0]        mem_img_addr;
-  reg signed [DWIDTH-1:0]  write_mem_img;
-  reg [CORE-1:0]           mem_net_we;
-  reg [NETSIZE-1:0]        mem_net_addr;
+  reg signed [DWIDTH-1:0]  mem_img_wdata;
+  reg [GOBOU_CORE-1:0]     mem_net_we;
+  reg [GOBOU_NETSIZE-1:0]  mem_net_addr;
   reg                      breg_we;
   reg                      serial_we;
 
@@ -54,16 +55,16 @@ module test_gobou_ctrl_core;
     req = 0;
     r_in_ctrl = '{0, 0, 0};
     img_we = 0;
-    input_addr = 0;
-    output_addr = 0;
+    in_offset = 0;
+    out_offset = 0;
     net_addr = 0;
     total_out = 0;
     total_in = 0;
     #(STEP);
 
     req = 1;
-    input_addr = 0;
-    output_addr = 1000;
+    in_offset = 0;
+    out_offset = 1000;
     total_out = 500;
     total_in = 800;
     #(STEP);

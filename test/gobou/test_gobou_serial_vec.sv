@@ -5,7 +5,7 @@ module test_gobou_serial_vec;
   reg                      clk;
   reg                      xrst;
   reg                      serial_we;
-  reg signed [DWIDTH-1:0]  in_data [CORE-1:0];
+  reg signed [DWIDTH-1:0]  in_data [GOBOU_CORE-1:0];
   reg signed [DWIDTH-1:0]  out_data;
 
   gobou_serial_vec dut(.*);
@@ -24,7 +24,7 @@ module test_gobou_serial_vec;
     xrst = 1;
     #(STEP);
     serial_we = 1;
-    for (int i = 0; i < CORE; i++)
+    for (int i = 0; i < GOBOU_CORE; i++)
       in_data[i] = i;
     #(STEP);
     serial_we = 0;

@@ -1,5 +1,4 @@
 `include "renkon.svh"
-`include "ctrl_bus.svh"
 
 int N_IN  = 20;
 int N_OUT = 50;
@@ -107,7 +106,7 @@ module test_renkon_ctrl_conv;
 
   task input_send;
     begin
-      for (int i = 0; i < (N_OUT/CORE)+1; i++) begin
+      for (int i = 0; i < (N_OUT/RENKON_CORE)+1; i++) begin
         // weight
         r_in_ctrl[0].start = 1;
         r_core_state[0] = S_CORE_NETWORK;

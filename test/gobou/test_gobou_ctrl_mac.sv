@@ -1,5 +1,4 @@
 `include "gobou.svh"
-`include "ctrl_bus.svh"
 
 module test_gobou_ctrl_mac;
 

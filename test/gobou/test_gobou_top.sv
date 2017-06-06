@@ -12,28 +12,29 @@ module test_gobou_top;
   reg                     xrst;
   reg                     req;
   reg                     img_we;
-  reg [IMGSIZE-1:0]       input_addr;
-  reg [IMGSIZE-1:0]       output_addr;
-  reg signed [DWIDTH-1:0] write_img;
-  reg [CORELOG:0]         net_we;
-  reg [NETSIZE-1:0]       net_addr;
-  reg signed [DWIDTH-1:0] write_net;
+  reg [GOBOU_CORELOG-1:0] net_sel;
+  reg                     net_we;
+  reg [GOBOU_NETSIZE-1:0] net_addr;
+  reg signed [DWIDTH-1:0] net_wdata;
+  reg [IMGSIZE-1:0]       in_offset;
+  reg [IMGSIZE-1:0]       out_offst;
   reg [LWIDTH-1:0]        total_out;
   reg [LWIDTH-1:0]        total_in;
+  reg signed [DWIDTH-1:0] img_wdata;
 `ifdef DIST
-  reg signed [DWIDTH-1:0] read_img;
+  reg signed [DWIDTH-1:0] img_rdata;
 `endif
   reg                      ack;
 `ifdef DIST
   reg                      mem_img_we;
   reg [IMGSIZE-1:0]        mem_img_addr;
-  reg signed [DWIDTH-1:0]  write_mem_img;
+  reg signed [DWIDTH-1:0]  mem_img_wdata;
 `else
-  reg signed [DWIDTH-1:0]  read_img;
+  reg signed [DWIDTH-1:0]  img_rdata;
 `endif
 
   reg [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
-  reg [DWIDTH-1:0] mem_n [CORE-1:0][2**NETSIZE-1:0];
+  reg [DWIDTH-1:0] mem_n [GOBOU_CORE-1:0][2**GOBOU_NETSIZE-1:0];
 
   int req_time = 2**30;
   int now_time = 0;
@@ -56,20 +57,20 @@ module test_gobou_top;
     xrst = 1;
     req = 0;
     img_we = 0;
-    input_addr = 0;
-    output_addr = 0;
-    write_img = 0;
+    in_offset = 0;
+    out_offst = 0;
+    img_wdata = 0;
     net_we = 0;
     net_addr = 0;
-    write_net = 0;
+    net_wdata = 0;
     total_out = 0;
     total_in = 0;
     #(STEP);
 
     total_out = N_OUT;
     total_in = N_IN;
-    input_addr = 0;
-    output_addr = 1000;
+    in_offset = 0;
+    out_offst = 1000;
     read_input;
     read_weight;
     #(STEP);
@@ -98,61 +99,61 @@ module test_gobou_top;
       #(STEP);
 
       for (int i = 0; i < 2**IMGSIZE; i++) begin
-        input_addr = i;
+        in_offset = i;
         #(STEP);
-        write_img = mem_i[i];
+        img_wdata = mem_i[i];
         #(STEP);
       end
       #(STEP);
 
       img_we = 0;
-      input_addr = 0;
-      write_img = 0;
+      in_offset = 0;
+      img_wdata = 0;
     end // }}}
   endtask
 
   task read_weight;
     begin // {{{
-      for (int i = 0; i < N_OUT/CORE; i++)
-        for (int j = 0; j < CORE; j++)
+      for (int i = 0; i < N_OUT/GOBOU_CORE; i++)
+        for (int j = 0; j < GOBOU_CORE; j++)
           $readmemb(
-            $sformatf("%s/data%0d.bin", weight, CORE*i+j),
+            $sformatf("%s/data%0d.bin", weight, GOBOU_CORE*i+j),
             mem_n[j],
             (N_IN+1)*(i),
             (N_IN+1)*(i+1)-1
           );
 
-      if (N_OUT % CORE != 0)
-        for (int j = 0; j < CORE; j++)
-          if ((CORE * (N_OUT/CORE) + j) < N_OUT)
+      if (N_OUT % GOBOU_CORE != 0)
+        for (int j = 0; j < GOBOU_CORE; j++)
+          if ((GOBOU_CORE * (N_OUT/GOBOU_CORE) + j) < N_OUT)
             $readmemb(
-              $sformatf("%s/data%0d.bin", weight, CORE*(N_OUT/CORE)+j),
+              $sformatf("%s/data%0d.bin", weight, GOBOU_CORE*(N_OUT/GOBOU_CORE)+j),
               mem_n[j],
-              (N_IN+1)*(N_OUT/CORE),
-              (N_IN+1)*(N_OUT/CORE+1)-1
+              (N_IN+1)*(N_OUT/GOBOU_CORE),
+              (N_IN+1)*(N_OUT/GOBOU_CORE+1)-1
             );
           else
             $readmemb(
               $sformatf("%s/null_net.bin", weight),
               mem_n[j],
-              (N_IN+1)*(N_OUT/CORE),
-              (N_IN+1)*(N_OUT/CORE+1)-1
+              (N_IN+1)*(N_OUT/GOBOU_CORE),
+              (N_IN+1)*(N_OUT/GOBOU_CORE+1)-1
             );
 
-      for (int n = 0; n < CORE; n++) begin
+      for (int n = 0; n < GOBOU_CORE; n++) begin
         net_we = n + 1;
         #(STEP);
 
-        for (int i = 0; i < 2**NETSIZE; i++) begin
+        for (int i = 0; i < 2**GOBOU_NETSIZE; i++) begin
           net_addr = i;
           #(STEP);
-          write_net = mem_n[n][i];
+          net_wdata = mem_n[n][i];
           #(STEP);
         end
 
         net_we    = 0;
         net_addr  = 0;
-        write_net = 0;
+        net_wdata = 0;
       end
     end // }}}
   endtask

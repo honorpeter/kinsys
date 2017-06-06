@@ -1,5 +1,4 @@
 `include "renkon.svh"
-`include "ctrl_bus.svh"
 
 module test_renkon_ctrl_core;
 
@@ -9,35 +8,36 @@ module test_renkon_ctrl_core;
   ctrl_reg                 r_in_ctrl;
   reg                      req;
   reg                      img_we;
-  reg        [IMGSIZE-1:0] input_addr;
-  reg        [IMGSIZE-1:0] output_addr;
+  reg [IMGSIZE-1:0]        input_addr;
+  reg [IMGSIZE-1:0]        output_addr;
   reg signed [DWIDTH-1:0]  write_img;
   reg signed [DWIDTH-1:0]  write_result;
-  reg        [CORELOG:0]   net_we;
-  reg        [NETSIZE-1:0] net_addr;
-  reg        [LWIDTH-1:0]  total_out;
-  reg        [LWIDTH-1:0]  total_in;
-  reg        [LWIDTH-1:0]  img_size;
-  reg        [LWIDTH-1:0]  fil_size;
+  reg [RENKON_CORELOG-1:0] net_sel;
+  reg                      net_we;
+  reg [RENKON_NETSIZE-1:0] net_addr;
+  reg [LWIDTH-1:0]         total_out;
+  reg [LWIDTH-1:0]         total_in;
+  reg [LWIDTH-1:0]         img_size;
+  reg [LWIDTH-1:0]         fil_size;
   ctrl_bus                 out_ctrl();
   ctrl_reg                 r_out_ctrl;
   reg                      ack;
-  reg        [2-1:0]       core_state;
+  reg [2-1:0]              core_state;
   reg                      mem_img_we;
-  reg        [IMGSIZE-1:0] mem_img_addr;
+  reg [IMGSIZE-1:0]        mem_img_addr;
   reg signed [DWIDTH-1:0]  write_mem_img;
-  reg        [CORE-1:0]    mem_net_we;
-  reg        [NETSIZE-1:0] mem_net_addr;
+  reg [RENKON_CORE-1:0]    mem_net_we;
+  reg [RENKON_NETSIZE-1:0] mem_net_addr;
   reg                      buf_pix_en;
   reg                      first_input;
   reg                      last_input;
   reg                      wreg_we;
   reg                      breg_we;
   reg                      serial_we;
-  reg        [CORELOG:0]   serial_re;
-  reg        [OUTSIZE-1:0] serial_addr;
-  reg        [LWIDTH-1:0]  w_img_size;
-  reg        [LWIDTH-1:0]  w_fil_size;
+  reg [RENKON_CORELOG:0]   serial_re;
+  reg [OUTSIZE-1:0]        serial_addr;
+  reg [LWIDTH-1:0]         w_img_size;
+  reg [LWIDTH-1:0]         w_fil_size;
 
   assign in_ctrl.start = r_in_ctrl.start;
   assign in_ctrl.valid = r_in_ctrl.valid;

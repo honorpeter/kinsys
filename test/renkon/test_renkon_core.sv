@@ -1,3 +1,5 @@
+`include "renkon.svh"
+
 module test_renkon_core;
 
   reg clk;

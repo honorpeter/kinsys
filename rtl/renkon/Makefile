@@ -1,5 +1,5 @@
 VERBOSE   = 0
-SIMULATOR = vsim
+SIMULATOR = xsim
 MODULE    = renkon_top.sv
 DEPENDS   = \
 	renkon_ctrl_core.sv \
@@ -91,9 +91,9 @@ endif
 
 V_TARGET    = $(shell echo $* | tac -s/ | head -1)
 ifeq ($(SIMULATOR),xsim)
-  XVLOG_OPT = --sv -i $(INCLUDE) --verbose 2
+  XVLOG_OPT = -sv -i $(INCLUDE) # --verbose 2
   COMPILE   = xvlog $(XVLOG_OPT) $<
-  XELAB_OPT = -relax -debug typical
+  XELAB_OPT = -debug typical
   ELABORATE = xelab $(XELAB_OPT) $(V_TARGET) -s $(V_TARGET)_sim
   XSIM_OPT  = -R #$(XVLOG_OPT)
   SIMULATE  = xsim $(V_TARGET)_sim $(XSIM_OPT)
