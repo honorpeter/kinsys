@@ -7,8 +7,8 @@ module renkon_linebuf
   ( input                      clk
   , input                      xrst
   , input                      buf_en
-  , input         [LWIDTH-1:0] img_size
-  , input         [LWIDTH-1:0] fil_size
+  , input  [LWIDTH-1:0]        img_size
+  , input  [LWIDTH-1:0]        fil_size
   , input  signed [DWIDTH-1:0] buf_input
   , output signed [DWIDTH-1:0] buf_output [MAXLINE**2-1:0]
   );
@@ -18,18 +18,18 @@ module renkon_linebuf
 
   wire                      s_charge_end;
   wire                      s_active_end;
-  wire        [MAXLINE:0]   mem_linebuf_we;
-  wire        [BUFSIZE-1:0] mem_linebuf_addr;
+  wire [MAXLINE:0]          mem_linebuf_we;
+  wire [BUFSIZE-1:0]        mem_linebuf_addr;
   wire signed [DWIDTH-1:0]  read_mem [MAXLINE:0];
   wire signed [DWIDTH-1:0]  mux [MAXLINE-1:0][MAXLINE+2-1:0];
 
   enum reg [2-1:0] {
     S_WAIT, S_CHARGE, S_ACTIVE
   } r_state;
-  reg        [BUFLINE-1:0] r_select;
-  reg        [LWIDTH-1:0]  r_addr_count;
-  reg        [LWIDTH-1:0]  r_mem_count;
-  reg        [LWIDTH-1:0]  r_line_count;
+  reg [BUFLINE-1:0]        r_select;
+  reg [LWIDTH-1:0]         r_addr_count;
+  reg [LWIDTH-1:0]         r_mem_count;
+  reg [LWIDTH-1:0]         r_line_count;
   reg signed [DWIDTH-1:0]  r_buf_input;
   reg signed [DWIDTH-1:0]  r_pixel [MAXLINE**2-1:0];
 

@@ -56,6 +56,7 @@ clean:
 dist:
 	mkdir -p $(DIST)
 	rsync -L -avz $(HEADERS) $(SOURCES) $(TESTSUITE) $(DIST)
+	sed -i -e "s|// \`define DIST|\`define DIST|g" $(DIST)/common.svh
 
 ############################################################
 # Attributes Definition

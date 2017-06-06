@@ -4,8 +4,8 @@ module renkon_serial_mat
   ( input                       clk
   , input                       xrst
   , input                       serial_we
-  , input         [OUTSIZE-1:0] serial_addr
-  , input         [RENKON_CORELOG:0]   serial_re
+  , input  [OUTSIZE-1:0]        serial_addr
+  , input  [RENKON_CORELOG:0]   serial_re
   , input  signed [DWIDTH-1:0]  in_data [RENKON_CORE-1:0]
   , output signed [DWIDTH-1:0]  out_data
   );
@@ -21,10 +21,10 @@ module renkon_serial_mat
                        : 0;
 
     mem_sp #(DWIDTH, OUTSIZE) mem_serial(
-      .mem_rdata  (mem_data[i]),
-      .mem_wdata  (in_data[i]),
       .mem_we     (serial_we),
       .mem_addr   (mem_addr[i]),
+      .mem_wdata  (in_data[i]),
+      .mem_rdata  (mem_data[i]),
       .*
     );
   end

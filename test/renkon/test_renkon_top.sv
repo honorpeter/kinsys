@@ -2,12 +2,12 @@
 
 // `define SAIF
 
-int N_OUT = 32;
-int N_IN  = 16;
+int N_OUT = 50;
+int N_IN  = 20;
 int ISIZE = 12;
 int OSIZE = (ISIZE - FSIZE + 1) / PSIZE;
 int IMG_OFFSET = 0;
-int OUT_OFFSET = 3000;
+int OUT_OFFSET = 5000;
 int NET_OFFSET = 0;
 
 int label = 2;
@@ -17,25 +17,27 @@ string wdir  = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_2";
 
 module test_renkon_top;
 
-  reg                      clk;
-  reg                      xrst;
-  reg                      req;
-  reg                      img_we;
-  reg        [IMGSIZE-1:0] input_addr;
-  reg        [IMGSIZE-1:0] output_addr;
-  reg signed [DWIDTH-1:0]  write_img;
-  reg        [CORELOG:0]   net_we;
-  reg        [NETSIZE-1:0] net_addr;
-  reg signed [DWIDTH-1:0]  write_net;
-  reg        [LWIDTH-1:0]  total_out;
-  reg        [LWIDTH-1:0]  total_in;
-  reg        [LWIDTH-1:0]  img_size;
-  reg        [LWIDTH-1:0]  fil_size;
-  reg        [LWIDTH-1:0]  pool_size;
-  reg                      ack;
-  reg signed [DWIDTH-1:0]  read_img;
-  reg signed [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
-  reg signed [DWIDTH-1:0] mem_n [CORE-1:0][2**NETSIZE-1:0];
+  reg                       clk;
+  reg                       xrst;
+  reg                       req;
+  reg [RENKON_CORELOG-1:0]  net_sel;
+  reg                       net_we;
+  reg [RENKON_NETSIZE-1:0]  net_addr;
+  reg signed [DWIDTH-1:0]   net_wdata;
+  reg [IMGSIZE-1:0]         in_offset;
+  reg [IMGSIZE-1:0]         out_offset;
+  reg [RENKON_NETSIZE-1:0]  net_offset;
+  reg [LWIDTH-1:0]          total_out;
+  reg [LWIDTH-1:0]          total_in;
+  reg [LWIDTH-1:0]          img_size;
+  reg [LWIDTH-1:0]          fil_size;
+  reg [LWIDTH-1:0]          pool_size;
+  reg                       img_we;
+  reg signed [DWIDTH-1:0]   img_wdata;
+  reg                       ack;
+  reg signed [DWIDTH-1:0]   img_rdata;
+  reg signed [DWIDTH-1:0]   mem_i [2**IMGSIZE-1:0];
+  reg signed [DWIDTH-1:0]   mem_n [RENKON_CORE-1:0][2**RENKON_NETSIZE-1:0];
 
   int req_time = 2**30;
   int now_time = 0;
@@ -52,7 +54,7 @@ module test_renkon_top;
   // flow
   initial begin
 `ifdef SAIF
-    $set_toggle_region(test_renkon.dut);
+    $set_toggle_region(test_renkon_top.dut);
 `endif
 
     xrst        = 0;
@@ -60,14 +62,14 @@ module test_renkon_top;
 
     xrst        = 1;
     req         = 0;
+    in_offset   = IMG_OFFSET;
+    out_offset  = OUT_OFFSET;
+    net_offset  = NET_OFFSET;
     total_out   = N_OUT;
     total_in    = N_IN;
     img_size    = ISIZE;
     fil_size    = FSIZE;
     pool_size   = PSIZE;
-    input_addr  = IMG_OFFSET;
-    output_addr = OUT_OFFSET;
-    net_addr    = NET_OFFSET;
 
     mem_clear;
     read_input;
@@ -94,7 +96,7 @@ module test_renkon_top;
     $toggle_report(
       $sformatf("renkon%d_%d.saif", label, file),
       1.0e-9,
-      "test_renkon.dut"
+      "test_renkon_top.dut"
     );
 `endif
 
@@ -107,8 +109,8 @@ module test_renkon_top;
       for (int i = 0; i < 2**IMGSIZE; i++)
         mem_i[i] = 0;
 
-      for (int n = 0; n < CORE; n++)
-        for (int i = 0; i < 2**NETSIZE; i++)
+      for (int n = 0; n < RENKON_CORE; n++)
+        for (int i = 0; i < 2**RENKON_NETSIZE; i++)
           mem_n[n][i] = 0;
     end // }}}
   endtask
@@ -119,7 +121,7 @@ module test_renkon_top;
     int r;
     begin // {{{
       idx = 0;
-      fd = $fopen("../../data/renkon/input_renkon.dat", "r");
+      fd = $fopen("../../data/renkon/input_renkon_top.dat", "r");
 
       for (int m = 0; m < N_IN; m++)
         for (int i = 0; i < ISIZE; i++)
@@ -133,16 +135,16 @@ module test_renkon_top;
 
       img_we = 1;
       for (int i = 0; i < 2**IMGSIZE; i++) begin
-        input_addr = i;
+        in_offset = i;
         #(STEP);
 
-        write_img = mem_i[i];
+        img_wdata = mem_i[i];
         #(STEP);
       end
 
       img_we = 0;
-      input_addr = 0;
-      write_img = 0;
+      in_offset = 0;
+      img_wdata = 0;
       #(STEP);
     end // }}}
   endtask
@@ -163,33 +165,33 @@ module test_renkon_top;
 
       img_we = 1;
       for (int i = 0; i < 2**IMGSIZE; i++) begin
-        input_addr = i;
+        in_offset = i;
         #(STEP);
 
-        write_img = mem_i[i];
+        img_wdata = mem_i[i];
         #(STEP);
       end
 
       img_we = 0;
-      input_addr = 0;
-      write_img = 0;
+      in_offset = 0;
+      img_wdata = 0;
       #(STEP);
     end // }}}
   endtask
 
   task read_params;
-    int idx[CORE-1:0];
+    int idx[RENKON_CORE-1:0];
     int wd, bd;
     int r;
-    begin
-      for (int dn = 0; dn < CORE; dn++)
+    begin // {{{
+      for (int dn = 0; dn < RENKON_CORE; dn++)
         idx[dn] = 0;
-      wd = $fopen("../../data/renkon/weight_renkon.dat", "r");
-      bd = $fopen("../../data/renkon/bias_renkon.dat", "r");
+      wd = $fopen("../../data/renkon/weight_renkon_top.dat", "r");
+      bd = $fopen("../../data/renkon/bias_renkon_top.dat", "r");
 
       // reading iterations for normal weight sets
-      for (int n = 0; n < N_OUT/CORE; n++)
-        for (int dn = 0; dn < CORE; dn++) begin
+      for (int n = 0; n < N_OUT/RENKON_CORE; n++)
+        for (int dn = 0; dn < RENKON_CORE; dn++) begin
           for (int m = 0; m < N_IN; m++) begin
             for (int i = 0; i < FSIZE; i++)
               for (int j = 0; j < FSIZE; j++) begin
@@ -202,10 +204,10 @@ module test_renkon_top;
         end
 
       // reading iteration for a boundary weight set (if exists)
-      if (N_OUT % CORE != 0)
-        for (int dn = 0; dn < CORE; dn++) begin
+      if (N_OUT % RENKON_CORE != 0)
+        for (int dn = 0; dn < RENKON_CORE; dn++) begin
           // put remainder weights to cores
-          if ((CORE * (N_OUT/CORE) + dn) < N_OUT) begin
+          if ((RENKON_CORE * (N_OUT/RENKON_CORE) + dn) < N_OUT) begin
             for (int m = 0; m < N_IN; m++) begin
               for (int i = 0; i < FSIZE; i++)
                 for (int j = 0; j < FSIZE; j++) begin
@@ -233,39 +235,44 @@ module test_renkon_top;
       $fclose(wd);
       $fclose(bd);
 
-      for (int n = 0; n < CORE; n++) begin
-        net_we = n + 1;
+      for (int n = 0; n < RENKON_CORE; n++) begin
+        net_sel = n;
+        net_we  = 1;
         #(STEP);
-        for (int i = 0; i < 2**NETSIZE; i++) begin
+
+        for (int i = 0; i < 2**RENKON_NETSIZE; i++) begin
           net_addr = i;
           #(STEP);
-          write_net = mem_n[n][i];
+
+          net_wdata = mem_n[n][i];
           #(STEP);
         end
+
+        net_sel   = 0;
         net_we    = 0;
         net_addr  = 0;
-        write_net = 0;
+        net_wdata = 0;
         #(STEP);
       end
-    end
+    end // }}}
   endtask
 
   task read_network;
     input string wdir;
     begin // {{{
       // reading iterations for normal weight sets
-      for (int i = 0; i < N_OUT/CORE; i++) begin
-        for (int j = 0; j < CORE; j++) begin
+      for (int i = 0; i < N_OUT/RENKON_CORE; i++) begin
+        for (int j = 0; j < RENKON_CORE; j++) begin
           for (int k = 0; k < N_IN; k++) begin
             $readmemb(
-              $sformatf("%s/data%0d_%0d.bin", wdir, CORE*i+j, k),
+              $sformatf("%s/data%0d_%0d.bin", wdir, RENKON_CORE*i+j, k),
               mem_n[j],
               (FSIZE**2) * (N_IN*i+k) + (i) + NET_OFFSET,
               (FSIZE**2) * (N_IN*i+k+1) + (i-1) + NET_OFFSET
             );
           end
           $readmemb(
-            $sformatf("%s/data%0d.bin", wdir, CORE*i+j),
+            $sformatf("%s/data%0d.bin", wdir, RENKON_CORE*i+j),
             mem_n[j],
             (FSIZE**2) * (N_IN*(i+1)) + (i) + NET_OFFSET,
             (FSIZE**2) * (N_IN*(i+1)) + (i) + NET_OFFSET
@@ -274,24 +281,24 @@ module test_renkon_top;
       end
 
       // reading iteration for a boundary weight set (if exists)
-      if (N_OUT % CORE != 0) begin
-        for (int j = 0; j < CORE; j++) begin
+      if (N_OUT % RENKON_CORE != 0) begin
+        for (int j = 0; j < RENKON_CORE; j++) begin
 
           // put remainder weights to cores
-          if ((CORE * (N_OUT/CORE) + j) < N_OUT) begin
+          if ((RENKON_CORE * (N_OUT/RENKON_CORE) + j) < N_OUT) begin
             for (int k = 0; k < N_IN; k++) begin
               $readmemb(
-                $sformatf("%s/data%0d_%0d.bin", wdir, CORE*(N_OUT/CORE)+j, k),
+                $sformatf("%s/data%0d_%0d.bin", wdir, RENKON_CORE*(N_OUT/RENKON_CORE)+j, k),
                 mem_n[j],
-                (FSIZE**2) * (N_IN*(N_OUT/CORE)+k) + (N_OUT/CORE) + NET_OFFSET,
-                (FSIZE**2) * (N_IN*(N_OUT/CORE)+k+1) + (N_OUT/CORE-1) + NET_OFFSET
+                (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k) + (N_OUT/RENKON_CORE) + NET_OFFSET,
+                (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k+1) + (N_OUT/RENKON_CORE-1) + NET_OFFSET
               );
             end
             $readmemb(
-              $sformatf("%s/data%0d.bin", wdir, CORE*(N_OUT/CORE)+j),
+              $sformatf("%s/data%0d.bin", wdir, RENKON_CORE*(N_OUT/RENKON_CORE)+j),
               mem_n[j],
-              (FSIZE**2) * (N_IN*(N_OUT/CORE+1)) + (N_OUT/CORE) + NET_OFFSET,
-              (FSIZE**2) * (N_IN*(N_OUT/CORE+1)) + (N_OUT/CORE) + NET_OFFSET
+              (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET,
+              (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET
             );
           end
           // put null (zero) values to unused cores
@@ -300,35 +307,37 @@ module test_renkon_top;
               $readmemb(
                 $sformatf("%s/null_w.bin", wdir),
                 mem_n[j],
-                (FSIZE**2) * (N_IN*(N_OUT/CORE)+k) + (N_OUT/CORE) + NET_OFFSET,
-                (FSIZE**2) * (N_IN*(N_OUT/CORE)+k+1) + (N_OUT/CORE-1) + NET_OFFSET
+                (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k) + (N_OUT/RENKON_CORE) + NET_OFFSET,
+                (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k+1) + (N_OUT/RENKON_CORE-1) + NET_OFFSET
               );
             end
             $readmemb(
               $sformatf("%s/null_b.bin", wdir),
               mem_n[j],
-              (FSIZE**2) * (N_IN*(N_OUT/CORE+1)) + (N_OUT/CORE) + NET_OFFSET,
-              (FSIZE**2) * (N_IN*(N_OUT/CORE+1)) + (N_OUT/CORE) + NET_OFFSET
+              (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET,
+              (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET
             );
           end
         end
       end
 
-      for (int n = 0; n < CORE; n++) begin
-        net_we = n + 1;
+      for (int n = 0; n < RENKON_CORE; n++) begin
+        net_sel = n;
+        net_we  = 1;
         #(STEP);
 
-        for (int i = 0; i < 2**NETSIZE; i++) begin
+        for (int i = 0; i < 2**RENKON_NETSIZE; i++) begin
           net_addr = i;
           #(STEP);
 
-          write_net = mem_n[n][i];
+          net_wdata = mem_n[n][i];
           #(STEP);
         end
 
+        net_sel   = 0;
         net_we    = 0;
         net_addr  = 0;
-        write_net = 0;
+        net_wdata = 0;
         #(STEP);
       end
 
@@ -339,17 +348,17 @@ module test_renkon_top;
     int fd;
     int out_size;
     begin // {{{
-      fd = $fopen("../../data/renkon/output_renkon.dat", "w");
+      fd = $fopen("../../data/renkon/output_renkon_top.dat", "w");
       out_size = N_OUT * OSIZE**2;
 
       for (int i = 0; i < out_size; i++) begin
-        input_addr = i + OUT_OFFSET;
+        in_offset = i + OUT_OFFSET;
         #(STEP*2);
 
-        $fdisplay(fd, "%0d", read_img);
+        $fdisplay(fd, "%0d", img_rdata);
       end
 
-      input_addr = 0;
+      in_offset = 0;
       #(STEP);
 
       $fclose(fd);
@@ -367,13 +376,13 @@ module test_renkon_top;
           "| ",
           "%d ", dut.mem_img_we,
           "%d ", dut.mem_img_addr,
-          "%4d ", dut.read_img,
-          "%4d ", dut.write_mem_img,
+          "%4d ", dut.img_rdata,
+          "%4d ", dut.mem_img_wdata,
           "| ",
           "%1d ", dut.mem_net_we,
           "%d ", dut.mem_net_addr,
-          "%4d ", dut.read_net[0],
-          "%4d ", dut.write_net,
+          "%4d ", dut.net_rdata[0],
+          "%4d ", dut.net_wdata,
           "| ",
           "%2d ", dut.ctrl.ctrl_core.r_count_out,
           "%2d ", dut.ctrl.ctrl_core.r_count_in,
@@ -387,26 +396,6 @@ module test_renkon_top;
           "%4d ", dut.pe[0].core.bmap,
           "%4d ", dut.pe[0].core.amap,
           "%4d ", dut.pe[0].core.pmap,
-          "| ",
-          "%1d ", dut.ctrl.ctrl_conv.conv_ctrl.start,
-          "%1d ", dut.ctrl.ctrl_conv.conv_ctrl.valid,
-          "%1d ", dut.ctrl.ctrl_conv.conv_ctrl.stop,
-          "| ",
-          "%1d ", dut.pe[0].core.conv.mem_feat_rst,
-          "%1d ", dut.pe[0].core.conv.mem_feat_we,
-          "%3d ", dut.pe[0].core.conv.mem_feat_addr,
-          "%3d ", dut.pe[0].core.conv.mem_feat_addr_d1,
-          "%4d ", dut.pe[0].core.conv.read_feat,
-          "%4d ", dut.pe[0].core.conv.write_feat,
-          "%4d ", dut.pe[0].core.conv.result,
-          "@%1d ", dut.pe[0].core.conv.out_en,
-          "| ",
-          "%3d ", dut.pe[0].core.pool.pixel_in,
-          "%1d ", dut.pe[0].core.pool.buf_feat_en,
-          "%3d ", dut.pe[0].core.pool.pixel_feat[0],
-          "%3d ", dut.pe[0].core.pool.pixel_feat[1],
-          "%3d ", dut.pe[0].core.pool.pixel_feat[2],
-          "%3d ", dut.pe[0].core.pool.pixel_feat[3],
           "|"
         );
       #(STEP/2+1);

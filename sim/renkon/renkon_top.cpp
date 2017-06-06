@@ -3,15 +3,15 @@
 #include <cmath>
 #include <lib.hpp>
 
-const int n_out = 32;
-const int n_in  = 16;
+const int n_out = 50;
+const int n_in  = 20;
 const int isize = 12;
 const int fsize = 5;
 const int psize = 2;
 const int osize = (isize-fsize+1)/psize;
 
 template <typename T>
-T mult(T x, T y)
+T mul(T x, T y)
 {
   int prod = x * y;
 
@@ -31,7 +31,7 @@ void conv(Mat3D<T> &output, Mat3D<T> &input, Mat4D<T> &weight)
     output[n][i][j] = 0;
     for range(di, fsize)
     for range(dj, fsize)
-      output[n][i][j] += mult<T>(input[m][i+di][j+dj], weight[n][m][di][dj]);
+      output[n][i][j] += mul<T>(input[m][i+di][j+dj], weight[n][m][di][dj]);
   }
 }
 
@@ -82,9 +82,9 @@ int main(void)
   auto W = zeros<int16_t>(n_out, n_in, fsize, fsize);
   auto b = zeros<int16_t>(n_out);
 
-  load(input, "../../data/renkon/input_renkon.dat");
-  load(W, "../../data/renkon/weight_renkon.dat");
-  load(b, "../../data/renkon/bias_renkon.dat");
+  load(input, "../../data/renkon/input_renkon_top.dat");
+  load(W, "../../data/renkon/weight_renkon_top.dat");
+  load(b, "../../data/renkon/bias_renkon_top.dat");
 
   conv<int16_t>(fmap, input, W);
   bias<int16_t>(bmap, fmap, b);

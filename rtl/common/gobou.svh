@@ -7,7 +7,7 @@
 `include "mem_sp.sv"
 `endif
 
-parameter GOBOU_CORE    = 16;
+parameter GOBOU_CORE    = 2;
 // parameter integer GOBOU_CORELOG = $clog2(GOBOU_CORE);
 parameter GOBOU_CORELOG = 4;
 parameter GOBOU_NETSIZE = 10;

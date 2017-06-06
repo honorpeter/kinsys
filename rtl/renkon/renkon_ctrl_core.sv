@@ -72,10 +72,10 @@ module renkon_ctrl_core
   reg               r_buf_pix_en;
   reg               r_img_we;
   reg               r_out_we;
-  reg [IMGSIZE-1:0] r_input_offset;
-  reg [IMGSIZE-1:0] r_input_addr;
-  reg [IMGSIZE-1:0] r_output_offset;
-  reg [IMGSIZE-1:0] r_output_addr;
+  reg [IMGSIZE-1:0] r_in_offset;
+  reg [IMGSIZE-1:0] r_out_offset;
+  reg [IMGSIZE-1:0] r_in_addr;
+  reg [IMGSIZE-1:0] r_out_addr;
   reg [RENKON_CORE-1:0]    r_net_we;
   reg [RENKON_NETSIZE-1:0] r_net_addr;
   reg [RENKON_NETSIZE-1:0] r_net_offset;
@@ -195,8 +195,13 @@ module renkon_ctrl_core
 // network control
 //==========================================================
 
-  assign mem_net_we   = r_net_we;
-  assign mem_net_addr = r_net_addr + r_net_offset;
+  // assign mem_net_we   = r_net_we;
+  // assign mem_net_addr = r_net_addr + r_net_offset;
+  for (genvar i = 0; i < RENKON_CORE; i++)
+    assign mem_net_we[i] = net_we & net_sel == i;
+  assign mem_net_addr = net_we
+                      ? net_addr
+                      : r_net_addr + r_net_offset;
 
   assign s_network_end = r_state[0] == S_NETWORK
                             && r_count_in == r_total_in - 1
@@ -204,8 +209,8 @@ module renkon_ctrl_core
                         : s_w_weight_end;
 
   assign s_w_weight_end = r_state_weight[0] == S_W_WEIGHT
-                        && r_weight_x == r_fil_size - 1
-                        && r_weight_y == r_fil_size - 1;
+                       && r_weight_x == r_fil_size - 1
+                       && r_weight_y == r_fil_size - 1;
 
   assign s_w_bias_end   = r_state_weight[0] == S_W_BIAS;
 
@@ -259,7 +264,7 @@ module renkon_ctrl_core
     if (!xrst)
       r_net_offset <= 0;
     else if (req || ack)
-      r_net_offset <= net_addr;
+      r_net_offset <= net_offset;
 
   always @(posedge clk)
     if (!xrst) begin
@@ -315,8 +320,8 @@ module renkon_ctrl_core
 //==========================================================
 
   assign s_input_end = r_state[0] == S_INPUT
-                     && r_input_x == r_img_size - 1
-                     && r_input_y == r_img_size - 1;
+                    && r_input_x == r_img_size - 1
+                    && r_input_y == r_img_size - 1;
 
   assign mem_img_we   = r_img_we;
   assign mem_img_addr = w_img_addr + w_img_offset;
@@ -332,12 +337,12 @@ module renkon_ctrl_core
 `endif
 
   assign w_img_addr = r_state[0] == S_OUTPUT
-                    ? r_output_addr
-                    : r_input_addr;
+                    ? r_out_addr
+                    : r_in_addr;
 
   assign w_img_offset = r_state[0] == S_OUTPUT
-                      ? r_output_offset
-                      : r_input_offset;
+                      ? r_out_offset
+                      : r_in_offset;
 
   always @(posedge clk)
     if (!xrst) begin
@@ -390,28 +395,28 @@ module renkon_ctrl_core
 
   always @(posedge clk)
     if (!xrst)
-      r_input_addr <= 0;
+      r_in_addr <= 0;
     else if (r_state[0] == S_OUTPUT)
-      r_input_addr <= 0;
+      r_in_addr <= 0;
     else if (r_state[0] == S_INPUT)
-      r_input_addr <= r_input_addr + 1;
+      r_in_addr <= r_in_addr + 1;
 
   always @(posedge clk)
     if (!xrst)
-      r_output_addr <= 0;
+      r_out_addr <= 0;
     else if (ack)
-      r_output_addr <= 0;
+      r_out_addr <= 0;
     else if (r_img_we)
-      r_output_addr <= r_output_addr + 1;
+      r_out_addr <= r_out_addr + 1;
 
   always @(posedge clk)
     if (!xrst) begin
-      r_input_offset <= 0;
-      r_output_offset <= 0;
+      r_in_offset <= 0;
+      r_out_offset <= 0;
     end
     else if (req || ack) begin
-      r_input_offset <= in_offset;
-      r_output_offset <= out_offset;
+      r_in_offset <= in_offset;
+      r_out_offset <= out_offset;
     end
 
 //==========================================================

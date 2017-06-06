@@ -4,17 +4,18 @@ module renkon_ctrl
   ( input                       clk
   , input                       xrst
   , input                       req
-  , input  [IMGSIZE-1:0]        in_offset
-  , input  [IMGSIZE-1:0]        out_offset
-  , input  signed [DWIDTH-1:0]  out_wdata
   , input  [RENKON_CORELOG-1:0] net_sel
   , input                       net_we
   , input  [RENKON_NETSIZE-1:0] net_addr
+  , input  [IMGSIZE-1:0]        in_offset
+  , input  [IMGSIZE-1:0]        out_offset
+  , input  [RENKON_NETSIZE-1:0] net_offset
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         img_size
   , input  [LWIDTH-1:0]         fil_size
   , input  [LWIDTH-1:0]         pool_size
+  , input  signed [DWIDTH-1:0]  out_wdata
 `ifdef DIST
 `else
   , input                       img_we

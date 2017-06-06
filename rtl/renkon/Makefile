@@ -48,8 +48,8 @@ edit:
 	@nvim -O $(TARGET) $(MODULE)
 
 diff:
-	@nvim -d ../../data/renkon/$(MODULE:.sv=)_output.dat \
-		 ../../data/renkon/$(MODULE:.sv=)_true.dat
+	@nvim -d ../../data/renkon/output_$(MODULE:.sv=.dat) \
+		 ../../data/renkon/true_$(MODULE:.sv=.dat)
 
 clean:
 	rm -f $(SOURCES:.sv=.com)
