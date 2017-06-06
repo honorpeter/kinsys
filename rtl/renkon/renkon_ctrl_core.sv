@@ -5,7 +5,8 @@ module renkon_ctrl_core
   , input                       xrst
   , ctrl_bus.slave              in_ctrl
   , input                       req
-  , input  [RENKON_CORELOG:0]   net_we
+  , input  [RENKON_CORELOG-1:0] net_sel
+  , input                       net_we
   , input  [RENKON_NETSIZE-1:0] net_addr
   , input  [IMGSIZE-1:0]        in_offset
   , input  [IMGSIZE-1:0]        out_offset

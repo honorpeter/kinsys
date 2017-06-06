@@ -118,8 +118,8 @@ module renkon_linebuf
         r_select <= r_select+1;
 
   for (genvar i = 0; i < MAXLINE; i++)
-    for (genvar k = 0; k < MAXLINE+2; k++)
-      if (k == 0)
+    for (genvar k = -1; k < MAXLINE+1; k++)
+      if (k == -1)
         assign mux[i][0]   = 0;
       else
         assign mux[i][k+1] = read_mem[(i + k) % (MAXLINE + 1)];

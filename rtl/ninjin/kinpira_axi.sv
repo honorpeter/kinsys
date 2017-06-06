@@ -616,6 +616,7 @@ module kinpira_axi
     .net_wdata      (renkon_net_wdata[DWIDTH-1:0]),
     .in_offset      (renkon_in_offset[IMGSIZE-1:0]),
     .out_offset     (renkon_out_offset[IMGSIZE-1:0]),
+    .net_offset     (renkon_net_offset[RENKON_NETSIZE-1:0]),
     .total_out      (renkon_total_out[LWIDTH-1:0]),
     .total_in       (renkon_total_in[LWIDTH-1:0]),
     .img_size       (renkon_img_size[LWIDTH-1:0]),
@@ -640,6 +641,7 @@ module kinpira_axi
     .net_wdata      (gobou_net_wdata[DWIDTH-1:0]),
     .in_offset      (gobou_in_offset[IMGSIZE-1:0]),
     .out_offset     (gobou_out_offset[IMGSIZE-1:0]),
+    .net_offset     (gobou_net_offset[GOBOU_NETSIZE-1:0]),
     .total_out      (gobou_total_out[LWIDTH-1:0]),
     .total_in       (gobou_total_in[LWIDTH-1:0]),
     .img_rdata      (gobou_img_rdata[DWIDTH-1:0])

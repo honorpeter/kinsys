@@ -8,6 +8,8 @@ module renkon_mux_output
   , output signed [DWIDTH-1:0] out_data
   );
 
+  wire signed [DWIDTH-1:0] mux [2**(RENKON_CORELOG+1)-1:0];
+
   reg signed [DWIDTH-1:0] r_data;
 
   assign out_data = r_data;
@@ -25,11 +27,10 @@ module renkon_mux_output
   //       if (output_re == i+1)
   //         r_data <= in_data[i];
   //   end
-  wire signed [DWIDTH-1:0] mux [2**(RENKON_CORELOG+1)-1:0];
 
-  for (genvar i = -1; i < 2**(RENKON_CORELOG+1); i++)
+  for (genvar i = -1; i < 2**(RENKON_CORELOG+1)-1; i++)
     if (i == -1)
-      assign mux[i+1] = 0;
+      assign mux[0] = 0;
     else if (i < RENKON_CORE)
       assign mux[i+1] = in_data[i];
     else

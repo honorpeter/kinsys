@@ -37,7 +37,7 @@ module renkon_core
   renkon_bias bias(
     .breg_we    (breg_we),
     .out_en     (bias_oe),
-    .read_bias  (read_net),
+    .read_bias  (net_rdata),
     .pixel_in   (fmap),
     .pixel_out  (bmap),
     .*
