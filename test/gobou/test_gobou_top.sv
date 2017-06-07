@@ -17,7 +17,8 @@ module test_gobou_top;
   reg [GOBOU_NETSIZE-1:0] net_addr;
   reg signed [DWIDTH-1:0] net_wdata;
   reg [IMGSIZE-1:0]       in_offset;
-  reg [IMGSIZE-1:0]       out_offst;
+  reg [IMGSIZE-1:0]       out_offset;
+  reg [GOBOU_NETSIZE-1:0] net_offset;
   reg [LWIDTH-1:0]        total_out;
   reg [LWIDTH-1:0]        total_in;
   reg signed [DWIDTH-1:0] img_wdata;
@@ -58,7 +59,7 @@ module test_gobou_top;
     req = 0;
     img_we = 0;
     in_offset = 0;
-    out_offst = 0;
+    out_offset = 0;
     img_wdata = 0;
     net_we = 0;
     net_addr = 0;
@@ -70,7 +71,7 @@ module test_gobou_top;
     total_out = N_OUT;
     total_in = N_IN;
     in_offset = 0;
-    out_offst = 1000;
+    out_offset = 1000;
     read_input;
     read_weight;
     #(STEP);
@@ -141,7 +142,8 @@ module test_gobou_top;
             );
 
       for (int n = 0; n < GOBOU_CORE; n++) begin
-        net_we = n + 1;
+        net_sel = n;
+        net_we = 1;
         #(STEP);
 
         for (int i = 0; i < 2**GOBOU_NETSIZE; i++) begin
@@ -151,6 +153,7 @@ module test_gobou_top;
           #(STEP);
         end
 
+        net_sel   = 0;
         net_we    = 0;
         net_addr  = 0;
         net_wdata = 0;

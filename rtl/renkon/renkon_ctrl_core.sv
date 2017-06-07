@@ -76,7 +76,7 @@ module renkon_ctrl_core
   reg [IMGSIZE-1:0] r_out_offset;
   reg [IMGSIZE-1:0] r_in_addr;
   reg [IMGSIZE-1:0] r_out_addr;
-  reg [RENKON_CORE-1:0]    r_net_we;
+  // reg [RENKON_CORE-1:0]    r_net_we;
   reg [RENKON_NETSIZE-1:0] r_net_addr;
   reg [RENKON_NETSIZE-1:0] r_net_offset;
   reg               r_serial_we;
@@ -134,6 +134,8 @@ module renkon_ctrl_core
             end
       endcase
 
+  assign core_state = r_state[r_d_pixelbuf];
+
   for (genvar i = 1; i < D_PIXELBUF+1; i++)
     always @(posedge clk)
       if (!xrst)
@@ -145,7 +147,6 @@ module renkon_ctrl_core
   assign w_fil_size = r_fil_size;
 
   //wait exec (initialize)
-  initial r_d_pixelbuf = 0;
   always @(posedge clk)
     if (!xrst) begin
       r_total_in    <= 0;
@@ -188,8 +189,6 @@ module renkon_ctrl_core
           r_first_input[i] <= r_first_input[i-1];
           r_last_input[i]  <= r_last_input[i-1];
         end
-
-  assign core_state = r_state[r_d_pixelbuf];
 
 //==========================================================
 // network control
@@ -236,14 +235,14 @@ module renkon_ctrl_core
       else
         r_state_weight[i] <= r_state_weight[i-1];
 
-  for (genvar i = 0; i < RENKON_CORE; i++)
-    always @(posedge clk)
-      if (!xrst)
-        r_net_we[i] <= 0;
-      else if (net_we == i+1)
-        r_net_we[i] <= 1;
-      else
-        r_net_we[i] <= 0;
+  // for (genvar i = 0; i < RENKON_CORE; i++)
+  //   always @(posedge clk)
+  //     if (!xrst)
+  //       r_net_we[i] <= 0;
+  //     else if (net_we == i+1)
+  //       r_net_we[i] <= 1;
+  //     else
+  //       r_net_we[i] <= 0;
 
   always @(posedge clk)
     if (!xrst)

@@ -4,14 +4,15 @@ module gobou_ctrl
   ( input                       clk
   , input                       xrst
   , input                       req
-  , input  [IMGSIZE-1:0]        in_offset
-  , input  [IMGSIZE-1:0]        out_offset
-  , input  signed [DWIDTH-1:0]  out_wdata
   , input  [GOBOU_CORELOG-1:0]  net_sel
   , input                       net_we
   , input  [GOBOU_NETSIZE-1:0]  net_addr
+  , input  [IMGSIZE-1:0]        in_offset
+  , input  [IMGSIZE-1:0]        out_offset
+  , input  [GOBOU_NETSIZE-1:0]  net_offset
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
+  , input  signed [DWIDTH-1:0]  out_wdata
 `ifdef DIST
 `else
   , input                       img_we

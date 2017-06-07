@@ -1,5 +1,5 @@
 VERBOSE   = 0
-SIMULATOR = xsim
+SIMULATOR = vsim
 MODULE    = gobou_top.sv
 DEPENDS   = \
 	gobou_ctrl_core.sv \
@@ -40,8 +40,8 @@ edit:
 	@nvim -O $(TARGET) $(MODULE)
 
 diff:
-	@nvim -d ../../data/gobou/$(MODULE:.sv=)_output.dat \
-		 ../../data/gobou/$(MODULE:.sv=)_true.dat
+	@nvim -d ../../data/gobou/output_$(MODULE:.sv=.dat) \
+		 ../../data/gobou/true_$(MODULE:.sv=.dat)
 
 clean:
 	rm -f $(SOURCES:.sv=.com)

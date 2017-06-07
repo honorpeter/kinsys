@@ -1,5 +1,5 @@
 VERBOSE   = 0
-SIMULATOR = xsim
+SIMULATOR = vsim
 MODULE    = renkon_top.sv
 DEPENDS   = \
 	renkon_ctrl_core.sv \

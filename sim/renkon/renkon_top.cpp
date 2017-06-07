@@ -25,10 +25,10 @@ template <typename T>
 void conv(Mat3D<T> &output, Mat3D<T> &input, Mat4D<T> &weight)
 {
   for range(n, n_out)
-  for range(m, n_in)
   for range(i, isize-fsize+1)
   for range(j, isize-fsize+1) {
     output[n][i][j] = 0;
+    for range(m, n_in)
     for range(di, fsize)
     for range(dj, fsize)
       output[n][i][j] += mul<T>(input[m][i+di][j+dj], weight[n][m][di][dj]);
