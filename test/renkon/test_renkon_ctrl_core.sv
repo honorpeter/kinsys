@@ -8,10 +8,11 @@ module test_renkon_ctrl_core;
   ctrl_reg                 r_in_ctrl;
   reg                      req;
   reg                      img_we;
-  reg [IMGSIZE-1:0]        input_addr;
-  reg [IMGSIZE-1:0]        output_addr;
-  reg signed [DWIDTH-1:0]  write_img;
-  reg signed [DWIDTH-1:0]  write_result;
+  reg [IMGSIZE-1:0]        in_offset;
+  reg [IMGSIZE-1:0]        out_offset;
+  reg [RENKON_NETSIZE-1:0] net_offset;
+  reg signed [DWIDTH-1:0]  img_wdata;
+  reg signed [DWIDTH-1:0]  out_wdata;
   reg [RENKON_CORELOG-1:0] net_sel;
   reg                      net_we;
   reg [RENKON_NETSIZE-1:0] net_addr;
@@ -25,7 +26,7 @@ module test_renkon_ctrl_core;
   reg [2-1:0]              core_state;
   reg                      mem_img_we;
   reg [IMGSIZE-1:0]        mem_img_addr;
-  reg signed [DWIDTH-1:0]  write_mem_img;
+  reg signed [DWIDTH-1:0]  mem_img_wdata;
   reg [RENKON_CORE-1:0]    mem_net_we;
   reg [RENKON_NETSIZE-1:0] mem_net_addr;
   reg                      buf_pix_en;
@@ -70,10 +71,10 @@ module test_renkon_ctrl_core;
     req = 0;
     r_in_ctrl = '{0, 0, 0};
     img_we = 0;
-    input_addr = 0;
-    output_addr = 0;
-    write_img = 0;
-    write_result = 0;
+    in_offset = 0;
+    out_offset = 0;
+    img_wdata = 0;
+    out_wdata = 0;
     net_we = 0;
     net_addr = 0;
     total_out = 0;
@@ -87,8 +88,8 @@ module test_renkon_ctrl_core;
     total_in = 20;
     img_size = 12;
     fil_size = 5;
-    input_addr = 0;
-    output_addr = 3000;
+    in_offset = 0;
+    out_offset = 3000;
     #(STEP);
 
     req = 0;
@@ -129,10 +130,10 @@ module test_renkon_ctrl_core;
         "%d ", r_in_ctrl.stop,
         "%d ", req,
         "%d ", img_we,
-        "%d ", input_addr,
-        "%d ", output_addr,
-        "%d ", write_img,
-        "%d ", write_result,
+        "%d ", in_offset,
+        "%d ", out_offset,
+        "%d ", img_wdata,
+        "%d ", out_wdata,
         "%d ", net_we,
         "%d ", net_addr,
         "%2d ", total_out,
@@ -147,7 +148,7 @@ module test_renkon_ctrl_core;
         "%d ", core_state,
         "%d ", mem_img_we,
         "%d ", mem_img_addr,
-        "%d ", write_mem_img,
+        "%d ", mem_img_wdata,
         "%d ", mem_net_we,
         "%d ", mem_net_addr,
         "%d ", buf_pix_en,
