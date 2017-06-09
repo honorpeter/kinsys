@@ -61,10 +61,10 @@ clean:
 	rm -f vsim.wlf transcript
 	rm -f vish_stacktrace.vstf
 	### xsim
-	rm -rf xsim.dir
+	rm -rf xsim.dir .Xil
 	rm -f xvlog.log xvlog.pb
 	rm -f xelab.log xsim*.log
-	rm -f webtalk*.log
+	rm -f webtalk*.log hs_err_pid*.log
 	rm -f *.jou *.pb *.wdb
 	### vcs
 	rm -rf $(SOURCES:.sv=.com.daidir)
