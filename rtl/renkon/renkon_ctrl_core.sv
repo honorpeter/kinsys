@@ -19,9 +19,9 @@ module renkon_ctrl_core
   , ctrl_bus.master             out_ctrl
   , output                      ack
   , output [2-1:0]              core_state
-  , output                      mem_img_we
-  , output [IMGSIZE-1:0]        mem_img_addr
-  , output signed [DWIDTH-1:0]  mem_img_wdata
+  , output                      img_we
+  , output [IMGSIZE-1:0]        img_addr
+  , output signed [DWIDTH-1:0]  img_wdata
   , output [RENKON_CORE-1:0]    mem_net_we
   , output [RENKON_NETSIZE-1:0] mem_net_addr
   , output                      buf_pix_en
@@ -321,12 +321,12 @@ module renkon_ctrl_core
                     && r_input_x == r_img_size - 1
                     && r_input_y == r_img_size - 1;
 
-  assign mem_img_we   = r_img_we;
-  assign mem_img_addr = w_img_addr + w_img_offset;
+  assign img_we   = r_img_we;
+  assign img_addr = w_img_addr + w_img_offset;
 
-  assign mem_img_wdata = r_state[0] == S_OUTPUT
-                       ? out_wdata
-                       : 0;
+  assign img_wdata = r_state[0] == S_OUTPUT
+                   ? out_wdata
+                   : 0;
 
   assign w_img_addr = r_state[0] == S_OUTPUT
                     ? r_out_addr

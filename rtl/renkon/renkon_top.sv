@@ -18,9 +18,9 @@ module renkon_top
   , input  [LWIDTH-1:0]         pool_size
   , input  signed [DWIDTH-1:0]  img_rdata
   , output                      ack
-  , output                      mem_img_we
-  , output [IMGSIZE-1:0]        mem_img_addr
-  , output signed [DWIDTH-1:0]  mem_img_wdata
+  , output                      img_we
+  , output [IMGSIZE-1:0]        img_addr
+  , output signed [DWIDTH-1:0]  img_wdata
   );
 
   wire [RENKON_CORE-1:0]    mem_net_we;

@@ -1,4 +1,4 @@
-VERBOSE   = 1
+VERBOSE   = 0
 SIMULATOR = vsim
 MODULE    = renkon_top.sv
 DEPENDS   = \

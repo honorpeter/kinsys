@@ -28,9 +28,9 @@ module renkon_ctrl
   , output [RENKON_CORELOG:0]   serial_re
   , output [OUTSIZE-1:0]        serial_addr
   , output                      buf_feat_en
-  , output                      mem_img_we
-  , output [IMGSIZE-1:0]        mem_img_addr
-  , output signed [DWIDTH-1:0]  mem_img_wdata
+  , output                      img_we
+  , output [IMGSIZE-1:0]        img_addr
+  , output signed [DWIDTH-1:0]  img_wdata
   , output [RENKON_CORE-1:0]    mem_net_we
   , output [RENKON_NETSIZE-1:0] mem_net_addr
   , output                      mem_feat_we
