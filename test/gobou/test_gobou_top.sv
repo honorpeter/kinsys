@@ -36,7 +36,7 @@ module test_gobou_top;
   wire                      mem_img_we;
   wire [IMGSIZE-1:0]        mem_img_addr;
   wire signed [DWIDTH-1:0]  mem_img_wdata;
-  wire signed [DWIDTH-1:0]  mem_img_rdata;
+  wire signed [DWIDTH-1:0]  img_rdata;
 
   wire                      gobou_img_we;
   wire [IMGSIZE-1:0]        gobou_img_addr;
@@ -50,13 +50,13 @@ module test_gobou_top;
   assign mem_img_addr   = ack ? img_addr  : gobou_img_addr;
   assign mem_img_wdata  = ack ? img_wdata : gobou_img_wdata;
 
-  assign gobou_img_rdata = mem_img_rdata;
+  assign gobou_img_rdata = img_rdata;
 
   mem_sp #(DWIDTH, IMGSIZE) mem_img(
     .mem_we     (mem_img_we),
     .mem_addr   (mem_img_addr),
     .mem_wdata  (mem_img_wdata),
-    .mem_rdata  (mem_img_rdata),
+    .mem_rdata  (img_rdata),
     .*
   );
 
@@ -392,8 +392,8 @@ module test_gobou_top;
       for (int i = 0; i < out_size; i++) begin
         img_addr = i + OUT_OFFSET;
         #(STEP*2);
-        assert (mem_img.mem[img_addr] == mem_img_rdata);
-        $fdisplay(fd, "%0d", mem_img_rdata);
+        assert (mem_img.mem[img_addr] == img_rdata);
+        $fdisplay(fd, "%0d", img_rdata);
       end
 
       img_addr = 0;

@@ -34,7 +34,6 @@ module test_renkon_top;
   reg [LWIDTH-1:0]          fil_size;
   reg [LWIDTH-1:0]          pool_size;
   reg                       ack;
-  reg signed [DWIDTH-1:0]   img_rdata;
   reg signed [DWIDTH-1:0]   mem_i [2**IMGSIZE-1:0];
   reg signed [DWIDTH-1:0]   mem_n [RENKON_CORE-1:0][2**RENKON_NETSIZE-1:0];
 
@@ -45,7 +44,7 @@ module test_renkon_top;
   wire                      mem_img_we;
   wire [IMGSIZE-1:0]        mem_img_addr;
   wire signed [DWIDTH-1:0]  mem_img_wdata;
-  wire signed [DWIDTH-1:0]  mem_img_rdata;
+  wire signed [DWIDTH-1:0]  img_rdata;
 
   wire                      renkon_img_we;
   wire [IMGSIZE-1:0]        renkon_img_addr;
@@ -59,13 +58,13 @@ module test_renkon_top;
   assign mem_img_addr   = ack ? img_addr  : renkon_img_addr;
   assign mem_img_wdata  = ack ? img_wdata : renkon_img_wdata;
 
-  assign renkon_img_rdata = mem_img_rdata;
+  assign renkon_img_rdata = img_rdata;
 
   mem_sp #(DWIDTH, IMGSIZE) mem_img(
     .mem_we     (mem_img_we),
     .mem_addr   (mem_img_addr),
     .mem_wdata  (mem_img_wdata),
-    .mem_rdata  (mem_img_rdata),
+    .mem_rdata  (img_rdata),
     .*
   );
 
@@ -492,8 +491,8 @@ module test_renkon_top;
       for (int i = 0; i < out_size; i++) begin
         img_addr = i + OUT_OFFSET;
         #(STEP*2);
-        assert (mem_img.mem[img_addr] == mem_img_rdata);
-        $fdisplay(fd, "%0d", mem_img_rdata);
+        assert (mem_img.mem[img_addr] == img_rdata);
+        $fdisplay(fd, "%0d", img_rdata);
       end
 
       img_addr = 0;

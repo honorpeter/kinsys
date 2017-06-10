@@ -263,9 +263,9 @@ module kinpira_axi
   wire signed [DWIDTH-1:0]  renkon_img_rdata;
 
   wire                      renkon_ack;
-  wire                      renkon_mem_img_we;
-  wire [IMGSIZE-1:0]        renkon_mem_img_addr;
-  wire signed [DWIDTH-1:0]  renkon_mem_img_wdata;
+  wire                      renkon_img_we;
+  wire [IMGSIZE-1:0]        renkon_img_addr;
+  wire signed [DWIDTH-1:0]  renkon_img_wdata;
 
   // For gobou
   wire                      gobou_req;
@@ -284,9 +284,9 @@ module kinpira_axi
   wire signed [DWIDTH-1:0]  gobou_img_rdata;
 
   wire                      gobou_ack;
-  wire                      gobou_mem_img_we;
-  wire [IMGSIZE-1:0]        gobou_mem_img_addr;
-  wire signed [DWIDTH-1:0]  gobou_mem_img_wdata;
+  wire                      gobou_img_we;
+  wire [IMGSIZE-1:0]        gobou_img_addr;
+  wire signed [DWIDTH-1:0]  gobou_img_wdata;
 
   reg [2-1:0] r_which;
 
@@ -352,16 +352,16 @@ module kinpira_axi
                         : which == WHICH_GOBOU  ? gobou_ack
                         : which == WHICH_NINJIN ? 1'b1
                         : 0;
-  assign mem_img_we     = which == WHICH_RENKON ? renkon_mem_img_we
-                        : which == WHICH_GOBOU  ? gobou_mem_img_we
+  assign mem_img_we     = which == WHICH_RENKON ? renkon_img_we
+                        : which == WHICH_GOBOU  ? gobou_img_we
                         : which == WHICH_NINJIN ? mem_image_we
                         : 0;
-  assign mem_img_addr   = which == WHICH_RENKON ? renkon_mem_img_addr
-                        : which == WHICH_GOBOU  ? gobou_mem_img_addr
+  assign mem_img_addr   = which == WHICH_RENKON ? renkon_img_addr
+                        : which == WHICH_GOBOU  ? gobou_img_addr
                         : which == WHICH_NINJIN ? mem_image_addr
                         : 0;
-  assign mem_img_wdata  = which == WHICH_RENKON ? renkon_mem_img_wdata
-                        : which == WHICH_GOBOU  ? gobou_mem_img_wdata
+  assign mem_img_wdata  = which == WHICH_RENKON ? renkon_img_wdata
+                        : which == WHICH_GOBOU  ? gobou_img_wdata
                         : which == WHICH_NINJIN ? mem_image_wdata
                         : 0;
 
@@ -602,49 +602,49 @@ module kinpira_axi
 
   renkon_top renkon0 (
     // Outputs
-    .ack            (renkon_ack),
-    .mem_img_we     (renkon_mem_img_we),
-    .mem_img_addr   (renkon_mem_img_addr[IMGSIZE-1:0]),
-    .mem_img_wdata  (renkon_mem_img_wdata[DWIDTH-1:0]),
+    .ack        (renkon_ack),
+    .img_we     (renkon_img_we),
+    .img_addr   (renkon_img_addr[IMGSIZE-1:0]),
+    .img_wdata  (renkon_img_wdata[DWIDTH-1:0]),
     // Inputs
-    .clk            (clk),
-    .xrst           (xrst),
-    .req            (renkon_req),
-    .net_sel        (renkon_net_sel[RENKON_CORELOG-1:0]),
-    .net_we         (renkon_net_we),
-    .net_addr       (renkon_net_addr[RENKON_NETSIZE-1:0]),
-    .net_wdata      (renkon_net_wdata[DWIDTH-1:0]),
-    .in_offset      (renkon_in_offset[IMGSIZE-1:0]),
-    .out_offset     (renkon_out_offset[IMGSIZE-1:0]),
-    .net_offset     (renkon_net_offset[RENKON_NETSIZE-1:0]),
-    .total_out      (renkon_total_out[LWIDTH-1:0]),
-    .total_in       (renkon_total_in[LWIDTH-1:0]),
-    .img_size       (renkon_img_size[LWIDTH-1:0]),
-    .fil_size       (renkon_fil_size[LWIDTH-1:0]),
-    .pool_size      (renkon_pool_size[LWIDTH-1:0]),
-    .img_rdata      (renkon_img_rdata[DWIDTH-1:0])
+    .clk        (clk),
+    .xrst       (xrst),
+    .req        (renkon_req),
+    .net_sel    (renkon_net_sel[RENKON_CORELOG-1:0]),
+    .net_we     (renkon_net_we),
+    .net_addr   (renkon_net_addr[RENKON_NETSIZE-1:0]),
+    .net_wdata  (renkon_net_wdata[DWIDTH-1:0]),
+    .in_offset  (renkon_in_offset[IMGSIZE-1:0]),
+    .out_offset (renkon_out_offset[IMGSIZE-1:0]),
+    .net_offset (renkon_net_offset[RENKON_NETSIZE-1:0]),
+    .total_out  (renkon_total_out[LWIDTH-1:0]),
+    .total_in   (renkon_total_in[LWIDTH-1:0]),
+    .img_size   (renkon_img_size[LWIDTH-1:0]),
+    .fil_size   (renkon_fil_size[LWIDTH-1:0]),
+    .pool_size  (renkon_pool_size[LWIDTH-1:0]),
+    .img_rdata  (renkon_img_rdata[DWIDTH-1:0])
   );
 
   gobou_top gobou0 (
     // Outputs
-    .ack            (gobou_ack),
-    .mem_img_we     (gobou_mem_img_we),
-    .mem_img_addr   (gobou_mem_img_addr[IMGSIZE-1:0]),
-    .mem_img_wdata  (gobou_mem_img_wdata[DWIDTH-1:0]),
+    .ack        (gobou_ack),
+    .img_we     (gobou_img_we),
+    .img_addr   (gobou_img_addr[IMGSIZE-1:0]),
+    .img_wdata  (gobou_img_wdata[DWIDTH-1:0]),
     // Inputs
-    .clk            (clk),
-    .xrst           (xrst),
-    .req            (gobou_req),
-    .net_sel        (gobou_net_sel[GOBOU_CORELOG-1:0]),
-    .net_we         (gobou_net_we),
-    .net_addr       (gobou_net_addr[GOBOU_NETSIZE-1:0]),
-    .net_wdata      (gobou_net_wdata[DWIDTH-1:0]),
-    .in_offset      (gobou_in_offset[IMGSIZE-1:0]),
-    .out_offset     (gobou_out_offset[IMGSIZE-1:0]),
-    .net_offset     (gobou_net_offset[GOBOU_NETSIZE-1:0]),
-    .total_out      (gobou_total_out[LWIDTH-1:0]),
-    .total_in       (gobou_total_in[LWIDTH-1:0]),
-    .img_rdata      (gobou_img_rdata[DWIDTH-1:0])
+    .clk        (clk),
+    .xrst       (xrst),
+    .req        (gobou_req),
+    .net_sel    (gobou_net_sel[GOBOU_CORELOG-1:0]),
+    .net_we     (gobou_net_we),
+    .net_addr   (gobou_net_addr[GOBOU_NETSIZE-1:0]),
+    .net_wdata  (gobou_net_wdata[DWIDTH-1:0]),
+    .in_offset  (gobou_in_offset[IMGSIZE-1:0]),
+    .out_offset (gobou_out_offset[IMGSIZE-1:0]),
+    .net_offset (gobou_net_offset[GOBOU_NETSIZE-1:0]),
+    .total_out  (gobou_total_out[LWIDTH-1:0]),
+    .total_in   (gobou_total_in[LWIDTH-1:0]),
+    .img_rdata  (gobou_img_rdata[DWIDTH-1:0])
   );
 
 endmodule
