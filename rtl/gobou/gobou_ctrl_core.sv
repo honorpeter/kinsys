@@ -14,11 +14,6 @@ module gobou_ctrl_core
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
   , input  signed [DWIDTH-1:0]  out_wdata
-`ifdef DIST
-`else
-  , input                       img_we
-  , input  signed [DWIDTH-1:0]  img_wdata
-`endif
   , ctrl_bus.master             out_ctrl
   , output                      ack
   , output                      mem_img_we
@@ -112,7 +107,6 @@ module gobou_ctrl_core
 
   assign mem_img_we = r_img_we;
 
-`ifdef DIST
   always @(posedge clk)
     if (!xrst)
       r_img_we <= 0;
@@ -124,33 +118,12 @@ module gobou_ctrl_core
         default:
           r_img_we <= 0;
       endcase
-`else
-  always @(posedge clk)
-    if (!xrst)
-      r_img_we <= 0;
-    else
-      case (r_state)
-        S_WAIT:
-          r_img_we <= img_we;
-        S_OUTPUT:
-          r_img_we <= r_serial_we
-                   || (0 < r_serial_cnt && r_serial_cnt < GOBOU_CORE);
-        default:
-          r_img_we <= 0;
-      endcase
-`endif
 
   assign mem_img_addr = w_img_addr + w_img_offset;
 
-`ifdef DIST
   assign mem_img_wdata = r_state == S_OUTPUT
                        ? out_wdata
                        : 0;
-`else
-  assign mem_img_wdata = r_state == S_OUTPUT
-                       ? out_wdata
-                       : img_wdata;
-`endif
 
   assign w_img_addr = r_state == S_OUTPUT
                     ? r_output_addr

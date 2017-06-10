@@ -13,7 +13,6 @@ module test_gobou_top;
   reg                     clk;
   reg                     xrst;
   reg                     req;
-  reg                     img_we;
   reg [GOBOU_CORELOG-1:0] net_sel;
   reg                     net_we;
   reg [GOBOU_NETSIZE-1:0] net_addr;
@@ -23,24 +22,36 @@ module test_gobou_top;
   reg [GOBOU_NETSIZE-1:0] net_offset;
   reg [LWIDTH-1:0]        total_out;
   reg [LWIDTH-1:0]        total_in;
-  reg signed [DWIDTH-1:0] img_wdata;
-`ifdef DIST
   reg signed [DWIDTH-1:0] img_rdata;
-`endif
   reg                      ack;
-`ifdef DIST
-  reg                      mem_img_we;
-  reg [IMGSIZE-1:0]        mem_img_addr;
-  reg signed [DWIDTH-1:0]  mem_img_wdata;
-`else
-  reg signed [DWIDTH-1:0]  img_rdata;
-`endif
-
   reg [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
   reg [DWIDTH-1:0] mem_n [GOBOU_CORE-1:0][2**GOBOU_NETSIZE-1:0];
 
+  wire                      m_img_we;
+  wire [IMGSIZE-1:0]        m_img_addr;
+  wire signed [DWIDTH-1:0]  m_img_wdata;
+  reg                      img_we;
+  reg [IMGSIZE-1:0]        img_addr;
+  reg signed [DWIDTH-1:0]  img_wdata;
+
+  wire                      mem_img_we;
+  wire [IMGSIZE-1:0]        mem_img_addr;
+  wire signed [DWIDTH-1:0]  mem_img_wdata;
+
   int req_time = 2**30;
   int now_time = 0;
+
+  assign m_img_we     = ack ? img_we    : mem_img_we;
+  assign m_img_addr   = ack ? img_addr  : mem_img_addr;
+  assign m_img_wdata  = ack ? img_wdata : mem_img_wdata;
+
+  mem_sp #(DWIDTH, IMGSIZE) mem_img(
+    .mem_we     (m_img_we),
+    .mem_addr   (m_img_addr),
+    .mem_wdata  (m_img_wdata),
+    .mem_rdata  (img_rdata),
+    .*
+  );
 
   gobou_top dut(.*);
 
@@ -142,7 +153,7 @@ module test_gobou_top;
 
       img_we = 1;
       for (int i = 0; i < 2**IMGSIZE; i++) begin
-        in_offset = i;
+        img_addr = i;
         #(STEP);
 
         img_wdata = mem_i[i];
@@ -150,7 +161,7 @@ module test_gobou_top;
       end
 
       img_we = 0;
-      in_offset = 0;
+      img_addr = 0;
       img_wdata = 0;
       #(STEP);
     end // }}}
@@ -280,13 +291,13 @@ module test_gobou_top;
       out_size = N_OUT;
 
       for (int i = 0; i < out_size; i++) begin
-        in_offset = i + OUT_OFFSET;
+        img_addr = i + OUT_OFFSET;
         #(STEP*2);
-        assert (dut.mem_img.mem[in_offset] == img_rdata);
+        assert (mem_img.mem[img_addr] == img_rdata);
         $fdisplay(fd, "%0d", img_rdata);
       end
 
-      in_offset = 0;
+      img_addr = 0;
       #(STEP);
 
       $fclose(fd);
@@ -294,7 +305,7 @@ module test_gobou_top;
       // fd = $fopen("../../data/gobou/output_gobou_top.dat", "w");
       // out_size = N_OUT;
       // for (int i = 1000; i < 1000+out_size; i++)
-      //   $fdisplay(fd, "%0d", dut.mem_img.mem[i]);
+      //   $fdisplay(fd, "%0d", mem_img.mem[i]);
       // $fclose(fd);
     end // }}}
   endtask

@@ -13,27 +13,12 @@ module gobou_top
   , input [GOBOU_NETSIZE-1:0] net_offset
   , input [LWIDTH-1:0]        total_out
   , input [LWIDTH-1:0]        total_in
-`ifdef DIST
   , input signed [DWIDTH-1:0] img_rdata
-`else
-  , input                     img_we
-  , input signed [DWIDTH-1:0] img_wdata
-`endif
   , output                      ack
-`ifdef DIST
   , output                      mem_img_we
   , output [IMGSIZE-1:0]        mem_img_addr
   , output signed [DWIDTH-1:0]  mem_img_wdata
-`else
-  , output signed [DWIDTH-1:0]  img_rdata
-`endif
   );
-
-`ifndef DIST
-  wire                      mem_img_we;
-  wire        [IMGSIZE-1:0] mem_img_addr;
-  wire signed [DWIDTH-1:0]  mem_img_wdata;
-`endif
 
   wire [GOBOU_CORE-1:0]     mem_net_we;
   wire [GOBOU_NETSIZE-1:0]  mem_net_addr;
@@ -49,16 +34,6 @@ module gobou_top
   wire                      relu_oe;
 
   gobou_ctrl ctrl(.*);
-
-`ifndef DIST
-  mem_sp #(DWIDTH, IMGSIZE) mem_img(
-    .mem_we     (mem_img_we),
-    .mem_addr   (mem_img_addr),
-    .mem_wdata  (mem_img_wdata),
-    .mem_rdata  (img_rdata),
-    .*
-  );
-`endif
 
   for (genvar i = 0; i < GOBOU_CORE; i++) begin : pe
     mem_sp #(DWIDTH, GOBOU_NETSIZE) mem_net(
