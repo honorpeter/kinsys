@@ -73,7 +73,8 @@ module test_gobou_top;
     in_offset = 0;
     out_offset = 1000;
     read_input;
-    read_weight;
+    // read_weight;
+    read_params;
     #(STEP);
 
     req = 1;
@@ -110,6 +111,73 @@ module test_gobou_top;
       img_we = 0;
       in_offset = 0;
       img_wdata = 0;
+    end // }}}
+  endtask
+
+  task read_params;
+    int idx[GOBOU_CORE-1:0];
+    int wd, bd;
+    int r;
+    begin // {{{
+      for (int dn = 0; dn < GOBOU_CORE; dn++)
+        idx[dn] = 0;
+      wd = $fopen("../../data/renkon/weight_renkon_top.dat", "r");
+      bd = $fopen("../../data/renkon/bias_renkon_top.dat", "r");
+
+      // reading iterations for normal weight sets
+      for (int n = 0; n < N_OUT/GOBOU_CORE; n++)
+        for (int dn = 0; dn < GOBOU_CORE; dn++) begin
+          for (int m = 0; m < N_IN; m++) begin
+            r = $fscanf(wd, "%x", mem_n[dn][idx[dn]]);
+            idx[dn]++;
+          end
+          r = $fscanf(bd, "%x", mem_n[dn][idx[dn]]);
+          idx[dn]++;
+        end
+
+      // reading iteration for a boundary weight set (if exists)
+      if (N_OUT % GOBOU_CORE != 0)
+        for (int dn = 0; dn < GOBOU_CORE; dn++) begin
+          // put remainder weights to cores
+          if ((GOBOU_CORE * (N_OUT/GOBOU_CORE) + dn) < N_OUT) begin
+            for (int m = 0; m < N_IN; m++) begin
+              r = $fscanf(wd, "%x", mem_n[dn][idx[dn]]);
+              idx[dn]++;
+            end
+            r = $fscanf(bd, "%x", mem_n[dn][idx[dn]]);
+            idx[dn]++;
+          end
+          // put null (zero) values to unused cores
+          else begin
+            for (int m = 0; m < N_IN; m++) begin
+              mem_n[dn][idx[dn]] = 0;
+              idx[dn]++;
+            end
+            mem_n[dn][idx[dn]] = 0;
+            idx[dn]++;
+          end
+        end
+
+      $fclose(wd);
+      $fclose(bd);
+
+      for (int n = 0; n < GOBOU_CORE; n++) begin
+        net_sel = n;
+        net_we = 1;
+        #(STEP);
+
+        for (int i = 0; i < 2**GOBOU_NETSIZE; i++) begin
+          net_addr = i;
+          #(STEP);
+          net_wdata = mem_n[n][i];
+          #(STEP);
+        end
+
+        net_sel   = 0;
+        net_we    = 0;
+        net_addr  = 0;
+        net_wdata = 0;
+      end
     end // }}}
   endtask
 

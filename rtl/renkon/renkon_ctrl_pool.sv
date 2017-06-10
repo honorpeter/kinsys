@@ -28,6 +28,10 @@ module renkon_ctrl_pool
   ctrl_reg         r_pool_ctrl  [D_POOLBUF-1:0];
   ctrl_reg         r_out_ctrl   [D_POOL-1:0];
 
+  // To avoid below:
+  //   > Index xxxxxxxxxx into array dimension [32:0] is out of bounds.
+  initial r_d_poolbuf = 0;
+
 //==========================================================
 // main FSM
 //==========================================================
@@ -112,7 +116,7 @@ module renkon_ctrl_pool
 
   assign pool_ctrl.start = r_pool_ctrl[r_d_poolbuf].start;
   assign pool_ctrl.valid = r_pool_ctrl[r_d_poolbuf].valid;
-  assign pool_ctrl.stop  = r_pool_ctrl[r_d_poolbuf].stop ;
+  assign pool_ctrl.stop  = r_pool_ctrl[r_d_poolbuf].stop;
 
   for (genvar i = 0; i < D_POOLBUF; i++)
     if (i == 0)

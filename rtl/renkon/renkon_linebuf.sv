@@ -13,8 +13,8 @@ module renkon_linebuf
   , output signed [DWIDTH-1:0] buf_output [MAXLINE**2-1:0]
   );
 
-  localparam BUFLINE = $clog2(MAXLINE+2);
   localparam BUFSIZE = $clog2(MAXSIZE);
+  localparam BUFLINE = $clog2(MAXLINE+2);
 
   wire                      s_charge_end;
   wire                      s_active_end;
@@ -26,10 +26,10 @@ module renkon_linebuf
   enum reg [2-1:0] {
     S_WAIT, S_CHARGE, S_ACTIVE
   } r_state;
-  reg [BUFLINE-1:0]        r_select;
-  reg [LWIDTH-1:0]         r_addr_count;
-  reg [LWIDTH-1:0]         r_mem_count;
-  reg [LWIDTH-1:0]         r_line_count;
+  reg [BUFLINE:0]        r_select;
+  reg [BUFLINE:0]        r_mem_count;
+  reg [BUFSIZE-1:0]      r_addr_count;
+  reg [BUFSIZE-1:0]      r_line_count;
   reg signed [DWIDTH-1:0]  r_buf_input;
   reg signed [DWIDTH-1:0]  r_pixel [MAXLINE**2-1:0];
 

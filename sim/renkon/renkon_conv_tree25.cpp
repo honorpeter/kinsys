@@ -33,8 +33,8 @@ int main(void)
   auto filters = zeros<int16_t>(number, size);
   auto results = zeros<int16_t>(number);
 
-  load(images, "../../data/renkon/input_conv_tree25.dat");
-  load(filters, "../../data/renkon/filter_conv_tree25.dat");
+  load(images, "../../data/renkon/input_renkon_conv_tree25.dat");
+  load(filters, "../../data/renkon/filter_renkon_conv_tree25.dat");
 
   for range(n, number)
     results[n] = conv_tree(images[n], filters[n]);

@@ -8,7 +8,7 @@ int main(void)
 {
   auto img = zeros<int16_t>(isize, isize);
 
-  load(img, "../../data/renkon/input_linebuf.dat");
+  load(img, "../../data/renkon/input_renkon_linebuf.dat");
 
   for range(i, isize - fsize + 1)
   for range(j, isize - fsize + 1) {

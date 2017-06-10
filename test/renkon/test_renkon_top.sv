@@ -1,6 +1,7 @@
 `include "renkon.svh"
 
 // `define SAIF
+`define DIRECT
 
 int N_OUT = 50;
 int N_IN  = 20;
@@ -44,6 +45,12 @@ module test_renkon_top;
 
   renkon_top dut(.*);
 
+  // This statement is for direct assignment for generated modules
+  for (genvar n = 0; n < RENKON_CORE; n++)
+    always @*
+      for (int i = 0; i < 2**RENKON_NETSIZE; i++)
+        dut.pe[n].mem_net.mem[i] = mem_n[n][i];
+
   // clock
   initial begin
     clk = 0;
@@ -70,10 +77,16 @@ module test_renkon_top;
     img_size    = ISIZE;
     fil_size    = FSIZE;
     pool_size   = PSIZE;
+    img_we = 0;
+    img_wdata = 0;
+    net_sel = 0;
+    net_we = 0;
+    net_addr = 0;
+    net_wdata = 0;
 
     mem_clear;
-    read_input;
-    read_params;
+    read_input_direct;
+    read_params_direct;
     // read_network(wdir);
     // read_image(indir, label, file);
 
@@ -145,6 +158,26 @@ module test_renkon_top;
       img_we = 0;
       in_offset = 0;
       img_wdata = 0;
+      #(STEP);
+    end // }}}
+  endtask
+
+  task read_input_direct;
+    int idx;
+    int fd;
+    int r;
+    begin // {{{
+      idx = 0;
+      fd = $fopen("../../data/renkon/input_renkon_top.dat", "r");
+
+      for (int m = 0; m < N_IN; m++)
+        for (int i = 0; i < ISIZE; i++)
+          for (int j = 0; j < ISIZE; j++) begin
+            r = $fscanf(fd, "%x", dut.mem_img.mem[idx]);
+            idx++;
+          end
+
+      $fclose(fd);
       #(STEP);
     end // }}}
   endtask
@@ -257,92 +290,198 @@ module test_renkon_top;
     end // }}}
   endtask
 
-  task read_network;
-    input string wdir;
+  task read_params_direct;
+    int idx[RENKON_CORE-1:0];
+    int wd, bd;
+    int r;
     begin // {{{
+      for (int dn = 0; dn < RENKON_CORE; dn++)
+        idx[dn] = 0;
+      wd = $fopen("../../data/renkon/weight_renkon_top.dat", "r");
+      bd = $fopen("../../data/renkon/bias_renkon_top.dat", "r");
+
+      for (int dn = 0; dn < RENKON_CORE; dn++)
+        idx[dn] = 0;
+      wd = $fopen("../../data/renkon/weight_renkon_top.dat", "r");
+      bd = $fopen("../../data/renkon/bias_renkon_top.dat", "r");
+
       // reading iterations for normal weight sets
-      for (int i = 0; i < N_OUT/RENKON_CORE; i++) begin
-        for (int j = 0; j < RENKON_CORE; j++) begin
-          for (int k = 0; k < N_IN; k++) begin
-            $readmemb(
-              $sformatf("%s/data%0d_%0d.bin", wdir, RENKON_CORE*i+j, k),
-              mem_n[j],
-              (FSIZE**2) * (N_IN*i+k) + (i) + NET_OFFSET,
-              (FSIZE**2) * (N_IN*i+k+1) + (i-1) + NET_OFFSET
-            );
+      for (int n = 0; n < N_OUT/RENKON_CORE; n++)
+        for (int dn = 0; dn < RENKON_CORE; dn++) begin
+          for (int m = 0; m < N_IN; m++) begin
+            for (int i = 0; i < FSIZE; i++)
+              for (int j = 0; j < FSIZE; j++) begin
+                r = $fscanf(wd, "%x", mem_n[dn][idx[dn]]);
+                idx[dn]++;
+              end
           end
-          $readmemb(
-            $sformatf("%s/data%0d.bin", wdir, RENKON_CORE*i+j),
-            mem_n[j],
-            (FSIZE**2) * (N_IN*(i+1)) + (i) + NET_OFFSET,
-            (FSIZE**2) * (N_IN*(i+1)) + (i) + NET_OFFSET
-          );
+          r = $fscanf(bd, "%x", mem_n[dn][idx[dn]]);
+          idx[dn]++;
         end
-      end
 
       // reading iteration for a boundary weight set (if exists)
-      if (N_OUT % RENKON_CORE != 0) begin
-        for (int j = 0; j < RENKON_CORE; j++) begin
-
+      if (N_OUT % RENKON_CORE != 0)
+        for (int dn = 0; dn < RENKON_CORE; dn++) begin
           // put remainder weights to cores
-          if ((RENKON_CORE * (N_OUT/RENKON_CORE) + j) < N_OUT) begin
-            for (int k = 0; k < N_IN; k++) begin
-              $readmemb(
-                $sformatf("%s/data%0d_%0d.bin", wdir, RENKON_CORE*(N_OUT/RENKON_CORE)+j, k),
-                mem_n[j],
-                (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k) + (N_OUT/RENKON_CORE) + NET_OFFSET,
-                (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k+1) + (N_OUT/RENKON_CORE-1) + NET_OFFSET
-              );
+          if ((RENKON_CORE * (N_OUT/RENKON_CORE) + dn) < N_OUT) begin
+            for (int m = 0; m < N_IN; m++) begin
+              for (int i = 0; i < FSIZE; i++)
+                for (int j = 0; j < FSIZE; j++) begin
+                  r = $fscanf(wd, "%x", mem_n[dn][idx[dn]]);
+                  idx[dn]++;
+                end
             end
-            $readmemb(
-              $sformatf("%s/data%0d.bin", wdir, RENKON_CORE*(N_OUT/RENKON_CORE)+j),
-              mem_n[j],
-              (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET,
-              (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET
-            );
+            r = $fscanf(bd, "%x", mem_n[dn][idx[dn]]);
+            idx[dn]++;
           end
           // put null (zero) values to unused cores
           else begin
-            for (int k = 0; k < N_IN; k++) begin
-              $readmemb(
-                $sformatf("%s/null_w.bin", wdir),
-                mem_n[j],
-                (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k) + (N_OUT/RENKON_CORE) + NET_OFFSET,
-                (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k+1) + (N_OUT/RENKON_CORE-1) + NET_OFFSET
-              );
+            for (int m = 0; m < N_IN; m++) begin
+              for (int i = 0; i < FSIZE; i++)
+                for (int j = 0; j < FSIZE; j++) begin
+                  mem_n[dn][idx[dn]] = 0;
+                  idx[dn]++;
+                end
             end
-            $readmemb(
-              $sformatf("%s/null_b.bin", wdir),
-              mem_n[j],
-              (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET,
-              (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET
-            );
+            mem_n[dn][idx[dn]] = 0;
+            idx[dn]++;
           end
         end
-      end
+      // reading iterations for normal weight sets
+      // for (int n = 0; n < N_OUT/RENKON_CORE; n++)
+      //   for (int dn = 0; dn < RENKON_CORE; dn++) begin
+      //     for (int m = 0; m < N_IN; m++) begin
+      //       for (int i = 0; i < FSIZE; i++)
+      //         for (int j = 0; j < FSIZE; j++) begin
+      //           r = $fscanf(wd, "%x", dut.pe[dn].mem_net.mem[idx[dn]]);
+      //           idx[dn]++;
+      //         end
+      //     end
+      //     r = $fscanf(bd, "%x", dut.pe[dn].mem_net.mem[idx[dn]]);
+      //     idx[dn]++;
+      //   end
+      //
+      // // reading iteration for a boundary weight set (if exists)
+      // if (N_OUT % RENKON_CORE != 0)
+      //   for (int dn = 0; dn < RENKON_CORE; dn++) begin
+      //     // put remainder weights to cores
+      //     if ((RENKON_CORE * (N_OUT/RENKON_CORE) + dn) < N_OUT) begin
+      //       for (int m = 0; m < N_IN; m++) begin
+      //         for (int i = 0; i < FSIZE; i++)
+      //           for (int j = 0; j < FSIZE; j++) begin
+      //             r = $fscanf(wd, "%x", dut.pe[dn].mem_net.mem[idx[dn]]);
+      //             idx[dn]++;
+      //           end
+      //       end
+      //       r = $fscanf(bd, "%x", dut.pe[dn].mem_net.mem[idx[dn]]);
+      //       idx[dn]++;
+      //     end
+      //     // put null (zero) values to unused cores
+      //     else begin
+      //       for (int m = 0; m < N_IN; m++) begin
+      //         for (int i = 0; i < FSIZE; i++)
+      //           for (int j = 0; j < FSIZE; j++) begin
+      //             dut.pe[dn].mem_net.mem[idx[dn]] = 0;
+      //             idx[dn]++;
+      //           end
+      //       end
+      //       dut.pe[dn].mem_net.mem[idx[dn]] = 0;
+      //       idx[dn]++;
+      //     end
+      //   end
 
-      for (int n = 0; n < RENKON_CORE; n++) begin
-        net_sel = n;
-        net_we  = 1;
-        #(STEP);
-
-        for (int i = 0; i < 2**RENKON_NETSIZE; i++) begin
-          net_addr = i;
-          #(STEP);
-
-          net_wdata = mem_n[n][i];
-          #(STEP);
-        end
-
-        net_sel   = 0;
-        net_we    = 0;
-        net_addr  = 0;
-        net_wdata = 0;
-        #(STEP);
-      end
-
+      $fclose(wd);
+      $fclose(bd);
+      #(STEP);
     end // }}}
   endtask
+
+  // task read_network;
+  //   input string wdir;
+  //   begin // {{{
+  //     // reading iterations for normal weight sets
+  //     for (int i = 0; i < N_OUT/RENKON_CORE; i++) begin
+  //       for (int j = 0; j < RENKON_CORE; j++) begin
+  //         for (int k = 0; k < N_IN; k++) begin
+  //           $readmemb(
+  //             $sformatf("%s/data%0d_%0d.bin", wdir, RENKON_CORE*i+j, k),
+  //             mem_n[j],
+  //             (FSIZE**2) * (N_IN*i+k) + (i) + NET_OFFSET,
+  //             (FSIZE**2) * (N_IN*i+k+1) + (i-1) + NET_OFFSET
+  //           );
+  //         end
+  //         $readmemb(
+  //           $sformatf("%s/data%0d.bin", wdir, RENKON_CORE*i+j),
+  //           mem_n[j],
+  //           (FSIZE**2) * (N_IN*(i+1)) + (i) + NET_OFFSET,
+  //           (FSIZE**2) * (N_IN*(i+1)) + (i) + NET_OFFSET
+  //         );
+  //       end
+  //     end
+  //
+  //     // reading iteration for a boundary weight set (if exists)
+  //     if (N_OUT % RENKON_CORE != 0) begin
+  //       for (int j = 0; j < RENKON_CORE; j++) begin
+  //
+  //         // put remainder weights to cores
+  //         if ((RENKON_CORE * (N_OUT/RENKON_CORE) + j) < N_OUT) begin
+  //           for (int k = 0; k < N_IN; k++) begin
+  //             $readmemb(
+  //               $sformatf("%s/data%0d_%0d.bin", wdir, RENKON_CORE*(N_OUT/RENKON_CORE)+j, k),
+  //               mem_n[j],
+  //               (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k) + (N_OUT/RENKON_CORE) + NET_OFFSET,
+  //               (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k+1) + (N_OUT/RENKON_CORE-1) + NET_OFFSET
+  //             );
+  //           end
+  //           $readmemb(
+  //             $sformatf("%s/data%0d.bin", wdir, RENKON_CORE*(N_OUT/RENKON_CORE)+j),
+  //             mem_n[j],
+  //             (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET,
+  //             (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET
+  //           );
+  //         end
+  //         // put null (zero) values to unused cores
+  //         else begin
+  //           for (int k = 0; k < N_IN; k++) begin
+  //             $readmemb(
+  //               $sformatf("%s/null_w.bin", wdir),
+  //               mem_n[j],
+  //               (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k) + (N_OUT/RENKON_CORE) + NET_OFFSET,
+  //               (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k+1) + (N_OUT/RENKON_CORE-1) + NET_OFFSET
+  //             );
+  //           end
+  //           $readmemb(
+  //             $sformatf("%s/null_b.bin", wdir),
+  //             mem_n[j],
+  //             (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET,
+  //             (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET
+  //           );
+  //         end
+  //       end
+  //     end
+  //
+  //     for (int n = 0; n < RENKON_CORE; n++) begin
+  //       net_sel = n;
+  //       net_we  = 1;
+  //       #(STEP);
+  //
+  //       for (int i = 0; i < 2**RENKON_NETSIZE; i++) begin
+  //         net_addr = i;
+  //         #(STEP);
+  //
+  //         net_wdata = mem_n[n][i];
+  //         #(STEP);
+  //       end
+  //
+  //       net_sel   = 0;
+  //       net_we    = 0;
+  //       net_addr  = 0;
+  //       net_wdata = 0;
+  //       #(STEP);
+  //     end
+  //
+  //   end // }}}
+  // endtask
 
   task write_output;
     int fd;
@@ -390,12 +529,34 @@ module test_renkon_top;
           "%2d ", dut.ctrl.ctrl_core.r_input_y,
           "%2d ", dut.ctrl.ctrl_core.r_weight_x,
           "%2d ", dut.ctrl.ctrl_core.r_weight_y,
+          "| ",
+          "%1b",  dut.ctrl.ctrl_conv.in_ctrl.start,
+          "%1b",  dut.ctrl.ctrl_conv.in_ctrl.valid,
+          "%1b ", dut.ctrl.ctrl_conv.in_ctrl.stop,
+          "%1b",  dut.ctrl.ctrl_conv.conv_ctrl.start,
+          "%1b",  dut.ctrl.ctrl_conv.conv_ctrl.valid,
+          "%1b ", dut.ctrl.ctrl_conv.conv_ctrl.stop,
+          "%1b",  dut.ctrl.ctrl_conv.accum_ctrl.start,
+          "%1b",  dut.ctrl.ctrl_conv.accum_ctrl.valid,
+          "%1b ", dut.ctrl.ctrl_conv.accum_ctrl.stop,
+          "%1b",  dut.ctrl.ctrl_conv.out_ctrl.start,
+          "%1b",  dut.ctrl.ctrl_conv.out_ctrl.valid,
+          "%1b ", dut.ctrl.ctrl_conv.out_ctrl.stop,
+          // "%1d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
+          // "%1d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
+          // "%1d ", dut.ctrl.ctrl_pool.out_ctrl.valid,
           "|c: ",
-          "%4d ", dut.pe[0].core.pixel[0],
-          "%4d ", dut.pe[0].core.fmap,
-          "%4d ", dut.pe[0].core.bmap,
-          "%4d ", dut.pe[0].core.amap,
-          "%4d ", dut.pe[0].core.pmap,
+          "%5d ,", dut.buf_pix.buf_input,
+          "%5d ", dut.buf_pix.buf_output[0],
+          "%5d ,", dut.buf_pix.buf_output[24],
+          "%5d ", dut.pe[0].core.pixel[0],
+          "%5d ,", dut.pe[0].core.pixel[24],
+          "%5d ", dut.pe[0].core.conv.weight[0],
+          "%5d ,", dut.pe[0].core.conv.weight[24],
+          "%5d ", dut.pe[0].core.fmap,
+          // "%5d ", dut.pe[0].core.bmap,
+          // "%5d ", dut.pe[0].core.amap,
+          // "%5d ", dut.pe[0].core.pmap,
           "|"
         );
       #(STEP/2+1);

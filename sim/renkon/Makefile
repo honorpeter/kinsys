@@ -32,7 +32,7 @@ data:
 	$(RAND) 2880  > $(DATADIR)/input_renkon_top.dat
 	$(RAND) 25000 > $(DATADIR)/weight_renkon_top.dat
 	$(RAND) 50    > $(DATADIR)/bias_renkon_top.dat
-	$(RAND) 1024  > $(DATADIR)/input_linebuf.dat
-	$(RAND) 25000 > $(DATADIR)/input_conv_tree25.dat
-	$(RAND) 25000 > $(DATADIR)/filter_conv_tree25.dat
+	$(RAND) 1024  > $(DATADIR)/input_renkon_linebuf.dat
+	$(RAND) 25000 > $(DATADIR)/input_renkon_conv_tree25.dat
+	$(RAND) 25000 > $(DATADIR)/filter_renkon_conv_tree25.dat
 

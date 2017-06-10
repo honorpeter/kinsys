@@ -1,4 +1,4 @@
-VERBOSE   = 0
+VERBOSE   = 1
 SIMULATOR = vsim
 MODULE    = renkon_top.sv
 DEPENDS   = \
@@ -67,11 +67,10 @@ clean:
 	rm -f webtalk*.log hs_err_pid*.log
 	rm -f *.jou *.pb *.wdb
 	### vcs
-	rm -rf $(SOURCES:.sv=.com.daidir)
-	rm -rf $(TESTSUITE:.sv=.com.daidir)
-	rm -f default.cfg vcdplus.vpd vcs.key
+	rm -rf *.com.daidir *.out.daidir
+	rm -f default.cfg vcdplus.vpd vcs.key ucli.key
 	### iverilog
-	rm -f $(SOURCES:.sv=.out)
+	rm -f *.out
 
 dist:
 	mkdir -p $(DIST)

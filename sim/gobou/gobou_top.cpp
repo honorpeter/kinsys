@@ -64,7 +64,5 @@ int main(void)
   for range(n, n_out)
     printf("%d\n", avec[n]);
 
-  save(input, "input_gobou_top.dat");
-
   return 0;
 }

@@ -90,6 +90,10 @@ module renkon_ctrl_core
   reg               r_last_input  [D_PIXELBUF-1:0];
   ctrl_reg          r_out_ctrl    [D_PIXELBUF-1:0];
 
+  // To avoid below:
+  //   > Index xxxxxxxxxx into array dimension [32:0] is out of bounds.
+  initial r_d_pixelbuf = 0;
+
 //==========================================================
 // core control
 //==========================================================
@@ -497,7 +501,7 @@ module renkon_ctrl_core
     else if (r_state[0] == S_OUTPUT && in_ctrl.valid)
       if (in_ctrl.stop)
         r_serial_addr <= 0;
-        else
+      else
         r_serial_addr <= r_serial_addr + 1;
     else if (r_serial_re > 0)
       if (r_serial_addr == r_serial_cnt - 1)

@@ -48,7 +48,7 @@ module test_renkon_linebuf;
   end
 
   task read_input;
-    $readmemh("../../data/renkon/input_linebuf.dat", mem_input);
+    $readmemh("../../data/renkon/input_renkon_linebuf.dat", mem_input);
   endtask
 
   //display
@@ -65,7 +65,7 @@ module test_renkon_linebuf;
     int fd;
     int i, j;
     begin // {{{
-      fd = $fopen("../../data/renkon/output_linebuf.dat", "w");
+      fd = $fopen("../../data/renkon/output_renkon_linebuf.dat", "w");
       i = 0; j = 0;
       forever begin
         #(STEP/2-1);
