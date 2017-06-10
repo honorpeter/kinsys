@@ -13,7 +13,7 @@ module renkon_accum
 
   wire signed [DWIDTH-1:0] sum;
 
-  reg signed [DWIDTH-1:0] r_total;
+  reg  signed [DWIDTH-1:0] r_total;
 
   assign pixel_out  = r_total;
   assign sum_new    = sum;
@@ -26,6 +26,6 @@ module renkon_accum
     if (!xrst)
       r_total <= 0;
     else if(out_en)
-      r_total <= sum;
+      r_total <= sum_old;
 
 endmodule

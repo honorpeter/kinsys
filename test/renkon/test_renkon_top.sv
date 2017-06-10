@@ -493,7 +493,7 @@ module test_renkon_top;
       for (int i = 0; i < out_size; i++) begin
         in_offset = i + OUT_OFFSET;
         #(STEP*2);
-
+        assert (dut.mem_img.mem[in_offset] == img_rdata);
         $fdisplay(fd, "%0d", img_rdata);
       end
 
@@ -505,7 +505,7 @@ module test_renkon_top;
   endtask
 
   initial begin
-    forever begin
+    forever begin // {{{
       #(STEP/2-1);
       now_time = $time/STEP;
       if (now_time >= req_time)
@@ -513,22 +513,12 @@ module test_renkon_top;
           "%5d: ", now_time - req_time,
           "%d ", dut.ctrl.ctrl_core.r_state[0],
           "| ",
-          "%d ", dut.mem_img_we,
-          "%d ", dut.mem_img_addr,
-          "%4d ", dut.img_rdata,
-          "%4d ", dut.mem_img_wdata,
-          "| ",
-          "%1d ", dut.mem_net_we,
-          "%d ", dut.mem_net_addr,
-          "%4d ", dut.net_rdata[0],
-          "%4d ", dut.net_wdata,
-          "| ",
-          "%2d ", dut.ctrl.ctrl_core.r_count_out,
-          "%2d ", dut.ctrl.ctrl_core.r_count_in,
-          "%2d ", dut.ctrl.ctrl_core.r_input_x,
-          "%2d ", dut.ctrl.ctrl_core.r_input_y,
-          "%2d ", dut.ctrl.ctrl_core.r_weight_x,
-          "%2d ", dut.ctrl.ctrl_core.r_weight_y,
+          "%2d ",  dut.ctrl.ctrl_core.r_count_out,
+          "%2d ",  dut.ctrl.ctrl_core.r_count_in,
+          "%2d  ", dut.ctrl.ctrl_core.r_input_x,
+          "%2d  ", dut.ctrl.ctrl_core.r_input_y,
+          "%2d  ", dut.ctrl.ctrl_core.r_weight_x,
+          "%2d  ", dut.ctrl.ctrl_core.r_weight_y,
           "| ",
           "%1b",  dut.ctrl.ctrl_conv.in_ctrl.start,
           "%1b",  dut.ctrl.ctrl_conv.in_ctrl.valid,
@@ -542,25 +532,79 @@ module test_renkon_top;
           "%1b",  dut.ctrl.ctrl_conv.out_ctrl.start,
           "%1b",  dut.ctrl.ctrl_conv.out_ctrl.valid,
           "%1b ", dut.ctrl.ctrl_conv.out_ctrl.stop,
-          // "%1d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
-          // "%1d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
-          // "%1d ", dut.ctrl.ctrl_pool.out_ctrl.valid,
-          "|c: ",
-          "%5d ,", dut.buf_pix.buf_input,
-          "%5d ", dut.buf_pix.buf_output[0],
-          "%5d ,", dut.buf_pix.buf_output[24],
-          "%5d ", dut.pe[0].core.pixel[0],
-          "%5d ,", dut.pe[0].core.pixel[24],
+          "%1b",  dut.ctrl.ctrl_pool.pool_ctrl.start,
+          "%1b",  dut.ctrl.ctrl_pool.pool_ctrl.valid,
+          "%1b ", dut.ctrl.ctrl_pool.pool_ctrl.stop,
+          "%1b",  dut.ctrl.ctrl_pool.out_ctrl.start,
+          "%1b",  dut.ctrl.ctrl_pool.out_ctrl.valid,
+          "%1b ", dut.ctrl.ctrl_pool.out_ctrl.stop,
+          "| ",
+          "%5d ", dut.pe[0].core.conv.pixel_in[0],
+          "%5d ", dut.pe[0].core.conv.pixel_in[24],
           "%5d ", dut.pe[0].core.conv.weight[0],
-          "%5d ,", dut.pe[0].core.conv.weight[24],
-          "%5d ", dut.pe[0].core.fmap,
-          // "%5d ", dut.pe[0].core.bmap,
-          // "%5d ", dut.pe[0].core.amap,
-          // "%5d ", dut.pe[0].core.pmap,
+          "%5d ", dut.pe[0].core.conv.weight[24],
+          "%5d ", dut.pe[0].core.conv.result,
+          "%5d ", dut.pe[0].core.conv.feat_rdata,
+          "%5d ", dut.pe[0].core.conv.feat_wdata,
+          "%5d ", dut.pe[0].core.conv.pixel_out,
+          "| ",
+          "%5d@ ", dut.pe[0].core.fmap,
+          "%5d@ ", dut.pe[0].core.pmap,
           "|"
         );
       #(STEP/2+1);
-    end
+    end // }}}
   end
+
+  // initial begin
+  //   forever begin // {{{
+  //     #(STEP/2-1);
+  //     now_time = $time/STEP;
+  //     if (now_time >= req_time)
+  //       $display(
+  //         "%5d: ", now_time - req_time,
+  //         "%d ", dut.ctrl.ctrl_core.r_state[0],
+  //         "| ",
+  //         "%1b",  dut.ctrl.ctrl_conv.in_ctrl.start,
+  //         "%1b",  dut.ctrl.ctrl_conv.in_ctrl.valid,
+  //         "%1b ", dut.ctrl.ctrl_conv.in_ctrl.stop,
+  //         "%1b",  dut.ctrl.ctrl_conv.conv_ctrl.start,
+  //         "%1b",  dut.ctrl.ctrl_conv.conv_ctrl.valid,
+  //         "%1b ", dut.ctrl.ctrl_conv.conv_ctrl.stop,
+  //         "%1b",  dut.ctrl.ctrl_conv.accum_ctrl.start,
+  //         "%1b",  dut.ctrl.ctrl_conv.accum_ctrl.valid,
+  //         "%1b ", dut.ctrl.ctrl_conv.accum_ctrl.stop,
+  //         "%1b",  dut.ctrl.ctrl_conv.out_ctrl.start,
+  //         "%1b",  dut.ctrl.ctrl_conv.out_ctrl.valid,
+  //         "%1b ", dut.ctrl.ctrl_conv.out_ctrl.stop,
+  //         "%1b",  dut.ctrl.ctrl_pool.pool_ctrl.start,
+  //         "%1b",  dut.ctrl.ctrl_pool.pool_ctrl.valid,
+  //         "%1b ", dut.ctrl.ctrl_pool.pool_ctrl.stop,
+  //         "%1b",  dut.ctrl.ctrl_pool.out_ctrl.start,
+  //         "%1b",  dut.ctrl.ctrl_pool.out_ctrl.valid,
+  //         "%1b ", dut.ctrl.ctrl_pool.out_ctrl.stop,
+  //         "| ",
+  //         "%5d@ ", dut.pe[0].core.fmap,
+  //         "%5d@ ", dut.pe[1].core.fmap,
+  //         "%5d@ ", dut.pe[2].core.fmap,
+  //         "%5d@ ", dut.pe[3].core.fmap,
+  //         "%5d@ ", dut.pe[4].core.fmap,
+  //         "%5d@ ", dut.pe[5].core.fmap,
+  //         "%5d@ ", dut.pe[6].core.fmap,
+  //         "%5d@ ", dut.pe[7].core.fmap,
+  //         "| ",
+  //         "%5d@ ", dut.pe[0].core.pmap,
+  //         "%5d@ ", dut.pe[1].core.pmap,
+  //         "%5d@ ", dut.pe[2].core.pmap,
+  //         "%5d@ ", dut.pe[3].core.pmap,
+  //         "%5d@ ", dut.pe[4].core.pmap,
+  //         "%5d@ ", dut.pe[5].core.pmap,
+  //         "%5d@ ", dut.pe[6].core.pmap,
+  //         "%5d@ ", dut.pe[7].core.pmap,
+  //         "|"
+  //       );
+  //     #(STEP/2+1);
+  //   end // }}}
+  // end
 
 endmodule

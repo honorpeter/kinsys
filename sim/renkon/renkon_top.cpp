@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cfloat>
 #include <cmath>
+#include <limits>
 #include <lib.hpp>
 
 const int n_out = 50;
@@ -62,7 +63,7 @@ void pool(Mat3D<T> &output, Mat3D<T> &input)
   for range(n, n_out)
   for (int i = 0; i < isize-fsize+1; i+=psize)
   for (int j = 0; j < isize-fsize+1; j+=psize) {
-    double tmp = -DBL_MAX;
+    T tmp = std::numeric_limits<T>::min();
     for range(di, psize)
     for range(dj, psize)
       if (input[n][i+di][j+dj] > tmp)
