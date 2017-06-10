@@ -16,9 +16,9 @@ module gobou_ctrl_core
   , input  signed [DWIDTH-1:0]  out_wdata
   , ctrl_bus.master             out_ctrl
   , output                      ack
-  , output                      mem_img_we
-  , output [IMGSIZE-1:0]        mem_img_addr
-  , output signed [DWIDTH-1:0]  mem_img_wdata
+  , output                      img_we
+  , output [IMGSIZE-1:0]        img_addr
+  , output signed [DWIDTH-1:0]  img_wdata
   , output [GOBOU_CORE-1:0]     mem_net_we
   , output [GOBOU_NETSIZE-1:0]  mem_net_addr
   , output                      breg_we
@@ -105,7 +105,7 @@ module gobou_ctrl_core
 // image control
 //==========================================================
 
-  assign mem_img_we = r_img_we;
+  assign img_we = r_img_we;
 
   always @(posedge clk)
     if (!xrst)
@@ -119,11 +119,11 @@ module gobou_ctrl_core
           r_img_we <= 0;
       endcase
 
-  assign mem_img_addr = w_img_addr + w_img_offset;
+  assign img_addr = w_img_addr + w_img_offset;
 
-  assign mem_img_wdata = r_state == S_OUTPUT
-                       ? out_wdata
-                       : 0;
+  assign img_wdata = r_state == S_OUTPUT
+                   ? out_wdata
+                   : 0;
 
   assign w_img_addr = r_state == S_OUTPUT
                     ? r_output_addr

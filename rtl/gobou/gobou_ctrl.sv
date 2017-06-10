@@ -14,9 +14,9 @@ module gobou_ctrl
   , input  [LWIDTH-1:0]         total_in
   , input  signed [DWIDTH-1:0]  out_wdata
   , output                      ack
-  , output                      mem_img_we
-  , output [IMGSIZE-1:0]        mem_img_addr
-  , output signed [DWIDTH-1:0]  mem_img_wdata
+  , output                      img_we
+  , output [IMGSIZE-1:0]        img_addr
+  , output signed [DWIDTH-1:0]  img_wdata
   , output [GOBOU_CORE-1:0]     mem_net_we
   , output [GOBOU_NETSIZE-1:0]  mem_net_addr
   , output                      breg_we

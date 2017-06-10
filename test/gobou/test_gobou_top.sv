@@ -22,14 +22,10 @@ module test_gobou_top;
   reg [GOBOU_NETSIZE-1:0] net_offset;
   reg [LWIDTH-1:0]        total_out;
   reg [LWIDTH-1:0]        total_in;
-  reg signed [DWIDTH-1:0] img_rdata;
   reg                      ack;
   reg [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
   reg [DWIDTH-1:0] mem_n [GOBOU_CORE-1:0][2**GOBOU_NETSIZE-1:0];
 
-  wire                      m_img_we;
-  wire [IMGSIZE-1:0]        m_img_addr;
-  wire signed [DWIDTH-1:0]  m_img_wdata;
   reg                      img_we;
   reg [IMGSIZE-1:0]        img_addr;
   reg signed [DWIDTH-1:0]  img_wdata;
@@ -37,23 +33,37 @@ module test_gobou_top;
   wire                      mem_img_we;
   wire [IMGSIZE-1:0]        mem_img_addr;
   wire signed [DWIDTH-1:0]  mem_img_wdata;
+  wire signed [DWIDTH-1:0]  mem_img_rdata;
+
+  wire                      gobou_img_we;
+  wire [IMGSIZE-1:0]        gobou_img_addr;
+  wire signed [DWIDTH-1:0]  gobou_img_wdata;
+  wire signed [DWIDTH-1:0]  gobou_img_rdata;
 
   int req_time = 2**30;
   int now_time = 0;
 
-  assign m_img_we     = ack ? img_we    : mem_img_we;
-  assign m_img_addr   = ack ? img_addr  : mem_img_addr;
-  assign m_img_wdata  = ack ? img_wdata : mem_img_wdata;
+  assign mem_img_we     = ack ? img_we    : gobou_img_we;
+  assign mem_img_addr   = ack ? img_addr  : gobou_img_addr;
+  assign mem_img_wdata  = ack ? img_wdata : gobou_img_wdata;
+
+  assign gobou_img_rdata = mem_img_rdata;
 
   mem_sp #(DWIDTH, IMGSIZE) mem_img(
-    .mem_we     (m_img_we),
-    .mem_addr   (m_img_addr),
-    .mem_wdata  (m_img_wdata),
-    .mem_rdata  (img_rdata),
+    .mem_we     (mem_img_we),
+    .mem_addr   (mem_img_addr),
+    .mem_wdata  (mem_img_wdata),
+    .mem_rdata  (mem_img_rdata),
     .*
   );
 
-  gobou_top dut(.*);
+  gobou_top dut(
+    .img_we     (gobou_img_we),
+    .img_addr   (gobou_img_addr),
+    .img_wdata  (gobou_img_wdata),
+    .img_rdata  (gobou_img_rdata),
+    .*
+  );
 
   // clock
   initial begin
@@ -293,8 +303,8 @@ module test_gobou_top;
       for (int i = 0; i < out_size; i++) begin
         img_addr = i + OUT_OFFSET;
         #(STEP*2);
-        assert (mem_img.mem[img_addr] == img_rdata);
-        $fdisplay(fd, "%0d", img_rdata);
+        assert (mem_img.mem[img_addr] == mem_img_rdata);
+        $fdisplay(fd, "%0d", mem_img_rdata);
       end
 
       img_addr = 0;
