@@ -16,20 +16,11 @@ module renkon_top
   , input  [LWIDTH-1:0]         img_size
   , input  [LWIDTH-1:0]         fil_size
   , input  [LWIDTH-1:0]         pool_size
-`ifdef DIST
   , input  signed [DWIDTH-1:0]  img_rdata
-`else
-  , input                       img_we
-  , input  signed [DWIDTH-1:0]  img_wdata
-`endif
   , output                      ack
-`ifdef DIST
   , output                      mem_img_we
   , output [IMGSIZE-1:0]        mem_img_addr
   , output signed [DWIDTH-1:0]  mem_img_wdata
-`else
-  , output signed [DWIDTH-1:0]  img_rdata
-`endif
   );
 
   wire [RENKON_CORE-1:0]    mem_net_we;
@@ -57,23 +48,8 @@ module renkon_top
   wire [OUTSIZE-1:0]        serial_addr;
   wire signed [DWIDTH-1:0]  result [RENKON_CORE-1:0];
   wire signed [DWIDTH-1:0]  out_wdata;
-`ifndef DIST
-  wire                      mem_img_we;
-  wire        [IMGSIZE-1:0] mem_img_addr;
-  wire signed [DWIDTH-1:0]  mem_img_wdata;
-`endif
 
   renkon_ctrl ctrl(.*);
-
-`ifndef DIST
-  mem_sp #(DWIDTH, IMGSIZE) mem_img(
-    .mem_we     (mem_img_we),
-    .mem_addr   (mem_img_addr),
-    .mem_wdata  (mem_img_wdata),
-    .mem_rdata  (img_rdata),
-    .*
-  );
-`endif
 
   renkon_linebuf #(FSIZE, D_PIXELBUF) buf_pix(
     .buf_en     (buf_pix_en),

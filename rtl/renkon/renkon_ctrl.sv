@@ -16,11 +16,6 @@ module renkon_ctrl
   , input  [LWIDTH-1:0]         fil_size
   , input  [LWIDTH-1:0]         pool_size
   , input  signed [DWIDTH-1:0]  out_wdata
-`ifdef DIST
-`else
-  , input                       img_we
-  , input  signed [DWIDTH-1:0]  img_wdata
-`endif
   , output                      ack
   , output                      buf_pix_en
   , output                      wreg_we

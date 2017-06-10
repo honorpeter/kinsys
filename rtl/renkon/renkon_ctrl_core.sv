@@ -16,11 +16,6 @@ module renkon_ctrl_core
   , input  [LWIDTH-1:0]         img_size
   , input  [LWIDTH-1:0]         fil_size
   , input  signed [DWIDTH-1:0]  out_wdata
-`ifdef DIST
-`else
-  , input                       img_we
-  , input  signed [DWIDTH-1:0]  img_wdata
-`endif
   , ctrl_bus.master             out_ctrl
   , output                      ack
   , output [2-1:0]              core_state
@@ -329,15 +324,9 @@ module renkon_ctrl_core
   assign mem_img_we   = r_img_we;
   assign mem_img_addr = w_img_addr + w_img_offset;
 
-`ifdef DIST
   assign mem_img_wdata = r_state[0] == S_OUTPUT
                        ? out_wdata
                        : 0;
-`else
-  assign mem_img_wdata = r_state[0] == S_OUTPUT
-                       ? out_wdata
-                       : img_wdata;
-`endif
 
   assign w_img_addr = r_state[0] == S_OUTPUT
                     ? r_out_addr
@@ -370,7 +359,6 @@ module renkon_ctrl_core
         end
     endcase
 
-`ifdef DIST
   always @(posedge clk)
     if (!xrst)
       r_img_we <= 0;
@@ -381,20 +369,6 @@ module renkon_ctrl_core
         default:
           r_img_we <= 0;
       endcase
-`else
-  always @(posedge clk)
-    if (!xrst)
-      r_img_we <= 0;
-    else
-      case (r_state[0])
-        S_WAIT:
-          r_img_we <= img_we;
-        S_OUTPUT:
-          r_img_we <= r_out_we;
-        default:
-          r_img_we <= 0;
-      endcase
-`endif
 
   always @(posedge clk)
     if (!xrst)
