@@ -2,8 +2,10 @@
 
 int N_IN  = 800;
 int N_OUT = 500;
+int IMG_OFFSET = 0;
+int OUT_OFFSET = 1000;
+int NET_OFFSET = 0;
 
-string infile = "../../data/gobou/input_gobou_top.dat";
 string weight = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_3";
 
 module test_gobou_top;
@@ -50,8 +52,11 @@ module test_gobou_top;
   end
 
   //flow
-  initial
-  begin
+  initial begin
+`ifdef SAIF
+    $set_toggle_region(test_renkon_top.dut);
+`endif
+
     xrst = 0;
     #(STEP);
 
@@ -60,7 +65,9 @@ module test_gobou_top;
     img_we = 0;
     in_offset = 0;
     out_offset = 0;
+    net_offset = 0;
     img_wdata = 0;
+    net_sel = 0;
     net_we = 0;
     net_addr = 0;
     net_wdata = 0;
@@ -69,12 +76,19 @@ module test_gobou_top;
     #(STEP);
 
     total_out = N_OUT;
-    total_in = N_IN;
-    in_offset = 0;
-    out_offset = 1000;
+    total_in  = N_IN;
+    in_offset = IMG_OFFSET;
+    out_offset = OUT_OFFSET;
+    net_offset = NET_OFFSET;
+
+    mem_clear;
     read_input;
     // read_weight;
     read_params;
+
+`ifdef SAIF
+    $toggle_start();
+`endif
     #(STEP);
 
     req = 1;
@@ -84,33 +98,61 @@ module test_gobou_top;
 
     while(!ack) #(STEP);
     #(STEP*10);
+    req_time = 2**30;
+
+`ifdef SAIF
+    $toggle_stop();
+    $toggle_report(
+      $sformatf("gobou%d_%d.saif", label, file),
+      1.0e-9,
+      "test_gobou_top.dut"
+    );
+`endif
+
     write_output;
     $finish();
   end
 
-  task read_input;
+  task mem_clear;
     begin // {{{
-      $readmemh(
-        infile,
-        mem_i,
-        0,
-        N_IN-1
-      );
+      for (int i = 0; i < 2**IMGSIZE; i++)
+        mem_i[i] = 0;
 
-      img_we = 1;
+      for (int n = 0; n < GOBOU_CORE; n++)
+        for (int i = 0; i < 2**GOBOU_NETSIZE; i++)
+          mem_n[n][i] = 0;
+    end // }}}
+  endtask
+
+  task read_input;
+    int idx;
+    int fd;
+    int r;
+    begin // {{{
+      idx = 0;
+      fd = $fopen("../../data/gobou/input_gobou_top.dat", "r");
+
+      for (int m = 0; m < N_IN; m++) begin
+        r = $fscanf(fd, "%x", mem_i[idx]);
+        idx++;
+      end
+
+      $fclose(fd);
       #(STEP);
 
+      img_we = 1;
       for (int i = 0; i < 2**IMGSIZE; i++) begin
         in_offset = i;
         #(STEP);
+
         img_wdata = mem_i[i];
         #(STEP);
       end
-      #(STEP);
 
       img_we = 0;
       in_offset = 0;
       img_wdata = 0;
+      #(STEP);
     end // }}}
   endtask
 
@@ -121,8 +163,8 @@ module test_gobou_top;
     begin // {{{
       for (int dn = 0; dn < GOBOU_CORE; dn++)
         idx[dn] = 0;
-      wd = $fopen("../../data/renkon/weight_renkon_top.dat", "r");
-      bd = $fopen("../../data/renkon/bias_renkon_top.dat", "r");
+      wd = $fopen("../../data/gobou/weight_gobou_top.dat", "r");
+      bd = $fopen("../../data/gobou/bias_gobou_top.dat", "r");
 
       // reading iterations for normal weight sets
       for (int n = 0; n < N_OUT/GOBOU_CORE; n++)
@@ -169,6 +211,7 @@ module test_gobou_top;
         for (int i = 0; i < 2**GOBOU_NETSIZE; i++) begin
           net_addr = i;
           #(STEP);
+
           net_wdata = mem_n[n][i];
           #(STEP);
         end
@@ -230,32 +273,75 @@ module test_gobou_top;
   endtask
 
   task write_output;
-    integer fd;
-    integer out_size;
+    int fd;
+    int out_size;
     begin // {{{
       fd = $fopen("../../data/gobou/output_gobou_top.dat", "w");
       out_size = N_OUT;
-      for (int i = 1000; i < 1000+out_size; i++)
-        $fdisplay(fd, "%0d", dut.mem_img.mem[i]);
+
+      for (int i = 0; i < out_size; i++) begin
+        in_offset = i + OUT_OFFSET;
+        #(STEP*2);
+        assert (dut.mem_img.mem[in_offset] == img_rdata);
+        $fdisplay(fd, "%0d", img_rdata);
+      end
+
+      in_offset = 0;
+      #(STEP);
+
       $fclose(fd);
+      //
+      // fd = $fopen("../../data/gobou/output_gobou_top.dat", "w");
+      // out_size = N_OUT;
+      // for (int i = 1000; i < 1000+out_size; i++)
+      //   $fdisplay(fd, "%0d", dut.mem_img.mem[i]);
+      // $fclose(fd);
     end // }}}
   endtask
 
   // display
-  always
-  begin
-    #(STEP/2-1);
-    now_time = $time/STEP;
-    if (now_time >= req_time)
-      $display(
-        "%5d: ", now_time - req_time,
-        "%d ", xrst,
-        "%d ", req,
-        "%d ", ack,
-        "%d ", dut.ctrl.ctrl_core.r_state,
-        "| ",
-      );
-    #(STEP/2+1);
+  initial begin
+    forever begin
+      #(STEP/2-1);
+      now_time = $time/STEP;
+      if (now_time >= req_time)
+        $display(
+          "%5d: ", now_time - req_time,
+          "%d ", xrst,
+          "%d ", req,
+          "%d ", ack,
+          "%d ", dut.ctrl.ctrl_core.r_state,
+          "| ",
+          "%d ", dut.ctrl.ctrl_core.out_ctrl.valid,
+          "%d ", dut.ctrl.ctrl_mac.out_ctrl.valid,
+          "%d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
+          "%d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
+          "| ",
+          "%5d ", dut.pe[0].core.pixel,
+          "%5d ", dut.pe[0].core.weight,
+          "%5d ", dut.pe[0].core.mac.r_x,
+          "%5d ", dut.pe[0].core.mac.r_w,
+          "%5d ", dut.pe[0].core.mac.r_accum,
+          "%5d ", dut.pe[0].core.mac.r_y,
+          "%5d ", dut.pe[0].core.bias.r_bias,
+          "| ",
+          "%5d ", dut.pe[0].core.fvec,
+          "%5d ", dut.pe[0].core.bvec,
+          "%5d ", dut.pe[0].core.avec,
+          "| ",
+          "%5d@ ", dut.pe[0].core.fvec,
+          "%5d@ ", dut.pe[1].core.fvec,
+          "%5d@ ", dut.pe[2].core.fvec,
+          "%5d@ ", dut.pe[3].core.fvec,
+          "| ",
+          "%5d@ ", dut.pe[0].core.avec,
+          "%5d@ ", dut.pe[1].core.avec,
+          "%5d@ ", dut.pe[2].core.avec,
+          "%5d@ ", dut.pe[3].core.avec,
+          "|"
+        );
+      #(STEP/2+1);
+    end
   end
 
 endmodule

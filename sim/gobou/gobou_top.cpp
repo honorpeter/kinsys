@@ -64,5 +64,10 @@ int main(void)
   for range(n, n_out)
     printf("%d\n", avec[n]);
 
+  FILE *fp = fopen("bias.dat", "w");
+  for range(i, n_out)
+    fprintf(fp, "%d\n", b[i]);
+  fclose(fp);
+
   return 0;
 }

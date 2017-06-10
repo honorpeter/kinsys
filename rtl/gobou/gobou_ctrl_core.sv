@@ -58,7 +58,7 @@ module gobou_ctrl_core
   reg               r_serial_we;
   reg [LWIDTH-1:0]  r_serial_cnt;
 
-  assign final_iter = r_count_in == r_total_in - 1
+  assign final_iter = r_state == S_OUTPUT
                    && r_count_out + GOBOU_CORE >= r_total_out;
 
   always @(posedge clk)

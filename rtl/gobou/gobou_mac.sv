@@ -21,10 +21,7 @@ module gobou_mac
 
   // TODO: adjust the bitwidth of multiplication results.
   assign pro = r_x * r_w;
-  assign pro_short  = $signed({
-                        pro[2*DWIDTH-2-DWIDTH/2],
-                        round(pro[2*DWIDTH-2-DWIDTH/2:0])
-                      });
+  assign pro_short  = round(pro);
   assign y = r_y;
 
   always @(posedge clk)
@@ -53,15 +50,22 @@ module gobou_mac
     else if (accum_we)
       r_accum <= r_accum + pro_short;
 
-  function signed [DWIDTH-2:0] round;
-    input [2*DWIDTH-2-DWIDTH/2:0] data;
-    if (
-      data[2*DWIDTH-2-DWIDTH/2] == 1'b1
-      && data[DWIDTH/2-1:0] == {DWIDTH/2{1'b0}}
-    )
-      round = data[2*DWIDTH-2-DWIDTH/2:DWIDTH/2] - 1;
+////////////////////////////////////////////////////////////
+//  Function
+////////////////////////////////////////////////////////////
+
+  function signed [DWIDTH-1:0] round;
+    input signed [2*DWIDTH-1:0] data;
+    if (data[2*DWIDTH-DWIDTH/2-2] == 1 && data[DWIDTH/2-1:0] == 0)
+      round = $signed({
+                data[2*DWIDTH-DWIDTH/2-2],
+                data[2*DWIDTH-DWIDTH/2-2:DWIDTH/2] - 1'b1
+              });
     else
-      round = data[2*DWIDTH-2-DWIDTH/2:DWIDTH/2];
+      round = $signed({
+                data[2*DWIDTH-DWIDTH/2-2],
+                data[2*DWIDTH-DWIDTH/2-2:DWIDTH/2]
+              });
   endfunction
 
 endmodule
