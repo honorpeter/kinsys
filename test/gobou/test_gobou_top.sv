@@ -1,12 +1,15 @@
 `include "gobou.svh"
 
+// `define SAIF
+`define DIRECT
+
 int N_IN  = 800;
 int N_OUT = 500;
 int IMG_OFFSET = 0;
 int OUT_OFFSET = 1000;
 int NET_OFFSET = 0;
 
-string weight = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_3";
+string wdir  = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_3";
 
 module test_gobou_top;
 
@@ -22,9 +25,9 @@ module test_gobou_top;
   reg [GOBOU_NETSIZE-1:0] net_offset;
   reg [LWIDTH-1:0]        total_out;
   reg [LWIDTH-1:0]        total_in;
-  reg                      ack;
-  reg [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
-  reg [DWIDTH-1:0] mem_n [GOBOU_CORE-1:0][2**GOBOU_NETSIZE-1:0];
+  reg                     ack;
+  reg signed [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
+  reg signed [DWIDTH-1:0] mem_n [GOBOU_CORE-1:0][2**GOBOU_NETSIZE-1:0];
 
   reg                      img_we;
   reg [IMGSIZE-1:0]        img_addr;
@@ -65,6 +68,18 @@ module test_gobou_top;
     .*
   );
 
+`ifdef DIRECT
+  always @*
+    for (int i = 0; i < 2**IMGSIZE; i++)
+      mem_img.mem[i] = mem_i[i];
+
+  // This statement is for direct assignment for generated modules
+  for (genvar n = 0; n < GOBOU_CORE; n++)
+    always @*
+      for (int i = 0; i < 2**GOBOU_NETSIZE; i++)
+        dut.pe[n].mem_net.mem[i] = mem_n[n][i];
+`endif
+
   // clock
   initial begin
     clk = 0;
@@ -72,7 +87,7 @@ module test_gobou_top;
       #(STEP/2) clk = ~clk;
   end
 
-  //flow
+  // flow
   initial begin
 `ifdef SAIF
     $set_toggle_region(test_renkon_top.dut);
@@ -81,31 +96,31 @@ module test_gobou_top;
     xrst = 0;
     #(STEP);
 
-    xrst = 1;
-    req = 0;
-    img_we = 0;
-    in_offset = 0;
-    out_offset = 0;
-    net_offset = 0;
-    img_wdata = 0;
-    net_sel = 0;
-    net_we = 0;
-    net_addr = 0;
-    net_wdata = 0;
-    total_out = 0;
-    total_in = 0;
-    #(STEP);
+    xrst        = 1;
+    req         = 0;
+    net_sel     = 0;
+    net_we      = 0;
+    net_addr    = 0;
+    net_wdata   = 0;
+    in_offset   = IMG_OFFSET;
+    out_offset  = OUT_OFFSET;
+    net_offset  = NET_OFFSET;
+    total_out   = N_OUT;
+    total_in    = N_IN;
 
-    total_out = N_OUT;
-    total_in  = N_IN;
-    in_offset = IMG_OFFSET;
-    out_offset = OUT_OFFSET;
-    net_offset = NET_OFFSET;
+    img_we    = 0;
+    img_addr  = 0;
+    img_wdata = 0;
 
     mem_clear;
+`ifdef DIRECT
+    read_input_direct;
+    read_params_direct;
+`else
     read_input;
-    // read_weight;
     read_params;
+`endif
+    // read_network(wdir);
 
 `ifdef SAIF
     $toggle_start();
@@ -177,6 +192,23 @@ module test_gobou_top;
     end // }}}
   endtask
 
+  task read_input_direct;
+    int idx;
+    int fd;
+    int r;
+    begin // {{{
+      idx = 0;
+      fd = $fopen("../../data/gobou/input_gobou_top.dat", "r");
+
+      for (int m = 0; m < N_IN; m++) begin
+        r = $fscanf(fd, "%x", mem_i[idx]);
+        idx++;
+      end
+
+      $fclose(fd);
+    end // }}}
+  endtask
+
   task read_params;
     int idx[GOBOU_CORE-1:0];
     int wd, bd;
@@ -226,7 +258,7 @@ module test_gobou_top;
 
       for (int n = 0; n < GOBOU_CORE; n++) begin
         net_sel = n;
-        net_we = 1;
+        net_we  = 1;
         #(STEP);
 
         for (int i = 0; i < 2**GOBOU_NETSIZE; i++) begin
@@ -241,46 +273,102 @@ module test_gobou_top;
         net_we    = 0;
         net_addr  = 0;
         net_wdata = 0;
+        #(STEP);
       end
     end // }}}
   endtask
 
-  task read_weight;
+  task read_params_direct;
+    int idx[GOBOU_CORE-1:0];
+    int wd, bd;
+    int r;
     begin // {{{
+      for (int dn = 0; dn < GOBOU_CORE; dn++)
+        idx[dn] = 0;
+      wd = $fopen("../../data/gobou/weight_gobou_top.dat", "r");
+      bd = $fopen("../../data/gobou/bias_gobou_top.dat", "r");
+
+      // reading iterations for normal weight sets
+      for (int n = 0; n < N_OUT/GOBOU_CORE; n++)
+        for (int dn = 0; dn < GOBOU_CORE; dn++) begin
+          for (int m = 0; m < N_IN; m++) begin
+            r = $fscanf(wd, "%x", mem_n[dn][idx[dn]]);
+            idx[dn]++;
+          end
+          r = $fscanf(bd, "%x", mem_n[dn][idx[dn]]);
+          idx[dn]++;
+        end
+
+      // reading iteration for a boundary weight set (if exists)
+      if (N_OUT % GOBOU_CORE != 0)
+        for (int dn = 0; dn < GOBOU_CORE; dn++) begin
+          // put remainder weights to cores
+          if ((GOBOU_CORE * (N_OUT/GOBOU_CORE) + dn) < N_OUT) begin
+            for (int m = 0; m < N_IN; m++) begin
+              r = $fscanf(wd, "%x", mem_n[dn][idx[dn]]);
+              idx[dn]++;
+            end
+            r = $fscanf(bd, "%x", mem_n[dn][idx[dn]]);
+            idx[dn]++;
+          end
+          // put null (zero) values to unused cores
+          else begin
+            for (int m = 0; m < N_IN; m++) begin
+              mem_n[dn][idx[dn]] = 0;
+              idx[dn]++;
+            end
+            mem_n[dn][idx[dn]] = 0;
+            idx[dn]++;
+          end
+        end
+
+      $fclose(wd);
+      $fclose(bd);
+    end // }}}
+  endtask
+
+  task read_network;
+    input string wdir;
+    begin // {{{
+      // reading iterations for normal weight sets
       for (int i = 0; i < N_OUT/GOBOU_CORE; i++)
         for (int j = 0; j < GOBOU_CORE; j++)
           $readmemb(
-            $sformatf("%s/data%0d.bin", weight, GOBOU_CORE*i+j),
+            $sformatf("%s/data%0d.bin", wdir, GOBOU_CORE*i+j),
             mem_n[j],
-            (N_IN+1)*(i),
-            (N_IN+1)*(i+1)-1
+            (N_IN+1)*(i) + NET_OFFSET,
+            (N_IN+1)*(i+1)- + NET_OFFSET
           );
 
+      // reading iteration for a boundary weight set (if exists)
       if (N_OUT % GOBOU_CORE != 0)
         for (int j = 0; j < GOBOU_CORE; j++)
+
+          // put remainder weights to cores
           if ((GOBOU_CORE * (N_OUT/GOBOU_CORE) + j) < N_OUT)
             $readmemb(
-              $sformatf("%s/data%0d.bin", weight, GOBOU_CORE*(N_OUT/GOBOU_CORE)+j),
+              $sformatf("%s/data%0d.bin", wdir, GOBOU_CORE*(N_OUT/GOBOU_CORE)+j),
               mem_n[j],
               (N_IN+1)*(N_OUT/GOBOU_CORE),
               (N_IN+1)*(N_OUT/GOBOU_CORE+1)-1
             );
           else
             $readmemb(
-              $sformatf("%s/null_net.bin", weight),
+              $sformatf("%s/null_net.bin", wdir),
               mem_n[j],
-              (N_IN+1)*(N_OUT/GOBOU_CORE),
-              (N_IN+1)*(N_OUT/GOBOU_CORE+1)-1
+              (N_IN+1)*(N_OUT/GOBOU_CORE) + NET_OFFSET,
+              (N_IN+1)*(N_OUT/GOBOU_CORE+1)-1 + NET_OFFSET
             );
 
       for (int n = 0; n < GOBOU_CORE; n++) begin
         net_sel = n;
-        net_we = 1;
+        net_we  = 1;
         #(STEP);
 
         for (int i = 0; i < 2**GOBOU_NETSIZE; i++) begin
           net_addr = i;
           #(STEP);
+
           net_wdata = mem_n[n][i];
           #(STEP);
         end
@@ -289,6 +377,7 @@ module test_gobou_top;
         net_we    = 0;
         net_addr  = 0;
         net_wdata = 0;
+        #(STEP);
       end
     end // }}}
   endtask
@@ -311,18 +400,12 @@ module test_gobou_top;
       #(STEP);
 
       $fclose(fd);
-      //
-      // fd = $fopen("../../data/gobou/output_gobou_top.dat", "w");
-      // out_size = N_OUT;
-      // for (int i = 1000; i < 1000+out_size; i++)
-      //   $fdisplay(fd, "%0d", mem_img.mem[i]);
-      // $fclose(fd);
     end // }}}
   endtask
 
   // display
   initial begin
-    forever begin
+    forever begin // {{{
       #(STEP/2-1);
       now_time = $time/STEP;
       if (now_time >= req_time)
@@ -362,7 +445,7 @@ module test_gobou_top;
           "|"
         );
       #(STEP/2+1);
-    end
+    end // }}}
   end
 
 endmodule

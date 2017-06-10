@@ -77,11 +77,17 @@ module test_renkon_top;
     .*
   );
 
+`ifdef DIRECT
+  always @*
+    for (int i = 0; i < 2**IMGSIZE; i++)
+      mem_img.mem[i] = mem_i[i];
+
   // This statement is for direct assignment for generated modules
   for (genvar n = 0; n < RENKON_CORE; n++)
     always @*
       for (int i = 0; i < 2**RENKON_NETSIZE; i++)
         dut.pe[n].mem_net.mem[i] = mem_n[n][i];
+`endif
 
   // clock
   initial begin
@@ -96,11 +102,15 @@ module test_renkon_top;
     $set_toggle_region(test_renkon_top.dut);
 `endif
 
-    xrst        = 0;
+    xrst = 0;
     #(STEP);
 
     xrst        = 1;
     req         = 0;
+    net_sel     = 0;
+    net_we      = 0;
+    net_addr    = 0;
+    net_wdata   = 0;
     in_offset   = IMG_OFFSET;
     out_offset  = OUT_OFFSET;
     net_offset  = NET_OFFSET;
@@ -109,17 +119,18 @@ module test_renkon_top;
     img_size    = ISIZE;
     fil_size    = FSIZE;
     pool_size   = PSIZE;
-    net_sel     = 0;
-    net_we      = 0;
-    net_addr    = 0;
-    net_wdata   = 0;
     img_we    = 0;
     img_addr  = 0;
     img_wdata = 0;
 
     mem_clear;
+`ifdef DIRECT
     read_input_direct;
     read_params_direct;
+`else
+    read_input;
+    read_params;
+`endif
     // read_network(wdir);
     // read_image(indir, label, file);
 
@@ -206,12 +217,11 @@ module test_renkon_top;
       for (int m = 0; m < N_IN; m++)
         for (int i = 0; i < ISIZE; i++)
           for (int j = 0; j < ISIZE; j++) begin
-            r = $fscanf(fd, "%x", mem_img.mem[idx]);
+            r = $fscanf(fd, "%x", mem_i[idx]);
             idx++;
           end
 
       $fclose(fd);
-      #(STEP);
     end // }}}
   endtask
 
@@ -380,52 +390,9 @@ module test_renkon_top;
             idx[dn]++;
           end
         end
-      // reading iterations for normal weight sets
-      // for (int n = 0; n < N_OUT/RENKON_CORE; n++)
-      //   for (int dn = 0; dn < RENKON_CORE; dn++) begin
-      //     for (int m = 0; m < N_IN; m++) begin
-      //       for (int i = 0; i < FSIZE; i++)
-      //         for (int j = 0; j < FSIZE; j++) begin
-      //           r = $fscanf(wd, "%x", dut.pe[dn].mem_net.mem[idx[dn]]);
-      //           idx[dn]++;
-      //         end
-      //     end
-      //     r = $fscanf(bd, "%x", dut.pe[dn].mem_net.mem[idx[dn]]);
-      //     idx[dn]++;
-      //   end
-      //
-      // // reading iteration for a boundary weight set (if exists)
-      // if (N_OUT % RENKON_CORE != 0)
-      //   for (int dn = 0; dn < RENKON_CORE; dn++) begin
-      //     // put remainder weights to cores
-      //     if ((RENKON_CORE * (N_OUT/RENKON_CORE) + dn) < N_OUT) begin
-      //       for (int m = 0; m < N_IN; m++) begin
-      //         for (int i = 0; i < FSIZE; i++)
-      //           for (int j = 0; j < FSIZE; j++) begin
-      //             r = $fscanf(wd, "%x", dut.pe[dn].mem_net.mem[idx[dn]]);
-      //             idx[dn]++;
-      //           end
-      //       end
-      //       r = $fscanf(bd, "%x", dut.pe[dn].mem_net.mem[idx[dn]]);
-      //       idx[dn]++;
-      //     end
-      //     // put null (zero) values to unused cores
-      //     else begin
-      //       for (int m = 0; m < N_IN; m++) begin
-      //         for (int i = 0; i < FSIZE; i++)
-      //           for (int j = 0; j < FSIZE; j++) begin
-      //             dut.pe[dn].mem_net.mem[idx[dn]] = 0;
-      //             idx[dn]++;
-      //           end
-      //       end
-      //       dut.pe[dn].mem_net.mem[idx[dn]] = 0;
-      //       idx[dn]++;
-      //     end
-      //   end
 
       $fclose(wd);
       $fclose(bd);
-      #(STEP);
     end // }}}
   endtask
 
@@ -451,11 +418,11 @@ module test_renkon_top;
           );
         end
       end
-  
+
       // reading iteration for a boundary weight set (if exists)
       if (N_OUT % RENKON_CORE != 0) begin
         for (int j = 0; j < RENKON_CORE; j++) begin
-  
+
           // put remainder weights to cores
           if ((RENKON_CORE * (N_OUT/RENKON_CORE) + j) < N_OUT) begin
             for (int k = 0; k < N_IN; k++) begin
@@ -492,27 +459,26 @@ module test_renkon_top;
           end
         end
       end
-  
+
       for (int n = 0; n < RENKON_CORE; n++) begin
         net_sel = n;
         net_we  = 1;
         #(STEP);
-  
+
         for (int i = 0; i < 2**RENKON_NETSIZE; i++) begin
           net_addr = i;
           #(STEP);
-  
+
           net_wdata = mem_n[n][i];
           #(STEP);
         end
-  
+
         net_sel   = 0;
         net_we    = 0;
         net_addr  = 0;
         net_wdata = 0;
         #(STEP);
       end
-  
     end // }}}
   endtask
 
@@ -537,6 +503,7 @@ module test_renkon_top;
     end // }}}
   endtask
 
+  // display
   initial begin
     forever begin // {{{
       #(STEP/2-1);
