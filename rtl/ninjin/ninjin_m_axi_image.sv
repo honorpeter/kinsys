@@ -1,7 +1,8 @@
 `include "ninjin.svh"
 
 module ninjin_m_axi_image
- #( parameter DATA_WIDTH    = 32
+ #( parameter BURST_LEN     = 256
+  , parameter DATA_WIDTH    = 32
   , parameter ADDR_WIDTH    = 12
   , parameter ID_WIDTH      = 12
   , parameter AWUSER_WIDTH  = 0
@@ -9,7 +10,6 @@ module ninjin_m_axi_image
   , parameter WUSER_WIDTH   = 0
   , parameter RUSER_WIDTH   = 0
   , parameter BUSER_WIDTH   = 0
-  , parameter BURST_LEN     = 256
   , parameter TOTAL_LEN     = 12
   )
   ( input                   clk
