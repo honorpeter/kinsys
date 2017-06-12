@@ -33,15 +33,22 @@ proc get_processor_name {hw_project_name} {
   return ""
 }
 
-# set $sdk_repo "../repo"
-# repo -set $sdk_repo
-
+set app_dir $origin_dir/../app
 if {[file exists $sdk_ws_dir/$app_name] == 0} {
-  createapp -name $app_name \
-    -app {Hello World} \
-    -proc [get_processor_name $hw_project_name] \
-    -hwproject ${hw_project_name} \
-    -os standalone
+  if {[file exists $app_dir/$app_name] != 0} {
+    createapp -name $app_name \
+      -app {Empty Application} \
+      -proc [get_processor_name $hw_project_name] \
+      -hwproject ${hw_project_name} \
+      -os standalone
+    importsources -name $app_name -path $app_dir/$app_name
+  } else {
+    createapp -name $app_name \
+      -app {Hello World} \
+      -proc [get_processor_name $hw_project_name] \
+      -hwproject ${hw_project_name} \
+      -os standalone
+  }
 }
 
 projects -build
