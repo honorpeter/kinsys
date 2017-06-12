@@ -10,31 +10,31 @@ module kinpira_axi
   , parameter C_s_axi_image_ID_WIDTH      = 12
   , parameter C_s_axi_image_DATA_WIDTH    = 32
   , parameter C_s_axi_image_ADDR_WIDTH    = IMGSIZE + LSB
-  , parameter C_s_axi_image_AWUSER_WIDTH  = 0
-  , parameter C_s_axi_image_ARUSER_WIDTH  = 0
-  , parameter C_s_axi_image_WUSER_WIDTH   = 0
-  , parameter C_s_axi_image_RUSER_WIDTH   = 0
-  , parameter C_s_axi_image_BUSER_WIDTH   = 0
+  , parameter C_s_axi_image_AWUSER_WIDTH  = 2//0
+  , parameter C_s_axi_image_ARUSER_WIDTH  = 2//0
+  , parameter C_s_axi_image_WUSER_WIDTH   = 2//0
+  , parameter C_s_axi_image_RUSER_WIDTH   = 2//0
+  , parameter C_s_axi_image_BUSER_WIDTH   = 2//0
 
   // Parameters of Axi Slave Bus Interface s_axi_renkon
   , parameter C_s_axi_renkon_ID_WIDTH     = 12
   , parameter C_s_axi_renkon_DATA_WIDTH   = 32
   , parameter C_s_axi_renkon_ADDR_WIDTH   = RENKON_CORELOG + RENKON_NETSIZE + LSB
-  , parameter C_s_axi_renkon_AWUSER_WIDTH = 0
-  , parameter C_s_axi_renkon_ARUSER_WIDTH = 0
-  , parameter C_s_axi_renkon_WUSER_WIDTH  = 0
-  , parameter C_s_axi_renkon_RUSER_WIDTH  = 0
-  , parameter C_s_axi_renkon_BUSER_WIDTH  = 0
+  , parameter C_s_axi_renkon_AWUSER_WIDTH = 2//0
+  , parameter C_s_axi_renkon_ARUSER_WIDTH = 2//0
+  , parameter C_s_axi_renkon_WUSER_WIDTH  = 2//0
+  , parameter C_s_axi_renkon_RUSER_WIDTH  = 2//0
+  , parameter C_s_axi_renkon_BUSER_WIDTH  = 2//0
 
   // Parameters of Axi Slave Bus Interface s_axi_gobou
   , parameter C_s_axi_gobou_ID_WIDTH      = 12
   , parameter C_s_axi_gobou_DATA_WIDTH    = 32
   , parameter C_s_axi_gobou_ADDR_WIDTH    = GOBOU_CORELOG + GOBOU_NETSIZE + LSB
-  , parameter C_s_axi_gobou_AWUSER_WIDTH  = 0
-  , parameter C_s_axi_gobou_ARUSER_WIDTH  = 0
-  , parameter C_s_axi_gobou_WUSER_WIDTH   = 0
-  , parameter C_s_axi_gobou_RUSER_WIDTH   = 0
-  , parameter C_s_axi_gobou_BUSER_WIDTH   = 0
+  , parameter C_s_axi_gobou_AWUSER_WIDTH  = 2//0
+  , parameter C_s_axi_gobou_ARUSER_WIDTH  = 2//0
+  , parameter C_s_axi_gobou_WUSER_WIDTH   = 2//0
+  , parameter C_s_axi_gobou_RUSER_WIDTH   = 2//0
+  , parameter C_s_axi_gobou_BUSER_WIDTH   = 2//0
   )
   // Ports of Axi Slave Bus Interface s_axi_params
   ( input                                     s_axi_params_aclk
@@ -349,16 +349,16 @@ module kinpira_axi
                         : which == WHICH_GOBOU  ? gobou_ack
                         : which == WHICH_NINJIN ? 1'b1
                         : 0;
-  assign mem_img_we     = which == WHICH_RENKON ? renkon_mem_img_we
-                        : which == WHICH_GOBOU  ? gobou_mem_img_we
+  assign mem_img_we     = which == WHICH_RENKON ? renkon_img_we
+                        : which == WHICH_GOBOU  ? gobou_img_we
                         : which == WHICH_NINJIN ? mem_image_we
                         : 0;
-  assign mem_img_addr   = which == WHICH_RENKON ? renkon_mem_img_addr
-                        : which == WHICH_GOBOU  ? gobou_mem_img_addr
+  assign mem_img_addr   = which == WHICH_RENKON ? renkon_img_addr
+                        : which == WHICH_GOBOU  ? gobou_img_addr
                         : which == WHICH_NINJIN ? mem_image_addr
                         : 0;
-  assign mem_img_wdata  = which == WHICH_RENKON ? renkon_mem_img_wdata
-                        : which == WHICH_GOBOU  ? gobou_mem_img_wdata
+  assign mem_img_wdata  = which == WHICH_RENKON ? renkon_img_wdata
+                        : which == WHICH_GOBOU  ? gobou_img_wdata
                         : which == WHICH_NINJIN ? mem_image_wdata
                         : 0;
 
@@ -373,7 +373,7 @@ module kinpira_axi
   ninjin_s_axi_params #(
     .DATA_WIDTH (C_s_axi_params_DATA_WIDTH),
     .ADDR_WIDTH (C_s_axi_params_ADDR_WIDTH)
-  ) ninjin_s_axi_params_inst (
+  ) ninjin_s_axi_params_inst(
     .clk      (s_axi_params_aclk),
     .xrst     (s_axi_params_aresetn),
     .awaddr   (s_axi_params_awaddr),
@@ -407,7 +407,7 @@ module kinpira_axi
     .WUSER_WIDTH  (C_s_axi_image_WUSER_WIDTH),
     .RUSER_WIDTH  (C_s_axi_image_RUSER_WIDTH),
     .BUSER_WIDTH  (C_s_axi_image_BUSER_WIDTH)
-  ) ninjin_s_axi_image_inst (
+  ) ninjin_s_axi_image_inst(
     .clk      (s_axi_image_aclk),
     .xrst     (s_axi_image_aresetn),
     .awid     (s_axi_image_awid),
@@ -470,7 +470,7 @@ module kinpira_axi
     .WUSER_WIDTH  (C_s_axi_renkon_WUSER_WIDTH),
     .RUSER_WIDTH  (C_s_axi_renkon_RUSER_WIDTH),
     .BUSER_WIDTH  (C_s_axi_renkon_BUSER_WIDTH)
-  ) ninjin_s_axi_renkon_inst (
+  ) ninjin_s_axi_renkon_inst(
     .clk      (s_axi_renkon_aclk),
     .xrst     (s_axi_renkon_aresetn),
     .awid     (s_axi_renkon_awid),
@@ -533,7 +533,7 @@ module kinpira_axi
     .WUSER_WIDTH  (C_s_axi_gobou_WUSER_WIDTH),
     .RUSER_WIDTH  (C_s_axi_gobou_RUSER_WIDTH),
     .BUSER_WIDTH  (C_s_axi_gobou_BUSER_WIDTH)
-  ) ninjin_s_axi_gobou_inst (
+  ) ninjin_s_axi_gobou_inst(
     .clk      (s_axi_gobou_aclk),
     .xrst     (s_axi_gobou_aresetn),
     .awid     (s_axi_gobou_awid),
@@ -587,7 +587,7 @@ module kinpira_axi
     .*
   );
 
-  mem_sp #(DWIDTH, IMGSIZE) mem_img (
+  mem_sp #(DWIDTH, IMGSIZE) mem_img(
     // Outputs
     .mem_rdata  (img_rdata[DWIDTH-1:0]),
     // Inputs
@@ -598,52 +598,52 @@ module kinpira_axi
     .*
   );
 
-  renkon_top renkon0 (
+  renkon_top renkon0(
     // Outputs
-    .ack            (renkon_ack),
-    .mem_img_we     (renkon_mem_img_we),
-    .mem_img_addr   (renkon_mem_img_addr[IMGSIZE-1:0]),
-    .mem_img_wdata  (renkon_mem_img_wdata[DWIDTH-1:0]),
+    .ack        (renkon_ack),
+    .img_we     (renkon_img_we),
+    .img_addr   (renkon_img_addr[IMGSIZE-1:0]),
+    .img_wdata  (renkon_img_wdata[DWIDTH-1:0]),
     // Inputs
-    .clk            (clk),
-    .xrst           (xrst),
-    .req            (renkon_req),
-    .net_sel        (renkon_net_sel[RENKON_CORELOG-1:0]),
-    .net_we         (renkon_net_we),
-    .net_addr       (renkon_net_addr[RENKON_NETSIZE-1:0]),
-    .net_wdata      (renkon_net_wdata[DWIDTH-1:0]),
-    .in_offset      (renkon_in_offset[IMGSIZE-1:0]),
-    .out_offset     (renkon_out_offset[IMGSIZE-1:0]),
-    .net_offset     (renkon_net_offset[RENKON_NETSIZE-1:0]),
-    .total_out      (renkon_total_out[LWIDTH-1:0]),
-    .total_in       (renkon_total_in[LWIDTH-1:0]),
-    .img_size       (renkon_img_size[LWIDTH-1:0]),
-    .fil_size       (renkon_fil_size[LWIDTH-1:0]),
-    .pool_size      (renkon_pool_size[LWIDTH-1:0]),
-    .img_rdata      (renkon_img_rdata[DWIDTH-1:0]),
+    .clk        (clk),
+    .xrst       (xrst),
+    .req        (renkon_req),
+    .net_sel    (renkon_net_sel[RENKON_CORELOG-1:0]),
+    .net_we     (renkon_net_we),
+    .net_addr   (renkon_net_addr[RENKON_NETSIZE-1:0]),
+    .net_wdata  (renkon_net_wdata[DWIDTH-1:0]),
+    .in_offset  (renkon_in_offset[IMGSIZE-1:0]),
+    .out_offset (renkon_out_offset[IMGSIZE-1:0]),
+    .net_offset (renkon_net_offset[RENKON_NETSIZE-1:0]),
+    .total_out  (renkon_total_out[LWIDTH-1:0]),
+    .total_in   (renkon_total_in[LWIDTH-1:0]),
+    .img_size   (renkon_img_size[LWIDTH-1:0]),
+    .fil_size   (renkon_fil_size[LWIDTH-1:0]),
+    .pool_size  (renkon_pool_size[LWIDTH-1:0]),
+    .img_rdata  (renkon_img_rdata[DWIDTH-1:0]),
     .*
   );
 
-  gobou_top gobou0 (
+  gobou_top gobou0(
     // Outputs
-    .ack            (gobou_ack),
-    .mem_img_we     (gobou_mem_img_we),
-    .mem_img_addr   (gobou_mem_img_addr[IMGSIZE-1:0]),
-    .mem_img_wdata  (gobou_mem_img_wdata[DWIDTH-1:0]),
+    .ack        (gobou_ack),
+    .img_we     (gobou_img_we),
+    .img_addr   (gobou_img_addr[IMGSIZE-1:0]),
+    .img_wdata  (gobou_img_wdata[DWIDTH-1:0]),
     // Inputs
-    .clk            (clk),
-    .xrst           (xrst),
-    .req            (gobou_req),
-    .net_sel        (gobou_net_sel[GOBOU_CORELOG-1:0]),
-    .net_we         (gobou_net_we),
-    .net_addr       (gobou_net_addr[GOBOU_NETSIZE-1:0]),
-    .net_wdata      (gobou_net_wdata[DWIDTH-1:0]),
-    .in_offset      (gobou_in_offset[IMGSIZE-1:0]),
-    .out_offset     (gobou_out_offset[IMGSIZE-1:0]),
-    .net_offset     (gobou_net_offset[GOBOU_NETSIZE-1:0]),
-    .total_out      (gobou_total_out[LWIDTH-1:0]),
-    .total_in       (gobou_total_in[LWIDTH-1:0]),
-    .img_rdata      (gobou_img_rdata[DWIDTH-1:0]),
+    .clk        (clk),
+    .xrst       (xrst),
+    .req        (gobou_req),
+    .net_sel    (gobou_net_sel[GOBOU_CORELOG-1:0]),
+    .net_we     (gobou_net_we),
+    .net_addr   (gobou_net_addr[GOBOU_NETSIZE-1:0]),
+    .net_wdata  (gobou_net_wdata[DWIDTH-1:0]),
+    .in_offset  (gobou_in_offset[IMGSIZE-1:0]),
+    .out_offset (gobou_out_offset[IMGSIZE-1:0]),
+    .net_offset (gobou_net_offset[GOBOU_NETSIZE-1:0]),
+    .total_out  (gobou_total_out[LWIDTH-1:0]),
+    .total_in   (gobou_total_in[LWIDTH-1:0]),
+    .img_rdata  (gobou_img_rdata[DWIDTH-1:0]),
     .*
   );
 

@@ -59,7 +59,7 @@ module ninjin_s_axi_image
   , output                    rlast
   , output [RUSER_WIDTH-1:0]  ruser
   , output                    mem_we
-  , output [MEMSIZE-1:0]      mem_addr
+  , output [ADDR_WIDTH-LSB-1:0] mem_addr
   , output [DATA_WIDTH-1:0]   mem_wdata
   );
 
