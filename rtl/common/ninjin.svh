@@ -3,6 +3,8 @@
 
 `include "common.svh"
 
+// BWIDTH ~ base width (memory bandwidth for host system.)
+parameter BWIDTH  = 32;
 parameter REGSIZE = 5;
 parameter MEMSIZE = 10;
 parameter BUFSIZE = 7;

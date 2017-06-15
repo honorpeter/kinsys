@@ -510,7 +510,20 @@ module test_renkon_top;
       if (now_time >= req_time)
         $display(
           "%5d: ", now_time - req_time,
+          "%d ", req,
+          "%d ", ack,
           "%d ", dut.ctrl.ctrl_core.r_state[0],
+          "| ",
+          "%d ", renkon_img_we,
+          "%d ", renkon_img_addr,
+          "%d ", renkon_img_wdata,
+          "%d ", img_rdata,
+          "| ",
+          "%1d ", dut.ctrl.ctrl_core.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_conv.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_pool.out_ctrl.valid,
           "| ",
           "%2d ",  dut.ctrl.ctrl_core.r_count_out,
           "%2d ",  dut.ctrl.ctrl_core.r_count_in,
@@ -518,92 +531,10 @@ module test_renkon_top;
           "%2d  ", dut.ctrl.ctrl_core.r_input_y,
           "%2d  ", dut.ctrl.ctrl_core.r_weight_x,
           "%2d  ", dut.ctrl.ctrl_core.r_weight_y,
-          "| ",
-          "%1b",  dut.ctrl.ctrl_conv.in_ctrl.start,
-          "%1b",  dut.ctrl.ctrl_conv.in_ctrl.valid,
-          "%1b ", dut.ctrl.ctrl_conv.in_ctrl.stop,
-          "%1b",  dut.ctrl.ctrl_conv.conv_ctrl.start,
-          "%1b",  dut.ctrl.ctrl_conv.conv_ctrl.valid,
-          "%1b ", dut.ctrl.ctrl_conv.conv_ctrl.stop,
-          "%1b",  dut.ctrl.ctrl_conv.accum_ctrl.start,
-          "%1b",  dut.ctrl.ctrl_conv.accum_ctrl.valid,
-          "%1b ", dut.ctrl.ctrl_conv.accum_ctrl.stop,
-          "%1b",  dut.ctrl.ctrl_conv.out_ctrl.start,
-          "%1b",  dut.ctrl.ctrl_conv.out_ctrl.valid,
-          "%1b ", dut.ctrl.ctrl_conv.out_ctrl.stop,
-          "%1b",  dut.ctrl.ctrl_pool.pool_ctrl.start,
-          "%1b",  dut.ctrl.ctrl_pool.pool_ctrl.valid,
-          "%1b ", dut.ctrl.ctrl_pool.pool_ctrl.stop,
-          "%1b",  dut.ctrl.ctrl_pool.out_ctrl.start,
-          "%1b",  dut.ctrl.ctrl_pool.out_ctrl.valid,
-          "%1b ", dut.ctrl.ctrl_pool.out_ctrl.stop,
-          "| ",
-          "%5d ", dut.pe[0].core.conv.pixel_in[0],
-          "%5d ", dut.pe[0].core.conv.pixel_in[24],
-          "%5d ", dut.pe[0].core.conv.weight[0],
-          "%5d ", dut.pe[0].core.conv.weight[24],
-          "%5d ", dut.pe[0].core.conv.result,
-          "%5d ", dut.pe[0].core.conv.feat_rdata,
-          "%5d ", dut.pe[0].core.conv.feat_wdata,
-          "%5d ", dut.pe[0].core.conv.pixel_out,
-          "| ",
-          "%5d@ ", dut.pe[0].core.fmap,
-          "%5d@ ", dut.pe[0].core.pmap,
           "|"
         );
       #(STEP/2+1);
     end // }}}
   end
-
-  // initial begin
-  //   forever begin // {{{
-  //     #(STEP/2-1);
-  //     now_time = $time/STEP;
-  //     if (now_time >= req_time)
-  //       $display(
-  //         "%5d: ", now_time - req_time,
-  //         "%d ", dut.ctrl.ctrl_core.r_state[0],
-  //         "| ",
-  //         "%1b",  dut.ctrl.ctrl_conv.in_ctrl.start,
-  //         "%1b",  dut.ctrl.ctrl_conv.in_ctrl.valid,
-  //         "%1b ", dut.ctrl.ctrl_conv.in_ctrl.stop,
-  //         "%1b",  dut.ctrl.ctrl_conv.conv_ctrl.start,
-  //         "%1b",  dut.ctrl.ctrl_conv.conv_ctrl.valid,
-  //         "%1b ", dut.ctrl.ctrl_conv.conv_ctrl.stop,
-  //         "%1b",  dut.ctrl.ctrl_conv.accum_ctrl.start,
-  //         "%1b",  dut.ctrl.ctrl_conv.accum_ctrl.valid,
-  //         "%1b ", dut.ctrl.ctrl_conv.accum_ctrl.stop,
-  //         "%1b",  dut.ctrl.ctrl_conv.out_ctrl.start,
-  //         "%1b",  dut.ctrl.ctrl_conv.out_ctrl.valid,
-  //         "%1b ", dut.ctrl.ctrl_conv.out_ctrl.stop,
-  //         "%1b",  dut.ctrl.ctrl_pool.pool_ctrl.start,
-  //         "%1b",  dut.ctrl.ctrl_pool.pool_ctrl.valid,
-  //         "%1b ", dut.ctrl.ctrl_pool.pool_ctrl.stop,
-  //         "%1b",  dut.ctrl.ctrl_pool.out_ctrl.start,
-  //         "%1b",  dut.ctrl.ctrl_pool.out_ctrl.valid,
-  //         "%1b ", dut.ctrl.ctrl_pool.out_ctrl.stop,
-  //         "| ",
-  //         "%5d@ ", dut.pe[0].core.fmap,
-  //         "%5d@ ", dut.pe[1].core.fmap,
-  //         "%5d@ ", dut.pe[2].core.fmap,
-  //         "%5d@ ", dut.pe[3].core.fmap,
-  //         "%5d@ ", dut.pe[4].core.fmap,
-  //         "%5d@ ", dut.pe[5].core.fmap,
-  //         "%5d@ ", dut.pe[6].core.fmap,
-  //         "%5d@ ", dut.pe[7].core.fmap,
-  //         "| ",
-  //         "%5d@ ", dut.pe[0].core.pmap,
-  //         "%5d@ ", dut.pe[1].core.pmap,
-  //         "%5d@ ", dut.pe[2].core.pmap,
-  //         "%5d@ ", dut.pe[3].core.pmap,
-  //         "%5d@ ", dut.pe[4].core.pmap,
-  //         "%5d@ ", dut.pe[5].core.pmap,
-  //         "%5d@ ", dut.pe[6].core.pmap,
-  //         "%5d@ ", dut.pe[7].core.pmap,
-  //         "|"
-  //       );
-  //     #(STEP/2+1);
-  //   end // }}}
-  // end
 
 endmodule

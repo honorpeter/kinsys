@@ -5,7 +5,7 @@
 module kinpira_axi
   // Parameters of Axi Slave Bus Interface s_axi_params
  #( parameter C_s_axi_params_DATA_WIDTH = 32
-  , parameter C_s_axi_params_ADDR_WIDTH = 7
+  , parameter C_s_axi_params_ADDR_WIDTH = REGSIZE + LSB
 
   // Parameters of Axi Master Bus Interface m_axi_image
   , parameter C_m_axi_image_BURST_LEN     = 256
@@ -21,7 +21,7 @@ module kinpira_axi
   // Parameters of Axi Slave Bus Interface s_axi_renkon
   , parameter C_s_axi_renkon_ID_WIDTH     = 12
   , parameter C_s_axi_renkon_DATA_WIDTH   = 32
-  , parameter C_s_axi_renkon_ADDR_WIDTH   = 12
+  , parameter C_s_axi_renkon_ADDR_WIDTH   = RENKON_CORELOG + RENKON_NETSIZE + LSB
   , parameter C_s_axi_renkon_AWUSER_WIDTH = 0
   , parameter C_s_axi_renkon_ARUSER_WIDTH = 0
   , parameter C_s_axi_renkon_WUSER_WIDTH  = 0
@@ -31,7 +31,7 @@ module kinpira_axi
   // Parameters of Axi Slave Bus Interface s_axi_gobou
   , parameter C_s_axi_gobou_ID_WIDTH      = 12
   , parameter C_s_axi_gobou_DATA_WIDTH    = 32
-  , parameter C_s_axi_gobou_ADDR_WIDTH    = 12
+  , parameter C_s_axi_gobou_ADDR_WIDTH    = GOBOU_CORELOG + GOBOU_NETSIZE + LSB
   , parameter C_s_axi_gobou_AWUSER_WIDTH  = 0
   , parameter C_s_axi_gobou_ARUSER_WIDTH  = 0
   , parameter C_s_axi_gobou_WUSER_WIDTH   = 0
@@ -62,7 +62,6 @@ module kinpira_axi
   , input                                     s_axi_params_rready
 
   // Ports of Axi Master Bus Interface m_axi_image
-    output                                  m_axi_image_error
     input                                   m_axi_image_aclk
     input                                   m_axi_image_aresetn
     output [C_m_axi_image_ID_WIDTH-1:0]     m_axi_image_awid
@@ -208,30 +207,28 @@ module kinpira_axi
 
   wire                      clk;
   wire                      xrst;
-  wire signed [DWIDTH-1:0]  mem_img_rdata;
 
   wire [C_s_axi_params_DATA_WIDTH-1:0]  in_port [PORT/2-1:0];
   wire [C_s_axi_params_DATA_WIDTH-1:0]  out_port [PORT-1:PORT/2];
 
-  wire                                  mem_image_we;
-  wire [C_s_axi_image_ADDR_WIDTH-2-1:0] mem_image_addr;
-  wire [C_s_axi_image_DATA_WIDTH-1:0]   mem_image_wdata;
-  wire [C_s_axi_image_DATA_WIDTH-1:0]   mem_image_rdata;
+  wire                                    mem_image_we;
+  wire [C_s_axi_image_ADDR_WIDTH-LSB-1:0] mem_image_addr;
+  wire [C_s_axi_image_DATA_WIDTH-1:0]     mem_image_wdata;
+  wire [C_s_axi_image_DATA_WIDTH-1:0]     mem_image_rdata;
 
-  wire                                  mem_gobou_we;
-  wire [C_s_axi_gobou_ADDR_WIDTH-2-1:0] mem_gobou_addr;
-  wire [C_s_axi_gobou_DATA_WIDTH-1:0]   mem_gobou_wdata;
-  wire [C_s_axi_gobou_DATA_WIDTH-1:0]   mem_gobou_rdata;
+  wire                                    mem_gobou_we;
+  wire [C_s_axi_gobou_ADDR_WIDTH-LSB-1:0] mem_gobou_addr;
+  wire [C_s_axi_gobou_DATA_WIDTH-1:0]     mem_gobou_wdata;
+  wire [C_s_axi_gobou_DATA_WIDTH-1:0]     mem_gobou_rdata;
 
-  wire                                    mem_renkon_we;
-  wire [C_s_axi_renkon_ADDR_WIDTH-2-1:0]  mem_renkon_addr;
-  wire [C_s_axi_renkon_DATA_WIDTH-1:0]    mem_renkon_wdata;
-  wire [C_s_axi_renkon_DATA_WIDTH-1:0]    mem_renkon_rdata;
+  wire                                      mem_renkon_we;
+  wire [C_s_axi_renkon_ADDR_WIDTH-LSB-1:0]  mem_renkon_addr;
+  wire [C_s_axi_renkon_DATA_WIDTH-1:0]      mem_renkon_wdata;
+  wire [C_s_axi_renkon_DATA_WIDTH-1:0]      mem_renkon_rdata;
 
   // For ninjin
   wire [2-1:0]              which;
   wire                      req;
-  wire [32-1:0]             net_sel;
   wire [IMGSIZE-1:0]        in_offset;
   wire [IMGSIZE-1:0]        out_offset;
   wire [32-1:0]             net_offset;
@@ -297,24 +294,23 @@ module kinpira_axi
   assign xrst       = s_axi_params_aresetn;
   assign which      = in_port[0][1:0];
   assign req        = in_port[1][0];
-  assign net_sel    = in_port[2][32-1:0];
-  assign in_offset  = in_port[3][IMGSIZE-1:0];
-  assign out_offset = in_port[4][IMGSIZE-1:0];
-  assign net_offset = in_port[5][IMGSIZE-1:0];
-  assign total_out  = in_port[6][LWIDTH-1:0];
-  assign total_in   = in_port[7][LWIDTH-1:0];
-  assign img_size   = in_port[8][LWIDTH-1:0];
-  assign fil_size   = in_port[9][LWIDTH-1:0];
-  assign pool_size  = in_port[10][LWIDTH-1:0];
+  assign in_offset  = in_port[2][IMGSIZE-1:0];
+  assign out_offset = in_port[3][IMGSIZE-1:0];
+  assign net_offset = in_port[4][IMGSIZE-1:0];
+  assign total_out  = in_port[5][LWIDTH-1:0];
+  assign total_in   = in_port[6][LWIDTH-1:0];
+  assign img_size   = in_port[7][LWIDTH-1:0];
+  assign fil_size   = in_port[8][LWIDTH-1:0];
+  assign pool_size  = in_port[9][LWIDTH-1:0];
 
   assign out_port[31] = {30'b0, r_which};
   assign out_port[30] = {31'b0, ack};
 
   // For renkon
-  assign renkon_net_sel     = net_sel[RENKON_CORELOG-1:0];
-  assign renkon_net_we      = mem_renkon_we;
-  assign renkon_net_addr    = mem_renkon_addr;
-  assign renkon_net_wdata   = mem_renkon_wdata;
+  assign renkon_net_sel   = mem_renkon_addr[RENKON_NETSIZE+RENKON_CORELOG-1:RENKON_NETSIZE];
+  assign renkon_net_we    = mem_renkon_we;
+  assign renkon_net_addr  = mem_renkon_addr[RENKON_NETSIZE-1:0];
+  assign renkon_net_wdata = mem_renkon_wdata;
 
   assign renkon_req        = which == WHICH_RENKON ? req : 0;
   assign renkon_in_offset  = which == WHICH_RENKON ? in_offset : 0;
@@ -329,10 +325,10 @@ module kinpira_axi
 
 
   // For gobou
-  assign gobou_net_sel   = net_sel[GOBOU_CORELOG-1:0];
-  assign gobou_net_we    = mem_gobou_we;
-  assign gobou_net_addr  = mem_gobou_addr;
-  assign gobou_net_wdata = mem_gobou_wdata;
+  assign gobou_net_sel    = mem_gobou_addr[GOBOU_NETSIZE+GOBOU_CORELOG-1:GOBOU_NETSIZE];
+  assign gobou_net_we     = mem_gobou_we;
+  assign gobou_net_addr   = mem_gobou_addr[GOBOU_NETSIZE-1:0];
+  assign gobou_net_wdata  = mem_gobou_wdata;
 
   assign gobou_req         = which == WHICH_GOBOU ? req : 0;
   assign gobou_in_offset   = which == WHICH_GOBOU ? in_offset : 0;
@@ -377,7 +373,7 @@ module kinpira_axi
   ninjin_s_axi_params #(
     .DATA_WIDTH (C_s_axi_params_DATA_WIDTH),
     .ADDR_WIDTH (C_s_axi_params_ADDR_WIDTH)
-  ) ninjin_s_axi_params_inst (
+  ) ninjin_s_axi_params_inst(
     .clk      (s_axi_params_aclk),
     .xrst     (s_axi_params_aresetn),
     .awaddr   (s_axi_params_awaddr),
@@ -412,7 +408,7 @@ module kinpira_axi
     .WUSER_WIDTH  (C_m_axi_image_WUSER_WIDTH),
     .RUSER_WIDTH  (C_m_axi_image_RUSER_WIDTH),
     .BUSER_WIDTH  (C_m_axi_image_BUSER_WIDTH)
-  ) ninjin_m_axi_image_inst (
+  ) ninjin_m_axi_image_inst(
     .clk      (m_axi_image_aclk),
     .xrst     (m_axi_image_aresetn),
     .awid     (m_axi_image_awid),
@@ -469,7 +465,7 @@ module kinpira_axi
     .WUSER_WIDTH  (C_s_axi_renkon_WUSER_WIDTH),
     .RUSER_WIDTH  (C_s_axi_renkon_RUSER_WIDTH),
     .BUSER_WIDTH  (C_s_axi_renkon_BUSER_WIDTH)
-  ) ninjin_s_axi_renkon_inst (
+  ) ninjin_s_axi_renkon_inst(
     .clk      (s_axi_renkon_aclk),
     .xrst     (s_axi_renkon_aresetn),
     .awid     (s_axi_renkon_awid),
@@ -532,7 +528,7 @@ module kinpira_axi
     .WUSER_WIDTH  (C_s_axi_gobou_WUSER_WIDTH),
     .RUSER_WIDTH  (C_s_axi_gobou_RUSER_WIDTH),
     .BUSER_WIDTH  (C_s_axi_gobou_BUSER_WIDTH)
-  ) ninjin_s_axi_gobou_inst (
+  ) ninjin_s_axi_gobou_inst(
     .clk      (s_axi_gobou_aclk),
     .xrst     (s_axi_gobou_aresetn),
     .awid     (s_axi_gobou_awid),
@@ -586,7 +582,7 @@ module kinpira_axi
     .*
   );
 
-  mem_sp #(DWIDTH, IMGSIZE) mem_img (
+  mem_sp #(DWIDTH, IMGSIZE) mem_img(
     // Outputs
     .mem_rdata  (img_rdata[DWIDTH-1:0]),
     // Inputs
@@ -597,7 +593,7 @@ module kinpira_axi
     .*
   );
 
-  renkon_top renkon0 (
+  renkon_top renkon0(
     // Outputs
     .ack        (renkon_ack),
     .img_we     (renkon_img_we),
@@ -623,7 +619,7 @@ module kinpira_axi
     .*
   );
 
-  gobou_top gobou0 (
+  gobou_top gobou0(
     // Outputs
     .ack        (gobou_ack),
     .img_we     (gobou_img_we),

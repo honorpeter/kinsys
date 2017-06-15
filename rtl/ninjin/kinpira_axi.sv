@@ -3,6 +3,7 @@
 `include "gobou.svh"
 
 module kinpira_axi
+  // Parameters of Axi Slave Bus Interface s_axi_params
  #( parameter C_s_axi_params_DATA_WIDTH = 32
   , parameter C_s_axi_params_ADDR_WIDTH = REGSIZE + LSB
 
