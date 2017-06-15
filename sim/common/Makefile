@@ -7,14 +7,11 @@ INCLUDE  = -I../common
 LDFLAGS  =
 LIBS     =
 SOURCES  = $(wildcard *.cpp)
-TARGET   = $(SOURCES:.cpp=.dat)
+TARGET   = $(SOURCES:.cpp=.out)
 DATADIR  = ../../data/$(shell basename `pwd`)
 RAND     = ruby ../../utils/rand.rb
 
-.PHONY: data all clean
-
-%.dat: %.out data
-	./$< > $(DATADIR)/true_$@
+.PHONY: _debug all clean
 
 %.out: %.o $(LIBS)
 	$(COMPILER) -o $@ $(LDFLAGS) $^
@@ -23,10 +20,8 @@ RAND     = ruby ../../utils/rand.rb
 	$(COMPILER) -o $@ $(CFLAGS) $(INCLUDE) -c $<
 
 all: $(TARGET)
+	mkdir -p $(DATADIR)
 
 clean:
 	rm -f $(TARGET:.cpp=.out)
-
-data:
-	mkdir -p $(DATADIR)
 

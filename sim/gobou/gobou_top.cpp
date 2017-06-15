@@ -2,8 +2,8 @@
 #include <cmath>
 #include <lib.hpp>
 
-const int n_out = 500;
-const int n_in  = 800;
+const int n_out = 128;
+const int n_in  = 512;
 
 template <typename T>
 T mul(T x, T y)
@@ -57,17 +57,12 @@ int main(void)
   load(W, "../../data/gobou/weight_gobou_top.dat");
   load(b, "../../data/gobou/bias_gobou_top.dat");
 
-  full<int16_t>(fvec, input, W);
-  bias<int16_t>(bvec, fvec, b);
-  relu<int16_t>(avec, bvec);
+  full(fvec, input, W);
+  bias(bvec, fvec, b);
+  relu(avec, bvec);
 
   for range(n, n_out)
     printf("%d\n", avec[n]);
-
-  FILE *fp = fopen("bias.dat", "w");
-  for range(i, n_out)
-    fprintf(fp, "%d\n", b[i]);
-  fclose(fp);
 
   return 0;
 }

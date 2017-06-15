@@ -11,7 +11,7 @@ TARGET   = $(SOURCES:.cpp=.dat)
 DATADIR  = ../../data/$(shell basename `pwd`)
 RAND     = ruby ../../utils/rand.rb
 
-.PHONY: data all clean
+.PHONY: data all clean hoge
 
 %.dat: %.out data
 	./$< > $(DATADIR)/true_$@
@@ -29,10 +29,15 @@ clean:
 
 data:
 	mkdir -p $(DATADIR)
-	$(RAND) 2880  > $(DATADIR)/input_renkon_top.dat
-	$(RAND) 25000 > $(DATADIR)/weight_renkon_top.dat
-	$(RAND) 50    > $(DATADIR)/bias_renkon_top.dat
+	$(RAND) 2304  > $(DATADIR)/input_renkon_top.dat
+	$(RAND) 12800 > $(DATADIR)/weight_renkon_top.dat
+	$(RAND) 32    > $(DATADIR)/bias_renkon_top.dat
 	$(RAND) 1024  > $(DATADIR)/input_renkon_linebuf.dat
 	$(RAND) 25000 > $(DATADIR)/input_renkon_conv_tree25.dat
 	$(RAND) 25000 > $(DATADIR)/filter_renkon_conv_tree25.dat
+
+hoge:
+	make debug.out
+	./debug_gen.rb
+	./debug.out
 

@@ -11,7 +11,7 @@ TARGET   = $(SOURCES:.cpp=.dat)
 DATADIR  = ../../data/$(shell basename `pwd`)
 RAND     = ruby ../../utils/rand.rb
 
-.PHONY: data all clean
+.PHONY: data all clean hoge
 
 %.dat: %.out data
 	./$< > $(DATADIR)/true_$@
@@ -29,7 +29,7 @@ clean:
 
 data:
 	mkdir -p $(DATADIR)
-	$(RAND) 800    > $(DATADIR)/input_gobou_top.dat
-	$(RAND) 400000 > $(DATADIR)/weight_gobou_top.dat
-	$(RAND) 500    > $(DATADIR)/bias_gobou_top.dat
+	$(RAND) 512   > $(DATADIR)/input_gobou_top.dat
+	$(RAND) 65536 > $(DATADIR)/weight_gobou_top.dat
+	$(RAND) 128   > $(DATADIR)/bias_gobou_top.dat
 
