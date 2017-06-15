@@ -29,11 +29,11 @@
 #include "xtime_l.h"
 #define INIT  XTime begin, end;
 #define BEGIN XTime_GetTime(&begin);
-#define END   do {                                                    \
-                XTime_GetTime(&end);                                  \
-                printf("%10.6f [ms]\n\n",                             \
-                    (double)(end-begin) / COUNTS_PER_SECOND * 1000);  \
-              } while (0);
+#define END   do {                                        \
+  XTime_GetTime(&end);                                    \
+  printf("%12.6f [us]\n\n",                               \
+      (double)(end-begin) / COUNTS_PER_SECOND * 1000000); \
+} while (0);
 
 // #include <assert.h>
 #define assert_eq(a, b) do {                                        \
@@ -74,32 +74,32 @@ int main(void)
             N_F3, N_F2);
   assign_1d(&full3, W_full3, b_full3);
 
-  printf("post_image(input)\n");
+  puts("post_image(input)");
   BEGIN
   post_image(input, INPUT_IMAGE, N_IN*ISIZE*ISIZE);
   END
 
-  printf("exec_core(&conv0)\n");
+  puts("exec_core(&conv0)");
   BEGIN
   exec_core(&conv0);
   END
 
-  printf("exec_core(&conv1)\n");
+  puts("exec_core(&conv1)");
   BEGIN
   exec_core(&conv1);
   END
 
-  printf("exec_core(&full2)\n");
+  puts("exec_core(&full2)");
   BEGIN
   exec_core(&full2);
   END
 
-  printf("exec_core(&full3)\n");
+  puts("exec_core(&full3)");
   BEGIN
   exec_core(&full3);
   END
 
-  printf("get_image(output)\n");
+  puts("get_image(output)");
   BEGIN
   get_image(output, FULL3_IMAGE, LABEL);
   END
