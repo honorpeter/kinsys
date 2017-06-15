@@ -15,6 +15,8 @@ vish_stacktrace.vstf
 
 dist
 
+app/lenet_bare/data
+
 vivado/results
 vivado/reports
 vivado/ip

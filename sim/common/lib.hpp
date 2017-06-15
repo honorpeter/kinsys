@@ -3,8 +3,8 @@
 
 #include <iostream>
 #include <fstream>
-#include <cstdint>
 #include <vector>
+#include <string>
 
 #define len(a, b) (int (a)=0; (a) < static_cast<int>((b).size()); ++(a))
 #define range(a, b) (int (a)=0; (a) < (b); ++(a))
@@ -77,7 +77,7 @@ Mat4D<T> zeros(int size1, int size2, int size3, int size4)
 }
 
 template <typename T>
-void load(Mat1D<T> &x, const char *path)
+void load(Mat1D<T> &x, std::string path)
 {
   std::ifstream ifs(path);
   int tmp = 0;
@@ -91,7 +91,7 @@ void load(Mat1D<T> &x, const char *path)
 }
 
 template <typename T>
-void load(Mat2D<T> &x, const char *path)
+void load(Mat2D<T> &x, std::string path)
 {
   std::ifstream ifs(path);
   int tmp = 0;
@@ -106,7 +106,7 @@ void load(Mat2D<T> &x, const char *path)
 }
 
 template <typename T>
-void load(Mat3D<T> &x, const char *path)
+void load(Mat3D<T> &x, std::string path)
 {
   std::ifstream ifs(path);
   int tmp = 0;
@@ -122,7 +122,7 @@ void load(Mat3D<T> &x, const char *path)
 }
 
 template <typename T>
-void load(Mat4D<T> &x, const char *path)
+void load(Mat4D<T> &x, std::string path)
 {
   std::ifstream ifs(path);
   int tmp = 0;
@@ -139,7 +139,7 @@ void load(Mat4D<T> &x, const char *path)
 }
 
 template <typename T>
-void save(Mat1D<T> &y, const char *path)
+void save(Mat1D<T> &y, std::string path)
 {
   std::ofstream ofs(path);
 
@@ -150,7 +150,7 @@ void save(Mat1D<T> &y, const char *path)
 }
 
 template <typename T>
-void save(Mat2D<T> &y, const char *path)
+void save(Mat2D<T> &y, std::string path)
 {
   std::ofstream ofs(path);
 
@@ -162,7 +162,7 @@ void save(Mat2D<T> &y, const char *path)
 }
 
 template <typename T>
-void save(Mat3D<T> &y, const char *path)
+void save(Mat3D<T> &y, std::string path)
 {
   std::ofstream ofs(path);
 
@@ -175,7 +175,7 @@ void save(Mat3D<T> &y, const char *path)
 }
 
 template <typename T>
-void save(Mat4D<T> &y, const char *path)
+void save(Mat4D<T> &y, std::string path)
 {
   std::ofstream ofs(path);
 

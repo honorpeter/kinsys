@@ -198,7 +198,7 @@ module gobou_ctrl_core
     if (!xrst)
       r_net_offset <= 0;
     else if (req || ack)
-      r_net_offset <= net_addr;
+      r_net_offset <= net_offset;
 
   always @(posedge clk)
     if (!xrst)

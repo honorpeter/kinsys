@@ -4,8 +4,8 @@
 #include <limits>
 #include <lib.hpp>
 
-const int n_out = 50;
-const int n_in  = 20;
+const int n_out = 32;
+const int n_in  = 16;
 const int isize = 12;
 const int fsize = 5;
 const int psize = 2;
@@ -87,10 +87,10 @@ int main(void)
   load(W, "../../data/renkon/weight_renkon_top.dat");
   load(b, "../../data/renkon/bias_renkon_top.dat");
 
-  conv<int16_t>(fmap, input, W);
-  bias<int16_t>(bmap, fmap, b);
-  relu<int16_t>(amap, bmap);
-  pool<int16_t>(pmap, amap);
+  conv(fmap, input, W);
+  bias(bmap, fmap, b);
+  relu(amap, bmap);
+  pool(pmap, amap);
 
   for range(n, n_out)
     for range(i, osize)

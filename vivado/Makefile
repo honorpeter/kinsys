@@ -1,16 +1,22 @@
 BOARD = zedboard
 IP    = kinpira_axi
-APP   = iotest
+APP   = lenet_bare
 
 .PHONY: run sw hw zybo zedboard ip all clean
 
 run:
-	# cp main.c ${BOARD}/${BOARD}.sdk/${APP}/src
 	xsct run.tcl ${BOARD} ${APP}
 
-all: clean dist ip proj hw sw run
+# avoid friendly fire
+all:
+	@../utils/confirm.sh "Build the project from the beginning?"
+	make clean dist ip proj hw sw run
 
 sw:
+	cp ${BOARD}/${BOARD}.sdk/design_1_wrapper.hdf /tmp
+	rm -rf ${BOARD}/${BOARD}.sdk/*
+	rm -rf ${BOARD}/${BOARD}.sdk/.metadata
+	cp /tmp/design_1_wrapper.hdf ${BOARD}/${BOARD}.sdk/
 	xsct sw.tcl ${BOARD} ${APP}
 
 hw:
