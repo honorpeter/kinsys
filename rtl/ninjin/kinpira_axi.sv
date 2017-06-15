@@ -10,31 +10,31 @@ module kinpira_axi
   , parameter C_s_axi_image_ID_WIDTH      = 12
   , parameter C_s_axi_image_DATA_WIDTH    = 32
   , parameter C_s_axi_image_ADDR_WIDTH    = IMGSIZE + LSB
-  , parameter C_s_axi_image_AWUSER_WIDTH  = 2//0
-  , parameter C_s_axi_image_ARUSER_WIDTH  = 2//0
-  , parameter C_s_axi_image_WUSER_WIDTH   = 2//0
-  , parameter C_s_axi_image_RUSER_WIDTH   = 2//0
-  , parameter C_s_axi_image_BUSER_WIDTH   = 2//0
+  , parameter C_s_axi_image_AWUSER_WIDTH  = 0
+  , parameter C_s_axi_image_ARUSER_WIDTH  = 0
+  , parameter C_s_axi_image_WUSER_WIDTH   = 0
+  , parameter C_s_axi_image_RUSER_WIDTH   = 0
+  , parameter C_s_axi_image_BUSER_WIDTH   = 0
 
   // Parameters of Axi Slave Bus Interface s_axi_renkon
   , parameter C_s_axi_renkon_ID_WIDTH     = 12
   , parameter C_s_axi_renkon_DATA_WIDTH   = 32
   , parameter C_s_axi_renkon_ADDR_WIDTH   = RENKON_CORELOG + RENKON_NETSIZE + LSB
-  , parameter C_s_axi_renkon_AWUSER_WIDTH = 2//0
-  , parameter C_s_axi_renkon_ARUSER_WIDTH = 2//0
-  , parameter C_s_axi_renkon_WUSER_WIDTH  = 2//0
-  , parameter C_s_axi_renkon_RUSER_WIDTH  = 2//0
-  , parameter C_s_axi_renkon_BUSER_WIDTH  = 2//0
+  , parameter C_s_axi_renkon_AWUSER_WIDTH = 0
+  , parameter C_s_axi_renkon_ARUSER_WIDTH = 0
+  , parameter C_s_axi_renkon_WUSER_WIDTH  = 0
+  , parameter C_s_axi_renkon_RUSER_WIDTH  = 0
+  , parameter C_s_axi_renkon_BUSER_WIDTH  = 0
 
   // Parameters of Axi Slave Bus Interface s_axi_gobou
   , parameter C_s_axi_gobou_ID_WIDTH      = 12
   , parameter C_s_axi_gobou_DATA_WIDTH    = 32
   , parameter C_s_axi_gobou_ADDR_WIDTH    = GOBOU_CORELOG + GOBOU_NETSIZE + LSB
-  , parameter C_s_axi_gobou_AWUSER_WIDTH  = 2//0
-  , parameter C_s_axi_gobou_ARUSER_WIDTH  = 2//0
-  , parameter C_s_axi_gobou_WUSER_WIDTH   = 2//0
-  , parameter C_s_axi_gobou_RUSER_WIDTH   = 2//0
-  , parameter C_s_axi_gobou_BUSER_WIDTH   = 2//0
+  , parameter C_s_axi_gobou_AWUSER_WIDTH  = 0
+  , parameter C_s_axi_gobou_ARUSER_WIDTH  = 0
+  , parameter C_s_axi_gobou_WUSER_WIDTH   = 0
+  , parameter C_s_axi_gobou_RUSER_WIDTH   = 0
+  , parameter C_s_axi_gobou_BUSER_WIDTH   = 0
   )
   // Ports of Axi Slave Bus Interface s_axi_params
   ( input                                     s_axi_params_aclk
@@ -307,10 +307,10 @@ module kinpira_axi
   assign out_port[30] = {31'b0, ack};
 
   // For renkon
-  assign renkon_net_sel     = mem_renkon_addr[RENKON_NETSIZE+RENKON_CORELOG-1:RENKON_NETSIZE];
-  assign renkon_net_we      = mem_renkon_we;
-  assign renkon_net_addr    = mem_renkon_addr[RENKON_NETSIZE-1:0];
-  assign renkon_net_wdata   = mem_renkon_wdata;
+  assign renkon_net_sel   = mem_renkon_addr[RENKON_NETSIZE+RENKON_CORELOG-1:RENKON_NETSIZE];
+  assign renkon_net_we    = mem_renkon_we;
+  assign renkon_net_addr  = mem_renkon_addr[RENKON_NETSIZE-1:0];
+  assign renkon_net_wdata = mem_renkon_wdata;
 
   assign renkon_req        = which == WHICH_RENKON ? req : 0;
   assign renkon_in_offset  = which == WHICH_RENKON ? in_offset : 0;
@@ -325,10 +325,10 @@ module kinpira_axi
 
 
   // For gobou
-  assign gobou_net_sel   = mem_gobou_addr[GOBOU_NETSIZE+GOBOU_CORELOG-1:GOBOU_NETSIZE];
-  assign gobou_net_we    = mem_gobou_we;
-  assign gobou_net_addr  = mem_gobou_addr[GOBOU_NETSIZE-1:0];
-  assign gobou_net_wdata = mem_gobou_wdata;
+  assign gobou_net_sel    = mem_gobou_addr[GOBOU_NETSIZE+GOBOU_CORELOG-1:GOBOU_NETSIZE];
+  assign gobou_net_we     = mem_gobou_we;
+  assign gobou_net_addr   = mem_gobou_addr[GOBOU_NETSIZE-1:0];
+  assign gobou_net_wdata  = mem_gobou_wdata;
 
   assign gobou_req         = which == WHICH_GOBOU ? req : 0;
   assign gobou_in_offset   = which == WHICH_GOBOU ? in_offset : 0;

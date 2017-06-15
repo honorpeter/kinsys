@@ -10,7 +10,7 @@
 parameter GOBOU_CORE    = 16;
 // parameter integer GOBOU_CORELOG = $clog2(GOBOU_CORE);
 parameter GOBOU_CORELOG = 4;
-parameter GOBOU_NETSIZE = 10;
+parameter GOBOU_NETSIZE = 13;
 
 // Delay for each module (corresponds to the number of stages)
 parameter D_MAC   = 3;
