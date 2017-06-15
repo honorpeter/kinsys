@@ -1,10 +1,10 @@
 `include "gobou.svh"
 
 // `define SAIF
-`define DIRECT
+// `define DIRECT
 
-int N_IN  = 800;
-int N_OUT = 500;
+int N_IN  = 512;
+int N_OUT = 128;
 int IMG_OFFSET = 0;
 int OUT_OFFSET = 1000;
 int NET_OFFSET = 0;

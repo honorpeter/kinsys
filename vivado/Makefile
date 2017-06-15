@@ -7,7 +7,10 @@ APP   = lenet_bare
 run:
 	xsct run.tcl ${BOARD} ${APP}
 
-all: clean dist ip proj hw sw run
+# avoid friendly fire
+all:
+	@../utils/confirm.sh "Build the project from the beginning?"
+	make clean dist ip proj hw sw run
 
 sw:
 	cp ${BOARD}/${BOARD}.sdk/design_1_wrapper.hdf /tmp

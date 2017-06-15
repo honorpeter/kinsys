@@ -3,8 +3,8 @@
 // `define SAIF
 `define DIRECT
 
-int N_OUT = 50;
-int N_IN  = 20;
+int N_OUT = 32;
+int N_IN  = 16;
 int ISIZE = 12;
 int OSIZE = (ISIZE - FSIZE + 1) / PSIZE;
 int IMG_OFFSET = 0;
