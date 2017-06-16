@@ -2,15 +2,24 @@
 `define _NINJIN_SVH_
 
 `include "common.svh"
+`ifndef DIST
+`include "mem_sp.sv"
+`include "mem_dp.sv"
+`endif
 
 // BWIDTH ~ base width (memory bandwidth for host system.)
 parameter BWIDTH  = 32;
 parameter REGSIZE = 5;
-parameter MEMSIZE = 10;
+parameter MEMSIZE = 4;
 parameter BUFSIZE = 7;
 
 parameter LSB   = 2;
 parameter PORT  = 32;
+
+parameter BURST_LEN = 16;
+
+parameter DDR_READ  = 'd0;
+parameter DDR_WRITE = 'd1;
 
 /* which:
  *   0: renkon  (2D convolution)
