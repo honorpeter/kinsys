@@ -1,7 +1,7 @@
 `include "ninjin.svh"
 
 int READ_LEN   = 16;//16*12*12;
-int WRITE_LEN  = 16;//32*4*4;
+int WRITE_LEN  = 64;//32*4*4;
 
 // int READ_OFFSET  = 42;
 int READ_OFFSET  = 0;
@@ -47,6 +47,7 @@ module test_ninjin_ddr_buf;
     ddr_rdata = 0;
     #(STEP);
 
+    /*
     $display("### prefetch");
     mem_addr = mem_addr + 1;
     #(STEP);
@@ -81,6 +82,7 @@ module test_ninjin_ddr_buf;
     #(STEP);
     mem_addr = mem_addr-1;
     #(5*STEP);
+    */
 
     $display("### writing");
     mem_we = 1;
@@ -121,6 +123,7 @@ module test_ninjin_ddr_buf;
         "| ",
         "%d ", ddr_we,
         "%d ", ddr_re,
+        "%d ", dut.r_mem_addr[0],
         "%d ", ddr_addr,
         "%8x ", ddr_wdata,
         "%8x ", ddr_rdata,
@@ -129,12 +132,12 @@ module test_ninjin_ddr_buf;
         ": ",
         "%d ", dut.buf_we[0],
         "%d ", dut.buf_addr[0],
-        "%8x ", dut.buf_wdata[0],
+        "%8x ", dut.buf_wdata,
         "%8x ", dut.buf_rdata[0],
         ": ",
         "%d ", dut.buf_we[1],
         "%d ", dut.buf_addr[1],
-        "%8x ", dut.buf_wdata[1],
+        "%8x ", dut.buf_wdata,
         "%8x ", dut.buf_rdata[1],
         "|"
       );

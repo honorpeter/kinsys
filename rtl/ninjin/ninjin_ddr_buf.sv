@@ -30,7 +30,7 @@ module ninjin_ddr_buf
   wire [1:0]                mode;
   wire                      buf_we    [1:0];
   wire [MEMSIZE-1:0]        buf_addr  [1:0];
-  wire signed [BWIDTH-1:0]  buf_wdata [1:0];
+  wire signed [BWIDTH-1:0]  buf_wdata;
   wire [BWIDTH-1:0]         buf_rdata [1:0];
   wire [MEMSIZE-1:0]        addr_diff;
   wire                      txn_start;
@@ -44,11 +44,12 @@ module ninjin_ddr_buf
   reg [BWIDTH-1:0]        r_ddr_wdata;
   reg                     r_buf_we    [1:0];
   reg [MEMSIZE-1:0]       r_buf_addr  [1:0];
-  reg signed [BWIDTH-1:0] r_buf_wdata [1:0];
+  reg signed [BWIDTH-1:0] r_buf_wdata;
   reg [BWIDTH-1:0]        r_buf_rdata [1:0];
-  reg [DWIDTH-1:0]        r_we [RATE-1:0];
-  reg [DWIDTH-1:0]        r_wdata [RATE-1:0];
-  reg [IMGSIZE-1:0]       r_mem_addr;
+  reg [RATE-1:0]          r_we;
+  reg [DWIDTH-1:0]        r_wdata;
+  reg                     r_mem_we;
+  reg [IMGSIZE-1:0]       r_mem_addr [1:0];
   reg [DWIDTH-1:0]        r_mem_rdata;
 
   /*
@@ -62,13 +63,21 @@ module ninjin_ddr_buf
 // core control
 //==========================================================
 
-  assign addr_diff = mem_addr - r_mem_addr;
+  assign addr_diff = mem_addr - r_mem_addr[0];
+
+  always @(posedge clk) begin
+    if (!xrst)
+      r_mem_addr[0] <= 0;
+    else
+      r_mem_addr[0] <= mem_addr;
+    r_mem_addr[1] <= r_mem_addr[0];
+  end
 
   always @(posedge clk)
     if (!xrst)
-      r_mem_addr <= 0;
+      r_mem_we <= 0;
     else
-      r_mem_addr <= mem_addr;
+      r_mem_we <= mem_we;
 
   assign mode = addr_diff == 0 ? M_IDLE
               : addr_diff == 1 ? M_INCR
@@ -88,38 +97,6 @@ module ninjin_ddr_buf
                    || mode == M_INCR  && r_mode == M_TRANS;
   assign txn_stop   = mode == M_IDLE  && r_mode == M_INCR
                    || mode == M_TRANS && r_mode == M_INCR;
-
-  for (genvar i = 0; i < RATE; i++)
-    if (i == 0) begin
-      always @(posedge clk)
-        if (!xrst)
-          r_wdata[0] <= 0;
-        else
-          r_wdata[0] <= mem_wdata;
-    end
-    else begin
-      always @(posedge clk)
-        if (!xrst)
-          r_wdata[i] <= 0;
-        else
-          r_wdata[i] <= r_wdata[i-1];
-    end
-
-  for (genvar i = 0; i < RATE; i++)
-    if (i == 0) begin
-      always @(posedge clk)
-        if (!xrst)
-          r_we[0] <= 0;
-        else
-          r_we[0] <= mem_we;
-    end
-    else begin
-      always @(posedge clk)
-        if (!xrst)
-          r_we[i] <= 0;
-        else
-          r_we[i] <= r_we[i-1];
-    end
 
   assign mem_rdata = r_mem_rdata;
 
@@ -152,7 +129,7 @@ module ninjin_ddr_buf
     if (!xrst)
       r_ddr_addr <= 0;
     else if (txn_start)
-      r_ddr_addr <= r_mem_addr;
+      r_ddr_addr <= r_mem_addr[0];
 
   always @(posedge clk)
     if (!xrst)
@@ -165,54 +142,61 @@ module ninjin_ddr_buf
 //==========================================================
 
   // r_turn indicates which buffer is for user interface
+  reg r_txn_stop;
+  always @(posedge clk) r_txn_stop <= txn_stop;
+
   always @(posedge clk)
     if (!xrst)
       r_turn <= 0;
-    else if (txn_stop)
+    else if (r_txn_stop || buf_we[r_turn] && buf_addr[r_turn] == BURST_LEN-1)
       r_turn <= ~r_turn;
 
-  assign buf_we    = r_buf_we;
-  assign buf_addr  = r_buf_addr;
-  assign buf_wdata = r_buf_wdata;
-
-  // for (genvar i = 0; i < 2; i++) begin
-  //   assign buf_we   [i] = 0;
-  //   assign buf_addr [i] = 0;
-  //   assign buf_wdata[i] = 0;
-  // end
+  always @(posedge clk)
+    if (!xrst)
+      r_we <= 0;
+    else if (mem_we)
+      if (r_we == RATE - 1)
+        r_we <= 0;
+      else
+        r_we <= r_we + 1;
 
   // one is for user interface, other is for ddr interface
   // roles switch for each burst
+  assign buf_we     = r_buf_we;
+  // assign buf_addr   = r_buf_addr;
+  assign buf_wdata  = r_buf_wdata;
+  always @(posedge clk)
+    if (!xrst)
+      r_buf_wdata <= 0;
+    else
+      // TODO:
+      //  - Little Endian? Big Endian?
+      r_buf_wdata <= {r_buf_wdata[BWIDTH-DWIDTH-1:0], mem_wdata};
+
   for (genvar i = 0; i < 2; i++) begin
     always @(posedge clk)
       if (!xrst)
         r_buf_we[i] <= 0;
       else if (r_turn == i)
-        r_buf_we[i] <= r_we[1] && r_we[0];
+        r_buf_we[i] <= mem_we && r_we == RATE-1;
       else
         r_buf_we[i] <= 0;
 
-    always @(posedge clk)
-      if (!xrst)
-        r_buf_addr[i] <= 0;
-      else if (r_turn == i)
-        r_buf_addr[i] <= mem_addr - r_ddr_addr;
-      else
-        r_buf_addr[i] <= 0;
+    // always @(posedge clk)
+    //   if (!xrst)
+    //     r_buf_addr[i] <= 0;
+    //   else if (r_turn == i)
+    //     r_buf_addr[i] <= r_mem_addr[1] - r_ddr_addr - 2;
+    //   else
+    //     r_buf_addr[i] <= 0;
 
-    always @(posedge clk)
-      if (!xrst)
-        r_buf_wdata[i] <= 0;
-      else if (r_turn == i)
-        // TODO: How to switch concat description for 32bit and 64bit?
-        r_buf_wdata[i] <= {r_wdata[1], r_wdata[0]};
-      else
-        r_buf_wdata[i] <= 0;
+    assign buf_addr[i]  = r_turn == i ? r_mem_addr[0] - r_ddr_addr >> 1 : 0;
+    // assign buf_wdata[i] = r_turn == i ? {r_wdata[1], r_wdata[0]} : 0;
 
     mem_sp #(BWIDTH, $clog2(BURST_LEN)) mem_buf(
       .mem_we     (buf_we[i]),
       .mem_addr   (buf_addr[i]),
-      .mem_wdata  (buf_wdata[i]),
+      .mem_wdata  (buf_wdata),
       .mem_rdata  (buf_rdata[i]),
       .*
     );
