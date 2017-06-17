@@ -1,7 +1,7 @@
 `include "ninjin.svh"
 
 int READ_LEN   = 16;//16*12*12;
-int WRITE_LEN  = 64;//32*4*4;
+int WRITE_LEN  = 128;//32*4*4;
 
 // int READ_OFFSET  = 42;
 int READ_OFFSET  = 0;
@@ -18,10 +18,12 @@ module test_ninjin_ddr_buf;
   reg                     mem_we;
   reg [IMGSIZE-1:0]       mem_addr;
   reg signed [DWIDTH-1:0] mem_wdata;
+  reg                     ddr_we;
+  reg [IMGSIZE-1:0]       ddr_addr;
   reg [BWIDTH-1:0]        ddr_rdata;
-  wire                      ddr_we;
-  wire                      ddr_re;
-  wire [IMGSIZE-1:0]        ddr_addr;
+  wire                      ddr_req;
+  wire                      ddr_mode;
+  wire [IMGSIZE-1:0]        ddr_base;
   wire [BWIDTH-1:0]         ddr_wdata;
   wire signed [DWIDTH-1:0]  mem_rdata;
 
@@ -36,15 +38,15 @@ module test_ninjin_ddr_buf;
 
   //flow
   initial begin
-    xrst = 0;
-    #(STEP);
-
-    xrst      = 1;
+    xrst      = 0;
     total_len = 0;
     mem_we    = 0;
     mem_addr  = 0;
     mem_wdata = 0;
     ddr_rdata = 0;
+    #(STEP);
+
+    xrst      = 1;
     #(STEP);
 
     /*
@@ -112,32 +114,34 @@ module test_ninjin_ddr_buf;
         "%d ", dut.txn_start,
         "%d ", dut.txn_stop,
         "@ ",
-        "%d ", dut.mode,
-        "%d ", dut.r_mode,
+        "%d ", dut.r_state[0],
+        "%d ", dut.r_state[1],
         "%d ", dut.addr_diff,
         "| ",
-        "%d ", mem_we,
-        "%d ", mem_addr,
+        "%d ",  mem_we,
+        "%d ",  mem_addr,
         "%4x ", mem_wdata,
         "%4x ", mem_rdata,
         "| ",
-        "%d ", ddr_we,
-        "%d ", ddr_re,
-        "%d ", dut.r_mem_addr[0],
-        "%d ", ddr_addr,
-        "%8x ", ddr_wdata,
-        "%8x ", ddr_rdata,
+        "%d ",  dut.r_mem_we,
+        "%d ",  dut.r_mem_addr,
+        "%4x ", dut.r_mem_wdata,
+        "%4x ", dut.r_mem_rdata,
         "| ",
-        "%d ", dut.r_turn,
-        ": ",
-        "%d ", dut.buf_we[0],
-        "%d ", dut.buf_addr[0],
-        "%8x ", dut.buf_wdata,
+        "%d ",  dut.buf_we[0],
+        "%d ",  dut.r_mem_addr,
+        "%d ",  dut.r_mem_base[0],
+        "%d ",  dut.buf_addr[0],
+        "%8x ", dut.buf_wdata[0],
         "%8x ", dut.buf_rdata[0],
-        ": ",
-        "%d ", dut.buf_we[1],
-        "%d ", dut.buf_addr[1],
-        "%8x ", dut.buf_wdata,
+        "$ ",
+        "%d ", dut.r_turn,
+        "$ ",
+        "%d ",  dut.buf_we[1],
+        "%d ",  dut.r_mem_addr,
+        "%d ",  dut.r_mem_base[1],
+        "%d ",  dut.buf_addr[1],
+        "%8x ", dut.buf_wdata[1],
         "%8x ", dut.buf_rdata[1],
         "|"
       );

@@ -10,7 +10,6 @@ module ninjin_m_axi_image
   , parameter WUSER_WIDTH   = 0
   , parameter RUSER_WIDTH   = 0
   , parameter BUSER_WIDTH   = 0
-  , parameter TOTAL_LEN     = 12
   )
   ( input                   clk
   , input                   xrst
@@ -27,9 +26,9 @@ module ninjin_m_axi_image
   , input                   rlast
   , input [RUSER_WIDTH-1:0] ruser
   , input                   rvalid
-  , input                   ddr_we
-  , input                   ddr_re
-  , input [MEMSIZE-1:0]     ddr_addr
+  , input                   ddr_req
+  , input                   ddr_mode
+  , input [MEMSIZE-1:0]     ddr_base
   , input [DWIDTH-1:0]      ddr_wdata
 
   , output [3:0]              err
@@ -62,12 +61,12 @@ module ninjin_m_axi_image
   , output [3:0]              arqos
   , output [ARUSER_WIDTH-1:0] aruser
   , output                    rready
+  , output                    ddr_we
+  , output [MEMSIZE-1:0]      ddr_addr
   , output [DWIDTH-1:0]       ddr_rdata
   );
 
   localparam TXN_NUM       = clogb2(BURST_LEN-1);
-  // Total Data Amount (in byte: 2^12 byte -> 2^12 / (BURST_LEN*DWIDTH/8) req)
-  localparam NO_BURSTS_REQ = TOTAL_LEN - clogb2(BURST_LEN*DWIDTH/8-1);
 
   wire                  we_pulse;
   wire                  re_pulse;

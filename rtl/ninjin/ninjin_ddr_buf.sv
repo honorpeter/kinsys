@@ -1,8 +1,8 @@
 `include "ninjin.svh"
 
 /* TODO:
- *  - Implement prefetch mode (when mode == M_TRANS && r_mode == M_INCR)
- *  - Pass proper signals to M_AXI interface
+ *  - Implement prefetch mode (r_state[0] == S_TRANS && r_state[1] == S_INCR)
+ *  - Pass proper signals to S_AXI interface
  *  - Implement double buffering scheme with DWIDTH-BWIDTH convert.
  */
 
@@ -13,44 +13,37 @@ module ninjin_ddr_buf
   , input                     mem_we
   , input [IMGSIZE-1:0]       mem_addr
   , input signed [DWIDTH-1:0] mem_wdata
+  , input                     ddr_we
+  , input [IMGSIZE-1:0]       ddr_addr
   , input [BWIDTH-1:0]        ddr_rdata
-  , output                      ddr_we
-  , output                      ddr_re
-  , output [IMGSIZE-1:0]        ddr_addr
+  , output                      ddr_req
+  , output                      ddr_mode
+  , output [IMGSIZE-1:0]        ddr_base
   , output [BWIDTH-1:0]         ddr_wdata
   , output signed [DWIDTH-1:0]  mem_rdata
   );
 
   localparam RATE = BWIDTH / DWIDTH;
 
-  localparam  M_IDLE  = 'd0,
-              M_INCR  = 'd1,
-              M_TRANS = 'd2;
-
-  wire [1:0]                mode;
-  wire                      buf_we    [1:0];
-  wire [MEMSIZE-1:0]        buf_addr  [1:0];
-  wire signed [BWIDTH-1:0]  buf_wdata;
-  wire [BWIDTH-1:0]         buf_rdata [1:0];
-  wire [MEMSIZE-1:0]        addr_diff;
   wire                      txn_start;
   wire                      txn_stop;
+  wire [MEMSIZE-1:0]        addr_diff;
+  wire                      buf_we    [1:0];
+  wire [MEMSIZE-1:0]        buf_addr  [1:0];
+  wire signed [BWIDTH-1:0]  buf_wdata [1:0];
+  wire [BWIDTH-1:0]         buf_rdata [1:0];
 
-  reg [1:0]               r_mode;
+  enum reg [1:0] {
+    S_IDLE, S_INCR, S_TRANS
+  } r_state [1:0];
   reg                     r_turn;
-  reg                     r_ddr_we;
-  reg                     r_ddr_re;
-  reg [IMGSIZE-1:0]       r_ddr_addr;
-  reg [BWIDTH-1:0]        r_ddr_wdata;
-  reg                     r_buf_we    [1:0];
-  reg [MEMSIZE-1:0]       r_buf_addr  [1:0];
-  reg signed [BWIDTH-1:0] r_buf_wdata;
-  reg [BWIDTH-1:0]        r_buf_rdata [1:0];
-  reg [RATE-1:0]          r_we;
-  reg [DWIDTH-1:0]        r_wdata;
+  reg [RATE-1:0]          r_we_accum;
   reg                     r_mem_we;
-  reg [IMGSIZE-1:0]       r_mem_addr [1:0];
-  reg [DWIDTH-1:0]        r_mem_rdata;
+  reg [IMGSIZE-1:0]       r_mem_addr;
+  reg signed [DWIDTH-1:0] r_mem_wdata;
+  reg [IMGSIZE-1:0]       r_mem_base [1:0];
+  reg                     r_buf_we;
+  reg signed [BWIDTH-1:0] r_buf_wdata;
 
   /*
    * When ddr_req asserts, ddr_mode and ddr_base are fetched.
@@ -63,15 +56,32 @@ module ninjin_ddr_buf
 // core control
 //==========================================================
 
-  assign addr_diff = mem_addr - r_mem_addr[0];
+  assign addr_diff = mem_addr - r_mem_addr;
 
-  always @(posedge clk) begin
+  always @(posedge clk)
     if (!xrst)
-      r_mem_addr[0] <= 0;
+      r_state[0] <= S_IDLE;
     else
-      r_mem_addr[0] <= mem_addr;
-    r_mem_addr[1] <= r_mem_addr[0];
-  end
+      case (addr_diff)
+        0:
+          r_state[0] <= S_IDLE;
+        1:
+          r_state[0] <= S_INCR;
+        default:
+          r_state[0] <= S_TRANS;
+      endcase
+
+  always @(posedge clk)
+    if (!xrst)
+      r_state[1] <= S_IDLE;
+    else
+      r_state[1] <= r_state[0];
+
+  always @(posedge clk)
+    if (!xrst)
+      r_mem_addr <= 0;
+    else
+      r_mem_addr <= mem_addr;
 
   always @(posedge clk)
     if (!xrst)
@@ -79,128 +89,102 @@ module ninjin_ddr_buf
     else
       r_mem_we <= mem_we;
 
-  assign mode = addr_diff == 0 ? M_IDLE
-              : addr_diff == 1 ? M_INCR
-              : M_TRANS;
-
   always @(posedge clk)
     if (!xrst)
-      r_mode <= 0;
+      r_mem_wdata <= 0;
     else
-      r_mode <= mode;
+      r_mem_wdata <= mem_wdata;
 
 //==========================================================
 // memory control
 //==========================================================
 
-  assign txn_start  = mode == M_INCR  && r_mode == M_IDLE
-                   || mode == M_INCR  && r_mode == M_TRANS;
-  assign txn_stop   = mode == M_IDLE  && r_mode == M_INCR
-                   || mode == M_TRANS && r_mode == M_INCR;
+  assign txn_start  = r_state[0] == S_INCR  && r_state[1] == S_IDLE
+                   || r_state[0] == S_INCR  && r_state[1] == S_TRANS;
 
+  assign txn_stop   = r_state[0] == S_IDLE  && r_state[1] == S_INCR
+                   || r_state[0] == S_TRANS && r_state[1] == S_INCR;
+
+  reg signed [DWIDTH-1:0] r_mem_rdata;
   assign mem_rdata = r_mem_rdata;
-
   always @(posedge clk)
     if (!xrst)
+      r_mem_rdata <= 0;
+    else if (mem_we)
+      r_mem_rdata <= mem_wdata;
+    else
       r_mem_rdata <= 0;
 
 //==========================================================
 // ddr control
 //==========================================================
 
-  assign ddr_we     = r_ddr_we;
-  assign ddr_re     = r_ddr_re;
-  assign ddr_addr   = r_ddr_addr;
-  assign ddr_wdata  = r_ddr_wdata;
-
-  always @(posedge clk)
-    if (!xrst)
-      r_ddr_we <= 0;
-    else if (txn_start)
-      r_ddr_we <= mem_we;
-
-  always @(posedge clk)
-    if (!xrst)
-      r_ddr_re <= 0;
-    else if (txn_start)
-      r_ddr_re <= !mem_we;
-
-  always @(posedge clk)
-    if (!xrst)
-      r_ddr_addr <= 0;
-    else if (txn_start)
-      r_ddr_addr <= r_mem_addr[0];
-
-  always @(posedge clk)
-    if (!xrst)
-      r_ddr_wdata <= 0;
-    else
-      r_ddr_wdata <= buf_rdata[!r_turn];
-
 //==========================================================
 // buffer control
 //==========================================================
 
   // r_turn indicates which buffer is for user interface
-  reg r_txn_stop;
-  always @(posedge clk) r_txn_stop <= txn_stop;
-
   always @(posedge clk)
     if (!xrst)
       r_turn <= 0;
-    else if (r_txn_stop || buf_we[r_turn] && buf_addr[r_turn] == BURST_LEN-1)
+    else if (buf_we[r_turn] && buf_addr[r_turn] == BURST_LEN-1)
       r_turn <= ~r_turn;
 
   always @(posedge clk)
     if (!xrst)
-      r_we <= 0;
-    else if (mem_we)
-      if (r_we == RATE - 1)
-        r_we <= 0;
+      r_we_accum <= 0;
+    else if (r_mem_we)
+      if (r_we_accum == RATE - 1)
+        r_we_accum <= 0;
       else
-        r_we <= r_we + 1;
+        r_we_accum <= r_we_accum + 1;
 
-  // one is for user interface, other is for ddr interface
-  // roles switch for each burst
-  assign buf_we     = r_buf_we;
-  // assign buf_addr   = r_buf_addr;
-  assign buf_wdata  = r_buf_wdata;
+  always @(posedge clk)
+    if (!xrst)
+      r_buf_we <= 0;
+    else
+      r_buf_we <= r_mem_we && r_we_accum == RATE-1;
+
   always @(posedge clk)
     if (!xrst)
       r_buf_wdata <= 0;
     else
-      // TODO:
-      //  - Little Endian? Big Endian?
-      r_buf_wdata <= {r_buf_wdata[BWIDTH-DWIDTH-1:0], mem_wdata};
+      r_buf_wdata <= {r_buf_wdata[BWIDTH-DWIDTH-1:0], r_mem_wdata};
 
+  // one is for user interface, other is for ddr interface
+  // roles switch for each burst
   for (genvar i = 0; i < 2; i++) begin
     always @(posedge clk)
       if (!xrst)
-        r_buf_we[i] <= 0;
-      else if (r_turn == i)
-        r_buf_we[i] <= mem_we && r_we == RATE-1;
+        r_mem_base[i] <= 0;
+      else if (r_turn == i) begin
+        if (!txn_start && r_state[0] != S_INCR)
+          r_mem_base[i] <= mem_addr;
+      end
       else
-        r_buf_we[i] <= 0;
+        if (buf_we[(i+1)%2] && buf_addr[r_turn] == BURST_LEN-1)
+          r_mem_base[i] <= mem_addr;
 
-    // always @(posedge clk)
-    //   if (!xrst)
-    //     r_buf_addr[i] <= 0;
-    //   else if (r_turn == i)
-    //     r_buf_addr[i] <= r_mem_addr[1] - r_ddr_addr - 2;
-    //   else
-    //     r_buf_addr[i] <= 0;
-
-    assign buf_addr[i]  = r_turn == i ? r_mem_addr[0] - r_ddr_addr >> 1 : 0;
-    // assign buf_wdata[i] = r_turn == i ? {r_wdata[1], r_wdata[0]} : 0;
+    assign buf_we[i]    = r_turn == i ? r_buf_we : 0;
+    assign buf_addr[i]  = r_turn == i ? r_mem_addr - r_mem_base[i] >> 1 : 0;
+    assign buf_wdata[i] = r_turn == i ? r_buf_wdata : 0;
 
     mem_sp #(BWIDTH, $clog2(BURST_LEN)) mem_buf(
       .mem_we     (buf_we[i]),
       .mem_addr   (buf_addr[i]),
-      .mem_wdata  (buf_wdata),
+      .mem_wdata  (buf_wdata[i]),
       .mem_rdata  (buf_rdata[i]),
       .*
     );
   end
+
+  mem_sp #(BWIDTH, $clog2(BURST_LEN)) mem_pre(
+    .mem_we     (buf_we[i]),
+    .mem_addr   (buf_addr[i]),
+    .mem_wdata  (buf_wdata[i]),
+    .mem_rdata  (buf_rdata[i]),
+    .*
+  );
 
 endmodule
 
