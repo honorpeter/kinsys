@@ -10,15 +10,16 @@
 // BWIDTH ~ base width (memory bandwidth for host system.)
 parameter BWIDTH  = 32;
 parameter REGSIZE = 5;
-parameter MEMSIZE = 4;
-parameter BUFSIZE = 7;
 
 parameter LSB   = 2;
+// parameter PORT  = 2 ** REGSIZE;
 parameter PORT  = 32;
 
 parameter BURST_LEN = 16;
+// parameter MEMSIZE   = $clog2(BURST_LEN);
+parameter BUFSIZE   = 4;
 
-parameter DDR_READ  = 'd0;
+parameter DDR_READ = 'd0;
 parameter DDR_WRITE = 'd1;
 
 /* which:
