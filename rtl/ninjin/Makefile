@@ -96,7 +96,7 @@ else
 ifeq ($(SIMULATOR),vcs)
   VCS_OPT   = -full64 -sverilog +incdir+$(INCLUDE) -R
   COMPILE   = true $<
-  SIMULATE  = vcs $(VCS_OPT) -o $(V_TARGET).out $*.sv $(SOURCES)
+  SIMULATE  = vcs $(VCS_OPT) -o $(V_TARGET).out $(TARGET) $(MODULE) $(DEPENDS)
 else
 ifeq ($(SIMULATOR),iverilog)
   IVER_OPT  = -g2012 -I $(INCLUDE)

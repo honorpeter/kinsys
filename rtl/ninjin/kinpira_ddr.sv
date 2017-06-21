@@ -62,50 +62,50 @@ module kinpira_axi
   , input                                     s_axi_params_rready
 
   // Ports of Axi Master Bus Interface m_axi_image
-    input                                   m_axi_image_aclk
-    input                                   m_axi_image_aresetn
-    output [C_m_axi_image_ID_WIDTH-1:0]     m_axi_image_awid
-    output [C_m_axi_image_ADDR_WIDTH-1:0]   m_axi_image_awaddr
-    output [7:0]                            m_axi_image_awlen
-    output [2:0]                            m_axi_image_awsize
-    output [1:0]                            m_axi_image_awburst
-    output                                  m_axi_image_awlock
-    output [3:0]                            m_axi_image_awcache
-    output [2:0]                            m_axi_image_awprot
-    output [3:0]                            m_axi_image_awqos
-    output [C_m_axi_image_AWUSER_WIDTH-1:0] m_axi_image_awuser
-    output                                  m_axi_image_awvalid
-    input                                   m_axi_image_awready
-    output [C_m_axi_image_DATA_WIDTH-1:0]   m_axi_image_wdata
-    output [C_m_axi_image_DATA_WIDTH/8-1:0] m_axi_image_wstrb
-    output                                  m_axi_image_wlast
-    output [C_m_axi_image_WUSER_WIDTH-1:0]  m_axi_image_wuser
-    output                                  m_axi_image_wvalid
-    input                                   m_axi_image_wready
-    input  [C_m_axi_image_ID_WIDTH-1:0]     m_axi_image_bid
-    input  [1:0]                            m_axi_image_bresp
-    input  [C_m_axi_image_BUSER_WIDTH-1:0]  m_axi_image_buser
-    input                                   m_axi_image_bvalid
-    output                                  m_axi_image_bready
-    output [C_m_axi_image_ID_WIDTH-1:0]     m_axi_image_arid
-    output [C_m_axi_image_ADDR_WIDTH-1:0]   m_axi_image_araddr
-    output [7:0]                            m_axi_image_arlen
-    output [2:0]                            m_axi_image_arsize
-    output [1:0]                            m_axi_image_arburst
-    output                                  m_axi_image_arlock
-    output [3:0]                            m_axi_image_arcache
-    output [2:0]                            m_axi_image_arprot
-    output [3:0]                            m_axi_image_arqos
-    output [C_m_axi_image_ARUSER_WIDTH-1:0] m_axi_image_aruser
-    output                                  m_axi_image_arvalid
-    input                                   m_axi_image_arready
-    input  [C_m_axi_image_ID_WIDTH-1:0]     m_axi_image_rid
-    input  [C_m_axi_image_DATA_WIDTH-1:0]   m_axi_image_rdata
-    input  [1:0]                            m_axi_image_rresp
-    input                                   m_axi_image_rlast
-    input  [C_m_axi_image_RUSER_WIDTH-1:0]  m_axi_image_ruser
-    input                                   m_axi_image_rvalid
-    output                                  m_axi_image_rready
+  , input                                   m_axi_image_aclk
+  , input                                   m_axi_image_aresetn
+  , output [C_m_axi_image_ID_WIDTH-1:0]     m_axi_image_awid
+  , output [C_m_axi_image_ADDR_WIDTH-1:0]   m_axi_image_awaddr
+  , output [7:0]                            m_axi_image_awlen
+  , output [2:0]                            m_axi_image_awsize
+  , output [1:0]                            m_axi_image_awburst
+  , output                                  m_axi_image_awlock
+  , output [3:0]                            m_axi_image_awcache
+  , output [2:0]                            m_axi_image_awprot
+  , output [3:0]                            m_axi_image_awqos
+  , output [C_m_axi_image_AWUSER_WIDTH-1:0] m_axi_image_awuser
+  , output                                  m_axi_image_awvalid
+  , input                                   m_axi_image_awready
+  , output [C_m_axi_image_DATA_WIDTH-1:0]   m_axi_image_wdata
+  , output [C_m_axi_image_DATA_WIDTH/8-1:0] m_axi_image_wstrb
+  , output                                  m_axi_image_wlast
+  , output [C_m_axi_image_WUSER_WIDTH-1:0]  m_axi_image_wuser
+  , output                                  m_axi_image_wvalid
+  , input                                   m_axi_image_wready
+  , input  [C_m_axi_image_ID_WIDTH-1:0]     m_axi_image_bid
+  , input  [1:0]                            m_axi_image_bresp
+  , input  [C_m_axi_image_BUSER_WIDTH-1:0]  m_axi_image_buser
+  , input                                   m_axi_image_bvalid
+  , output                                  m_axi_image_bready
+  , output [C_m_axi_image_ID_WIDTH-1:0]     m_axi_image_arid
+  , output [C_m_axi_image_ADDR_WIDTH-1:0]   m_axi_image_araddr
+  , output [7:0]                            m_axi_image_arlen
+  , output [2:0]                            m_axi_image_arsize
+  , output [1:0]                            m_axi_image_arburst
+  , output                                  m_axi_image_arlock
+  , output [3:0]                            m_axi_image_arcache
+  , output [2:0]                            m_axi_image_arprot
+  , output [3:0]                            m_axi_image_arqos
+  , output [C_m_axi_image_ARUSER_WIDTH-1:0] m_axi_image_aruser
+  , output                                  m_axi_image_arvalid
+  , input                                   m_axi_image_arready
+  , input  [C_m_axi_image_ID_WIDTH-1:0]     m_axi_image_rid
+  , input  [C_m_axi_image_DATA_WIDTH-1:0]   m_axi_image_rdata
+  , input  [1:0]                            m_axi_image_rresp
+  , input                                   m_axi_image_rlast
+  , input  [C_m_axi_image_RUSER_WIDTH-1:0]  m_axi_image_ruser
+  , input                                   m_axi_image_rvalid
+  , output                                  m_axi_image_rready
 
   // Ports of Axi Slave Bus Interface s_axi_renkon
   , input                                     s_axi_renkon_aclk
