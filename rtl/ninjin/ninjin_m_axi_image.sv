@@ -26,10 +26,10 @@ module ninjin_m_axi_image
   , input                   rlast
   , input [RUSER_WIDTH-1:0] ruser
   , input                   rvalid
-  , input                   ddr_req
-  , input                   ddr_mode
+  , input                   ddr_we
+  , input                   ddr_re
   , input [MEMSIZE-1:0]     ddr_base
-  , input [DWIDTH-1:0]      ddr_wdata
+  , input [DWIDTH-1:0]      ddr_rdata
 
   , output [3:0]              err
   , output                    awvalid
@@ -63,24 +63,24 @@ module ninjin_m_axi_image
   , output                    rready
   , output                    ddr_we
   , output [MEMSIZE-1:0]      ddr_addr
-  , output [DWIDTH-1:0]       ddr_rdata
+  , output [DWIDTH-1:0]       ddr_wdata
   );
 
-  localparam TXN_NUM       = clogb2(BURST_LEN-1);
+  localparam TXN_NUM = clogb2(BURST_LEN-1);
 
-  wire                  we_pulse;
-  wire                  re_pulse;
-  wire                  s_write_end;
-  wire                  s_read_end;
-  wire                  err_wresp;
-  wire                  err_rresp;
-  wire                  wnext;
-  wire                  rnext;
-  wire [TXN_NUM+2-1:0]  burst_size;
+  wire                    we_pulse;
+  wire                    re_pulse;
+  wire                    s_write_end;
+  wire                    s_read_end;
+  wire                    err_wresp;
+  wire                    err_rresp;
+  wire                    wnext;
+  wire                    rnext;
+  wire [TXN_NUM+LSB-1:0]  burst_size;
 
   enum reg [2-1:0] {
-    S_IDLE, S_WRITE, S_READ
-  } r_state;
+    S_IDLE, S_BUSY
+  } r_state_write, r_state_read;
   reg                     r_we;
   reg                     r_re;
   reg                     r_ack;
@@ -124,6 +124,7 @@ module ninjin_m_axi_image
 //==========================================================
 // core control
 //==========================================================
+// {{{
 
   assign we_pulse = ddr_we && !r_we;
   assign re_pulse = ddr_re && !r_re;
@@ -143,38 +144,54 @@ module ninjin_m_axi_image
       r_re <= ddr_re;
     end
 
+  /*
+   * Read and write channel works independent each other.
+   * They could be multiplexed for burst transaction.
+   */
   always @(posedge clk)
     if (!xrst) begin
-      r_state <= S_IDLE;
+      r_state_write <= S_IDLE;
       r_write_single_burst <= 0;
-      r_read_single_burst  <= 0;
     end
     else
-      case (r_state)
+      case (r_state_write)
         S_IDLE:
           if (we_pulse)
-            r_state <= S_WRITE;
-          else if (re_pulse)
-            r_state <= S_READ;
+            r_state_write <= S_BUSY;
 
-        S_WRITE:
+        S_BUSY:
           if (s_write_end)
-            r_state <= S_IDLE;
+            r_state_write <= S_IDLE;
           else if (!r_awvalid && !r_write_single_burst && !r_write_active)
             r_write_single_burst <= 1;
           else
             r_write_single_burst <= 0;
 
-        S_READ:
+        default:
+          r_state_write <= S_IDLE;
+      endcase
+
+  always @(posedge clk)
+    if (!xrst) begin
+      r_state_read <= S_IDLE;
+      r_read_single_burst  <= 0;
+    end
+    else
+      case (r_state_read)
+        S_IDLE:
+          if (re_pulse)
+            r_state_read <= S_BUSY;
+
+        S_BUSY:
           if (s_read_end)
-            r_state <= S_IDLE;
+            r_state_read <= S_IDLE;
           else if (!r_arvalid && !r_read_active && !r_read_single_burst)
             r_read_single_burst <= 1;
           else
             r_read_single_burst <= 0;
 
         default:
-          r_state <= S_IDLE;
+          r_state_read <= S_IDLE;
       endcase
 
   always @(posedge clk)
@@ -197,9 +214,11 @@ module ninjin_m_axi_image
     else if (rvalid && r_rready && rlast)
       r_read_active <= 0;
 
+// }}}
 //==========================================================
 // write address control
 //==========================================================
+// {{{
 
   assign awvalid  = r_awvalid;
   assign awid     = 0;
@@ -231,9 +250,11 @@ module ninjin_m_axi_image
     else if (awready && r_awvalid)
       r_awaddr <= r_awaddr + burst_size;
 
+// }}}
 //==========================================================
 // write data control
 //==========================================================
+// {{{
 
   assign wvalid = r_wvalid;
   assign wdata  = r_wdata;
@@ -253,14 +274,14 @@ module ninjin_m_axi_image
     else if (wnext && r_wlast)
       r_wvalid <= 0;
 
+  // input ddr_rdata have been interpreted as write data for host memory.
   always @(posedge clk)
     if (!xrst)
       r_wdata <= 0;
     else if (we_pulse)
-      r_wdata <= ddr_wdata;
+      r_wdata <= ddr_rdata;
     else if (wnext)
-      // r_wdata <= r_wdata + 1;
-      r_wdata <= ddr_wdata;
+      r_wdata <= ddr_rdata;
 
   always @(posedge clk)
     if (!xrst)
@@ -276,16 +297,16 @@ module ninjin_m_axi_image
       r_wlast <= 0;
 
   always @(posedge clk)
-    if (!xrst)
-      r_write_idx <= 0;
     else if (we_pulse || r_write_single_burst)
       r_write_idx <= 0;
     else if (wnext && r_write_idx != BURST_LEN - 1)
       r_write_idx <= r_write_idx + 1;
 
+// }}}
 //==========================================================
 // write response control
 //==========================================================
+// {{{
 
   assign bready = r_bready;
 
@@ -301,9 +322,11 @@ module ninjin_m_axi_image
     else if (r_bready)
       r_bready <= 0;
 
+// }}}
 //==========================================================
 // read address control
 //==========================================================
+// {{{
 
   assign arvalid  = r_arvalid;
   assign arid     = 0;
@@ -335,9 +358,11 @@ module ninjin_m_axi_image
     else if (arready && r_arvalid)
       r_araddr <= r_araddr + burst_size;
 
+// }}}
 //==========================================================
 // read data control
 //==========================================================
+// {{{
 
   assign rready = r_rready;
 
@@ -365,13 +390,16 @@ module ninjin_m_axi_image
     else if (rnext && r_read_idx != BURST_LEN - 1)
       r_read_idx <= r_read_idx + 1;
 
+// }}}
 //==========================================================
 // memory control
 //==========================================================
+// {{{
 
   assign err = r_err;
 
-  assign ddr_rdata = rdata;
+  // read data is emitted as write data for target ram region.
+  assign ddr_wdata = rdata;
 
   always @(posedge clk)
     if (!xrst)
@@ -381,4 +409,5 @@ module ninjin_m_axi_image
     else if (err_wresp || err_rresp)
       r_err <= {err_wresp, err_rresp, 1'b1};
 
+// }}}
 endmodule
