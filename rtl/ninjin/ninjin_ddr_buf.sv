@@ -552,6 +552,7 @@ module ninjin_ddr_buf
     , input [IMGSIZE-1:0] ddr_addr
     , input [IMGSIZE-1:0] r_base_addr
     );
+
     case (r_which)
       BOOT:
         if (r_state[0] == S_PREF)
