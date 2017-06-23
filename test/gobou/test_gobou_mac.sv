@@ -92,10 +92,10 @@ module test_gobou_mac;
       "%d ", dut.pro_short,
       "%d ", dut.pro_short / 256,
       "| ",
-      "%d ", dut.r_x,
-      "%d ", dut.r_w,
-      "%d ", dut.r_y,
-      "%d ", dut.r_accum,
+      "%d ", dut.x$,
+      "%d ", dut.w$,
+      "%d ", dut.y$,
+      "%d ", dut.accum$,
       "|"
     );
     #(STEP/2+1);

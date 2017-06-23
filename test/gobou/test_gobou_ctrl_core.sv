@@ -5,7 +5,7 @@ module test_gobou_ctrl_core;
   reg clk;
   reg xrst;
   ctrl_bus in_ctrl();
-  ctrl_reg r_in_ctrl;
+  ctrl_reg in_ctrl$;
   reg                     req;
   reg [GOBOU_CORELOG-1:0] net_sel;
   reg                     net_we;
@@ -19,7 +19,7 @@ module test_gobou_ctrl_core;
   reg [LWIDTH-1:0]        total_out;
   reg [LWIDTH-1:0]        total_in;
   ctrl_bus out_ctrl();
-  ctrl_reg r_out_ctrl;
+  ctrl_reg out_ctrl$;
   reg                      ack;
   reg                      mem_img_we;
   reg [IMGSIZE-1:0]        mem_img_addr;
@@ -31,12 +31,12 @@ module test_gobou_ctrl_core;
 
   gobou_ctrl_core dut(.*);
 
-  assign in_ctrl.start  = r_in_ctrl.start;
-  assign in_ctrl.valid  = r_in_ctrl.valid;
-  assign in_ctrl.stop   = r_in_ctrl.stop;
-  assign out_ctrl.start  = r_out_ctrl.start;
-  assign out_ctrl.valid  = r_out_ctrl.valid;
-  assign out_ctrl.stop   = r_out_ctrl.stop;
+  assign in_ctrl.start  = in_ctrl$.start;
+  assign in_ctrl.valid  = in_ctrl$.valid;
+  assign in_ctrl.stop   = in_ctrl$.stop;
+  assign out_ctrl.start  = out_ctrl$.start;
+  assign out_ctrl.valid  = out_ctrl$.valid;
+  assign out_ctrl.stop   = out_ctrl$.stop;
 
   // clock
   initial begin
@@ -53,7 +53,7 @@ module test_gobou_ctrl_core;
 
     xrst = 1;
     req = 0;
-    r_in_ctrl = '{0, 0, 0};
+    in_ctrl$ = '{0, 0, 0};
     img_we = 0;
     in_offset = 0;
     out_offset = 0;
@@ -73,14 +73,14 @@ module test_gobou_ctrl_core;
 
     for (int i = 0; i < 16; i++) begin
       #(STEP*1000);
-      r_in_ctrl.start = 1;
+      in_ctrl$.start = 1;
       #(STEP);
-      r_in_ctrl.start = 0;
-      r_in_ctrl.valid = 1;
-      r_in_ctrl.stop  = 1;
+      in_ctrl$.start = 0;
+      in_ctrl$.valid = 1;
+      in_ctrl$.stop  = 1;
       #(STEP);
-      r_in_ctrl.valid = 0;
-      r_in_ctrl.stop  = 0;
+      in_ctrl$.valid = 0;
+      in_ctrl$.stop  = 0;
     end
 
     // while (!ack) #(STEP);
@@ -94,9 +94,9 @@ module test_gobou_ctrl_core;
     #(STEP/2-1);
     $display(
       "%d: ", $time/STEP,
-      "%d ", dut.r_state,
-      "%d ", dut.r_count_out,
-      "%d ", dut.r_count_in,
+      "%d ", dut.state$,
+      "%d ", dut.count_out$,
+      "%d ", dut.count_in$,
       "| ",
     );
     #(STEP/2+1);

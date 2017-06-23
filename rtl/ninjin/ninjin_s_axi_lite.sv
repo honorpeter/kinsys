@@ -38,167 +38,167 @@ module ninjin_s_axi_lite
   wire                  port_re;
   wire [DATA_WIDTH-1:0] mux [ADDR_WIDTH-LSB-1:0];
 
-  reg                   r_awready;
-  reg  [ADDR_WIDTH-1:0] r_awaddr;
-  reg                   r_wready;
-  reg                   r_bvalid;
-  reg  [1:0]            r_bresp;
-  reg                   r_arready;
-  reg  [ADDR_WIDTH-1:0] r_araddr;
-  reg                   r_rvalid;
-  reg  [DATA_WIDTH-1:0] r_rdata;
-  reg  [1:0]            r_rresp;
-  reg  [DATA_WIDTH-1:0] r_port [PORT-1:0];
+  reg                   awready$;
+  reg  [ADDR_WIDTH-1:0] awaddr$;
+  reg                   wready$;
+  reg                   bvalid$;
+  reg  [1:0]            bresp$;
+  reg                   arready$;
+  reg  [ADDR_WIDTH-1:0] araddr$;
+  reg                   rvalid$;
+  reg  [DATA_WIDTH-1:0] rdata$;
+  reg  [1:0]            rresp$;
+  reg  [DATA_WIDTH-1:0] port$ [PORT-1:0];
 
 //==========================================================
 // write address control
 //==========================================================
 
-  assign awready = r_awready;
+  assign awready = awready$;
 
   always @(posedge clk)
     if (!xrst)
-      r_awready <= 0;
+      awready$ <= 0;
     else
-      if (!r_awready && awvalid && wvalid)
-        r_awready <= 1;
+      if (!awready$ && awvalid && wvalid)
+        awready$ <= 1;
       else
-        r_awready <= 0;
+        awready$ <= 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_awaddr <= 0;
+      awaddr$ <= 0;
     else
-      if (!r_awready && awvalid && wvalid)
-        r_awaddr <= awaddr;
+      if (!awready$ && awvalid && wvalid)
+        awaddr$ <= awaddr;
 
 //==========================================================
 // write data control
 //==========================================================
 
-  assign wready = r_wready;
+  assign wready = wready$;
 
   always @(posedge clk)
     if (!xrst)
-      r_wready <= 0;
+      wready$ <= 0;
     else
-      if (!r_wready && awvalid && wvalid)
-        r_wready <= 1;
+      if (!wready$ && awvalid && wvalid)
+        wready$ <= 1;
       else
-        r_wready <= 0;
+        wready$ <= 0;
 
 //==========================================================
 // write response control
 //==========================================================
 
-  assign bvalid = r_bvalid;
-  assign bresp  = r_bresp;
+  assign bvalid = bvalid$;
+  assign bresp  = bresp$;
 
   always @(posedge clk)
     if (!xrst)
-      r_bvalid <= 0;
+      bvalid$ <= 0;
     else
-      if (r_awready && awvalid && !r_bvalid && r_wready && wvalid)
-        r_bvalid <= 1;
-      else if (bready && r_bvalid)
-        r_bvalid <= 0;
+      if (awready$ && awvalid && !bvalid$ && wready$ && wvalid)
+        bvalid$ <= 1;
+      else if (bready && bvalid$)
+        bvalid$ <= 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_bresp <= 0;
+      bresp$ <= 0;
     else
-      if (r_awready && awvalid && !r_bvalid && r_wready && wvalid)
-        r_bresp <= 0; // "OKAY" response
+      if (awready$ && awvalid && !bvalid$ && wready$ && wvalid)
+        bresp$ <= 0; // "OKAY" response
 
 //==========================================================
 // read address control
 //==========================================================
 
-  assign arready = r_arready;
+  assign arready = arready$;
 
   always @(posedge clk)
     if (!xrst)
-      r_arready <= 0;
+      arready$ <= 0;
     else
-      if (!r_arready && arvalid)
-        r_arready <= 1;
+      if (!arready$ && arvalid)
+        arready$ <= 1;
       else
-        r_arready <= 0;
+        arready$ <= 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_araddr <= 0;
+      araddr$ <= 0;
     else
-      if (!r_arready && arvalid)
-        r_araddr <= araddr;
+      if (!arready$ && arvalid)
+        araddr$ <= araddr;
 
 //==========================================================
 // read data control
 //==========================================================
 
-  assign rvalid = r_rvalid;
-  assign rdata  = r_rdata;
-  assign rresp  = r_rresp;
+  assign rvalid = rvalid$;
+  assign rdata  = rdata$;
+  assign rresp  = rresp$;
 
   always @(posedge clk)
     if (!xrst)
-      r_rvalid <= 0;
+      rvalid$ <= 0;
     else
-      if (r_arready && arvalid && !r_rvalid)
-        r_rvalid <= 1;
+      if (arready$ && arvalid && !rvalid$)
+        rvalid$ <= 1;
       else if (rvalid && rready)
-        r_rvalid <= 0;
+        rvalid$ <= 0;
 
   for (genvar i = 0; i < 2**(ADDR_WIDTH-LSB); i++)
     if (i < PORT)
-      assign mux[i] = r_port[i];
+      assign mux[i] = port$[i];
     else
       assign mux[i] = 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_rdata <= 0;
+      rdata$ <= 0;
     else if (port_re)
-      r_rdata <= mux[r_araddr[ADDR_WIDTH-1:LSB]];
+      rdata$ <= mux[araddr$[ADDR_WIDTH-1:LSB]];
 
   always @(posedge clk)
     if (!xrst)
-      r_rresp <= 0;
+      rresp$ <= 0;
     else
-      if (r_arready && arvalid && !r_rvalid)
-        r_rresp <= 0; // "OKAY" response
+      if (arready$ && arvalid && !rvalid$)
+        rresp$ <= 0; // "OKAY" response
 
 //==========================================================
 // port control
 //==========================================================
 
-  assign port_we = r_wready && wvalid && r_awready && awvalid;
-  assign port_re = r_arready && arvalid && !r_rvalid;
+  assign port_we = wready$ && wvalid && awready$ && awvalid;
+  assign port_re = arready$ && arvalid && !rvalid$;
 
   always @(posedge clk)
     if (!xrst) begin
       for (int i = 0; i < PORT; i++)
-        r_port[i] <= 0;
+        port$[i] <= 0;
     end
     else
       if (port_we) begin
         for (int i = 0; i < PORT; i++)
-          if (r_awaddr[ADDR_WIDTH-1:LSB] == i) begin
+          if (awaddr$[ADDR_WIDTH-1:LSB] == i) begin
             for (int b = 0; b < DATA_WIDTH/8; b++)
               if (wstrb[b])
-                r_port[i][b*8 +: 8] <= wdata[b*8 +: 8];
+                port$[i][b*8 +: 8] <= wdata[b*8 +: 8];
           end
           else
-            r_port[i] <= r_port[i];
+            port$[i] <= port$[i];
       end
       else begin
         // PL->PS ports
         for (int i = PORT/2; i < PORT; i++)
-          r_port[i] <= out_port[i];
+          port$[i] <= out_port[i];
       end
 
   // PS->PL ports
   for (genvar i = 0; i < PORT/2; i++)
-    assign in_port[i] = r_port[i];
+    assign in_port[i] = port$[i];
 
 endmodule

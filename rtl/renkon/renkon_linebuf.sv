@@ -25,97 +25,97 @@ module renkon_linebuf
 
   enum reg [2-1:0] {
     S_WAIT, S_CHARGE, S_ACTIVE
-  } r_state;
-  reg [BUFLINE:0]        r_select;
-  reg [BUFLINE:0]        r_mem_count;
-  reg [BUFSIZE-1:0]      r_addr_count;
-  reg [BUFSIZE-1:0]      r_line_count;
-  reg signed [DWIDTH-1:0]  r_buf_input;
-  reg signed [DWIDTH-1:0]  r_pixel [MAXLINE**2-1:0];
+  } state$;
+  reg [BUFLINE:0]        select$;
+  reg [BUFLINE:0]        mem_count$;
+  reg [BUFSIZE-1:0]      addr_count$;
+  reg [BUFSIZE-1:0]      line_count$;
+  reg signed [DWIDTH-1:0]  buf_input$;
+  reg signed [DWIDTH-1:0]  pixel$ [MAXLINE**2-1:0];
 
-  assign mem_linebuf_addr = r_addr_count;
+  assign mem_linebuf_addr = addr_count$;
 
-  assign mem_linebuf_we = (r_state == S_CHARGE || r_state == S_ACTIVE)
-                        ? (1 << r_mem_count)
+  assign mem_linebuf_we = (state$ == S_CHARGE || state$ == S_ACTIVE)
+                        ? (1 << mem_count$)
                         : 1'b0;
 
   for (genvar i = 0; i < MAXLINE**2; i++)
-    assign buf_output[i] = r_pixel[i];
+    assign buf_output[i] = pixel$[i];
 
   always @(posedge clk)
     if (!xrst)
-      r_state <= S_WAIT;
+      state$ <= S_WAIT;
     else
-      case (r_state)
+      case (state$)
         S_WAIT:
           if (buf_en)
-            r_state <= S_CHARGE;
+            state$ <= S_CHARGE;
         S_CHARGE:
           if (s_charge_end)
-            r_state <= S_ACTIVE;
+            state$ <= S_ACTIVE;
         S_ACTIVE:
           if (s_active_end)
-            r_state <= S_WAIT;
+            state$ <= S_WAIT;
         default:
-          r_state <= S_WAIT;
+          state$ <= S_WAIT;
       endcase
 
-  assign s_charge_end = r_mem_count == fil_size - 1
-                        && r_addr_count == img_size - 1;
+  assign s_charge_end = mem_count$ == fil_size - 1
+                        && addr_count$ == img_size - 1;
 
-  assign s_active_end = r_line_count == img_size
-                        && r_addr_count == img_size - 1;
+  assign s_active_end = line_count$ == img_size
+                        && addr_count$ == img_size - 1;
 
   always @(posedge clk)
     if (!xrst)
-      r_buf_input <= 0;
+      buf_input$ <= 0;
     else
-      r_buf_input <= buf_input;
+      buf_input$ <= buf_input;
 
   always @(posedge clk)
     if (!xrst)
-      r_addr_count <= 0;
-    else if (r_state == S_WAIT)
-      r_addr_count <= 0;
-    else if (r_state == S_CHARGE || r_state == S_ACTIVE)
-      if (r_addr_count == img_size - 1)
-        r_addr_count <= 0;
+      addr_count$ <= 0;
+    else if (state$ == S_WAIT)
+      addr_count$ <= 0;
+    else if (state$ == S_CHARGE || state$ == S_ACTIVE)
+      if (addr_count$ == img_size - 1)
+        addr_count$ <= 0;
       else
-        r_addr_count <= r_addr_count + 1;
+        addr_count$ <= addr_count$ + 1;
 
   always @(posedge clk)
     if (!xrst)
-      r_mem_count <= 0;
-    else if  (r_state == S_WAIT)
-      r_mem_count <= 0;
-    else if (r_state == S_CHARGE || r_state == S_ACTIVE)
-      if ((r_line_count == img_size || r_mem_count == MAXLINE)
-            && r_addr_count == img_size - 1)
-        r_mem_count <= 0;
-      else if (r_addr_count == img_size - 1)
-        r_mem_count <= r_mem_count + 1;
+      mem_count$ <= 0;
+    else if  (state$ == S_WAIT)
+      mem_count$ <= 0;
+    else if (state$ == S_CHARGE || state$ == S_ACTIVE)
+      if ((line_count$ == img_size || mem_count$ == MAXLINE)
+            && addr_count$ == img_size - 1)
+        mem_count$ <= 0;
+      else if (addr_count$ == img_size - 1)
+        mem_count$ <= mem_count$ + 1;
 
   always @(posedge clk)
     if (!xrst)
-      r_line_count <= 0;
-    else if  (r_state == S_WAIT)
-      r_line_count <= 0;
-    else if (r_state == S_CHARGE || r_state == S_ACTIVE)
-      if (r_line_count == img_size && r_addr_count == img_size - 1)
-        r_line_count <= 0;
-      else if (r_addr_count == img_size - 1)
-        r_line_count <= r_line_count + 1;
+      line_count$ <= 0;
+    else if  (state$ == S_WAIT)
+      line_count$ <= 0;
+    else if (state$ == S_CHARGE || state$ == S_ACTIVE)
+      if (line_count$ == img_size && addr_count$ == img_size - 1)
+        line_count$ <= 0;
+      else if (addr_count$ == img_size - 1)
+        line_count$ <= line_count$ + 1;
 
   always @(posedge clk)
     if (!xrst)
-      r_select <= 0;
-    else if (r_state == S_WAIT)
-      r_select <= 0;
-    else if (r_state == S_ACTIVE)
-      if (r_mem_count == fil_size && r_addr_count == 0)
-        r_select <= 1;
-      else if (r_addr_count == 0)
-        r_select <= r_select+1;
+      select$ <= 0;
+    else if (state$ == S_WAIT)
+      select$ <= 0;
+    else if (state$ == S_ACTIVE)
+      if (mem_count$ == fil_size && addr_count$ == 0)
+        select$ <= 1;
+      else if (addr_count$ == 0)
+        select$ <= select$+1;
 
   for (genvar i = 0; i < MAXLINE; i++)
     for (genvar k = -1; k < MAXLINE+1; k++)
@@ -131,34 +131,34 @@ module renkon_linebuf
         //   if (k == -1) begin
         //     always @(posedge clk)
         //       if (!xrst)
-        //         r_pixel[MAXLINE * i + j] <= 0;
-        //       else if (r_select == 0)
-        //         r_pixel[MAXLINE * i + j] <= 0;
+        //         pixel$[MAXLINE * i + j] <= 0;
+        //       else if (select$ == 0)
+        //         pixel$[MAXLINE * i + j] <= 0;
         //   end
         //   else begin
         //     always @(posedge clk)
-        //       if (r_select == k + 1)
-        //         r_pixel[MAXLINE * i + j] <= read_mem[(i + k) % (MAXLINE + 1)];
+        //       if (select$ == k + 1)
+        //         pixel$[MAXLINE * i + j] <= read_mem[(i + k) % (MAXLINE + 1)];
         //   end
         always @(posedge clk)
           if (!xrst)
-            r_pixel[MAXLINE * i + j] <= 0;
+            pixel$[MAXLINE * i + j] <= 0;
           else
-            r_pixel[MAXLINE * i + j] <= mux[i][r_select];
+            pixel$[MAXLINE * i + j] <= mux[i][select$];
       end
       else begin
         always @(posedge clk)
           if (!xrst)
-            r_pixel[MAXLINE * i + j] <= 0;
+            pixel$[MAXLINE * i + j] <= 0;
           else
-            r_pixel[MAXLINE * i + j] <= r_pixel[MAXLINE * i + (j+1)];
+            pixel$[MAXLINE * i + j] <= pixel$[MAXLINE * i + (j+1)];
       end
 
   for (genvar i = 0; i < MAXLINE+1; i++)
     mem_sp #(DWIDTH, BUFSIZE) mem_buf(
       .mem_we     (mem_linebuf_we[i]),
       .mem_addr   (mem_linebuf_addr),
-      .mem_wdata  (r_buf_input),
+      .mem_wdata  (buf_input$),
       .mem_rdata  (read_mem[i]),
       .*
     );

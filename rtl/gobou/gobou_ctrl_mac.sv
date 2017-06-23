@@ -10,47 +10,47 @@ module gobou_ctrl_mac
   , output          accum_rst
   );
 
-  ctrl_reg  r_out_ctrl;
-  reg       r_mac_oe;
-  reg       r_accum_we;
-  reg       r_accum_rst;
+  ctrl_reg  out_ctrl$;
+  reg       mac_oe$;
+  reg       accum_we$;
+  reg       accum_rst$;
 
-  assign mac_oe     = r_mac_oe;
-  assign accum_we   = r_accum_we;
-  assign accum_rst  = r_accum_rst;
-
-  always @(posedge clk)
-    if (!xrst)
-      r_mac_oe <= 0;
-    else
-      r_mac_oe <= in_ctrl.stop;
+  assign mac_oe     = mac_oe$;
+  assign accum_we   = accum_we$;
+  assign accum_rst  = accum_rst$;
 
   always @(posedge clk)
     if (!xrst)
-      r_accum_we <= 0;
+      mac_oe$ <= 0;
     else
-      r_accum_we <= in_ctrl.valid && !in_ctrl.stop;
+      mac_oe$ <= in_ctrl.stop;
 
   always @(posedge clk)
     if (!xrst)
-      r_accum_rst <= 0;
+      accum_we$ <= 0;
     else
-      r_accum_rst <= mac_oe;
+      accum_we$ <= in_ctrl.valid && !in_ctrl.stop;
 
-  assign out_ctrl.start = r_out_ctrl.start;
-  assign out_ctrl.valid = r_out_ctrl.valid;
-  assign out_ctrl.stop  = r_out_ctrl.stop;
+  always @(posedge clk)
+    if (!xrst)
+      accum_rst$ <= 0;
+    else
+      accum_rst$ <= mac_oe;
+
+  assign out_ctrl.start = out_ctrl$.start;
+  assign out_ctrl.valid = out_ctrl$.valid;
+  assign out_ctrl.stop  = out_ctrl$.stop;
 
   always @(posedge clk)
     if (!xrst) begin
-      r_out_ctrl.start <= 0;
-      r_out_ctrl.valid <= 0;
-      r_out_ctrl.stop  <= 0;
+      out_ctrl$.start <= 0;
+      out_ctrl$.valid <= 0;
+      out_ctrl$.stop  <= 0;
     end
     else begin
-      r_out_ctrl.start <= in_ctrl.stop;
-      r_out_ctrl.valid <= r_mac_oe;
-      r_out_ctrl.stop  <= r_mac_oe;
+      out_ctrl$.start <= in_ctrl.stop;
+      out_ctrl$.valid <= mac_oe$;
+      out_ctrl$.stop  <= mac_oe$;
     end
 
 endmodule

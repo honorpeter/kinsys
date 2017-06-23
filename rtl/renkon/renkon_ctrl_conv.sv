@@ -28,22 +28,22 @@ module renkon_ctrl_conv
 
   enum reg {
     S_WAIT, S_ACTIVE
-  } r_state;
-  reg [2-1:0]       r_core_state;
-  reg               r_wait_back;
-  reg               r_first_input;
-  reg               r_last_input;
-  reg [LWIDTH-1:0]  r_img_size;
-  reg [LWIDTH-1:0]  r_fil_size;
-  reg [LWIDTH-1:0]  r_fea_size;
-  reg               r_feat_we   [D_CONV-1:0];
-  reg               r_feat_rst  [D_CONV-1:0];
-  reg [FACCUM-1:0]  r_feat_addr [D_CONV:0];
-  reg [LWIDTH-1:0]  r_conv_x;
-  reg [LWIDTH-1:0]  r_conv_y;
-  ctrl_reg          r_conv_ctrl;
-  ctrl_reg          r_accum_ctrl;
-  ctrl_reg          r_out_ctrl    [D_CONV+D_ACCUM-1:0];
+  } state$;
+  reg [2-1:0]       core_state$;
+  reg               wait_back$;
+  reg               first_input$;
+  reg               last_input$;
+  reg [LWIDTH-1:0]  img_size$;
+  reg [LWIDTH-1:0]  fil_size$;
+  reg [LWIDTH-1:0]  fea_size$;
+  reg               feat_we$   [D_CONV-1:0];
+  reg               feat_rst$  [D_CONV-1:0];
+  reg [FACCUM-1:0]  feat_addr$ [D_CONV:0];
+  reg [LWIDTH-1:0]  conv_x$;
+  reg [LWIDTH-1:0]  conv_y$;
+  ctrl_reg          conv_ctrl$;
+  ctrl_reg          accum_ctrl$;
+  ctrl_reg          out_ctrl$    [D_CONV+D_ACCUM-1:0];
 
 //==========================================================
 // main FSM
@@ -51,245 +51,245 @@ module renkon_ctrl_conv
 
   always @(posedge clk)
     if (!xrst)
-      r_state <= S_WAIT;
+      state$ <= S_WAIT;
     else
-      case (r_state)
+      case (state$)
         S_WAIT:
           if (in_ctrl.start)
-            r_state <= S_ACTIVE;
+            state$ <= S_ACTIVE;
         S_ACTIVE:
           if (out_ctrl.stop)
-            r_state <= S_WAIT;
+            state$ <= S_WAIT;
       endcase
 
   always @(posedge clk)
     if (!xrst)
-      r_core_state <= S_CORE_WAIT;
+      core_state$ <= S_CORE_WAIT;
     else
-      r_core_state <= core_state;
+      core_state$ <= core_state;
 
-  assign w_fea_size = r_fea_size;
+  assign w_fea_size = fea_size$;
 
   always @(posedge clk)
     if (!xrst) begin
-      r_img_size <= 0;
-      r_fil_size <= 0;
-      r_fea_size <= 0;
+      img_size$ <= 0;
+      fil_size$ <= 0;
+      fea_size$ <= 0;
     end
-    else if (r_state == S_WAIT && in_ctrl.start) begin
-      r_img_size <= w_img_size;
-      r_fil_size <= w_fil_size;
-      r_fea_size <= w_img_size - w_fil_size + 1;
+    else if (state$ == S_WAIT && in_ctrl.start) begin
+      img_size$ <= w_img_size;
+      fil_size$ <= w_fil_size;
+      fea_size$ <= w_img_size - w_fil_size + 1;
     end
 
   always @(posedge clk)
     if (!xrst) begin
-      r_conv_x <= 0;
-      r_conv_y <= 0;
+      conv_x$ <= 0;
+      conv_y$ <= 0;
     end
     else
-      case (r_state)
+      case (state$)
         S_WAIT: begin
-          r_conv_x <= 0;
-          r_conv_y <= 0;
+          conv_x$ <= 0;
+          conv_y$ <= 0;
         end
         S_ACTIVE:
-          if (r_core_state == S_CORE_INPUT && in_ctrl.valid)
-            if (r_conv_x == r_img_size - 1) begin
-              r_conv_x <= 0;
-              if (r_conv_y == r_img_size - 1)
-                r_conv_y <= 0;
+          if (core_state$ == S_CORE_INPUT && in_ctrl.valid)
+            if (conv_x$ == img_size$ - 1) begin
+              conv_x$ <= 0;
+              if (conv_y$ == img_size$ - 1)
+                conv_y$ <= 0;
               else
-                r_conv_y <= r_conv_y + 1;
+                conv_y$ <= conv_y$ + 1;
             end
             else
-              r_conv_x <= r_conv_x + 1;
-          else if (r_core_state == S_CORE_OUTPUT && !r_wait_back)
-            if (r_conv_x == r_fea_size - 1) begin
-              r_conv_x <= 0;
-              if (r_conv_y == r_fea_size - 1)
-                r_conv_y <= 0;
+              conv_x$ <= conv_x$ + 1;
+          else if (core_state$ == S_CORE_OUTPUT && !wait_back$)
+            if (conv_x$ == fea_size$ - 1) begin
+              conv_x$ <= 0;
+              if (conv_y$ == fea_size$ - 1)
+                conv_y$ <= 0;
               else
-                r_conv_y <= r_conv_y + 1;
+                conv_y$ <= conv_y$ + 1;
             end
             else
-              r_conv_x <= r_conv_x + 1;
+              conv_x$ <= conv_x$ + 1;
       endcase
 
 //==========================================================
 // conv control
 //==========================================================
 
-  assign conv_ctrl.start = r_conv_ctrl.start;
-  assign conv_ctrl.valid = r_conv_ctrl.valid;
-  assign conv_ctrl.stop  = r_conv_ctrl.stop;
+  assign conv_ctrl.start = conv_ctrl$.start;
+  assign conv_ctrl.valid = conv_ctrl$.valid;
+  assign conv_ctrl.stop  = conv_ctrl$.stop;
 
   always @(posedge clk)
     if (!xrst) begin
-      r_conv_ctrl.start <= 0;
-      r_conv_ctrl.valid <= 0;
-      r_conv_ctrl.stop  <= 0;
+      conv_ctrl$.start <= 0;
+      conv_ctrl$.valid <= 0;
+      conv_ctrl$.stop  <= 0;
     end
     else begin
-      r_conv_ctrl.start <= r_state == S_ACTIVE
-                            && r_core_state == S_CORE_INPUT
-                            && r_conv_x == r_fil_size - 2
-                            && r_conv_y == r_fil_size - 1;
-      r_conv_ctrl.valid <= r_state == S_ACTIVE
-                            && r_core_state == S_CORE_INPUT
-                            && r_conv_x >= r_fil_size - 1
-                            && r_conv_y >= r_fil_size - 1;
-      r_conv_ctrl.stop  <= r_state == S_ACTIVE
-                            && r_core_state == S_CORE_INPUT
-                            && r_conv_x == r_img_size - 1
-                            && r_conv_y == r_img_size - 1;
+      conv_ctrl$.start <= state$ == S_ACTIVE
+                            && core_state$ == S_CORE_INPUT
+                            && conv_x$ == fil_size$ - 2
+                            && conv_y$ == fil_size$ - 1;
+      conv_ctrl$.valid <= state$ == S_ACTIVE
+                            && core_state$ == S_CORE_INPUT
+                            && conv_x$ >= fil_size$ - 1
+                            && conv_y$ >= fil_size$ - 1;
+      conv_ctrl$.stop  <= state$ == S_ACTIVE
+                            && core_state$ == S_CORE_INPUT
+                            && conv_x$ == img_size$ - 1
+                            && conv_y$ == img_size$ - 1;
     end
 
   always @(posedge clk)
     if (!xrst) begin
-      r_first_input <= 0;
-      r_last_input  <= 0;
+      first_input$ <= 0;
+      last_input$  <= 0;
     end
     else begin
-      r_first_input <= first_input;
-      r_last_input  <= last_input;
+      first_input$ <= first_input;
+      last_input$  <= last_input;
     end
 
 //==========================================================
 // mem_feat control
 //==========================================================
 
-  assign mem_feat_we      = r_feat_we[D_CONV-1];
-  assign mem_feat_rst     = r_feat_rst[D_CONV-1];
-  assign mem_feat_addr    = r_feat_addr[D_CONV-1];
-  assign mem_feat_addr_d1 = r_feat_addr[D_CONV];
+  assign mem_feat_we      = feat_we$[D_CONV-1];
+  assign mem_feat_rst     = feat_rst$[D_CONV-1];
+  assign mem_feat_addr    = feat_addr$[D_CONV-1];
+  assign mem_feat_addr_d1 = feat_addr$[D_CONV];
 
   for (genvar i = 0; i < D_CONV; i++)
     if (i == 0)
       always @(posedge clk)
         if (!xrst)
-          r_feat_we[0] <= 0;
+          feat_we$[0] <= 0;
         else
-          r_feat_we[0] <= conv_ctrl.valid;
+          feat_we$[0] <= conv_ctrl.valid;
     else
       always @(posedge clk)
         if (!xrst)
-          r_feat_we[i] <= 0;
+          feat_we$[i] <= 0;
         else
-          r_feat_we[i] <= r_feat_we[i-1];
+          feat_we$[i] <= feat_we$[i-1];
 
   for (genvar i = 0; i < D_CONV; i++)
     if (i == 0)
       always @(posedge clk)
         if (!xrst)
-          r_feat_rst[0] <= 0;
+          feat_rst$[0] <= 0;
         else
-          r_feat_rst[0] <= conv_ctrl.valid && r_first_input;
+          feat_rst$[0] <= conv_ctrl.valid && first_input$;
     else
       always @(posedge clk)
         if (!xrst)
-          r_feat_rst[i] <= 0;
+          feat_rst$[i] <= 0;
         else
-          r_feat_rst[i] <= r_feat_rst[i-1];
+          feat_rst$[i] <= feat_rst$[i-1];
 
   for (genvar i = 0; i < D_CONV+1; i++)
     if (i == 0) begin
       always @(posedge clk)
         if (!xrst)
-          r_feat_addr[0] <= 0;
-        else if (conv_ctrl.stop || r_wait_back)
-          r_feat_addr[0] <= 0;
+          feat_addr$[0] <= 0;
+        else if (conv_ctrl.stop || wait_back$)
+          feat_addr$[0] <= 0;
         else if (conv_ctrl.valid
-                  || (r_core_state == S_CORE_OUTPUT
-                        && r_conv_x <= r_fea_size - 1
-                        && r_conv_y <= r_fea_size - 1))
-          r_feat_addr[0] <= r_feat_addr[0] + 1;
+                  || (core_state$ == S_CORE_OUTPUT
+                        && conv_x$ <= fea_size$ - 1
+                        && conv_y$ <= fea_size$ - 1))
+          feat_addr$[0] <= feat_addr$[0] + 1;
     end
     else begin
       always @(posedge clk)
         if (!xrst)
-          r_feat_addr[i] <= 0;
+          feat_addr$[i] <= 0;
         else
-          r_feat_addr[i] <= r_feat_addr[i-1];
+          feat_addr$[i] <= feat_addr$[i-1];
     end
 
 //==========================================================
 // accum control
 //==========================================================
 
-  assign accum_ctrl.start = r_accum_ctrl.start;
-  assign accum_ctrl.valid = r_accum_ctrl.valid;
-  assign accum_ctrl.stop  = r_accum_ctrl.stop;
+  assign accum_ctrl.start = accum_ctrl$.start;
+  assign accum_ctrl.valid = accum_ctrl$.valid;
+  assign accum_ctrl.stop  = accum_ctrl$.stop;
 
   always @(posedge clk)
     if (!xrst) begin
-      r_accum_ctrl.start <= 0;
-      r_accum_ctrl.valid <= 0;
-      r_accum_ctrl.stop  <= 0;
+      accum_ctrl$.start <= 0;
+      accum_ctrl$.valid <= 0;
+      accum_ctrl$.stop  <= 0;
     end
     else begin
-      r_accum_ctrl.start <= r_state == S_ACTIVE
-                              && r_core_state == S_CORE_INPUT
-                              && r_conv_x == r_img_size - 1
-                              && r_conv_y == r_img_size - 1
-                              && r_last_input;
-      r_accum_ctrl.valid <= r_state == S_ACTIVE
-                              && r_core_state == S_CORE_OUTPUT
-                              && r_conv_x <= r_fea_size - 1
-                              && r_conv_y <= r_fea_size - 1
-                              && !r_wait_back;
-      r_accum_ctrl.stop  <= r_state == S_ACTIVE
-                              && r_core_state == S_CORE_OUTPUT
-                              && r_conv_x == r_fea_size - 1
-                              && r_conv_y == r_fea_size - 1;
+      accum_ctrl$.start <= state$ == S_ACTIVE
+                              && core_state$ == S_CORE_INPUT
+                              && conv_x$ == img_size$ - 1
+                              && conv_y$ == img_size$ - 1
+                              && last_input$;
+      accum_ctrl$.valid <= state$ == S_ACTIVE
+                              && core_state$ == S_CORE_OUTPUT
+                              && conv_x$ <= fea_size$ - 1
+                              && conv_y$ <= fea_size$ - 1
+                              && !wait_back$;
+      accum_ctrl$.stop  <= state$ == S_ACTIVE
+                              && core_state$ == S_CORE_OUTPUT
+                              && conv_x$ == fea_size$ - 1
+                              && conv_y$ == fea_size$ - 1;
     end
 
 //==========================================================
 // output control
 //==========================================================
 
-  assign out_ctrl.start = r_out_ctrl[D_CONV+D_ACCUM-1].start;
-  assign out_ctrl.valid = r_out_ctrl[D_CONV+D_ACCUM-1].valid;
-  assign out_ctrl.stop  = r_out_ctrl[D_CONV+D_ACCUM-1].stop;
-  assign conv_oe        = r_out_ctrl[D_CONV+D_ACCUM-2].valid;
+  assign out_ctrl.start = out_ctrl$[D_CONV+D_ACCUM-1].start;
+  assign out_ctrl.valid = out_ctrl$[D_CONV+D_ACCUM-1].valid;
+  assign out_ctrl.stop  = out_ctrl$[D_CONV+D_ACCUM-1].stop;
+  assign conv_oe        = out_ctrl$[D_CONV+D_ACCUM-2].valid;
 
   for (genvar i = 0; i < D_CONV+D_ACCUM; i++)
     if (i == 0) begin
       always @(posedge clk)
         if (!xrst) begin
-          r_out_ctrl[0].start <= 0;
-          r_out_ctrl[0].valid <= 0;
-          r_out_ctrl[0].stop  <= 0;
+          out_ctrl$[0].start <= 0;
+          out_ctrl$[0].valid <= 0;
+          out_ctrl$[0].stop  <= 0;
         end
         else begin
-          r_out_ctrl[0].start <= accum_ctrl.start;
-          r_out_ctrl[0].valid <= accum_ctrl.valid;
-          r_out_ctrl[0].stop  <= accum_ctrl.stop;
+          out_ctrl$[0].start <= accum_ctrl.start;
+          out_ctrl$[0].valid <= accum_ctrl.valid;
+          out_ctrl$[0].stop  <= accum_ctrl.stop;
         end
     end
     else begin
       always @(posedge clk)
         if (!xrst) begin
-          r_out_ctrl[i].start <= 0;
-          r_out_ctrl[i].valid <= 0;
-          r_out_ctrl[i].stop  <= 0;
+          out_ctrl$[i].start <= 0;
+          out_ctrl$[i].valid <= 0;
+          out_ctrl$[i].stop  <= 0;
         end
         else begin
-          r_out_ctrl[i].start <= r_out_ctrl[i-1].start;
-          r_out_ctrl[i].valid <= r_out_ctrl[i-1].valid;
-          r_out_ctrl[i].stop  <= r_out_ctrl[i-1].stop;
+          out_ctrl$[i].start <= out_ctrl$[i-1].start;
+          out_ctrl$[i].valid <= out_ctrl$[i-1].valid;
+          out_ctrl$[i].stop  <= out_ctrl$[i-1].stop;
         end
     end
 
   always @(posedge clk)
     if (!xrst)
-      r_wait_back <= 0;
+      wait_back$ <= 0;
     else if (in_ctrl.start)
-      r_wait_back <= 0;
-    else if ((r_state == S_ACTIVE)
-                && (r_core_state == S_CORE_OUTPUT)
-                && r_conv_x == r_fea_size - 1
-                && r_conv_y == r_fea_size - 1)
-      r_wait_back <= 1;
+      wait_back$ <= 0;
+    else if ((state$ == S_ACTIVE)
+                && (core_state$ == S_CORE_OUTPUT)
+                && conv_x$ == fea_size$ - 1
+                && conv_y$ == fea_size$ - 1)
+      wait_back$ <= 1;
 
 endmodule

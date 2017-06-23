@@ -13,7 +13,7 @@ module renkon_serial_mat
   wire signed [OUTSIZE-1:0] mem_addr [RENKON_CORE-1:0];
   wire signed [DWIDTH-1:0]  mem_data [RENKON_CORE-1:0];
 
-  reg [RENKON_CORELOG:0] r_serial_re;
+  reg [RENKON_CORELOG:0] serial_re$;
 
   for (genvar i = 0; i < RENKON_CORE; i++) begin
     assign mem_addr[i] = serial_re == 0 ? serial_addr
@@ -31,12 +31,12 @@ module renkon_serial_mat
 
   always @(posedge clk)
     if (!xrst)
-      r_serial_re <= 0;
+      serial_re$ <= 0;
     else
-      r_serial_re <= serial_re;
+      serial_re$ <= serial_re;
 
   renkon_mux_output select_out(
-    .output_re  (r_serial_re),
+    .output_re  (serial_re$),
     .in_data    (mem_data),
     .out_data   (out_data),
     .*

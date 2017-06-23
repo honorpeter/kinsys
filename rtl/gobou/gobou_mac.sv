@@ -14,41 +14,41 @@ module gobou_mac
   wire signed [2*DWIDTH-1:0] pro;
   wire signed [DWIDTH-1:0]   pro_short;
 
-  reg signed [DWIDTH-1:0] r_x;
-  reg signed [DWIDTH-1:0] r_w;
-  reg signed [DWIDTH-1:0] r_y;
-  reg signed [DWIDTH-1:0] r_accum;
+  reg signed [DWIDTH-1:0] x$;
+  reg signed [DWIDTH-1:0] w$;
+  reg signed [DWIDTH-1:0] y$;
+  reg signed [DWIDTH-1:0] accum$;
 
   // TODO: adjust the bitwidth of multiplication results.
-  assign pro = r_x * r_w;
+  assign pro = x$ * w$;
   assign pro_short  = round(pro);
-  assign y = r_y;
+  assign y = y$;
 
   always @(posedge clk)
     if (!xrst)
-      r_x <= 0;
+      x$ <= 0;
     else
-      r_x <= x;
+      x$ <= x;
 
   always @(posedge clk)
     if (!xrst)
-      r_w <= 0;
+      w$ <= 0;
     else
-      r_w <= w;
+      w$ <= w;
 
   always @(posedge clk)
     if (!xrst)
-      r_y <= 0;
+      y$ <= 0;
     else if (out_en)
-      r_y <= r_accum;
+      y$ <= accum$;
 
   always @(posedge clk)
     if (!xrst)
-      r_accum <= 0;
+      accum$ <= 0;
     else if (reset)
-      r_accum <= 0;
+      accum$ <= 0;
     else if (accum_we)
-      r_accum <= r_accum + pro_short;
+      accum$ <= accum$ + pro_short;
 
 ////////////////////////////////////////////////////////////
 //  Function

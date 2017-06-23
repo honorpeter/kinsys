@@ -8,38 +8,38 @@ module gobou_serial_vec
   , output signed [DWIDTH-1:0]  out_data
   );
 
-  reg [LWIDTH-1:0]        r_cnt;
-  reg signed [DWIDTH-1:0] r_data [GOBOU_CORE-1:0];
+  reg [LWIDTH-1:0]        cnt$;
+  reg signed [DWIDTH-1:0] data$ [GOBOU_CORE-1:0];
 
-  assign out_data = r_data[0];
+  assign out_data = data$[0];
 
   always @(posedge clk)
     if (!xrst)
-      r_cnt <= 0;
+      cnt$ <= 0;
     else if (serial_we)
-      r_cnt <= 1;
-    else if (r_cnt > 0)
-      if (r_cnt == GOBOU_CORE)
-        r_cnt <= 0;
+      cnt$ <= 1;
+    else if (cnt$ > 0)
+      if (cnt$ == GOBOU_CORE)
+        cnt$ <= 0;
       else
-        r_cnt <= r_cnt + 1;
+        cnt$ <= cnt$ + 1;
 
     for (genvar i = 0; i < GOBOU_CORE; i++)
       if (i == GOBOU_CORE - 1)
         always @(posedge clk)
           if (!xrst)
-            r_data[i] <= 0;
+            data$[i] <= 0;
           else if (serial_we)
-            r_data[i] <= in_data[i];
+            data$[i] <= in_data[i];
           else
-            r_data[i] <= 0;
+            data$[i] <= 0;
       else
         always @(posedge clk)
           if (!xrst)
-            r_data[i] <= 0;
+            data$[i] <= 0;
           else if (serial_we)
-            r_data[i] <= in_data[i];
+            data$[i] <= in_data[i];
           else
-            r_data[i] <= r_data[i+1];
+            data$[i] <= data$[i+1];
 
 endmodule

@@ -200,17 +200,17 @@ module test_ninjin_ddr_buf;
   // mem assert
   always @(mem_we, mem_addr, mem_wdata, mem_rdata) begin
     #(STEP/2-1);
-    if (dut.r_mode == 1)
-      case (dut.r_state[0])
+    if (dut.mode$ == 1)
+      case (dut.state$[0])
         2:
-          if (dut.r_mem_addr % 2 == 1)
+          if (dut.mem_addr$ % 2 == 1)
             assert (mem_rdata == 'h0def) else
               $error("read assertion failed (odd)");
           else
-            assert (mem_rdata == 'ha000 + (dut.r_mem_addr - READ_OFFSET)/2) else
+            assert (mem_rdata == 'ha000 + (dut.mem_addr$ - READ_OFFSET)/2) else
               $error("read assertion failed (even)");
         3:
-          assert (mem_rdata == 'h0a00 + dut.r_mem_addr - WRITE_OFFSET) else
+          assert (mem_rdata == 'h0a00 + dut.mem_addr$ - WRITE_OFFSET) else
             $error("write assertion failed");
         default:
           assert(1'b1);
@@ -231,15 +231,15 @@ module test_ninjin_ddr_buf;
       $display(
         "%4d: ", $time/STEP,
         "%d ", xrst,
-        "*%-7p ", dut.r_state[0],
+        "*%-7p ", dut.state$[0],
         ": ",
         "%5d ", dut.addr_diff,
         "%d ", dut.mode,
         "%d ", dut.txn_start,
         "%d ", dut.txn_stop,
         ": ",
-        "%d ", dut.r_count_len,
-        "%d ", dut.r_count_inner,
+        "%d ", dut.count_len$,
+        "%d ", dut.count_inner$,
         "| ",
         // "%d ", dut.addr_offset[BUFSIZE:1],
         // "%d ", dut.word_offset,
@@ -250,7 +250,7 @@ module test_ninjin_ddr_buf;
         // "| ",
         // "%d ",  prefetch,
         // "%d ",  total_len,
-        // "%d ",  dut.r_base_addr,
+        // "%d ",  dut.base_addr$,
         // "| ",
         // "%d ",  ddr_req,
         // "%d ",  ddr_mode,
@@ -262,21 +262,21 @@ module test_ninjin_ddr_buf;
         "%8x ", ddr_wdata,
         "%8x ", ddr_rdata,
         "| ",
-        "*%-5p ", dut.r_which[0],
-        "*%-5p ", dut.r_which[1],
-        "*%-5p ", dut.r_first_buf,
+        "*%-5p ", dut.which$[0],
+        "*%-5p ", dut.which$[1],
+        "*%-5p ", dut.first_buf$,
         "%d ",  dut.switch_buf,
         "%d ",  dut.mem_addr,
-        "%d ",  dut.r_mem_diff,
+        "%d ",  dut.mem_diff$,
         ":a ",
         "%d ",  dut.buf_we[0],
-        "%d ",  dut.r_buf_base[0],
+        "%d ",  dut.buf_base$[0],
         "%d ",  dut.buf_addr[0],
         "%8x ", dut.buf_wdata[0],
         "%8x ", dut.buf_rdata[0],
         // ":b ",
         // "%d ",  dut.buf_we[1],
-        // "%d ",  dut.r_buf_base[1],
+        // "%d ",  dut.buf_base$[1],
         // "%d ",  dut.buf_addr[1],
         // "%8x ", dut.buf_wdata[1],
         // "%8x ", dut.buf_rdata[1],

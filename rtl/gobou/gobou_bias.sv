@@ -10,28 +10,28 @@ module gobou_bias
   , output signed [DWIDTH-1:0] pixel_out
   );
 
-  reg signed [DWIDTH-1:0] r_bias;
-  reg signed [DWIDTH-1:0] r_pixel_in;
-  reg signed [DWIDTH-1:0] r_pixel_out;
+  reg signed [DWIDTH-1:0] bias$;
+  reg signed [DWIDTH-1:0] pixel_in$;
+  reg signed [DWIDTH-1:0] pixel_out$;
 
-  assign pixel_out = r_pixel_out;
+  assign pixel_out = pixel_out$;
 
   always @(posedge clk)
     if (!xrst)
-      r_bias <= 0;
+      bias$ <= 0;
     else if (breg_we)
-      r_bias <= read_bias;
+      bias$ <= read_bias;
 
   always @(posedge clk)
     if (!xrst)
-      r_pixel_in <= 0;
+      pixel_in$ <= 0;
     else
-      r_pixel_in <= pixel_in;
+      pixel_in$ <= pixel_in;
 
   always @(posedge clk)
     if (!xrst)
-      r_pixel_out <= 0;
+      pixel_out$ <= 0;
     else if (out_en)
-      r_pixel_out <= r_pixel_in + r_bias;
+      pixel_out$ <= pixel_in$ + bias$;
 
 endmodule

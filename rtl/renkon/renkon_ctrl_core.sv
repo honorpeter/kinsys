@@ -47,250 +47,250 @@ module renkon_ctrl_core
 
   enum reg [2-1:0] {
     S_WAIT=0, S_NETWORK=1, S_INPUT=2, S_OUTPUT=3
-  } r_state [D_PIXELBUF:0];
+  } state$ [D_PIXELBUF:0];
   enum reg {
     S_W_WEIGHT, S_W_BIAS
-  } r_state_weight [D_PIXELBUF:0];
-  reg               r_ack;
-  reg [LWIDTH-1:0]  r_total_out;
-  reg [LWIDTH-1:0]  r_total_in;
-  reg [LWIDTH-1:0]  r_img_size;
-  reg [LWIDTH-1:0]  r_fil_size;
-  reg [LWIDTH-1:0]  r_pool_size;
-  reg [LWIDTH-1:0]  r_count_out;
-  reg [LWIDTH-1:0]  r_count_in;
-  reg [LWIDTH-1:0]  r_input_x;
-  reg [LWIDTH-1:0]  r_input_y;
-  reg [LWIDTH-1:0]  r_weight_x;
-  reg [LWIDTH-1:0]  r_weight_y;
-  reg [LWIDTH-1:0]  r_d_pixelbuf;
-  reg               r_buf_pix_en;
-  reg               r_img_we;
-  reg               r_out_we;
-  reg [IMGSIZE-1:0] r_in_offset;
-  reg [IMGSIZE-1:0] r_out_offset;
-  reg [IMGSIZE-1:0] r_in_addr;
-  reg [IMGSIZE-1:0] r_out_addr;
-  // reg [RENKON_CORE-1:0]    r_net_we;
-  reg [RENKON_NETSIZE-1:0] r_net_addr;
-  reg [RENKON_NETSIZE-1:0] r_net_offset;
-  reg               r_serial_we;
-  reg [RENKON_CORELOG:0]   r_serial_re;
-  reg [LWIDTH-1:0]  r_serial_cnt;
-  reg [OUTSIZE-1:0] r_serial_addr;
-  reg               r_serial_end;
-  reg               r_output_end;
-  reg               r_wreg_we     [D_PIXELBUF-1:0];
-  reg               r_first_input [D_PIXELBUF-1:0];
-  reg               r_last_input  [D_PIXELBUF-1:0];
-  ctrl_reg          r_out_ctrl    [D_PIXELBUF-1:0];
+  } state_weight$ [D_PIXELBUF:0];
+  reg               ack$;
+  reg [LWIDTH-1:0]  total_out$;
+  reg [LWIDTH-1:0]  total_in$;
+  reg [LWIDTH-1:0]  img_size$;
+  reg [LWIDTH-1:0]  fil_size$;
+  reg [LWIDTH-1:0]  pool_size$;
+  reg [LWIDTH-1:0]  count_out$;
+  reg [LWIDTH-1:0]  count_in$;
+  reg [LWIDTH-1:0]  input_x$;
+  reg [LWIDTH-1:0]  input_y$;
+  reg [LWIDTH-1:0]  weight_x$;
+  reg [LWIDTH-1:0]  weight_y$;
+  reg [LWIDTH-1:0]  d_pixelbuf$;
+  reg               buf_pix_en$;
+  reg               img_we$;
+  reg               out_we$;
+  reg [IMGSIZE-1:0] in_offset$;
+  reg [IMGSIZE-1:0] out_offset$;
+  reg [IMGSIZE-1:0] in_addr$;
+  reg [IMGSIZE-1:0] out_addr$;
+  // reg [RENKON_CORE-1:0]    net_we$;
+  reg [RENKON_NETSIZE-1:0] net_addr$;
+  reg [RENKON_NETSIZE-1:0] net_offset$;
+  reg               serial_we$;
+  reg [RENKON_CORELOG:0]   serial_re$;
+  reg [LWIDTH-1:0]  serial_cnt$;
+  reg [OUTSIZE-1:0] serial_addr$;
+  reg               serial_end$;
+  reg               output_end$;
+  reg               wreg_we$     [D_PIXELBUF-1:0];
+  reg               first_input$ [D_PIXELBUF-1:0];
+  reg               last_input$  [D_PIXELBUF-1:0];
+  ctrl_reg          out_ctrl$    [D_PIXELBUF-1:0];
 
   // To avoid below:
   //   > Index xxxxxxxxxx into array dimension [32:0] is out of bounds.
-  initial r_d_pixelbuf = 0;
+  initial d_pixelbuf$ = 0;
 
 //==========================================================
 // core control
 //==========================================================
 
-  assign final_iter = r_count_in == r_total_in - 1
-                   && r_count_out + RENKON_CORE >= r_total_out;
+  assign final_iter = count_in$ == total_in$ - 1
+                   && count_out$ + RENKON_CORE >= total_out$;
 
   //main FSM
   always @(posedge clk)
     if (!xrst) begin
-      r_state[0]  <= S_WAIT;
-      r_count_in  <= 0;
-      r_count_out <= 0;
+      state$[0]  <= S_WAIT;
+      count_in$  <= 0;
+      count_out$ <= 0;
     end
     else
-      case (r_state[0])
+      case (state$[0])
         S_WAIT:
           if (req)
-            r_state[0] <= S_NETWORK;
+            state$[0] <= S_NETWORK;
         S_NETWORK:
           if (s_network_end)
-            r_state[0] <= S_INPUT;
+            state$[0] <= S_INPUT;
         S_INPUT:
           if (s_input_end)
-            if (r_count_in == r_total_in - 1) begin
-              r_state[0]  <= S_OUTPUT;
-              r_count_in  <= 0;
+            if (count_in$ == total_in$ - 1) begin
+              state$[0]  <= S_OUTPUT;
+              count_in$  <= 0;
             end
             else begin
-              r_state[0]  <= S_NETWORK;
-              r_count_in  <= r_count_in + 1;
+              state$[0]  <= S_NETWORK;
+              count_in$  <= count_in$ + 1;
             end
         S_OUTPUT:
           if (s_output_end)
-            if (r_count_out + RENKON_CORE >= r_total_out) begin
-              r_state[0]  <= S_WAIT;
-              r_count_out <= 0;
+            if (count_out$ + RENKON_CORE >= total_out$) begin
+              state$[0]  <= S_WAIT;
+              count_out$ <= 0;
             end
             else begin
-              r_state[0]  <= S_NETWORK;
-              r_count_out <= r_count_out + RENKON_CORE;
+              state$[0]  <= S_NETWORK;
+              count_out$ <= count_out$ + RENKON_CORE;
             end
       endcase
 
-  assign core_state = r_state[r_d_pixelbuf];
+  assign core_state = state$[d_pixelbuf$];
 
   for (genvar i = 1; i < D_PIXELBUF+1; i++)
     always @(posedge clk)
       if (!xrst)
-        r_state[i] <= S_WAIT;
+        state$[i] <= S_WAIT;
       else
-        r_state[i] <= r_state[i-1];
+        state$[i] <= state$[i-1];
 
-  assign w_img_size = r_img_size;
-  assign w_fil_size = r_fil_size;
+  assign w_img_size = img_size$;
+  assign w_fil_size = fil_size$;
 
   //wait exec (initialize)
   always @(posedge clk)
     if (!xrst) begin
-      r_total_in    <= 0;
-      r_total_out   <= 0;
-      r_img_size    <= 0;
-      r_fil_size    <= 0;
-      r_d_pixelbuf  <= 0;
+      total_in$    <= 0;
+      total_out$   <= 0;
+      img_size$    <= 0;
+      fil_size$    <= 0;
+      d_pixelbuf$  <= 0;
     end
-    else if (r_state[0] == S_WAIT && req) begin
-      r_total_in    <= total_in;
-      r_total_out   <= total_out;
-      r_img_size    <= img_size;
-      r_fil_size    <= fil_size;
-      r_d_pixelbuf  <= img_size + 2;
+    else if (state$[0] == S_WAIT && req) begin
+      total_in$    <= total_in;
+      total_out$   <= total_out;
+      img_size$    <= img_size;
+      fil_size$    <= fil_size;
+      d_pixelbuf$  <= img_size + 2;
     end
 
-  assign first_input = r_first_input[r_d_pixelbuf];
-  assign last_input  = r_last_input[r_d_pixelbuf];
+  assign first_input = first_input$[d_pixelbuf$];
+  assign last_input  = last_input$[d_pixelbuf$];
 
   for (genvar i = 0; i < D_PIXELBUF; i++)
     if (i == 0)
       always @(posedge clk)
         if (!xrst) begin
-          r_first_input[0] <= 0;
-          r_last_input[0]  <= 0;
+          first_input$[0] <= 0;
+          last_input$[0]  <= 0;
         end
         else begin
-          r_first_input[0] <= r_state[0] == S_INPUT
-                                && r_count_in == 0;
-          r_last_input[0]  <= r_state[0] == S_INPUT
-                                && r_count_in == r_total_in - 1;
+          first_input$[0] <= state$[0] == S_INPUT
+                                && count_in$ == 0;
+          last_input$[0]  <= state$[0] == S_INPUT
+                                && count_in$ == total_in$ - 1;
         end
     else
       always @(posedge clk)
         if (!xrst) begin
-          r_first_input[i] <= 0;
-          r_last_input[i]  <= 0;
+          first_input$[i] <= 0;
+          last_input$[i]  <= 0;
         end
         else begin
-          r_first_input[i] <= r_first_input[i-1];
-          r_last_input[i]  <= r_last_input[i-1];
+          first_input$[i] <= first_input$[i-1];
+          last_input$[i]  <= last_input$[i-1];
         end
 
 //==========================================================
 // network control
 //==========================================================
 
-  // assign mem_net_we   = r_net_we;
-  // assign mem_net_addr = r_net_addr + r_net_offset;
+  // assign mem_net_we   = net_we$;
+  // assign mem_net_addr = net_addr$ + net_offset$;
   for (genvar i = 0; i < RENKON_CORE; i++)
     assign mem_net_we[i] = net_we & net_sel == i;
   assign mem_net_addr = net_we
                       ? net_addr
-                      : r_net_addr + r_net_offset;
+                      : net_addr$ + net_offset$;
 
-  assign s_network_end = r_state[0] == S_NETWORK
-                            && r_count_in == r_total_in - 1
+  assign s_network_end = state$[0] == S_NETWORK
+                            && count_in$ == total_in$ - 1
                         ? s_w_bias_end
                         : s_w_weight_end;
 
-  assign s_w_weight_end = r_state_weight[0] == S_W_WEIGHT
-                       && r_weight_x == r_fil_size - 1
-                       && r_weight_y == r_fil_size - 1;
+  assign s_w_weight_end = state_weight$[0] == S_W_WEIGHT
+                       && weight_x$ == fil_size$ - 1
+                       && weight_y$ == fil_size$ - 1;
 
-  assign s_w_bias_end   = r_state_weight[0] == S_W_BIAS;
+  assign s_w_bias_end   = state_weight$[0] == S_W_BIAS;
 
   always @(posedge clk)
     if (!xrst)
-      r_state_weight[0] <= S_W_WEIGHT;
+      state_weight$[0] <= S_W_WEIGHT;
     else
-      case (r_state_weight[0])
+      case (state_weight$[0])
         S_W_WEIGHT:
-          if (s_w_weight_end && r_count_in == r_total_in - 1)
-            r_state_weight[0] <= S_W_BIAS;
+          if (s_w_weight_end && count_in$ == total_in$ - 1)
+            state_weight$[0] <= S_W_BIAS;
         S_W_BIAS:
           if (s_w_bias_end)
-            r_state_weight[0] <= S_W_WEIGHT;
+            state_weight$[0] <= S_W_WEIGHT;
         default:
-          r_state_weight[0] <= S_W_WEIGHT;
+          state_weight$[0] <= S_W_WEIGHT;
       endcase
 
   for (genvar i = 1; i < D_PIXELBUF+1; i++)
     always @(posedge clk)
       if (!xrst)
-        r_state_weight[i] <= S_W_WEIGHT;
+        state_weight$[i] <= S_W_WEIGHT;
       else
-        r_state_weight[i] <= r_state_weight[i-1];
+        state_weight$[i] <= state_weight$[i-1];
 
   // for (genvar i = 0; i < RENKON_CORE; i++)
   //   always @(posedge clk)
   //     if (!xrst)
-  //       r_net_we[i] <= 0;
+  //       net_we$[i] <= 0;
   //     else if (net_we == i+1)
-  //       r_net_we[i] <= 1;
+  //       net_we$[i] <= 1;
   //     else
-  //       r_net_we[i] <= 0;
+  //       net_we$[i] <= 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_net_addr <= 0;
-    else if (final_iter && r_state_weight[r_d_pixelbuf] == S_W_BIAS)
-      r_net_addr <= 0;
-    else if (r_state[r_d_pixelbuf] == S_NETWORK)
-      case (r_state_weight[r_d_pixelbuf])
+      net_addr$ <= 0;
+    else if (final_iter && state_weight$[d_pixelbuf$] == S_W_BIAS)
+      net_addr$ <= 0;
+    else if (state$[d_pixelbuf$] == S_NETWORK)
+      case (state_weight$[d_pixelbuf$])
         S_W_WEIGHT:
-          r_net_addr <= r_net_addr + 1;
+          net_addr$ <= net_addr$ + 1;
         S_W_BIAS:
-          r_net_addr <= r_net_addr + 1;
+          net_addr$ <= net_addr$ + 1;
         default:
-          r_net_addr <= r_net_addr;
+          net_addr$ <= net_addr$;
       endcase
 
   always @(posedge clk)
     if (!xrst)
-      r_net_offset <= 0;
+      net_offset$ <= 0;
     else if (req || ack)
-      r_net_offset <= net_offset;
+      net_offset$ <= net_offset;
 
   always @(posedge clk)
     if (!xrst) begin
-      r_weight_x <= 0;
-      r_weight_y <= 0;
+      weight_x$ <= 0;
+      weight_y$ <= 0;
     end
     else
-      case (r_state[0])
+      case (state$[0])
         S_NETWORK:
-          case (r_state_weight[0])
+          case (state_weight$[0])
             S_W_WEIGHT:
-              if (r_weight_x == r_fil_size - 1) begin
-                r_weight_x <= 0;
-                if (r_weight_y == r_fil_size - 1)
-                  r_weight_y <= 0;
+              if (weight_x$ == fil_size$ - 1) begin
+                weight_x$ <= 0;
+                if (weight_y$ == fil_size$ - 1)
+                  weight_y$ <= 0;
                 else
-                  r_weight_y <= r_weight_y + 1;
+                  weight_y$ <= weight_y$ + 1;
               end
               else
-                r_weight_x <= r_weight_x + 1;
+                weight_x$ <= weight_x$ + 1;
             default: begin
-              r_weight_x <= 0;
-              r_weight_y <= 0;
+              weight_x$ <= 0;
+              weight_y$ <= 0;
             end
           endcase
         default: begin
-          r_weight_x <= 0;
-          r_weight_y <= 0;
+          weight_x$ <= 0;
+          weight_y$ <= 0;
         end
       endcase
 
@@ -298,219 +298,219 @@ module renkon_ctrl_core
 // params control
 //==========================================================
 
-  assign wreg_we  = r_state[r_d_pixelbuf+1] == S_NETWORK
-                 && r_state_weight[r_d_pixelbuf+1] == S_W_WEIGHT;
+  assign wreg_we  = state$[d_pixelbuf$+1] == S_NETWORK
+                 && state_weight$[d_pixelbuf$+1] == S_W_WEIGHT;
 
-  assign breg_we  = r_state[r_d_pixelbuf+1] == S_NETWORK
-                 && r_state_weight[r_d_pixelbuf+1] == S_W_BIAS;
+  assign breg_we  = state$[d_pixelbuf$+1] == S_NETWORK
+                 && state_weight$[d_pixelbuf$+1] == S_W_BIAS;
 
-  assign buf_pix_en = r_buf_pix_en;
+  assign buf_pix_en = buf_pix_en$;
 
   always @(posedge clk)
     if (!xrst)
-      r_buf_pix_en <= 0;
+      buf_pix_en$ <= 0;
     else
-      r_buf_pix_en <= r_state[0] == S_INPUT
-                   && r_out_ctrl[0].start;
+      buf_pix_en$ <= state$[0] == S_INPUT
+                   && out_ctrl$[0].start;
 
 //==========================================================
 // input control
 //==========================================================
 
-  assign s_input_end = r_state[0] == S_INPUT
-                    && r_input_x == r_img_size - 1
-                    && r_input_y == r_img_size - 1;
+  assign s_input_end = state$[0] == S_INPUT
+                    && input_x$ == img_size$ - 1
+                    && input_y$ == img_size$ - 1;
 
-  assign img_we   = r_img_we;
+  assign img_we   = img_we$;
   assign img_addr = w_img_addr + w_img_offset;
 
-  assign img_wdata = r_state[0] == S_OUTPUT
+  assign img_wdata = state$[0] == S_OUTPUT
                    ? out_wdata
                    : 0;
 
-  assign w_img_addr = r_state[0] == S_OUTPUT
-                    ? r_out_addr
-                    : r_in_addr;
+  assign w_img_addr = state$[0] == S_OUTPUT
+                    ? out_addr$
+                    : in_addr$;
 
-  assign w_img_offset = r_state[0] == S_OUTPUT
-                      ? r_out_offset
-                      : r_in_offset;
+  assign w_img_offset = state$[0] == S_OUTPUT
+                      ? out_offset$
+                      : in_offset$;
 
   always @(posedge clk)
     if (!xrst) begin
-      r_input_x <= 0;
-      r_input_y <= 0;
+      input_x$ <= 0;
+      input_y$ <= 0;
     end
     else
-      case (r_state[0])
+      case (state$[0])
         S_INPUT:
-          if (r_input_x == r_img_size - 1) begin
-            r_input_x <= 0;
-            if (r_input_y == r_img_size - 1)
-              r_input_y <= 0;
+          if (input_x$ == img_size$ - 1) begin
+            input_x$ <= 0;
+            if (input_y$ == img_size$ - 1)
+              input_y$ <= 0;
             else
-              r_input_y <= r_input_y + 1;
+              input_y$ <= input_y$ + 1;
           end
           else
-            r_input_x <= r_input_x + 1;
+            input_x$ <= input_x$ + 1;
         default: begin
-          r_input_x <= 0;
-          r_input_y <= 0;
+          input_x$ <= 0;
+          input_y$ <= 0;
         end
     endcase
 
   always @(posedge clk)
     if (!xrst)
-      r_img_we <= 0;
+      img_we$ <= 0;
     else
-      case (r_state[0])
+      case (state$[0])
         S_OUTPUT:
-          r_img_we <= r_out_we;
+          img_we$ <= out_we$;
         default:
-          r_img_we <= 0;
+          img_we$ <= 0;
       endcase
 
   always @(posedge clk)
     if (!xrst)
-      r_in_addr <= 0;
-    else if (r_state[0] == S_OUTPUT)
-      r_in_addr <= 0;
-    else if (r_state[0] == S_INPUT)
-      r_in_addr <= r_in_addr + 1;
+      in_addr$ <= 0;
+    else if (state$[0] == S_OUTPUT)
+      in_addr$ <= 0;
+    else if (state$[0] == S_INPUT)
+      in_addr$ <= in_addr$ + 1;
 
   always @(posedge clk)
     if (!xrst)
-      r_out_addr <= 0;
+      out_addr$ <= 0;
     else if (ack)
-      r_out_addr <= 0;
-    else if (r_img_we)
-      r_out_addr <= r_out_addr + 1;
+      out_addr$ <= 0;
+    else if (img_we$)
+      out_addr$ <= out_addr$ + 1;
 
   always @(posedge clk)
     if (!xrst) begin
-      r_in_offset <= 0;
-      r_out_offset <= 0;
+      in_offset$ <= 0;
+      out_offset$ <= 0;
     end
     else if (req || ack) begin
-      r_in_offset <= in_offset;
-      r_out_offset <= out_offset;
+      in_offset$ <= in_offset;
+      out_offset$ <= out_offset;
     end
 
 //==========================================================
 // output control
 //==========================================================
 
-  assign ack          = r_ack;
+  assign ack          = ack$;
 
-  assign serial_we    = r_serial_we;
-  assign serial_re    = r_serial_re;
-  assign serial_addr  = r_serial_addr;
+  assign serial_we    = serial_we$;
+  assign serial_re    = serial_re$;
+  assign serial_addr  = serial_addr$;
 
-  assign out_ctrl.start = r_out_ctrl[r_d_pixelbuf].start;
-  assign out_ctrl.valid = r_out_ctrl[r_d_pixelbuf].valid;
-  assign out_ctrl.stop  = r_out_ctrl[r_d_pixelbuf].stop;
+  assign out_ctrl.start = out_ctrl$[d_pixelbuf$].start;
+  assign out_ctrl.valid = out_ctrl$[d_pixelbuf$].valid;
+  assign out_ctrl.stop  = out_ctrl$[d_pixelbuf$].stop;
 
-  assign s_output_end = r_output_end;
+  assign s_output_end = output_end$;
 
   always @(posedge clk)
     if (!xrst)
-      r_serial_end <= 0;
+      serial_end$ <= 0;
     else
-      r_serial_end <= r_serial_re == RENKON_CORE
-                   && r_serial_addr == r_serial_cnt - 1;
+      serial_end$ <= serial_re$ == RENKON_CORE
+                   && serial_addr$ == serial_cnt$ - 1;
 
   always @(posedge clk)
     if (!xrst)
-      r_output_end <= 0;
+      output_end$ <= 0;
     else
-      r_output_end <= r_state[0] == S_OUTPUT && r_serial_end;
+      output_end$ <= state$[0] == S_OUTPUT && serial_end$;
 
   always @(posedge clk)
     if (!xrst)
-      r_out_we <= 0;
+      out_we$ <= 0;
     else
-      r_out_we <= r_serial_re > 0;
+      out_we$ <= serial_re$ > 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_ack <= 1;
+      ack$ <= 1;
     else if (req)
-      r_ack <= 0;
-    else if (s_output_end && r_count_out + RENKON_CORE >= r_total_out)
-      r_ack <= 1;
+      ack$ <= 0;
+    else if (s_output_end && count_out$ + RENKON_CORE >= total_out$)
+      ack$ <= 1;
 
   always @(posedge clk)
     if (!xrst)
-      r_serial_we <= 0;
-    else if (r_state[0] == S_OUTPUT)
+      serial_we$ <= 0;
+    else if (state$[0] == S_OUTPUT)
       if (in_ctrl.start)
-        r_serial_we <= 1;
+        serial_we$ <= 1;
       else if (in_ctrl.stop)
-        r_serial_we <= 0;
+        serial_we$ <= 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_serial_re <= 0;
+      serial_re$ <= 0;
     else if (in_ctrl.stop)
-      r_serial_re <= 1;
-    else if (r_serial_re > 0 && r_serial_addr == r_serial_cnt - 1)
-      if (r_serial_re == RENKON_CORE)
-        r_serial_re <= 0;
+      serial_re$ <= 1;
+    else if (serial_re$ > 0 && serial_addr$ == serial_cnt$ - 1)
+      if (serial_re$ == RENKON_CORE)
+        serial_re$ <= 0;
       else
-        r_serial_re <= r_serial_re + 1;
+        serial_re$ <= serial_re$ + 1;
 
   always @(posedge clk)
     if (!xrst)
-      r_serial_cnt <= 0;
+      serial_cnt$ <= 0;
     else if (s_output_end)
-      r_serial_cnt <= 0;
-    else if (r_state[0] == S_OUTPUT && in_ctrl.valid)
-      r_serial_cnt <= r_serial_cnt + 1;
+      serial_cnt$ <= 0;
+    else if (state$[0] == S_OUTPUT && in_ctrl.valid)
+      serial_cnt$ <= serial_cnt$ + 1;
 
   always @(posedge clk)
     if (!xrst)
-      r_serial_addr <= 0;
+      serial_addr$ <= 0;
     else if (s_output_end)
-      r_serial_addr <= 0;
-    else if (r_state[0] == S_OUTPUT && in_ctrl.valid)
+      serial_addr$ <= 0;
+    else if (state$[0] == S_OUTPUT && in_ctrl.valid)
       if (in_ctrl.stop)
-        r_serial_addr <= 0;
+        serial_addr$ <= 0;
       else
-        r_serial_addr <= r_serial_addr + 1;
-    else if (r_serial_re > 0)
-      if (r_serial_addr == r_serial_cnt - 1)
-        r_serial_addr <= 0;
+        serial_addr$ <= serial_addr$ + 1;
+    else if (serial_re$ > 0)
+      if (serial_addr$ == serial_cnt$ - 1)
+        serial_addr$ <= 0;
       else
-        r_serial_addr <= r_serial_addr + 1;
+        serial_addr$ <= serial_addr$ + 1;
 
   for (genvar i = 0; i < D_PIXELBUF; i++)
     if (i == 0)
       always @(posedge clk)
         if (!xrst) begin
-          r_out_ctrl[0].start <= 0;
-          r_out_ctrl[0].valid <= 0;
-          r_out_ctrl[0].stop  <= 0;
+          out_ctrl$[0].start <= 0;
+          out_ctrl$[0].valid <= 0;
+          out_ctrl$[0].stop  <= 0;
         end
         else begin
-          r_out_ctrl[0].start <= req
+          out_ctrl$[0].start <= req
                               || s_network_end
                               || s_input_end
-                                  && r_count_in != r_total_in - 1;
-          r_out_ctrl[0].valid <= r_state[0] == S_NETWORK
-                              || r_state[0] == S_INPUT;
-          r_out_ctrl[0].stop  <= s_network_end || s_input_end;
+                                  && count_in$ != total_in$ - 1;
+          out_ctrl$[0].valid <= state$[0] == S_NETWORK
+                              || state$[0] == S_INPUT;
+          out_ctrl$[0].stop  <= s_network_end || s_input_end;
         end
     else
       always @(posedge clk)
         if (!xrst) begin
-          r_out_ctrl[i].start <= 0;
-          r_out_ctrl[i].valid <= 0;
-          r_out_ctrl[i].stop  <= 0;
+          out_ctrl$[i].start <= 0;
+          out_ctrl$[i].valid <= 0;
+          out_ctrl$[i].stop  <= 0;
         end
         else begin
-          r_out_ctrl[i].start <= r_out_ctrl[i-1].start;
-          r_out_ctrl[i].valid <= r_out_ctrl[i-1].valid;
-          r_out_ctrl[i].stop  <= r_out_ctrl[i-1].stop;
+          out_ctrl$[i].start <= out_ctrl$[i-1].start;
+          out_ctrl$[i].valid <= out_ctrl$[i-1].valid;
+          out_ctrl$[i].stop  <= out_ctrl$[i-1].stop;
         end
 
 endmodule

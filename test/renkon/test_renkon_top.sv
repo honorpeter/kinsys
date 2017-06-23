@@ -512,7 +512,7 @@ module test_renkon_top;
           "%5d: ", now_time - req_time,
           "%d ", req,
           "%d ", ack,
-          "%d ", dut.ctrl.ctrl_core.r_state[0],
+          "%d ", dut.ctrl.ctrl_core.state$[0],
           "| ",
           "%d ", renkon_img_we,
           "%d ", renkon_img_addr,
@@ -525,12 +525,12 @@ module test_renkon_top;
           "%1d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
           "%1d ", dut.ctrl.ctrl_pool.out_ctrl.valid,
           "| ",
-          "%2d ",  dut.ctrl.ctrl_core.r_count_out,
-          "%2d ",  dut.ctrl.ctrl_core.r_count_in,
-          "%2d  ", dut.ctrl.ctrl_core.r_input_x,
-          "%2d  ", dut.ctrl.ctrl_core.r_input_y,
-          "%2d  ", dut.ctrl.ctrl_core.r_weight_x,
-          "%2d  ", dut.ctrl.ctrl_core.r_weight_y,
+          "%2d ",  dut.ctrl.ctrl_core.count_out$,
+          "%2d ",  dut.ctrl.ctrl_core.count_in$,
+          "%2d  ", dut.ctrl.ctrl_core.input_x$,
+          "%2d  ", dut.ctrl.ctrl_core.input_y$,
+          "%2d  ", dut.ctrl.ctrl_core.weight_x$,
+          "%2d  ", dut.ctrl.ctrl_core.weight_y$,
           "|"
         );
       #(STEP/2+1);

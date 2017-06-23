@@ -68,29 +68,29 @@ module ninjin_s_axi_image
   wire                  ar_wrap_en;
   wire [DATA_WIDTH-1:0] ar_wrap_size;
 
-  reg                   r_awready;
-  reg [ADDR_WIDTH-1:0]  r_awaddr;
-  reg [7:0]             r_awlen;
-  reg [7:0]             r_awlen_cnt;
-  reg [1:0]             r_awburst;
-  reg                   r_wready;
-  reg [ID_WIDTH-1:0]    r_bid;
-  reg [1:0]             r_bresp;
-  reg [BUSER_WIDTH-1:0] r_buser;
-  reg                   r_bvalid;
-  reg                   r_arready;
-  reg [ADDR_WIDTH-1:0]  r_araddr;
-  reg [7:0]             r_arlen;
-  reg [7:0]             r_arlen_cnt;
-  reg [1:0]             r_arburst;
-  reg [ID_WIDTH-1:0]    r_rid;
-  reg [DATA_WIDTH-1:0]  r_rdata;
-  reg [1:0]             r_rresp;
-  reg                   r_rlast;
-  reg [RUSER_WIDTH-1:0] r_ruser;
-  reg                   r_rvalid;
-  reg                   r_awv_issued;
-  reg                   r_arv_issued;
+  reg                   awready$;
+  reg [ADDR_WIDTH-1:0]  awaddr$;
+  reg [7:0]             awlen$;
+  reg [7:0]             awlen_cnt$;
+  reg [1:0]             awburst$;
+  reg                   wready$;
+  reg [ID_WIDTH-1:0]    bid$;
+  reg [1:0]             bresp$;
+  reg [BUSER_WIDTH-1:0] buser$;
+  reg                   bvalid$;
+  reg                   arready$;
+  reg [ADDR_WIDTH-1:0]  araddr$;
+  reg [7:0]             arlen$;
+  reg [7:0]             arlen_cnt$;
+  reg [1:0]             arburst$;
+  reg [ID_WIDTH-1:0]    rid$;
+  reg [DATA_WIDTH-1:0]  rdata$;
+  reg [1:0]             rresp$;
+  reg                   rlast$;
+  reg [RUSER_WIDTH-1:0] ruser$;
+  reg                   rvalid$;
+  reg                   awv_issued$;
+  reg                   arv_issued$;
 
   localparam NUM_MEM = 1;
 
@@ -99,246 +99,246 @@ module ninjin_s_axi_image
 // write address control
 //==========================================================
 
-  assign awready = r_awready;
+  assign awready = awready$;
 
-  assign aw_wrap_size   = DATA_WIDTH/8 * r_awlen;
-  assign aw_wrap_en     = (r_awaddr & aw_wrap_size) == aw_wrap_size
+  assign aw_wrap_size   = DATA_WIDTH/8 * awlen$;
+  assign aw_wrap_en     = (awaddr$ & aw_wrap_size) == aw_wrap_size
                         ? 1'b1
                         : 1'b0;
 
   always @(posedge clk)
     if (!xrst) begin
-      r_awready    <= 0;
-      r_awv_issued <= 0;
+      awready$    <= 0;
+      awv_issued$ <= 0;
     end
     else
-      if (!r_awready && awvalid && !r_awv_issued && !r_arv_issued) begin
-        r_awready    <= 1;
-        r_awv_issued <= 1;
+      if (!awready$ && awvalid && !awv_issued$ && !arv_issued$) begin
+        awready$    <= 1;
+        awv_issued$ <= 1;
       end
-      else if (wlast && r_wready)
-        r_awv_issued <= 0;
+      else if (wlast && wready$)
+        awv_issued$ <= 0;
       else
-        r_awready <= 0;
+        awready$ <= 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_awaddr <= 0;
+      awaddr$ <= 0;
     else
-      if (!r_awready && awvalid && !r_awv_issued)
-        r_awaddr <= awaddr[ADDR_WIDTH-1:0];
-      else if (r_awlen_cnt <= r_awlen && r_wready && wvalid)
-        case (r_awburst)
+      if (!awready$ && awvalid && !awv_issued$)
+        awaddr$ <= awaddr[ADDR_WIDTH-1:0];
+      else if (awlen_cnt$ <= awlen$ && wready$ && wvalid)
+        case (awburst$)
           2'b00:
-            r_awaddr <= r_awaddr;
+            awaddr$ <= awaddr$;
 
           2'b01: begin
-            r_awaddr[ADDR_WIDTH-1:LSB]  <= r_awaddr[ADDR_WIDTH-1:LSB] + 1;
-            r_awaddr[LSB-1:0]           <= {LSB{1'b0}};
+            awaddr$[ADDR_WIDTH-1:LSB]  <= awaddr$[ADDR_WIDTH-1:LSB] + 1;
+            awaddr$[LSB-1:0]           <= {LSB{1'b0}};
           end
 
           2'b10:
             if (aw_wrap_en)
-              r_awaddr <= r_awaddr - aw_wrap_size;
+              awaddr$ <= awaddr$ - aw_wrap_size;
             else begin
-              r_awaddr[ADDR_WIDTH-1:LSB]  <= r_awaddr[ADDR_WIDTH-1:LSB] + 1;
-              r_awaddr[LSB-1:0]           <= {LSB{1'b0}};
+              awaddr$[ADDR_WIDTH-1:LSB]  <= awaddr$[ADDR_WIDTH-1:LSB] + 1;
+              awaddr$[LSB-1:0]           <= {LSB{1'b0}};
             end
 
           default:
-            r_awaddr <= r_awaddr[ADDR_WIDTH-1:LSB] + 1;
+            awaddr$ <= awaddr$[ADDR_WIDTH-1:LSB] + 1;
         endcase
 
   always @(posedge clk)
     if (!xrst) begin
-      r_awlen     <= 0;
-      r_awlen_cnt <= 0;
+      awlen$     <= 0;
+      awlen_cnt$ <= 0;
     end
-    else if (!r_awready && awvalid && !r_awv_issued) begin
-      r_awlen     <= awlen;
-      r_awlen_cnt <= 0;
+    else if (!awready$ && awvalid && !awv_issued$) begin
+      awlen$     <= awlen;
+      awlen_cnt$ <= 0;
     end
-    else if (r_awlen_cnt <= r_awlen && r_wready && wvalid)
-      r_awlen_cnt <= r_awlen_cnt + 1;
+    else if (awlen_cnt$ <= awlen$ && wready$ && wvalid)
+      awlen_cnt$ <= awlen_cnt$ + 1;
 
   always @(posedge clk)
     if (!xrst)
-      r_awburst <= 0;
-    else if (!r_awready && awvalid && !r_awv_issued)
-      r_awburst <= awburst;
+      awburst$ <= 0;
+    else if (!awready$ && awvalid && !awv_issued$)
+      awburst$ <= awburst;
 
 //==========================================================
 // write data control
 //==========================================================
 
-  assign wready = r_wready;
+  assign wready = wready$;
 
   always @(posedge clk)
     if (!xrst)
-      r_wready <= 0;
-    else if (!r_wready && wvalid && r_awv_issued)
-      r_wready <= 1;
-    else if (wlast && r_wready)
-      r_wready <= 0;
+      wready$ <= 0;
+    else if (!wready$ && wvalid && awv_issued$)
+      wready$ <= 1;
+    else if (wlast && wready$)
+      wready$ <= 0;
 
 //==========================================================
 // write response control
 //==========================================================
 
-  assign bvalid = r_bvalid;
-  assign buser  = r_buser;
-  assign bresp  = r_bresp;
+  assign bvalid = bvalid$;
+  assign buser  = buser$;
+  assign bresp  = bresp$;
   assign bid    = awid;
 
   always @(posedge clk)
     if (!xrst)
-      r_bvalid <= 0;
-    else if (r_awv_issued && r_wready && wvalid && !r_bvalid && wlast)
-      r_bvalid <= 1;
-    else if (bready && r_bvalid)
-      r_bvalid <= 0;
+      bvalid$ <= 0;
+    else if (awv_issued$ && wready$ && wvalid && !bvalid$ && wlast)
+      bvalid$ <= 1;
+    else if (bready && bvalid$)
+      bvalid$ <= 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_buser <= 0;
+      buser$ <= 0;
     else
-      r_buser <= 0;
+      buser$ <= 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_bresp <= 0;
-    else if (r_awv_issued && r_wready && wvalid && !r_bvalid && wlast)
-      r_bresp <= 0;
+      bresp$ <= 0;
+    else if (awv_issued$ && wready$ && wvalid && !bvalid$ && wlast)
+      bresp$ <= 0;
 
 //==========================================================
 // read address control
 //==========================================================
 
-  assign arready = r_arready;
+  assign arready = arready$;
 
-  assign ar_wrap_size   = DATA_WIDTH/8 * r_arlen;
-  assign ar_wrap_en     = (r_araddr & ar_wrap_size) == ar_wrap_size
+  assign ar_wrap_size   = DATA_WIDTH/8 * arlen$;
+  assign ar_wrap_en     = (araddr$ & ar_wrap_size) == ar_wrap_size
                         ? 1'b1
                         : 1'b0;
 
   always @(posedge clk)
     if (!xrst) begin
-      r_arready    <= 0;
-      r_arv_issued <= 0;
+      arready$    <= 0;
+      arv_issued$ <= 0;
     end
-    else if (!r_arready && arvalid && !r_awv_issued && !r_arv_issued) begin
-      r_arready    <= 1;
-      r_arv_issued <= 1;
+    else if (!arready$ && arvalid && !awv_issued$ && !arv_issued$) begin
+      arready$    <= 1;
+      arv_issued$ <= 1;
     end
-    else if (r_rvalid && rready && r_arlen_cnt == r_arlen)
-      r_arv_issued <= 0;
+    else if (rvalid$ && rready && arlen_cnt$ == arlen$)
+      arv_issued$ <= 0;
     else
-      r_arready <= 0;
+      arready$ <= 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_araddr <= 0;
+      araddr$ <= 0;
     else
-      if (!r_arready && arvalid & !r_arv_issued)
-        r_araddr <= araddr[ADDR_WIDTH-1:0];
-      else if (r_arlen_cnt <= r_arlen && r_rvalid && rready)
-        case (r_arburst)
+      if (!arready$ && arvalid & !arv_issued$)
+        araddr$ <= araddr[ADDR_WIDTH-1:0];
+      else if (arlen_cnt$ <= arlen$ && rvalid$ && rready)
+        case (arburst$)
           2'b00:
-            r_araddr <= r_araddr;
+            araddr$ <= araddr$;
 
           2'b01: begin
-            r_araddr[ADDR_WIDTH-1:LSB]  <= r_araddr[ADDR_WIDTH-1:LSB] + 1;
-            r_araddr[LSB-1:0]           <= {LSB{1'b0}};
+            araddr$[ADDR_WIDTH-1:LSB]  <= araddr$[ADDR_WIDTH-1:LSB] + 1;
+            araddr$[LSB-1:0]           <= {LSB{1'b0}};
           end
 
           2'b10:
             if (ar_wrap_en)
-              r_araddr <= r_araddr - ar_wrap_size;
+              araddr$ <= araddr$ - ar_wrap_size;
             else begin
-              r_araddr[ADDR_WIDTH-1:LSB]  <= r_araddr[ADDR_WIDTH-1:LSB] + 1;
-              r_araddr[LSB-1:0]           <= {LSB{1'b0}};
+              araddr$[ADDR_WIDTH-1:LSB]  <= araddr$[ADDR_WIDTH-1:LSB] + 1;
+              araddr$[LSB-1:0]           <= {LSB{1'b0}};
             end
 
           default:
-            r_araddr <= r_araddr[ADDR_WIDTH-1:LSB] + 1;
+            araddr$ <= araddr$[ADDR_WIDTH-1:LSB] + 1;
         endcase
 
   always @(posedge clk)
     if (!xrst) begin
-      r_arlen     <= 0;
-      r_arlen_cnt <= 0;
+      arlen$     <= 0;
+      arlen_cnt$ <= 0;
     end
-    else if (!r_arready && arvalid && !r_arv_issued) begin
-      r_arlen     <= arlen;
-      r_arlen_cnt <= 0;
+    else if (!arready$ && arvalid && !arv_issued$) begin
+      arlen$     <= arlen;
+      arlen_cnt$ <= 0;
     end
-    else if (r_arlen_cnt <= r_arlen && r_rvalid && rready)
-      r_arlen_cnt <= r_arlen_cnt + 1;
+    else if (arlen_cnt$ <= arlen$ && rvalid$ && rready)
+      arlen_cnt$ <= arlen_cnt$ + 1;
 
   always @(posedge clk)
     if (!xrst)
-      r_arburst <= 0;
-    else if (!r_arready && arvalid && !r_arv_issued)
-      r_arburst <= arburst;
+      arburst$ <= 0;
+    else if (!arready$ && arvalid && !arv_issued$)
+      arburst$ <= arburst;
 
 //==========================================================
 // read data control
 //==========================================================
 
-  assign rvalid = r_rvalid;
-  // assign rdata  = r_rdata;
-  assign rlast  = r_rlast;
-  assign ruser  = r_ruser;
-  assign rresp  = r_rresp;
+  assign rvalid = rvalid$;
+  // assign rdata  = rdata$;
+  assign rlast  = rlast$;
+  assign ruser  = ruser$;
+  assign rresp  = rresp$;
   assign rid    = arid;
 
   always @(posedge clk)
     if (!xrst)
-      r_rvalid <= 0;
-    else if (r_arv_issued && !r_rvalid)
-      r_rvalid <= 1;
-    else if (r_rvalid && rready)
-      r_rvalid <= 0;
+      rvalid$ <= 0;
+    else if (arv_issued$ && !rvalid$)
+      rvalid$ <= 1;
+    else if (rvalid$ && rready)
+      rvalid$ <= 0;
 
   // always @(posedge clk)
   //   if (!xrst)
-  //     r_rdata <= 0;
+  //     rdata$ <= 0;
   //   else if (rvalid)
-  //     r_rdata <= mem_rdata;
+  //     rdata$ <= mem_rdata;
   //   else
-  //     r_rdata <= 0;
+  //     rdata$ <= 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_rlast <= 0;
-    else if (!r_arready && arvalid && !r_arv_issued)
-      r_rlast <= 0;
-    else if (r_arlen_cnt <= r_arlen && r_rvalid && rready)
-      r_rlast <= 0;
-    else if (r_arlen_cnt == r_arlen && !rlast && r_arv_issued)
-      r_rlast <= 1;
+      rlast$ <= 0;
+    else if (!arready$ && arvalid && !arv_issued$)
+      rlast$ <= 0;
+    else if (arlen_cnt$ <= arlen$ && rvalid$ && rready)
+      rlast$ <= 0;
+    else if (arlen_cnt$ == arlen$ && !rlast && arv_issued$)
+      rlast$ <= 1;
     else if (rready)
-      r_rlast <= 0;
+      rlast$ <= 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_ruser <= 0;
+      ruser$ <= 0;
     else
-      r_ruser <= 0;
+      ruser$ <= 0;
 
   always @(posedge clk)
     if (!xrst)
-      r_rresp <= 0;
-    else if (r_arv_issued && !r_rvalid)
-      r_rresp <= 0;
+      rresp$ <= 0;
+    else if (arv_issued$ && !rvalid$)
+      rresp$ <= 0;
 
 //==========================================================
 // memory control
 //==========================================================
 
-  assign mem_we    = r_wready && wvalid;
-  assign mem_addr  = r_arv_issued ? r_araddr[ADDR_WIDTH-1:LSB]
-                   : r_awv_issued ? r_awaddr[ADDR_WIDTH-1:LSB]
+  assign mem_we    = wready$ && wvalid;
+  assign mem_addr  = arv_issued$ ? araddr$[ADDR_WIDTH-1:LSB]
+                   : awv_issued$ ? awaddr$[ADDR_WIDTH-1:LSB]
                    : 0;
   assign mem_wdata = wdata;
   assign rdata     = mem_rdata;

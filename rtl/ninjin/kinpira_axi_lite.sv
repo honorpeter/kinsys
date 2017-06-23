@@ -135,7 +135,7 @@ module kinpira_axi_lite
   wire [IMGSIZE-1:0]        gobou_mem_img_addr;
   wire signed [DWIDTH-1:0]  gobou_write_mem_img;
 
-  reg r_which;
+  reg which$;
 
 
 
@@ -160,7 +160,7 @@ module kinpira_axi_lite
   assign fil_size     = in_port[12][LWIDTH-1:0];
   assign pool_size    = in_port[13][LWIDTH-1:0];
 
-  assign out_port[31] = {31'b0, r_which};
+  assign out_port[31] = {31'b0, which$};
   assign out_port[30] = {31'b0, ack};
   assign out_port[29] = {{(32-DWIDTH){read_img[DWIDTH-1]}}, read_img};
 
@@ -204,9 +204,9 @@ module kinpira_axi_lite
 
   always @(posedge clk)
     if (!xrst)
-      r_which <= 0;
+      which$ <= 0;
     else
-      r_which <= which;
+      which$ <= which;
 
 
   mem_sp #(DWIDTH, IMGSIZE) mem_img(/*AUTOINST*/

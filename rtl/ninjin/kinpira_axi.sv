@@ -287,7 +287,7 @@ module kinpira_axi
   wire [IMGSIZE-1:0]        gobou_img_addr;
   wire signed [DWIDTH-1:0]  gobou_img_wdata;
 
-  reg [2-1:0] r_which;
+  reg [2-1:0] which$;
 
 
 
@@ -304,7 +304,7 @@ module kinpira_axi
   assign fil_size   = in_port[8][LWIDTH-1:0];
   assign pool_size  = in_port[9][LWIDTH-1:0];
 
-  assign out_port[31] = {30'b0, r_which};
+  assign out_port[31] = {30'b0, which$};
   assign out_port[30] = {31'b0, ack};
 
   // For renkon
@@ -365,9 +365,9 @@ module kinpira_axi
 
   always @(posedge clk)
     if (!xrst)
-      r_which <= 0;
+      which$ <= 0;
     else
-      r_which <= which;
+      which$ <= which;
 
 
 

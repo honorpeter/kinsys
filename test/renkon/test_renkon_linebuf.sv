@@ -53,13 +53,13 @@ module test_renkon_linebuf;
 
   //display
   initial write_output;
-  reg [LWIDTH-1:0] r_addr_count_d [2:1];
-  reg [LWIDTH-1:0] r_line_count_d [2:1];
+  reg [LWIDTH-1:0] addr_count_d$ [2:1];
+  reg [LWIDTH-1:0] line_count_d$ [2:1];
   always @(posedge clk) begin
-    r_addr_count_d[1] <= dut.r_addr_count;
-    r_line_count_d[1] <= dut.r_line_count;
-    r_addr_count_d[2] <= r_addr_count_d[1];
-    r_line_count_d[2] <= r_line_count_d[1];
+    addr_count_d$[1] <= dut.addr_count$;
+    line_count_d$[1] <= dut.line_count$;
+    addr_count_d$[2] <= addr_count_d$[1];
+    line_count_d$[2] <= line_count_d$[1];
   end
   task write_output;
     int fd;
@@ -69,8 +69,8 @@ module test_renkon_linebuf;
       i = 0; j = 0;
       forever begin
         #(STEP/2-1);
-        if (r_line_count_d[2] >= FILTER
-              && r_addr_count_d[2] >= FILTER-1) begin
+        if (line_count_d$[2] >= FILTER
+              && addr_count_d$[2] >= FILTER-1) begin
           $fwrite(fd, "Block %0d:\n", (IMAGE-FILTER+1)*i+j);
           for (int di = 0; di < FILTER; di++) begin
             for (int dj = 0; dj < FILTER; dj++)
@@ -90,12 +90,12 @@ module test_renkon_linebuf;
   endtask
 
   initial begin
-    $display("clk: ", "r_state ", "|");
+    $display("clk: ", "state$ ", "|");
     forever begin
       #(STEP/2-1);
       $display(
         "%5d: ", $time/STEP,
-        "%d ", dut.r_state,
+        "%d ", dut.state$,
         "|i: ",
         "%1d ", xrst,
         "%1d ", buf_en,
@@ -103,11 +103,11 @@ module test_renkon_linebuf;
         "%1d ", fil_size,
         "%4d ", buf_input,
         "|r: ",
-        "%b ", dut.r_select,
-        "%2d ", dut.r_addr_count,
-        "%1d ", dut.r_mem_count,
-        "%2d ", dut.r_line_count,
-        "%4d ", dut.r_buf_input,
+        "%b ", dut.select$,
+        "%2d ", dut.addr_count$,
+        "%1d ", dut.mem_count$,
+        "%2d ", dut.line_count$,
+        "%4d ", dut.buf_input$,
         "|o: ",
         "%4d ", buf_output[0],
         "%4d ", buf_output[1],

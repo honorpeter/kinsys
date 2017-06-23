@@ -12,34 +12,34 @@ module renkon_pool_max4
   wire signed [DWIDTH-1:0] max0_1;
   wire signed [DWIDTH-1:0] max1_0;
 
-  reg signed [DWIDTH-1:0] r_pixel [4-1:0];
-  reg signed [DWIDTH-1:0] r_pmap;
+  reg signed [DWIDTH-1:0] pixel$ [4-1:0];
+  reg signed [DWIDTH-1:0] pmap$;
 
-  assign max0_0 = (r_pixel[0] > r_pixel[1])
-                ? r_pixel[0]
-                : r_pixel[1];
+  assign max0_0 = (pixel$[0] > pixel$[1])
+                ? pixel$[0]
+                : pixel$[1];
 
-  assign max0_1 = (r_pixel[2] > r_pixel[3])
-                ? r_pixel[2]
-                : r_pixel[3];
+  assign max0_1 = (pixel$[2] > pixel$[3])
+                ? pixel$[2]
+                : pixel$[3];
 
   assign max1_0 = (max0_0 > max0_1)
                 ? max0_0
                 : max0_1;
 
-  assign pmap = r_pmap;
+  assign pmap = pmap$;
 
   for (genvar i = 0; i < 4; i++)
     always @(posedge clk)
       if (!xrst)
-        r_pixel[i] <= 0;
+        pixel$[i] <= 0;
       else
-        r_pixel[i] <= pixel[i];
+        pixel$[i] <= pixel[i];
 
   always @(posedge clk)
     if(!xrst)
-      r_pmap <= 0;
+      pmap$ <= 0;
     else if (out_en)
-      r_pmap <= max1_0;
+      pmap$ <= max1_0;
 
 endmodule

@@ -20,22 +20,22 @@ module mem_dp
   localparam WORDS = 2 ** MEMSIZE;
 
   reg signed [DWIDTH-1:0]   mem [WORDS-1:0];
-  reg        [MEMSIZE-1:0]  r_addr1;
-  reg        [MEMSIZE-1:0]  r_addr2;
+  reg        [MEMSIZE-1:0]  addr1$;
+  reg        [MEMSIZE-1:0]  addr2$;
 
-  assign mem_rdata1 = mem[r_addr1];
-  assign mem_rdata2 = mem[r_addr2];
+  assign mem_rdata1 = mem[addr1$];
+  assign mem_rdata2 = mem[addr2$];
 
   always @(posedge clk) begin
     if (mem_we1)
       mem[mem_addr1] <= mem_wdata1;
-    r_addr1 <= mem_addr1;
+    addr1$ <= mem_addr1;
   end
 
   always @(posedge clk) begin
     // if (mem_we2)
     //   mem[mem_addr2] <= mem_wdata2;
-    r_addr2 <= mem_addr2;
+    addr2$ <= mem_addr2;
   end
 
   initial

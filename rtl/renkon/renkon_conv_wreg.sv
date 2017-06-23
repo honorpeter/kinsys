@@ -8,25 +8,25 @@ module renkon_conv_wreg
   , output signed [DWIDTH-1:0] weight [FSIZE**2-1:0]
   );
 
-  reg signed [DWIDTH-1:0] r_weight [FSIZE**2-1:0];
+  reg signed [DWIDTH-1:0] weight$ [FSIZE**2-1:0];
 
   for (genvar i = 0; i < FSIZE**2; i++)
-    assign weight[i] = r_weight[i];
+    assign weight[i] = weight$[i];
 
   for (genvar i = 0; i < FSIZE**2; i++)
     if (i == FSIZE**2 - 1) begin
       always @(posedge clk)
         if (!xrst)
-          r_weight[i] <= 0;
+          weight$[i] <= 0;
         else if (wreg_we)
-          r_weight[i] <= read_weight;
+          weight$[i] <= read_weight;
     end
     else begin
       always @(posedge clk)
         if (!xrst)
-          r_weight[i] <= 0;
+          weight$[i] <= 0;
         else if (wreg_we)
-          r_weight[i] <= r_weight[i+1];
+          weight$[i] <= weight$[i+1];
     end
 
 endmodule

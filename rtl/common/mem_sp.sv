@@ -16,14 +16,14 @@ module mem_sp
   localparam WORDS = 2 ** MEMSIZE;
 
   reg signed [DWIDTH-1:0] mem [WORDS-1:0];
-  reg [MEMSIZE-1:0]       r_addr;
+  reg [MEMSIZE-1:0]       addr$;
 
-  assign mem_rdata = mem[r_addr];
+  assign mem_rdata = mem[addr$];
 
   always @(posedge clk) begin
     if (mem_we)
       mem[mem_addr] <= mem_wdata;
-    r_addr <= mem_addr;
+    addr$ <= mem_addr;
   end
 
   initial
