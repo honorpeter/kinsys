@@ -33,7 +33,7 @@ com:
 	@nvim $(TARGET:.sv=.com)
 
 edit:
-	@nvim -O $(TARGET) $(MODULE)
+	@nvim -O $(MODULE) $(TARGET)
 
 diff:
 	@nvim -d ../../data/ninjin/$(MODULE:.sv=)_output.dat \

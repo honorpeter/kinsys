@@ -263,6 +263,7 @@ module test_ninjin_ddr_buf;
         "%8x ", ddr_rdata,
         "| ",
         "*%-5p ", dut.r_which[0],
+        "*%-5p ", dut.r_which[1],
         "*%-5p ", dut.r_first_buf,
         "%d ",  dut.switch_buf,
         "%d ",  dut.mem_addr,

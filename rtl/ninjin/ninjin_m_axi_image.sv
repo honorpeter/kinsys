@@ -26,8 +26,8 @@ module ninjin_m_axi_image
   , input                   rlast
   , input [RUSER_WIDTH-1:0] ruser
   , input                   rvalid
-  , input                   ddr_we
-  , input                   ddr_re
+  , input                   ddr_req
+  , input                   ddr_mode
   , input [MEMSIZE-1:0]     ddr_base
   , input [DWIDTH-1:0]      ddr_rdata
 
@@ -62,14 +62,15 @@ module ninjin_m_axi_image
   , output [ARUSER_WIDTH-1:0] aruser
   , output                    rready
   , output                    ddr_we
-  , output [MEMSIZE-1:0]      ddr_addr
+  , output [MEMSIZE-1:0]      ddr_waddr
   , output [DWIDTH-1:0]       ddr_wdata
+  , output [MEMSIZE-1:0]      ddr_raddr
   );
 
   localparam TXN_NUM = clogb2(BURST_LEN-1);
 
-  wire                    we_pulse;
-  wire                    re_pulse;
+  wire                    wreq_pulse;
+  wire                    rreq_pulse;
   wire                    s_write_end;
   wire                    s_read_end;
   wire                    err_wresp;
@@ -81,8 +82,8 @@ module ninjin_m_axi_image
   enum reg [2-1:0] {
     S_IDLE, S_BUSY
   } r_state_write, r_state_read;
-  reg                     r_we;
-  reg                     r_re;
+  reg                     r_wreq;
+  reg                     r_rreq;
   reg                     r_ack;
   reg [3:0]               r_err;
   reg [ID_WIDTH-1:0]      r_awid;
@@ -115,34 +116,31 @@ module ninjin_m_axi_image
   reg                     r_arvalid;
   reg                     r_rready;
   reg [TXN_NUM:0]         r_write_idx;
-  reg [TXN_NUM:0]         r_read_idx;
+  reg [TXN_NUM:0]         r_rreqad_idx;
   reg                     r_write_single_burst;
-  reg                     r_read_single_burst;
+  reg                     r_rreqad_single_burst;
   reg                     r_write_active;
-  reg                     r_read_active;
+  reg                     r_rreqad_active;
 
 //==========================================================
 // core control
 //==========================================================
 // {{{
 
-  assign we_pulse = ddr_we && !r_we;
-  assign re_pulse = ddr_re && !r_re;
+  assign req_pulse  = ddr_req && !r_req;
+  assign wreq_pulse = ddr_mode == DDR_WRITE && req_pulse;
+  assign rreq_pulse = ddr_mode == DDR_READ  && req_pulse;
 
   assign s_write_end = bvalid && r_bready;
-  assign s_read_end  = rvalid && r_rready && r_read_idx == BURST_LEN - 1;
+  assign s_read_end  = rvalid && r_rready && r_rreqad_idx == BURST_LEN - 1;
 
   assign burst_size = BURST_LEN * DWIDTH/8;
 
   always @(posedge clk)
-    if (!xrst) begin
-      r_we <= 0;
-      r_re <= 0;
-    end
-    else begin
-      r_we <= ddr_we;
-      r_re <= ddr_re;
-    end
+    if (!xrst)
+      r_req <= 0;
+    else
+      r_req <= ddr_req;
 
   /*
    * Read and write channel works independent each other.
@@ -156,7 +154,7 @@ module ninjin_m_axi_image
     else
       case (r_state_write)
         S_IDLE:
-          if (we_pulse)
+          if (wreq_pulse)
             r_state_write <= S_BUSY;
 
         S_BUSY:
@@ -174,21 +172,21 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst) begin
       r_state_read <= S_IDLE;
-      r_read_single_burst  <= 0;
+      r_rreqad_single_burst  <= 0;
     end
     else
       case (r_state_read)
         S_IDLE:
-          if (re_pulse)
+          if (rreq_pulse)
             r_state_read <= S_BUSY;
 
         S_BUSY:
           if (s_read_end)
             r_state_read <= S_IDLE;
-          else if (!r_arvalid && !r_read_active && !r_read_single_burst)
-            r_read_single_burst <= 1;
+          else if (!r_arvalid && !r_rreqad_active && !r_rreqad_single_burst)
+            r_rreqad_single_burst <= 1;
           else
-            r_read_single_burst <= 0;
+            r_rreqad_single_burst <= 0;
 
         default:
           r_state_read <= S_IDLE;
@@ -197,7 +195,7 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst)
       r_write_active <= 0;
-    else if (we_pulse)
+    else if (wreq_pulse)
       r_write_active <= 0;
     else if (r_write_single_burst)
       r_write_active <= 1;
@@ -206,13 +204,13 @@ module ninjin_m_axi_image
 
   always @(posedge clk)
     if (!xrst)
-      r_read_active <= 0;
-    else if (re_pulse)
-      r_read_active <= 0;
-    else if (r_read_single_burst)
-      r_read_active <= 1;
+      r_rreqad_active <= 0;
+    else if (rreq_pulse)
+      r_rreqad_active <= 0;
+    else if (r_rreqad_single_burst)
+      r_rreqad_active <= 1;
     else if (rvalid && r_rready && rlast)
-      r_read_active <= 0;
+      r_rreqad_active <= 0;
 
 // }}}
 //==========================================================
@@ -235,7 +233,7 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst)
       r_awvalid <= 0;
-    else if (we_pulse)
+    else if (wreq_pulse)
       r_awvalid <= 0;
     else if (!r_awvalid && r_write_single_burst)
       r_awvalid <= 1;
@@ -245,8 +243,8 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst)
       r_awaddr <= 0;
-    else if (we_pulse)
-      r_awaddr <= ddr_addr;
+    else if (wreq_pulse)
+      r_awaddr <= ddr_waddr;
     else if (awready && r_awvalid)
       r_awaddr <= r_awaddr + burst_size;
 
@@ -267,7 +265,7 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst)
       r_wvalid <= 0;
-    else if (we_pulse)
+    else if (wreq_pulse)
       r_wvalid <= 0;
     else if (!r_wvalid && r_write_single_burst)
       r_wvalid <= 1;
@@ -278,7 +276,7 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst)
       r_wdata <= 0;
-    else if (we_pulse)
+    else if (wreq_pulse)
       r_wdata <= ddr_rdata;
     else if (wnext)
       r_wdata <= ddr_rdata;
@@ -286,7 +284,7 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst)
       r_wlast <= 0;
-    else if (we_pulse)
+    else if (wreq_pulse)
       r_wlast <= 0;
     else if ((r_write_idx == BURST_LEN - 2 && BURST_LEN >= 2 && wnext)
               || BURST_LEN == 1)
@@ -297,7 +295,7 @@ module ninjin_m_axi_image
       r_wlast <= 0;
 
   always @(posedge clk)
-    else if (we_pulse || r_write_single_burst)
+    else if (wreq_pulse || r_write_single_burst)
       r_write_idx <= 0;
     else if (wnext && r_write_idx != BURST_LEN - 1)
       r_write_idx <= r_write_idx + 1;
@@ -315,7 +313,7 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst)
       r_bready <= 0;
-    else if (we_pulse)
+    else if (wreq_pulse)
       r_bready <= 0;
     else if (bvalid && !r_bready)
       r_bready <= 1;
@@ -343,9 +341,9 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst)
       r_arvalid <= 0;
-    else if (re_pulse)
+    else if (rreq_pulse)
       r_arvalid <= 0;
-    else if (!r_arvalid && r_read_single_burst)
+    else if (!r_arvalid && r_rreqad_single_burst)
       r_arvalid <= 1;
     else if (arready && r_arvalid)
       r_arvalid <= 0;
@@ -353,8 +351,8 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst)
       r_araddr <= 0;
-    else if (re_pulse)
-      r_araddr <= ddr_addr;
+    else if (rreq_pulse)
+      r_araddr <= ddr_raddr;
     else if (arready && r_arvalid)
       r_araddr <= r_araddr + burst_size;
 
@@ -373,7 +371,7 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst)
       r_rready <= 0;
-    else if (re_pulse)
+    else if (rreq_pulse)
       r_rready <= 0;
     else if (rvalid) begin
       if (rlast && r_rready)
@@ -384,11 +382,11 @@ module ninjin_m_axi_image
 
   always @(posedge clk)
     if (!xrst)
-      r_read_idx <= 0;
-    else if (re_pulse || r_read_single_burst)
-      r_read_idx <= 0;
-    else if (rnext && r_read_idx != BURST_LEN - 1)
-      r_read_idx <= r_read_idx + 1;
+      r_rreqad_idx <= 0;
+    else if (rreq_pulse || r_rreqad_single_burst)
+      r_rreqad_idx <= 0;
+    else if (rnext && r_rreqad_idx != BURST_LEN - 1)
+      r_rreqad_idx <= r_rreqad_idx + 1;
 
 // }}}
 //==========================================================
@@ -404,7 +402,7 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst)
       r_err <= 0;
-    else if (we_pulse || re_pulse)
+    else if (wreq_pulse || rreq_pulse)
       r_err <= 0;
     else if (err_wresp || err_rresp)
       r_err <= {err_wresp, err_rresp, 1'b1};
