@@ -21,7 +21,10 @@ parameter BUFSIZE   = 4;
 // parameter BUFSIZE   = 8;
 // parameter BUFSIZE   = $clog2(BURST_LEN);
 
-parameter DDR_READ = 'd0;
+parameter RATE    = BWIDTH / DWIDTH;
+parameter RATELOG = $clog2(RATE);
+
+parameter DDR_READ  = 'd0;
 parameter DDR_WRITE = 'd1;
 
 /* which:

@@ -1,9 +1,11 @@
 `include "ninjin.svh"
 
-const int READ_LEN   = 128+8;//16*12*12;
+const int READ_LEN   = 128+8;
+// const int READ_LEN   = 16*12*12;
 // TODO: currently, odd WRITE_LEN won't work.
 //       (However, actual WRITE_LEN may be CORE * ~, where CORE is even)
-const int WRITE_LEN  = 128+8;//8*4*4;
+const int WRITE_LEN  = 128+8;
+// const int WRITE_LEN  = 8*4*4;
 
 // int READ_OFFSET  = 42;
 const int READ_OFFSET  = 'h0a00;
@@ -69,8 +71,7 @@ module test_ninjin_ddr_buf;
 
     $display("### prefetch");
     setup(READ_OFFSET, READ_LEN);
-    #(32*STEP);
-    // #(512*STEP);
+    #(RATE*BURST_LEN*STEP);
 
     $display("### reading");
     reset(READ_OFFSET, READ_LEN);
@@ -87,7 +88,6 @@ module test_ninjin_ddr_buf;
       write(i + WRITE_OFFSET, i + 'h0b00);
     clear;
     #(STEP);
-    // #(512*STEP);
 
     $display("### reading");
     reset(READ_OFFSET, READ_LEN);
@@ -104,9 +104,8 @@ module test_ninjin_ddr_buf;
       write(i + WRITE_OFFSET, i + 'h0b00);
     clear;
     #(STEP);
-    // #(512*STEP);
 
-    #(32*STEP);
+    #(2*BURST_LEN*STEP);
     $finish();
   end
 
@@ -268,8 +267,12 @@ module test_ninjin_ddr_buf;
         // ": ",
         // "%5d ", dut.addr_diff,
         "%d ", dut.mode,
-        // "%d ", dut.txn_start,
-        // "%d ", dut.txn_stop,
+        "%d ", dut.txn_start,
+        "%d ", dut.txn_stop,
+        "%d ", dut.we_accum$,
+        "%h ", dut.mem_wdata,
+        "%h ", dut.buf_wdata$,
+        "%h ", dut.buf_wdata[0],
         // ": ",
         // "%2x ", dut.count_len$,
         // "%2x ", dut.count_inner$,
@@ -288,7 +291,7 @@ module test_ninjin_ddr_buf;
         // "%d ",  total_len,
         // "%d ",  dut.base_addr$,
         // "| ",
-        "%x ",  ddr_req,
+        // "%x ",  ddr_req,
         // "%x ",  ddr_mode,
         // "%x ",  ddr_base,
         // "%x ",  ddr_len,
@@ -296,7 +299,6 @@ module test_ninjin_ddr_buf;
         "%x ",  ddr_we,
         "%3x ", ddr_waddr,
         "%7x ", ddr_wdata,
-        // ": ",
         "%3x ", ddr_raddr,
         "%7x ", ddr_rdata,
         "| ",
@@ -308,24 +310,25 @@ module test_ninjin_ddr_buf;
         "*%d ", dut.first_buf$,
         ": ",
         "%x ",  dut.buf_we[0],
+        "%x ",  dut.buf_base$[0],
         "%x ",  dut.buf_addr[0],
         "%7x ", dut.buf_wdata[0],
         "%7x ", dut.buf_rdata[0],
-        ": ",
-        "%x ",  dut.buf_we[1],
-        "%x ",  dut.buf_addr[1],
-        "%7x ", dut.buf_wdata[1],
-        "%7x ", dut.buf_rdata[1],
-        ": ",
-        "%x ",  dut.pre_we,
-        "%x ",  dut.pre_addr,
-        "%7x ", dut.pre_wdata,
-        "%7x ", dut.pre_rdata,
-        ": ",
-        "%x ",  dut.post_we,
-        "%x ",  dut.post_addr,
-        "%7x ", dut.post_wdata,
-        "%7x ", dut.post_rdata,
+        // ": ",
+        // "%x ",  dut.buf_we[1],
+        // "%x ",  dut.buf_addr[1],
+        // "%7x ", dut.buf_wdata[1],
+        // "%7x ", dut.buf_rdata[1],
+        // ": ",
+        // "%x ",  dut.pre_we,
+        // "%x ",  dut.pre_addr,
+        // "%7x ", dut.pre_wdata,
+        // "%7x ", dut.pre_rdata,
+        // ": ",
+        // "%x ",  dut.post_we,
+        // "%x ",  dut.post_addr,
+        // "%7x ", dut.post_wdata,
+        // "%7x ", dut.post_rdata,
         "|"
       );
       #(STEP/2+1);
