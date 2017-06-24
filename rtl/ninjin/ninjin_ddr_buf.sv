@@ -104,6 +104,9 @@ module ninjin_ddr_buf
   reg                     switch_buf$;
   reg_which               first_buf$;
   reg [RATELOG-1:0]       word_offset$;
+  reg [IMGSIZE-1:0]       post_addr$;
+  reg [IMGSIZE-1:0]       post_base$;
+  reg [LWIDTH-1:0]        post_len$;
 
   /*
    * When ddr_req asserts, ddr_mode and ddr_base are fetched.
@@ -113,9 +116,10 @@ module ninjin_ddr_buf
    */
 
   wire java, not_java;
-  assign java     = RATE*BURST_LEN < count_len$ && count_len$ <= 2*RATE*BURST_LEN
+  assign java     = state$[0] == S_WRITE
+                 && RATE*BURST_LEN < count_len$ && count_len$ <= 2*RATE*BURST_LEN
                  && count_inner$ == RATE * BURST_LEN - 1;
-  assign not_java = count_post$ == count_len$;
+  assign not_java = count_post$  == RATE * BURST_LEN - 1;//count_len$;
 
 //==========================================================
 // core control
@@ -212,7 +216,7 @@ module ninjin_ddr_buf
             which$ <= first_buf$;
 
         POST:
-          if (not_java)
+          if (s_write_end)
             which$ <= PRE;
 
         default:
@@ -268,7 +272,7 @@ module ninjin_ddr_buf
           if (ddr_we)
             count_inner$ <= count_inner$ + 1;
         S_READ:
-          if (count_inner$ == RATE * (count_len$ > BURST_LEN ? BURST_LEN : count_len$)-1)
+          if (mode == M_INCR && count_inner$ == RATE * (count_len$ > BURST_LEN ? BURST_LEN : count_len$)-1)
             count_inner$ <= 0;
           else
             count_inner$ <= count_inner$ + txn_start + (addr_diff == 1 ? 1 : 0);
@@ -303,7 +307,6 @@ module ninjin_ddr_buf
                     : mem_which$ == ALPHA ? alpha[word_offset$]
                     : mem_which$ == BRAVO ? bravo[word_offset$]
                     : mem_which$ == PRE   ? pre[word_offset$]
-                    : mem_which$ == POST  ? post[word_offset$]
                     : 0;
 
   always @(posedge clk)
@@ -333,7 +336,7 @@ module ninjin_ddr_buf
   always @(posedge clk)
     if (!xrst)
       mem_which$ <= PRE;
-    else
+    else if (mode$ == M_INCR)
       mem_which$ <= which$;
 
 // }}}
@@ -349,13 +352,14 @@ module ninjin_ddr_buf
 
   assign ddr_rdata  = ddr_which$ == ALPHA ? buf_rdata[BRAVO]
                     : ddr_which$ == BRAVO ? buf_rdata[ALPHA]
-                    : ddr_which$ == PRE   ? pre_rdata
                     : ddr_which$ == POST  ? post_rdata
                     : 0;
 
   always @(posedge clk)
     if (!xrst)
       ddr_req$ <= 0;
+    else if (ddr_which$ != POST && not_java)
+      ddr_req$ <= 1;
     else
       case (state$[0])
         S_IDLE:
@@ -364,7 +368,7 @@ module ninjin_ddr_buf
           ddr_req$ <= s_pref_edge;
         S_READ:
           ddr_req$ <= s_read_edge
-                    || RATE*BURST_LEN < count_len$ && switch_buf$;
+                   || RATE*BURST_LEN < count_len$ && switch_buf$;
         S_WRITE:
           ddr_req$ <= switch_buf;
         default:
@@ -374,6 +378,8 @@ module ninjin_ddr_buf
   always @(posedge clk)
     if (!xrst)
       ddr_mode$ <= 0;
+    else if (ddr_which$ != POST && not_java)
+      ddr_mode$ <= DDR_WRITE;
     else
       case (state$[0])
         S_IDLE:
@@ -391,6 +397,8 @@ module ninjin_ddr_buf
   always @(posedge clk)
     if (!xrst)
       ddr_base$ <= 0;
+    else if (ddr_which$ != POST && not_java)
+      ddr_base$ <= post_base$;
     else
       case (state$[0])
         S_IDLE:
@@ -402,15 +410,13 @@ module ninjin_ddr_buf
             ALPHA:    ddr_base$ <= buf_base$[ALPHA] + BURST_LEN;
             BRAVO:    ddr_base$ <= buf_base$[BRAVO] + BURST_LEN;
             PRE:      ddr_base$ <= base_addr$       + BURST_LEN;
-            POST:     ddr_base$ <= 0;
             default:  ddr_base$ <= 0;
           endcase
         S_WRITE:
           case (which$)
             ALPHA:    ddr_base$ <= buf_base$[ALPHA];
             BRAVO:    ddr_base$ <= buf_base$[BRAVO];
-            PRE:      ddr_base$ <= base_addr$;
-            POST:     ddr_base$ <= 0;
+            POST:     ddr_base$ <= post_base$;
             default:  ddr_base$ <= 0;
           endcase
         default:
@@ -421,6 +427,9 @@ module ninjin_ddr_buf
   always @(posedge clk)
     if (!xrst)
       ddr_len$ <= 0;
+    else if (ddr_which$ != POST && not_java)
+      ddr_len$ <= post_len$[LWIDTH-1:RATELOG]
+               +| post_len$[RATELOG-1:0];
     else
       case (state$[0])
         S_IDLE:
@@ -429,21 +438,21 @@ module ninjin_ddr_buf
         S_PREF:
           if (0 < count_len$ && count_len$ <= RATE*BURST_LEN)
             ddr_len$ <= count_len$[LWIDTH-1:RATELOG]
-                      +| count_len$[RATELOG-1:0];
+                     +| count_len$[RATELOG-1:0];
           else
             ddr_len$ <= BURST_LEN;
 
         S_READ:
           if (RATE*BURST_LEN < count_len$ && count_len$ <= 2*RATE*BURST_LEN)
             ddr_len$ <= rest_len[LWIDTH-1:RATELOG]
-                      +| rest_len[RATELOG-1:0];
+                     +| rest_len[RATELOG-1:0];
           else
             ddr_len$ <= BURST_LEN;
 
         S_WRITE:
           if (0 < count_len$ && count_len$ <= RATE*BURST_LEN)
             ddr_len$ <= count_len$[LWIDTH-1:RATELOG]
-                      +| count_len$[RATELOG-1:0];
+                     +| count_len$[RATELOG-1:0];
           else
             ddr_len$ <= BURST_LEN;
 
@@ -454,7 +463,18 @@ module ninjin_ddr_buf
   always @(posedge clk)
     if (!xrst)
       ddr_which$ <= PRE;
-    else
+    else if (java)
+      case (ddr_which$)
+        ALPHA:    ddr_which$ <= BRAVO;
+        BRAVO:    ddr_which$ <= ALPHA;
+        default:  ddr_which$ <= ddr_which$;
+      endcase
+    else if (not_java)
+      if (ddr_which$ == POST)
+        ddr_which$ <= which$;
+      else
+        ddr_which$ <= POST;
+    else if (ddr_which$ != POST && count_post$ == 0)
       ddr_which$ <= which$;
 
 // }}}
@@ -517,9 +537,9 @@ module ninjin_ddr_buf
     endcase
   endfunction
 
-  function signed [BWIDTH-1:0] gen_pre_wdata
+  function [BWIDTH-1:0] gen_pre_wdata
     ( input signed [DWIDTH-1:0] mem_wdata
-    , input signed [BWIDTH-1:0] ddr_wdata
+    , input [BWIDTH-1:0] ddr_wdata
     );
 
     case (which$)
@@ -539,14 +559,14 @@ module ninjin_ddr_buf
 //==========================================================
 // {{{
 
-  assign switch_buf = count_len$ > RATE*BURST_LEN
+  assign switch_buf = mode == M_INCR && count_len$ > RATE*BURST_LEN
                    && count_inner$ == RATE * BURST_LEN - 1;
   // assign switch_buf = switch_buf$;
 
   always @(posedge clk)
     if (!xrst)
       switch_buf$ <= 0;
-    else if (count_len$ > RATE*BURST_LEN && count_inner$ == RATE * BURST_LEN - 1)
+    else if (mode == M_INCR && count_len$ > RATE*BURST_LEN && count_inner$ == RATE * BURST_LEN - 1)
       switch_buf$ <= 1;
     else
       switch_buf$ <= 0;
@@ -630,12 +650,10 @@ module ninjin_ddr_buf
         BRAVO:
           gen_buf_we = ddr_we;
         PRE:
-          if (first_buf$ == ALPHA && state$[0] != S_PREF)
+          if (state$[0] == S_READ && first_buf$ == ALPHA)
             gen_buf_we = ddr_we;
           else
             gen_buf_we = 0;
-        POST:
-          gen_buf_we = 0;
         default:
           gen_buf_we = 0;
       endcase
@@ -646,12 +664,10 @@ module ninjin_ddr_buf
         ALPHA:
           gen_buf_we = ddr_we;
         PRE:
-          if (first_buf$ == BRAVO && state$[0] != S_PREF)
+          if (state$[0] == S_READ && first_buf$ == BRAVO)
             gen_buf_we = ddr_we;
           else
             gen_buf_we = 0;
-        POST:
-          gen_buf_we = 0;
         default:
           gen_buf_we = 0;
       endcase
@@ -668,52 +684,54 @@ module ninjin_ddr_buf
     );
 
     if (reg_which'(i) == ALPHA)
-      case (which$)
-        ALPHA:
-          if (state$[0] == S_READ)
-            gen_buf_addr = mem_addr - (buf_base$[i] + mem_diff$) >> RATELOG;
-          else
-            gen_buf_addr = buf_addr$;
-        BRAVO:
-          if (state$[0] == S_WRITE)
-            gen_buf_addr = ddr_raddr - buf_base$[i];
-          else
-            gen_buf_addr = ddr_waddr - buf_base$[i];
-        PRE:
-          if (first_buf$ == ALPHA && state$[0] != S_PREF)
-            gen_buf_addr = ddr_waddr - buf_base$[i];
-          else
+      if (count_post$ > 0 && ddr_which$ == BRAVO)
+        gen_buf_addr = ddr_raddr - buf_base$[i];
+      else
+        case (which$)
+          ALPHA:
+            if (state$[0] == S_READ)
+              gen_buf_addr = mem_addr - (buf_base$[i] + mem_diff$) >> RATELOG;
+            else
+              gen_buf_addr = buf_addr$;
+          BRAVO:
+            if (state$[0] == S_READ)
+              gen_buf_addr = ddr_waddr - buf_base$[i];
+            else
+              gen_buf_addr = ddr_raddr - buf_base$[i];
+          PRE:
+            if (state$[0] == S_READ && first_buf$ == ALPHA)
+              gen_buf_addr = ddr_waddr - buf_base$[i];
+            else
+              gen_buf_addr = 0;
+          default:
             gen_buf_addr = 0;
-        POST:
-          gen_buf_addr = 0;
-        default:
-          gen_buf_addr = 0;
-      endcase
+        endcase
     else
-      case (which$)
-        BRAVO:
-          if (state$[0] == S_READ)
-            gen_buf_addr = mem_addr - (buf_base$[i] + mem_diff$) >> RATELOG;
-          else
-            gen_buf_addr = buf_addr$;
-        ALPHA:
-          if (state$[0] == S_WRITE)
-            gen_buf_addr = ddr_raddr - buf_base$[i];
-          else
-            gen_buf_addr = ddr_waddr - buf_base$[i];
-        PRE:
-          if (first_buf$ == BRAVO && state$[0] != S_PREF)
-            gen_buf_addr = ddr_waddr - buf_base$[i];
-          else
+      if (count_post$ > 0 && ddr_which$ == ALPHA)
+        gen_buf_addr = ddr_raddr - buf_base$[i];
+      else
+        case (which$)
+          BRAVO:
+            if (state$[0] == S_READ)
+              gen_buf_addr = mem_addr - (buf_base$[i] + mem_diff$) >> RATELOG;
+            else
+              gen_buf_addr = buf_addr$;
+          ALPHA:
+            if (state$[0] == S_READ)
+              gen_buf_addr = ddr_waddr - buf_base$[i];
+            else
+              gen_buf_addr = ddr_raddr - buf_base$[i];
+          PRE:
+            if (state$[0] == S_READ && first_buf$ == ALPHA)
+              gen_buf_addr = ddr_waddr - buf_base$[i];
+            else
+              gen_buf_addr = ddr_raddr - buf_base$[i];
+          default:
             gen_buf_addr = 0;
-        POST:
-          gen_buf_addr = 0;
-        default:
-          gen_buf_addr = 0;
-      endcase
+        endcase
   endfunction
 
-  function signed [BWIDTH-1:0] gen_buf_wdata
+  function [BWIDTH-1:0] gen_buf_wdata
     ( input integer i
     , input [BWIDTH-1:0] buf_wdata$
     , input [BWIDTH-1:0] ddr_wdata
@@ -726,12 +744,10 @@ module ninjin_ddr_buf
         BRAVO:
           gen_buf_wdata = ddr_wdata;
         PRE:
-          if (first_buf$ == ALPHA && state$[0] != S_PREF)
+          if (state$[0] == S_READ && first_buf$ == ALPHA)
             gen_buf_wdata = ddr_wdata;
           else
             gen_buf_wdata = 0;
-        POST:
-          gen_buf_wdata = 0;
         default:
           gen_buf_wdata = 0;
       endcase
@@ -742,12 +758,10 @@ module ninjin_ddr_buf
         ALPHA:
           gen_buf_wdata = ddr_wdata;
         PRE:
-          if (first_buf$ == BRAVO && state$[0] != S_PREF)
+          if (state$[0] == S_READ && first_buf$ == BRAVO)
             gen_buf_wdata = ddr_wdata;
           else
             gen_buf_wdata = 0;
-        POST:
-          gen_buf_wdata = 0;
         default:
           gen_buf_wdata = 0;
       endcase
@@ -759,9 +773,9 @@ module ninjin_ddr_buf
 //==========================================================
 // {{{
 
-  assign post_we     = gen_post_we(mem_we, ddr_we);
-  assign post_addr   = gen_post_addr(mem_addr, ddr_addr, base_addr$);
-  assign post_wdata  = gen_post_wdata(mem_wdata, ddr_wdata);
+  assign post_we     = gen_post_we(buf_we$);
+  assign post_addr   = gen_post_addr(post_addr$, ddr_raddr, post_base$);
+  assign post_wdata  = gen_post_wdata(buf_wdata$);
 
   mem_sp #(BWIDTH, BUFSIZE) mem_post(
     .mem_we     (post_we),
@@ -776,57 +790,78 @@ module ninjin_ddr_buf
       count_post$ <= 0;
     else if (java)
       count_post$ <= 1;
+    else if (ddr_which$ == POST && count_post$ == 0)
+      count_post$ <= 1;
     else if (count_post$ > 0)
       if (count_post$ == RATE*BURST_LEN-1)
         count_post$ <= 0;
       else
         count_post$ <= count_post$ + 1;
 
+  always @(posedge clk)
+    if (!xrst)
+      post_base$ <= 0;
+    else if (java)
+      post_base$ <= buf_base$[which$] + BURST_LEN;
+
+  always @(posedge clk)
+    if (!xrst)
+      post_addr$ <= 0;
+    else
+      post_addr$ <= mem_addr$ - (post_base$ + mem_diff$)
+                 >> RATELOG;
+
+  always @(posedge clk)
+    if (!xrst)
+      post_len$ <= 0;
+    else if (s_write_end)
+      post_len$ <= count_len$;
+
   function gen_post_we
-    ( input mem_we
-    , input ddr_we
+    ( input buf_we$
     );
 
     case (which$)
       POST:
-        if (state$[0] == S_PREF)
-          gen_post_we = ddr_we;
-        else
-          // gen_post_we = mem_we;
+        if (ddr_which$ == POST)
           gen_post_we = 0;
+        else
+          gen_post_we = buf_we$;
       default:
         gen_post_we = 0;
     endcase
   endfunction
 
   function [BUFSIZE-1:0] gen_post_addr
-    ( input [IMGSIZE-1:0] mem_addr
-    , input [IMGSIZE-1:0] ddr_addr
-    , input [IMGSIZE-1:0] base_addr$
+    ( input [IMGSIZE-1:0] post_addr$
+    , input [IMGSIZE-1:0] ddr_raddr
+    , input [IMGSIZE-1:0] post_base$
     );
 
     case (which$)
       POST:
-        if (state$[0] == S_PREF)
-          gen_post_addr = ddr_addr - base_addr$;
+        if (ddr_which$ == POST)
+          gen_post_addr = ddr_raddr - post_base$;
         else
-          gen_post_addr = mem_addr - base_addr$ >> RATELOG;
+          gen_post_addr = post_addr$;
       default:
-        gen_post_addr = 0;
+        if (ddr_which$ == POST)
+          gen_post_addr = ddr_raddr - post_base$;
+        else
+          gen_post_addr = 0;
     endcase
   endfunction
 
-  function signed [BWIDTH-1:0] gen_post_wdata
-    ( input signed [DWIDTH-1:0] mem_wdata
-    , input signed [BWIDTH-1:0] ddr_wdata
+  function [BWIDTH-1:0] gen_post_wdata
+    ( input [BWIDTH-1:0] buf_wdata$
     );
 
     case (which$)
       POST:
-        if (state$[0] == S_PREF)
-          gen_post_wdata = ddr_wdata;
+        if (ddr_which$ == POST)
+          gen_post_wdata = 0;
         else
-          gen_post_wdata = mem_wdata;
+          gen_post_wdata = buf_wdata$;
       default:
         gen_post_wdata = 0;
     endcase
