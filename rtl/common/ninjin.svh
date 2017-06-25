@@ -15,11 +15,9 @@ parameter LSB   = 2;
 // parameter PORT  = 2 ** REGSIZE;
 parameter PORT  = 32;
 
-// parameter BURST_LEN = 16;
-// parameter BUFSIZE   = 4;
-parameter BURST_LEN = 256;
 parameter BUFSIZE   = 8;
-// parameter BUFSIZE   = $clog2(BURST_LEN);
+parameter BURST_MAX = 2 ** BUFSIZE;
+// parameter BUFSIZE   = $clog2(BURST_MAX);
 
 parameter RATE    = BWIDTH / DWIDTH;
 parameter RATELOG = $clog2(RATE);

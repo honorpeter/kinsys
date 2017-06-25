@@ -3,10 +3,10 @@
 // TODO: currently, odd WRITE_LEN won't work.
 //       (However, actual WRITE_LEN may be CORE * ~, where CORE is even)
 
-const int READ_LEN   = 128+8;
-const int WRITE_LEN  = 128+8;
-// const int READ_LEN   = 16*12*12;
-// const int WRITE_LEN  = 8*4*4;
+// const int READ_LEN   = 128+8;
+// const int WRITE_LEN  = 128+8;
+const int READ_LEN   = 16*12*12;
+const int WRITE_LEN  = 8*4*4;
 
 // int READ_OFFSET  = 42;
 const int READ_OFFSET  = 'h0000;
@@ -31,6 +31,7 @@ module test_ninjin_ddr_buf;
   reg [IMGSIZE-1:0]       ddr_waddr;
   reg [BWIDTH-1:0]        ddr_wdata;
   reg [IMGSIZE-1:0]       ddr_raddr;
+
   wire                      ddr_req;
   wire                      ddr_mode;
   wire [IMGSIZE-1:0]        ddr_base;
@@ -40,6 +41,12 @@ module test_ninjin_ddr_buf;
 
   integer _ddr_base [1:0];
   integer _ddr_len [1:0];
+
+  int ddr_read_count  = 0;
+  int ddr_write_count = 0;
+
+  let max(a, b) = a > b ? a : b;
+  let min(a, b) = a < b ? a : b;
 
   ninjin_ddr_buf dut(.*);
 
@@ -100,7 +107,23 @@ module test_ninjin_ddr_buf;
       write(i + WRITE_OFFSET, i + 'h0005);
     clear;
 
-    #(2*BURST_LEN*STEP);
+    #(2*BURST_MAX*STEP);
+
+    assert (
+      ddr_read_count
+      == max((READ_LEN/RATE-BURST_MAX), 0)*2 + min(BURST_MAX, READ_LEN/RATE)
+    )
+    else
+      $error(
+        "ddr_read_count not matched @ actual: %h, target: %h",
+        ddr_read_count,
+        max((READ_LEN/RATE-BURST_MAX), 0)*2 + min(BURST_MAX, READ_LEN/RATE)
+      );
+    assert (ddr_write_count == (WRITE_LEN/RATE) * 2) else
+      $error(
+        "ddr_write_count not matched @ actual: %h, target: %h",
+        ddr_write_count, (WRITE_LEN/RATE) * 2
+      );
     $finish();
   end
 
@@ -124,7 +147,7 @@ module test_ninjin_ddr_buf;
     pre_en = 0;
     #(STEP);
 
-    #(BURST_LEN*STEP);
+    #(BURST_MAX*STEP);
     #(STEP);
   endtask
 
@@ -174,6 +197,7 @@ module test_ninjin_ddr_buf;
         ddr_waddr = i + _ddr_base[DDR_READ];
         ddr_wdata = 'h0def000c + ddr_waddr - READ_OFFSET;
         #(STEP);
+        ddr_read_count++;
       end
       ddr_we    = 0;
       ddr_waddr = 0;
@@ -192,6 +216,7 @@ module test_ninjin_ddr_buf;
       for (int i = 0; i < _ddr_len[DDR_WRITE]; i++) begin
         ddr_raddr = i + _ddr_base[DDR_WRITE];
         #(STEP);
+        ddr_write_count++;
       end
       ddr_raddr = 0;
       #(STEP);
@@ -257,23 +282,34 @@ module test_ninjin_ddr_buf;
     forever begin
       #(STEP/2-1);
       $display(
-        "%4d: ", $time/STEP,
-        "%d ", xrst,
-        "*%d ", dut.state$[0],
-        "%d ", dut.mode,
+        "%4x: ", $time/STEP,
+        // "%d ", xrst,
+        "&%d ", dut.state$[0],
+        // "%d ", dut.mode,
+        // "%d ", dut.mode$,
         // "%d ", dut.count_len$,
-        // "%d ", dut.count_inner$,
-        // "%d ", dut.count_post$,
+        // "%d ", dut.read_len,
+        // "%d ", $signed(dut.rest_len),
+        // "%d ", dut.burst_len,
+        // "%d ", dut.count_buf$,
+        // "%3d ", ddr_read_count,
+        // "%3d ", ddr_write_count,
+        // "| ",
+        // "%x ", dut.count_post$,
+        // "%x ", dut.switch_post_main,
+        // "%x ", dut.switch_post_sub,
         "| ",
         "%x ",  mem_we,
         "%3x ", mem_addr,
         "%3x ", mem_wdata,
         "%3x ", mem_rdata,
         "| ",
-        // "%x ",  pre_en,
+        // "%x ",  dut.pre_en,
         // "%x ",  dut.pre_base$,
-        // "%x ",  dut.read_len$,
-        // "%x ",  dut.write_len$,
+        // "%d ",  dut.read_len$,
+        // "%d ",  dut.write_len$,
+        // "%x ",  dut.pre_we,
+        // "%x ",  dut.pre_addr,
         // ": ",
         // "%x ",  ddr_req,
         // "%x ",  ddr_mode,
@@ -286,6 +322,11 @@ module test_ninjin_ddr_buf;
         "%3x ", ddr_raddr,
         "%7x ", ddr_rdata,
         "| ",
+        // "%x ",  dut.pre_base$,
+        // "%x ",  dut.buf_base$[0],
+        // "%x ",  dut.buf_base$[1],
+        // "%x ",  dut.post_base$,
+        // "| ",
         "*%d ", dut.which$,
         "*%d ", dut.mem_which$,
         "*%d ", dut.ddr_which$,

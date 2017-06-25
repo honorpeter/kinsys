@@ -1,7 +1,7 @@
 `include "ninjin.svh"
 
 module ninjin_m_axi_image
- #( parameter BURST_LEN     = 256
+ #( parameter BURST_MAX     = 256
   , parameter DATA_WIDTH    = 32
   , parameter ADDR_WIDTH    = 12
   , parameter ID_WIDTH      = 12
@@ -67,7 +67,7 @@ module ninjin_m_axi_image
   , output [MEMSIZE-1:0]      ddr_raddr
   );
 
-  localparam TXN_NUM = clogb2(BURST_LEN-1);
+  localparam TXN_NUM = clogb2(BURST_MAX-1);
 
   wire                    wreq_pulse;
   wire                    rreq_pulse;
@@ -132,9 +132,9 @@ module ninjin_m_axi_image
   assign rreq_pulse = ddr_mode == DDR_READ  && req_pulse;
 
   assign s_write_end = bvalid && bready$;
-  assign s_read_end  = rvalid && rready$ && rreqad_idx$ == BURST_LEN - 1;
+  assign s_read_end  = rvalid && rready$ && rreqad_idx$ == BURST_MAX - 1;
 
-  assign burst_size = BURST_LEN * DWIDTH/8;
+  assign burst_size = BURST_MAX * DWIDTH/8;
 
   always @(posedge clk)
     if (!xrst)
@@ -221,7 +221,7 @@ module ninjin_m_axi_image
   assign awvalid  = awvalid$;
   assign awid     = 0;
   assign awaddr   = awaddr$;
-  assign awlen    = BURST_LEN - 1;
+  assign awlen    = BURST_MAX - 1;
   assign awsize   = clogb2(DWIDTH/8 - 1);
   assign awburst  = 2'b01;
   assign awlock   = 1'b0;
@@ -286,18 +286,18 @@ module ninjin_m_axi_image
       wlast$ <= 0;
     else if (wreq_pulse)
       wlast$ <= 0;
-    else if ((write_idx$ == BURST_LEN - 2 && BURST_LEN >= 2 && wnext)
-              || BURST_LEN == 1)
+    else if ((write_idx$ == BURST_MAX - 2 && BURST_MAX >= 2 && wnext)
+              || BURST_MAX == 1)
       wlast$ <= 1;
     else if (wnext)
       wlast$ <= 0;
-    else if (wlast$ && BURST_LEN == 1)
+    else if (wlast$ && BURST_MAX == 1)
       wlast$ <= 0;
 
   always @(posedge clk)
     else if (wreq_pulse || write_single_burst$)
       write_idx$ <= 0;
-    else if (wnext && write_idx$ != BURST_LEN - 1)
+    else if (wnext && write_idx$ != BURST_MAX - 1)
       write_idx$ <= write_idx$ + 1;
 
 // }}}
@@ -329,7 +329,7 @@ module ninjin_m_axi_image
   assign arvalid  = arvalid$;
   assign arid     = 0;
   assign araddr   = araddr$;
-  assign arlen    = BURST_LEN - 1;
+  assign arlen    = BURST_MAX - 1;
   assign arsize   = clogb2(DWIDTH/8 - 1);
   assign arburst  = 2'b01;
   assign arlock   = 1'b0;
@@ -385,7 +385,7 @@ module ninjin_m_axi_image
       rreqad_idx$ <= 0;
     else if (rreq_pulse || rreqad_single_burst$)
       rreqad_idx$ <= 0;
-    else if (rnext && rreqad_idx$ != BURST_LEN - 1)
+    else if (rnext && rreqad_idx$ != BURST_MAX - 1)
       rreqad_idx$ <= rreqad_idx$ + 1;
 
 // }}}

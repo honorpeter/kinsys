@@ -8,7 +8,7 @@ module kinpira_axi
   , parameter C_s_axi_params_ADDR_WIDTH = REGSIZE + LSB
 
   // Parameters of Axi Master Bus Interface m_axi_image
-  , parameter C_m_axi_image_BURST_LEN     = 256
+  , parameter C_m_axi_image_BURST_MAX     = 256
   , parameter C_m_axi_image_ID_WIDTH      = 1
   , parameter C_m_axi_image_ADDR_WIDTH    = 32
   , parameter C_m_axi_image_DATA_WIDTH    = 32
@@ -399,7 +399,7 @@ module kinpira_axi
   );
 
   ninjin_m_axi_image #(
-    .BURST_LEN    (C_m_axi_image_BURST_LEN),
+    .BURST_MAX    (C_m_axi_image_BURST_MAX),
     .ID_WIDTH     (C_m_axi_image_ID_WIDTH),
     .ADDR_WIDTH   (C_m_axi_image_ADDR_WIDTH),
     .DATA_WIDTH   (C_m_axi_image_DATA_WIDTH),
