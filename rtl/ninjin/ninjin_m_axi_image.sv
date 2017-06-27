@@ -73,6 +73,7 @@ module ninjin_m_axi_image
 
   localparam TXN_NUM = clogb2(BURST_MAX-1);
 
+  wire                    req_pulse;
   wire                    wreq_pulse;
   wire                    rreq_pulse;
   wire                    write_end;
