@@ -8,7 +8,7 @@
 parameter STEP    = 10;
 parameter DWIDTH  = 16;
 parameter LWIDTH  = 16;
-parameter IMGSIZE = 16;
+parameter IMGSIZE = 32;
 
 parameter D_BIAS     = 2;
 parameter D_RELU     = 2;

@@ -10,13 +10,15 @@
 #define GOBOU   1
 #define NINJIN  2
 
-#define DWIDTH          16
 #if defined(KINPIRA_AXI)
+# define DWIDTH          16
 # define LWIDTH          10
+# define IMGSIZE         16
 #elif defined (KINPIRA_DDR)
+# define DWIDTH          16
 # define LWIDTH          16
+# define IMGSIZE         32
 #endif
-#define IMGSIZE         16
 #define RENKON_CORE     8
 #define RENKON_NETSIZE  11
 #define GOBOU_CORE      16

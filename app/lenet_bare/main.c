@@ -48,7 +48,6 @@
 
 int main(void)
 {
-#if defined(KINPIRA_AXI)
   INIT
 
   layer conv0, conv1;
@@ -58,6 +57,8 @@ int main(void)
   setbuf(stdout, NULL);
   printf("\033[2J");
   puts("### start lenet_bare application:");
+
+#if defined(KINPIRA_AXI)
 
   define_2d(&conv0, INPUT_IMAGE, CONV0_IMAGE, CONV0_PARAM,
             N_C0, N_IN, ISIZE, FSIZE, PSIZE);
@@ -133,24 +134,16 @@ int main(void)
   puts("");
   //========================================================
 
-  print_result(output, LABEL);
-
 #elif defined(KINPIRA_DDR)
-  INIT
 
-  layer conv0, conv1;
-  layer full2, full3;
-  s16 image[N_IN*ISIZE*ISIZE];
-  s16 pmap0[N_C0*PM0SIZE*PM0SIZE];
-  s16 pmap1[N_C1*PM1SIZE*PM1SIZE];
-  s16 fvec2[N_F2];
-  s16 fvec3[N_F3];
+  s16 image[N_IN*ISIZE*ISIZE]     = {0};
+  s16 pmap0[N_C0*PM0SIZE*PM0SIZE] = {0};
+  s16 pmap1[N_C1*PM1SIZE*PM1SIZE] = {0};
+  s16 fvec2[N_F2]                 = {0};
+  s16 fvec3[N_F3]                 = {0};
 
-  u32 output[LABEL];
-
-  setbuf(stdout, NULL);
-  printf("\033[2J");
-  puts("### start lenet_bare application:");
+  for (int i = 0; i < N_IN*ISIZE*ISIZE; i++)
+    image[i] = input[i];
 
   define_2d(&conv0, (u32)image, (u32)pmap0, CONV0_PARAM,
             N_C0, N_IN, ISIZE, FSIZE, PSIZE);
@@ -168,13 +161,16 @@ int main(void)
             N_F3, N_F2);
   assign_1d(&full3, W_full3, b_full3);
 
-  for (int i = 0; i < N_IN*ISIZE*ISIZE; i++)
-    image[i] = input[i];
+  for (int i = 0; i < 10; i++)
+    printf("%x\n", pmap0[i]);
 
   puts("exec_core(&conv0)");
   BEGIN
   exec_core(&conv0);
   END
+
+  for (int i = 0; i < 10; i++)
+    printf("%x\n", pmap0[i]);
 
   puts("exec_core(&conv1)");
   BEGIN
@@ -191,16 +187,12 @@ int main(void)
   exec_core(&full3);
   END
 
-  puts("get_image(output)");
-  BEGIN
-  get_image(output, FULL3_IMAGE, LABEL);
-  END
-
-  for (int i = 0; i < N_IN*ISIZE*ISIZE; i++)
+  for (int i = 0; i < LABEL; i++)
     output[i] = fvec3[i];
 
-  print_result(output, LABEL);
 #endif
+
+  print_result(output, LABEL);
 
   return 0;
 }
