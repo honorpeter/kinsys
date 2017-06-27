@@ -4,10 +4,13 @@ MODULE    = mem_sp.sv
 DEPENDS   =
 TARGET    = test/test_$(MODULE)
 SOURCES   = $(wildcard *.sv)
-HEADERS   = $(wildcard *.svh)
 TESTSUITE = $(wildcard test/*.sv)
+HEADERS   = $(wildcard *.svh)
 INCLUDE   =
 DIST      = ../../dist
 
 include ../Makefile
 
+dist:
+	mkdir -p $(DIST)
+	rsync -L -avz $(SOURCES) $(HEADERS) $(TESTSUITE) $(DIST)

@@ -1,5 +1,5 @@
 BOARD = zedboard
-IP    = kinpira_axi
+IP    = kinpira_ddr
 APP   = lenet_bare
 
 .PHONY: run sw hw zybo zedboard ip all clean

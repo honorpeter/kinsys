@@ -16,9 +16,11 @@
 
 void post_image(u32 *image, const u32 offset, const u32 length)
 {
+#ifdef KINPIRA_AXI
   *reg_which = NINJIN;
   // NOTE: width of each entry have to be adjusted with care.
   memmove(&mem_image[offset], image, sizeof(u32)*length);
+#endif
 }
 
 
@@ -157,6 +159,31 @@ void exec_core(layer *l)
   *reg_fil_size   = l->fil_size;
   *reg_pool_size  = l->pool_size;
 
+#ifdef KINPIRA_DDR
+  *reg_pre_base   = l->in_offset;
+  switch (l->which) {
+    case RENKON:
+      *reg_read_len   = l->total_in * l->img_size * l->img_size;
+      *reg_write_len  = l->total_out
+                      * ((l->img_size - l->fil_size + 1)/(l->pool_size))
+                      * ((l->img_size - l->fil_size + 1)/(l->pool_size));
+      break;
+    case GOBOU:
+      *reg_read_len   = l->total_in;
+      *reg_write_len  = l->total_out;
+      break;
+    default:
+      *reg_read_len   = 0;
+      *reg_write_len  = 0;
+      break;
+  }
+
+  *reg_pre_en = 1;
+  *reg_pre_en = 0;
+
+  sleep(1);
+#endif
+
   *reg_req = 0x1;
   *reg_req = 0x0;
 
@@ -170,8 +197,10 @@ void exec_core(layer *l)
 
 void get_image(u32 *image, const u32 offset, const u32 length)
 {
+#ifdef KINPIRA_AXI
   *reg_which = NINJIN;
   memmove(image, &mem_image[offset], sizeof(u32)*length);
+#endif
 }
 
 

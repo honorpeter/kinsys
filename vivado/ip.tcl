@@ -85,11 +85,12 @@ set files [list \
  "[file normalize "$origin_dir/../dist/renkon_top.sv"]"\
  "[file normalize "$origin_dir/../dist/ninjin.svh"]"\
  "[file normalize "$origin_dir/../dist/ninjin_s_axi_params.sv"]"\
- "[file normalize "$origin_dir/../dist/ninjin_s_axi_image.sv"]"\
+ "[file normalize "$origin_dir/../dist/ninjin_m_axi_image.sv"]"\
+ "[file normalize "$origin_dir/../dist/ninjin_ddr_buf.sv"]"\
  "[file normalize "$origin_dir/../dist/ninjin_s_axi_renkon.sv"]"\
  "[file normalize "$origin_dir/../dist/ninjin_s_axi_gobou.sv"]"\
  "[file normalize "$origin_dir/../dist/gobou_top.sv"]"\
- "[file normalize "$origin_dir/../dist/kinpira_axi.sv"]"\
+ "[file normalize "$origin_dir/../dist/kinpira_ddr.sv"]"\
 ]
 add_files -norecurse -fileset $obj $files
 
@@ -279,7 +280,12 @@ set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
 
-set file "$origin_dir/../dist/ninjin_s_axi_image.sv"
+set file "$origin_dir/../dist/ninjin_ddr_buf.sv"
+set file [file normalize $file]
+set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
+set_property "file_type" "SystemVerilog" $file_obj
+
+set file "$origin_dir/../dist/ninjin_m_axi_image.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
@@ -299,7 +305,7 @@ set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
 
-set file "$origin_dir/../dist/kinpira_axi.sv"
+set file "$origin_dir/../dist/kinpira_ddr.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
@@ -339,7 +345,7 @@ if {[string equal [get_filesets -quiet sim_1] ""]} {
 set obj [get_filesets sim_1]
 set files [list \
  "[file normalize "$origin_dir/../dist/test_gobou_top.sv"]"\
- "[file normalize "$origin_dir/../dist/test_kinpira_axi.sv"]"\
+ "[file normalize "$origin_dir/../dist/test_kinpira_ddr.sv"]"\
  "[file normalize "$origin_dir/../dist/test_mem_dp.sv"]"\
  "[file normalize "$origin_dir/../dist/test_mem_sp.sv"]"\
  "[file normalize "$origin_dir/../dist/test_renkon_top.sv"]"\
@@ -352,7 +358,7 @@ set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sim_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
 
-set file "$origin_dir/../dist/test_kinpira_axi.sv"
+set file "$origin_dir/../dist/test_kinpira_ddr.sv"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sim_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj

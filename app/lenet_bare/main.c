@@ -48,6 +48,7 @@
 
 int main(void)
 {
+#if defined(KINPIRA_AXI)
   INIT
 
   layer conv0, conv1;
@@ -133,6 +134,73 @@ int main(void)
   //========================================================
 
   print_result(output, LABEL);
+
+#elif defined(KINPIRA_DDR)
+  INIT
+
+  layer conv0, conv1;
+  layer full2, full3;
+  s16 image[N_IN*ISIZE*ISIZE];
+  s16 pmap0[N_C0*PM0SIZE*PM0SIZE];
+  s16 pmap1[N_C1*PM1SIZE*PM1SIZE];
+  s16 fvec2[N_F2];
+  s16 fvec3[N_F3];
+
+  u32 output[LABEL];
+
+  setbuf(stdout, NULL);
+  printf("\033[2J");
+  puts("### start lenet_bare application:");
+
+  define_2d(&conv0, (u32)image, (u32)pmap0, CONV0_PARAM,
+            N_C0, N_IN, ISIZE, FSIZE, PSIZE);
+  assign_2d(&conv0, W_conv0, b_conv0);
+
+  define_2d(&conv1, (u32)pmap0, (u32)pmap1, CONV1_PARAM,
+            N_C1, N_C0, PM0SIZE, FSIZE, PSIZE);
+  assign_2d(&conv1, W_conv1, b_conv1);
+
+  define_1d(&full2, (u32)pmap1, (u32)fvec2, FULL2_PARAM,
+            N_F2, N_C1*PM1SIZE*PM1SIZE);
+  assign_1d(&full2, W_full2, b_full2);
+
+  define_1d(&full3, (u32)fvec2, (u32)fvec3, FULL3_PARAM,
+            N_F3, N_F2);
+  assign_1d(&full3, W_full3, b_full3);
+
+  for (int i = 0; i < N_IN*ISIZE*ISIZE; i++)
+    image[i] = input[i];
+
+  puts("exec_core(&conv0)");
+  BEGIN
+  exec_core(&conv0);
+  END
+
+  puts("exec_core(&conv1)");
+  BEGIN
+  exec_core(&conv1);
+  END
+
+  puts("exec_core(&full2)");
+  BEGIN
+  exec_core(&full2);
+  END
+
+  puts("exec_core(&full3)");
+  BEGIN
+  exec_core(&full3);
+  END
+
+  puts("get_image(output)");
+  BEGIN
+  get_image(output, FULL3_IMAGE, LABEL);
+  END
+
+  for (int i = 0; i < N_IN*ISIZE*ISIZE; i++)
+    output[i] = fvec3[i];
+
+  print_result(output, LABEL);
+#endif
 
   return 0;
 }

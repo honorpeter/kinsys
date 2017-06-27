@@ -18,7 +18,7 @@ parameter PORT  = 32;
 parameter MEMSIZE = IMGSIZE;
 
 parameter BUFSIZE   = 8;
-parameter BURST_MAX = 2 ** BUFSIZE;
+parameter BURST_MAX = 256;
 // parameter BUFSIZE   = $clog2(BURST_MAX);
 
 parameter RATE    = BWIDTH / DWIDTH;

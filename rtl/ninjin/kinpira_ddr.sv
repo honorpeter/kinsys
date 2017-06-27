@@ -313,6 +313,11 @@ module kinpira_ddr
   assign img_size   = in_port[7][LWIDTH-1:0];
   assign fil_size   = in_port[8][LWIDTH-1:0];
   assign pool_size  = in_port[9][LWIDTH-1:0];
+  // TODO: infer base and len
+  assign pre_en     = in_port[10][0];
+  assign pre_base   = in_port[11][IMGSIZE-1:0];
+  assign read_len   = in_port[12][LWIDTH-1:0];
+  assign write_len  = in_port[13][LWIDTH-1:0];
 
   assign out_port[31] = {30'b0, which$};
   assign out_port[30] = {31'b0, ack};

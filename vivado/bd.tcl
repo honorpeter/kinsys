@@ -38,6 +38,15 @@ if {$proj_name == "zcu102"} {
       apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/processing_system7_0/M_AXI_GP1" Clk "Auto" }  [get_bd_intf_pins ${ip_name}_0/s_axi_renkon]
       apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/processing_system7_0/M_AXI_GP1" Clk "Auto" }  [get_bd_intf_pins ${ip_name}_0/s_axi_gobou]
     }
+    "kinpira_ddr" {
+      set_property -dict [list CONFIG.PCW_USE_S_AXI_HP0 {1}] [get_bd_cells processing_system7_0]
+      set_property -dict [list CONFIG.PCW_USE_M_AXI_GP1 {1}] [get_bd_cells processing_system7_0]
+
+      apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/processing_system7_0/M_AXI_GP0" Clk "Auto" }  [get_bd_intf_pins ${ip_name}_0/s_axi_params]
+      apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/kinpira_ddr_0/m_axi_image" Clk "Auto" }  [get_bd_intf_pins processing_system7_0/S_AXI_HP0]
+      apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/processing_system7_0/M_AXI_GP1" Clk "Auto" }  [get_bd_intf_pins ${ip_name}_0/s_axi_renkon]
+      apply_bd_automation -rule xilinx.com:bd_rule:axi4 -config {Master "/processing_system7_0/M_AXI_GP1" Clk "Auto" }  [get_bd_intf_pins ${ip_name}_0/s_axi_gobou]
+    }
   }
 }
 

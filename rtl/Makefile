@@ -80,7 +80,7 @@ dist:
 else
 dist:
 	mkdir -p $(DIST)
-	rsync -L -avz $(MODULE) $(DEPENDS) $(TARGET) $(DIST)
+	rsync -L -avz $(MODULE) $(DEPENDS) $(HEADERS) $(TARGET) $(DIST)
 endif
 
 ############################################################

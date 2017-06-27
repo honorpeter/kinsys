@@ -39,6 +39,7 @@ parameter C_s_axi_gobou_BUSER_WIDTH   = 0;
 module test_kinpira_ddr;
 
   reg clk;
+  reg xrst;
   reg                                     s_axi_params_aclk;
   reg                                     s_axi_params_aresetn;
   reg  [C_s_axi_params_ADDR_WIDTH-1:0]    s_axi_params_awaddr;
@@ -212,16 +213,25 @@ module test_kinpira_ddr;
       #(STEP/2) clk = ~clk;
   end
 
-  always begin
-    s_axi_params_aclk = clk;
-    s_axi_renkon_aclk = clk;
-    s_axi_gobou_aclk  = clk;
-    m_axi_image_aclk  = clk;
-  end
+  assign s_axi_params_aclk = clk,
+         s_axi_renkon_aclk = clk,
+         s_axi_gobou_aclk  = clk,
+         m_axi_image_aclk  = clk;
+
+  assign s_axi_params_aresetn = xrst,
+         s_axi_renkon_aresetn = xrst,
+         s_axi_gobou_aresetn  = xrst,
+         m_axi_image_aresetn  = xrst;
 
   //flow
   initial begin
+    xrst = 0;
+    #(STEP);
 
+    xrst = 1;
+    #(STEP);
+
+    #(10*STEP);
     $finish();
   end
 
