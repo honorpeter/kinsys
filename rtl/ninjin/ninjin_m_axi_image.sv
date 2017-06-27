@@ -293,16 +293,17 @@ module ninjin_m_axi_image
 
   assign wnext = wready && wvalid$;
 
-  reg have_awaddr;
+  // TODO: re-define this temp signal
+  reg have_awaddr$;
   always @(posedge clk)
-    have_awaddr <= awready && awvalid$;
+    have_awaddr$ <= awready && awvalid$;
   always @(posedge clk)
     if (!xrst)
       wvalid$ <= 0;
     else if (wreq_pulse)
       wvalid$ <= 0;
     // else if (!wvalid$ && write_start$)
-    else if (!wvalid$ && have_awaddr)
+    else if (!wvalid$ && have_awaddr$)
       wvalid$ <= 1;
     else if (wnext && wlast$)
       wvalid$ <= 0;
@@ -311,7 +312,7 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst)
       wdata$ <= 0;
-    else if (have_awaddr)
+    else if (have_awaddr$)
       wdata$ <= ddr_rdata;
     else if (wnext && write_idx$ != write_len$ - 1)
       wdata$ <= ddr_rdata;
@@ -477,7 +478,7 @@ module ninjin_m_axi_image
       ddr_raddr$ <= 0;
     else if (write_start$)
       ddr_raddr$ <= write_base$;
-    else if (have_awaddr)
+    else if (have_awaddr$)
       ddr_raddr$ <= ddr_raddr$ + 1;
     else if (wnext && write_idx$ != write_len$ - 1)
       ddr_raddr$ <= ddr_raddr$ + 1;

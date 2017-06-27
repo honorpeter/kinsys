@@ -1,24 +1,35 @@
-VERBOSE   = 0
+ifndef VERBOSE
+VERBOSE = 0
+endif
+ifndef SIMULATOR
 SIMULATOR = vsim
-SOURCES   = \
+endif
+ifndef SOURCES
+SOURCES = \
 	$(wildcard gobou/*.sv)  \
 	$(wildcard renkon/*.sv) \
 	$(wildcard ninjin/*.sv) \
 	$(wildcard common/*.sv)
+endif
+ifndef TESTSUITE
 TESTSUITE = \
 	$(wildcard ../test/gobou/*.sv)  \
 	$(wildcard ../test/renkon/*.sv) \
 	$(wildcard ../test/ninjin/*.sv) \
 	$(wildcard ../test/common/*.sv)
-INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl/common
-DIST      = ../dist
-
-.PHONY: test test-all clean
-.SUFFIXES: .com .log .v .sv .vh .svh .dot .png
+endif
+ifndef INCLUDE
+INCLUDE = $(shell git rev-parse --show-toplevel)/rtl/common
+endif
+ifndef DIST
+DIST = ../dist
+endif
 
 ############################################################
 # Major Rules
 ############################################################
+
+.PHONY: all test test-all clean dist dist-sub
 
 all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.com)
 
@@ -35,36 +46,42 @@ edit:
 	@nvim -O $(TARGET) $(MODULE)
 
 diff:
-	@nvim -d ../data/$(MODULE:.sv=)_output.dat \
-		 ../data/$(MODULE:.sv=)_true.dat
+	@nvim -d ../../data/$(notdir $(PWD))/output_$(MODULE:.sv=.dat) \
+		 ../../data/$(notdir $(PWD))/true_$(MODULE:.sv=.dat)
 
 clean:
+	rm -f $(MODULE:.sv=.com)
+	rm -f $(DEPENDS:.sv=.com)
 	rm -f $(SOURCES:.sv=.com)
-	rm -f $(SOURCES:.sv=.log)
-	rm -f $(TESTSUITE:.sv=.com)
-	rm -f $(TESTSUITE:.sv=.log)
+	rm -f $(TARGET:.sv=.com) $(TARGET:.sv=.log)
+	rm -f $(TESTSUITE:.sv=.com) $(TESTSUITE:.sv=.log)
 	### vsim
 	rm -rf work csrc
 	rm -f vsim.wlf transcript
 	rm -f vish_stacktrace.vstf
 	### xsim
-	rm -rf xsim.dir
+	rm -rf xsim.dir .Xil
 	rm -f xvlog.log xvlog.pb
 	rm -f xelab.log xsim*.log
-	rm -f webtalk*.log
+	rm -f webtalk*.log hs_err_pid*.log
 	rm -f *.jou *.pb *.wdb
 	### vcs
-	rm -rf $(SOURCES:.sv=.com.daidir)
-	rm -rf $(TESTSUITE:.sv=.com.daidir)
-	rm -f default.cfg vcdplus.vpd vcs.key
+	rm -rf *.com.daidir *.out.daidir
+	rm -f default.cfg vcdplus.vpd vcs.key ucli.key
 	### iverilog
-	rm -f $(SOURCES:.sv=.out)
+	rm -f *.out
 
+ifndef MODULE
 dist:
-	make -C common dist DIST=../$(DIST)
-	make -C ninjin dist DIST=../$(DIST)
-	make -C renkon dist DIST=../$(DIST)
-	make -C gobou  dist DIST=../$(DIST)
+	$(MAKE) -C common dist DIST=../$(DIST)
+	$(MAKE) -C ninjin dist DIST=../$(DIST)
+	$(MAKE) -C renkon dist DIST=../$(DIST)
+	$(MAKE) -C gobou  dist DIST=../$(DIST)
+else
+dist:
+	mkdir -p $(DIST)
+	rsync -L -avz $(MODULE) $(DEPENDS) $(TARGET) $(DIST)
+endif
 
 ############################################################
 # Attributes Definition
@@ -80,9 +97,9 @@ endif
 
 V_TARGET    = $(shell echo $* | tac -s/ | head -1)
 ifeq ($(SIMULATOR),xsim)
-  XVLOG_OPT = --sv -i $(INCLUDE) --verbose 2
+  XVLOG_OPT = -sv -i $(INCLUDE) # --verbose 2
   COMPILE   = xvlog $(XVLOG_OPT) $<
-  XELAB_OPT = -relax -debug typical
+  XELAB_OPT = -debug typical
   ELABORATE = xelab $(XELAB_OPT) $(V_TARGET) -s $(V_TARGET)_sim
   XSIM_OPT  = -R #$(XVLOG_OPT)
   SIMULATE  = xsim $(V_TARGET)_sim $(XSIM_OPT)
@@ -91,7 +108,7 @@ ifeq ($(SIMULATOR),vsim)
   VLOG_OPT  = -sv12compat +incdir+$(INCLUDE) -lint
   COMPILE   = (test -d work || vlib work) \
            && vlog $(VLOG_OPT) $<
-  VSIM_OPT  = -c -do 'run -all; quit' # $(VLOG_OPT)
+  VSIM_OPT  = -c -do 'run -all; quit' $(VSIM_LIB)
   SIMULATE  = vsim $(V_TARGET) $(VSIM_OPT) | sed 's/^\# //'
 else
 ifeq ($(SIMULATOR),vcs)
@@ -112,6 +129,8 @@ endif
 ############################################################
 # General Rules
 ############################################################
+
+.SUFFIXES: .com .log .v .sv .vh .svh
 
 .v.com:
 	$(E) echo "  COMPILE (.v)      $<"
