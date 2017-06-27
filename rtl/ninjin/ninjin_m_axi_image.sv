@@ -1,5 +1,8 @@
 `include "ninjin.svh"
 
+// TODO: addr$ assignment may be wrong.
+// cf. ) burst_size = BURST_MAX * BWIDTH/8;
+
 module ninjin_m_axi_image
  #( parameter BURST_MAX     = 256
   , parameter DATA_WIDTH    = 32
@@ -21,7 +24,7 @@ module ninjin_m_axi_image
   , input                   bvalid
   , input                   arready
   , input [ID_WIDTH-1:0]    rid
-  , input [DWIDTH-1:0]      rdata
+  , input [BWIDTH-1:0]      rdata
   , input [1:0]             rresp
   , input                   rlast
   , input [RUSER_WIDTH-1:0] ruser
@@ -29,12 +32,13 @@ module ninjin_m_axi_image
   , input                   ddr_req
   , input                   ddr_mode
   , input [MEMSIZE-1:0]     ddr_base
-  , input [DWIDTH-1:0]      ddr_rdata
+  , input [MEMSIZE-1:0]     ddr_len
+  , input [BWIDTH-1:0]      ddr_rdata
 
   , output [3:0]              err
   , output                    awvalid
   , output [ID_WIDTH-1:0]     awid
-  , output [DWIDTH-1:0]       awaddr
+  , output [BWIDTH-1:0]       awaddr
   , output [7:0]              awlen
   , output [2:0]              awsize
   , output [1:0]              awburst
@@ -44,14 +48,14 @@ module ninjin_m_axi_image
   , output [3:0]              awqos
   , output [AWUSER_WIDTH-1:0] awuser
   , output                    wvalid
-  , output [DWIDTH-1:0]       wdata
-  , output [DWIDTH/8-1:0]     wstrb
+  , output [BWIDTH-1:0]       wdata
+  , output [BWIDTH/8-1:0]     wstrb
   , output                    wlast
   , output [WUSER_WIDTH-1:0]  wuser
   , output                    bready
   , output                    arvalid
   , output [ID_WIDTH-1:0]     arid
-  , output [DWIDTH-1:0]       araddr
+  , output [BWIDTH-1:0]       araddr
   , output [7:0]              arlen
   , output [2:0]              arsize
   , output [1:0]              arburst
@@ -63,7 +67,7 @@ module ninjin_m_axi_image
   , output                    rready
   , output                    ddr_we
   , output [MEMSIZE-1:0]      ddr_waddr
-  , output [DWIDTH-1:0]       ddr_wdata
+  , output [BWIDTH-1:0]       ddr_wdata
   , output [MEMSIZE-1:0]      ddr_raddr
   );
 
@@ -71,23 +75,20 @@ module ninjin_m_axi_image
 
   wire                    wreq_pulse;
   wire                    rreq_pulse;
-  wire                    s_write_end;
-  wire                    s_read_end;
+  wire                    write_end;
+  wire                    read_end;
   wire                    err_wresp;
   wire                    err_rresp;
   wire                    wnext;
   wire                    rnext;
-  wire [TXN_NUM+LSB-1:0]  burst_size;
 
   enum reg [2-1:0] {
     S_IDLE, S_BUSY
   } state_write$, state_read$;
-  reg                     wreq$;
-  reg                     rreq$;
   reg                     ack$;
   reg [3:0]               err$;
   reg [ID_WIDTH-1:0]      awid$;
-  reg [DWIDTH-1:0]        awaddr$;
+  reg [BWIDTH-1:0]        awaddr$;
   reg [7:0]               awlen$;
   reg [2:0]               awsize$;
   reg [1:0]               awburst$;
@@ -97,14 +98,14 @@ module ninjin_m_axi_image
   reg [3:0]               awqos$;
   reg [AWUSER_WIDTH-1:0]  awuser$;
   reg                     awvalid$;
-  reg [DWIDTH-1:0]        wdata$;
-  reg [DWIDTH/8-1:0]      wstrb$;
+  reg [BWIDTH-1:0]        wdata$;
+  reg [BWIDTH/8-1:0]      wstrb$;
   reg                     wlast$;
   reg [WUSER_WIDTH-1:0]   wuser$;
   reg                     wvalid$;
   reg                     bready$;
   reg [ID_WIDTH-1:0]      arid$;
-  reg [DWIDTH-1:0]        araddr$;
+  reg [BWIDTH-1:0]        araddr$;
   reg [7:0]               arlen$;
   reg [2:0]               arsize$;
   reg [1:0]               arburst$;
@@ -116,11 +117,20 @@ module ninjin_m_axi_image
   reg                     arvalid$;
   reg                     rready$;
   reg [TXN_NUM:0]         write_idx$;
-  reg [TXN_NUM:0]         rreqad_idx$;
-  reg                     write_single_burst$;
-  reg                     rreqad_single_burst$;
+  reg [TXN_NUM:0]         read_idx$;
+  reg                     write_start$;
+  reg                     read_start$;
   reg                     write_active$;
-  reg                     rreqad_active$;
+  reg                     read_active$;
+  reg                     req$;
+  reg [MEMSIZE-1:0]       read_base$;
+  reg [MEMSIZE-1:0]       read_len$;
+  reg [MEMSIZE-1:0]       write_base$;
+  reg [MEMSIZE-1:0]       write_len$;
+  reg                     ddr_we$;
+  reg [MEMSIZE-1:0]       ddr_waddr$;
+  reg [BWIDTH-1:0]        ddr_wdata$;
+  reg [MEMSIZE-1:0]       ddr_raddr$;
 
 //==========================================================
 // core control
@@ -131,16 +141,39 @@ module ninjin_m_axi_image
   assign wreq_pulse = ddr_mode == DDR_WRITE && req_pulse;
   assign rreq_pulse = ddr_mode == DDR_READ  && req_pulse;
 
-  assign s_write_end = bvalid && bready$;
-  assign s_read_end  = rvalid && rready$ && rreqad_idx$ == BURST_MAX - 1;
-
-  assign burst_size = BURST_MAX * DWIDTH/8;
+  assign write_end  = bvalid && bready$;
+  assign read_end   = rvalid && rready$ && read_idx$ == read_len$ - 1;
 
   always @(posedge clk)
     if (!xrst)
       req$ <= 0;
     else
       req$ <= ddr_req;
+
+  always @(posedge clk)
+    if (!xrst) begin
+      read_base$  <= 0;
+      read_len$   <= 0;
+      write_base$ <= 0;
+      write_len$  <= 0;
+    end
+    else if (ddr_req)
+      case (ddr_mode)
+        DDR_READ: begin
+          read_base$  <= ddr_base;
+          read_len$   <= ddr_len;
+        end
+        DDR_WRITE: begin
+          write_base$ <= ddr_base;
+          write_len$  <= ddr_len;
+        end
+        default: begin
+          read_base$  <= 0;
+          read_len$   <= 0;
+          write_base$ <= 0;
+          write_len$  <= 0;
+        end
+      endcase
 
   /*
    * Read and write channel works independent each other.
@@ -149,7 +182,7 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst) begin
       state_write$ <= S_IDLE;
-      write_single_burst$ <= 0;
+      write_start$ <= 0;
     end
     else
       case (state_write$)
@@ -158,12 +191,12 @@ module ninjin_m_axi_image
             state_write$ <= S_BUSY;
 
         S_BUSY:
-          if (s_write_end)
+          if (write_end)
             state_write$ <= S_IDLE;
-          else if (!awvalid$ && !write_single_burst$ && !write_active$)
-            write_single_burst$ <= 1;
+          else if (!awvalid$ && !write_start$ && !write_active$)
+            write_start$ <= 1;
           else
-            write_single_burst$ <= 0;
+            write_start$ <= 0;
 
         default:
           state_write$ <= S_IDLE;
@@ -172,7 +205,7 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst) begin
       state_read$ <= S_IDLE;
-      rreqad_single_burst$  <= 0;
+      read_start$ <= 0;
     end
     else
       case (state_read$)
@@ -181,12 +214,12 @@ module ninjin_m_axi_image
             state_read$ <= S_BUSY;
 
         S_BUSY:
-          if (s_read_end)
+          if (read_end)
             state_read$ <= S_IDLE;
-          else if (!arvalid$ && !rreqad_active$ && !rreqad_single_burst$)
-            rreqad_single_burst$ <= 1;
+          else if (!arvalid$ && !read_active$ && !read_start$)
+            read_start$ <= 1;
           else
-            rreqad_single_burst$ <= 0;
+            read_start$ <= 0;
 
         default:
           state_read$ <= S_IDLE;
@@ -197,20 +230,20 @@ module ninjin_m_axi_image
       write_active$ <= 0;
     else if (wreq_pulse)
       write_active$ <= 0;
-    else if (write_single_burst$)
+    else if (write_start$)
       write_active$ <= 1;
     else if (bvalid && bready$)
       write_active$ <= 0;
 
   always @(posedge clk)
     if (!xrst)
-      rreqad_active$ <= 0;
+      read_active$ <= 0;
     else if (rreq_pulse)
-      rreqad_active$ <= 0;
-    else if (rreqad_single_burst$)
-      rreqad_active$ <= 1;
+      read_active$ <= 0;
+    else if (read_start$)
+      read_active$ <= 1;
     else if (rvalid && rready$ && rlast)
-      rreqad_active$ <= 0;
+      read_active$ <= 0;
 
 // }}}
 //==========================================================
@@ -221,8 +254,8 @@ module ninjin_m_axi_image
   assign awvalid  = awvalid$;
   assign awid     = 0;
   assign awaddr   = awaddr$;
-  assign awlen    = BURST_MAX - 1;
-  assign awsize   = clogb2(DWIDTH/8 - 1);
+  assign awlen    = write_len$ - 1;
+  assign awsize   = clogb2(BWIDTH/8 - 1);
   assign awburst  = 2'b01;
   assign awlock   = 1'b0;
   assign awcache  = 4'b0010;
@@ -235,7 +268,7 @@ module ninjin_m_axi_image
       awvalid$ <= 0;
     else if (wreq_pulse)
       awvalid$ <= 0;
-    else if (!awvalid$ && write_single_burst$)
+    else if (!awvalid$ && write_start$)
       awvalid$ <= 1;
     else if (awready && awvalid$)
       awvalid$ <= 0;
@@ -244,9 +277,7 @@ module ninjin_m_axi_image
     if (!xrst)
       awaddr$ <= 0;
     else if (wreq_pulse)
-      awaddr$ <= ddr_waddr;
-    else if (awready && awvalid$)
-      awaddr$ <= awaddr$ + burst_size;
+      awaddr$ <= ddr_base;
 
 // }}}
 //==========================================================
@@ -256,18 +287,22 @@ module ninjin_m_axi_image
 
   assign wvalid = wvalid$;
   assign wdata  = wdata$;
-  assign wstrb  = {DWIDTH/8{1'b1}};
+  assign wstrb  = {BWIDTH/8{1'b1}};
   assign wlast  = wlast$;
   assign wuser  = 0;
 
   assign wnext = wready && wvalid$;
 
+  reg have_awaddr;
+  always @(posedge clk)
+    have_awaddr <= awready && awvalid$;
   always @(posedge clk)
     if (!xrst)
       wvalid$ <= 0;
     else if (wreq_pulse)
       wvalid$ <= 0;
-    else if (!wvalid$ && write_single_burst$)
+    // else if (!wvalid$ && write_start$)
+    else if (!wvalid$ && have_awaddr)
       wvalid$ <= 1;
     else if (wnext && wlast$)
       wvalid$ <= 0;
@@ -276,9 +311,9 @@ module ninjin_m_axi_image
   always @(posedge clk)
     if (!xrst)
       wdata$ <= 0;
-    else if (wreq_pulse)
+    else if (have_awaddr)
       wdata$ <= ddr_rdata;
-    else if (wnext)
+    else if (wnext && write_idx$ != write_len$ - 1)
       wdata$ <= ddr_rdata;
 
   always @(posedge clk)
@@ -286,18 +321,20 @@ module ninjin_m_axi_image
       wlast$ <= 0;
     else if (wreq_pulse)
       wlast$ <= 0;
-    else if ((write_idx$ == BURST_MAX - 2 && BURST_MAX >= 2 && wnext)
-              || BURST_MAX == 1)
+    else if ((write_idx$ == write_len$ - 2 && write_len$ >= 2 && wnext)
+              || write_len$ == 1)
       wlast$ <= 1;
     else if (wnext)
       wlast$ <= 0;
-    else if (wlast$ && BURST_MAX == 1)
+    else if (wlast$ && write_len$ == 1)
       wlast$ <= 0;
 
   always @(posedge clk)
-    else if (wreq_pulse || write_single_burst$)
+    if (!xrst)
       write_idx$ <= 0;
-    else if (wnext && write_idx$ != BURST_MAX - 1)
+    else if (wreq_pulse || write_start$)
+      write_idx$ <= 0;
+    else if (wnext && write_idx$ != write_len$ - 1)
       write_idx$ <= write_idx$ + 1;
 
 // }}}
@@ -329,8 +366,8 @@ module ninjin_m_axi_image
   assign arvalid  = arvalid$;
   assign arid     = 0;
   assign araddr   = araddr$;
-  assign arlen    = BURST_MAX - 1;
-  assign arsize   = clogb2(DWIDTH/8 - 1);
+  assign arlen    = read_len$ - 1;
+  assign arsize   = clogb2(BWIDTH/8 - 1);
   assign arburst  = 2'b01;
   assign arlock   = 1'b0;
   assign arcache  = 4'b0010;
@@ -343,7 +380,7 @@ module ninjin_m_axi_image
       arvalid$ <= 0;
     else if (rreq_pulse)
       arvalid$ <= 0;
-    else if (!arvalid$ && rreqad_single_burst$)
+    else if (!arvalid$ && read_start$)
       arvalid$ <= 1;
     else if (arready && arvalid$)
       arvalid$ <= 0;
@@ -352,9 +389,7 @@ module ninjin_m_axi_image
     if (!xrst)
       araddr$ <= 0;
     else if (rreq_pulse)
-      araddr$ <= ddr_raddr;
-    else if (arready && arvalid$)
-      araddr$ <= araddr$ + burst_size;
+      araddr$ <= ddr_base;
 
 // }}}
 //==========================================================
@@ -382,11 +417,11 @@ module ninjin_m_axi_image
 
   always @(posedge clk)
     if (!xrst)
-      rreqad_idx$ <= 0;
-    else if (rreq_pulse || rreqad_single_burst$)
-      rreqad_idx$ <= 0;
-    else if (rnext && rreqad_idx$ != BURST_MAX - 1)
-      rreqad_idx$ <= rreqad_idx$ + 1;
+      read_idx$ <= 0;
+    else if (rreq_pulse || read_start$)
+      read_idx$ <= 0;
+    else if (rnext && read_idx$ != read_len$ - 1)
+      read_idx$ <= read_idx$ + 1;
 
 // }}}
 //==========================================================
@@ -397,7 +432,13 @@ module ninjin_m_axi_image
   assign err = err$;
 
   // read data is emitted as write data for target ram region.
-  assign ddr_wdata = rdata;
+  assign ddr_we     = ddr_we$;
+  assign ddr_waddr  = ddr_waddr$;
+  assign ddr_wdata  = ddr_wdata$;
+
+  assign ddr_raddr  = wnext && write_idx$ != write_len$ - 1
+                    ? ddr_raddr$ + 1
+                    : ddr_raddr$;
 
   always @(posedge clk)
     if (!xrst)
@@ -406,6 +447,40 @@ module ninjin_m_axi_image
       err$ <= 0;
     else if (err_wresp || err_rresp)
       err$ <= {err_wresp, err_rresp, 1'b1};
+
+  always @(posedge clk)
+    if (!xrst)
+      ddr_we$ <= 0;
+    else if (rvalid && rready$)
+      ddr_we$ <= 1;
+    else
+      ddr_we$ <= 0;
+
+  always @(posedge clk)
+    if (!xrst)
+      ddr_waddr$ <= 0;
+    else if (read_start$)
+      ddr_waddr$ <= read_base$;
+    else if (ddr_we$)
+      ddr_waddr$ <= ddr_waddr$ + 1;
+
+  always @(posedge clk)
+    if (!xrst)
+      ddr_wdata$ <= 0;
+    else if (rvalid && rready$)
+      ddr_wdata$ <= rdata;
+    else
+      ddr_wdata$ <= 0;
+
+  always @(posedge clk)
+    if (!xrst)
+      ddr_raddr$ <= 0;
+    else if (write_start$)
+      ddr_raddr$ <= write_base$;
+    else if (have_awaddr)
+      ddr_raddr$ <= ddr_raddr$ + 1;
+    else if (wnext && write_idx$ != write_len$ - 1)
+      ddr_raddr$ <= ddr_raddr$ + 1;
 
 // }}}
 endmodule

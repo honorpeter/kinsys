@@ -15,6 +15,8 @@ parameter LSB   = 2;
 // parameter PORT  = 2 ** REGSIZE;
 parameter PORT  = 32;
 
+parameter MEMSIZE = IMGSIZE;
+
 parameter BUFSIZE   = 8;
 parameter BURST_MAX = 2 ** BUFSIZE;
 // parameter BUFSIZE   = $clog2(BURST_MAX);
