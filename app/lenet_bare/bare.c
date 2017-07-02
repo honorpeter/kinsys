@@ -8,6 +8,7 @@
 #include "xil_types.h"
 
 #include "kinpira.h"
+#include "lenet.h"
 #include "bare.h"
 
 #define SHIFT 256
@@ -164,13 +165,13 @@ void exec_core(layer *l)
   switch (l->which) {
     case RENKON:
       *reg_read_len   = l->total_in * l->img_size * l->img_size;
-      *reg_write_len  = l->total_out
+      *reg_write_len  = RENKON_CORE
                       * ((l->img_size - l->fil_size + 1)/(l->pool_size))
                       * ((l->img_size - l->fil_size + 1)/(l->pool_size));
       break;
     case GOBOU:
       *reg_read_len   = l->total_in;
-      *reg_write_len  = l->total_out;
+      *reg_write_len  = GOBOU_CORE;
       break;
     default:
       *reg_read_len   = 0;
@@ -178,10 +179,15 @@ void exec_core(layer *l)
       break;
   }
 
-  *reg_pre_en = 1;
-  *reg_pre_en = 0;
+  print_port();
 
-  sleep(1);
+  *reg_pre_req = 1;
+  *reg_pre_req = 0;
+
+  do {
+    // Nop
+  } while (!*reg_pre_ack);
+
 #endif
 
   *reg_req = 0x1;
@@ -220,6 +226,30 @@ void print_result(u32 *output, const u32 length)
   }
 
   printf("the answer is %d.\n", number);
+}
+
+
+
+void print_port()
+{
+  printf(
+    "&port[0]:  %08lx &port[1]:  %08lx &port[2]:  %08lx &port[3]:  %08lx\n"
+    "&port[4]:  %08lx &port[5]:  %08lx &port[6]:  %08lx &port[7]:  %08lx\n"
+    "&port[8]:  %08lx &port[9]:  %08lx &port[10]: %08lx &port[11]: %08lx\n"
+    "&port[12]: %08lx &port[13]: %08lx &port[14]: %08lx &port[15]: %08lx\n"
+    "&port[16]: %08lx &port[17]: %08lx &port[18]: %08lx &port[19]: %08lx\n"
+    "&port[20]: %08lx &port[21]: %08lx &port[22]: %08lx &port[23]: %08lx\n"
+    "&port[24]: %08lx &port[25]: %08lx &port[26]: %08lx &port[27]: %08lx\n"
+    "&port[28]: %08lx &port[29]: %08lx &port[30]: %08lx &port[31]: %08lx\n"
+    , port[0], port[1], port[2], port[3]
+    , port[4], port[5], port[6], port[7]
+    , port[8], port[9], port[10], port[11]
+    , port[12], port[13], port[14], port[15]
+    , port[16], port[17], port[18], port[19]
+    , port[20], port[21], port[22], port[23]
+    , port[24], port[25], port[26], port[27]
+    , port[28], port[29], port[30], port[31]
+  );
 }
 
 

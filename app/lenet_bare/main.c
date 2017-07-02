@@ -4,6 +4,7 @@
 
 #include <xparameters.h>
 #include <xil_printf.h>
+#include <xil_cache.h>
 
 #include "kinpira.h"
 #include "bare.h"
@@ -26,14 +27,14 @@
 #include "data/full3_tru.h"
 
 // latency analysis
-#include "xtime_l.h"
-#define INIT  XTime begin, end;
-#define BEGIN XTime_GetTime(&begin);
-#define END   do {                                        \
-  XTime_GetTime(&end);                                    \
-  printf("%12.6f [us]\n\n",                               \
-      (double)(end-begin) / COUNTS_PER_SECOND * 1000000); \
-} while (0);
+/* #include "xtime_l.h"                                        */
+/* #define INIT  XTime begin, end;                             */
+/* #define BEGIN XTime_GetTime(&begin);                        */
+/* #define END   do {                                        \ */
+/*   XTime_GetTime(&end);                                    \ */
+/*   printf("%12.6f [us]\n\n",                               \ */
+/*       (double)(end-begin) / COUNTS_PER_SECOND * 1000000); \ */
+/* } while (0);                                                */
 
 // #include <assert.h>
 #define assert_eq(a, b) do {                                        \
@@ -48,8 +49,6 @@
 
 int main(void)
 {
-  INIT
-
   layer conv0, conv1;
   layer full2, full3;
   u32 output[LABEL];
@@ -59,6 +58,8 @@ int main(void)
   puts("### start lenet_bare application:");
 
 #if defined(KINPIRA_AXI)
+
+  INIT
 
   define_2d(&conv0, INPUT_IMAGE, CONV0_IMAGE, CONV0_PARAM,
             N_C0, N_IN, ISIZE, FSIZE, PSIZE);
@@ -136,6 +137,8 @@ int main(void)
 
 #elif defined(KINPIRA_DDR)
 
+  Xil_DCacheDisable();
+
   s16 image[N_IN*ISIZE*ISIZE]     = {0};
   s16 pmap0[N_C0*PM0SIZE*PM0SIZE] = {0};
   s16 pmap1[N_C1*PM1SIZE*PM1SIZE] = {0};
@@ -145,54 +148,58 @@ int main(void)
   for (int i = 0; i < N_IN*ISIZE*ISIZE; i++)
     image[i] = input[i];
 
-  define_2d(&conv0, (u32)image, (u32)pmap0, CONV0_PARAM,
-            N_C0, N_IN, ISIZE, FSIZE, PSIZE);
+  printf("image: %p\n", &image);
+  printf("pmap0: %p\n", &pmap0);
+  printf("pmap1: %p\n", &pmap1);
+  printf("fvec2: %p\n", &fvec2);
+  printf("fvec3: %p\n", &fvec3);
+
+  define_2d(&conv0, (u32)&image, (u32)&pmap0,
+            CONV0_PARAM, N_C0, N_IN, ISIZE, FSIZE, PSIZE);
   assign_2d(&conv0, W_conv0, b_conv0);
 
-  define_2d(&conv1, (u32)pmap0, (u32)pmap1, CONV1_PARAM,
-            N_C1, N_C0, PM0SIZE, FSIZE, PSIZE);
+  define_2d(&conv1, (u32)&pmap0, (u32)&pmap1,
+            CONV1_PARAM, N_C1, N_C0, PM0SIZE, FSIZE, PSIZE);
   assign_2d(&conv1, W_conv1, b_conv1);
 
-  define_1d(&full2, (u32)pmap1, (u32)fvec2, FULL2_PARAM,
-            N_F2, N_C1*PM1SIZE*PM1SIZE);
+  define_1d(&full2, (u32)&pmap1, (u32)&fvec2,
+            FULL2_PARAM, N_F2, N_C1*PM1SIZE*PM1SIZE);
   assign_1d(&full2, W_full2, b_full2);
 
-  define_1d(&full3, (u32)fvec2, (u32)fvec3, FULL3_PARAM,
-            N_F3, N_F2);
+  define_1d(&full3, (u32)&fvec2, (u32)&fvec3,
+            FULL3_PARAM, N_F3, N_F2);
   assign_1d(&full3, W_full3, b_full3);
 
-  for (int i = 0; i < 10; i++)
-    printf("%x\n", pmap0[i]);
+  printf("layer: %p, %p, %p, %p\n", &conv0, &conv1, &full2, &full3);
 
   puts("exec_core(&conv0)");
-  BEGIN
   exec_core(&conv0);
-  END
 
-  for (int i = 0; i < 10; i++)
-    printf("%x\n", pmap0[i]);
+  for (int i = 0; i < N_C0*PM0SIZE*PM0SIZE; i++) {
+    printf("i == %4d: %4d = %4d - %4d\n",
+      i, pmap0[i] - conv0_tru[i], pmap0[i], conv0_tru[i]);
+    // assert_eq(pmap0[i], conv0_tru[i]);
+  }
+  print_port();
+  // puts("conv0 assert ok");
 
-  puts("exec_core(&conv1)");
-  BEGIN
-  exec_core(&conv1);
-  END
+  // puts("exec_core(&conv1)");
+  // exec_core(&conv1);
+  //
+  // puts("exec_core(&full2)");
+  // exec_core(&full2);
+  //
+  // puts("exec_core(&full3)");
+  // exec_core(&full3);
+  //
+  // for (int i = 0; i < LABEL; i++)
+  //   output[i] = fvec3[i];
 
-  puts("exec_core(&full2)");
-  BEGIN
-  exec_core(&full2);
-  END
-
-  puts("exec_core(&full3)");
-  BEGIN
-  exec_core(&full3);
-  END
-
-  for (int i = 0; i < LABEL; i++)
-    output[i] = fvec3[i];
+  Xil_DCacheEnable();
 
 #endif
 
-  print_result(output, LABEL);
+  // print_result(output, LABEL);
 
   return 0;
 }

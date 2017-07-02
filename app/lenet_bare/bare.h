@@ -40,6 +40,7 @@ void get_image(u32 *image, const u32 offset, const u32 length);
 
 void print_result(u32 *output, const u32 length);
 
+void print_port();
 #ifdef __cplusplus
 }
 #endif

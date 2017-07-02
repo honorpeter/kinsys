@@ -17,7 +17,7 @@
 #elif defined (KINPIRA_DDR)
 # define DWIDTH          16
 # define LWIDTH          16
-# define IMGSIZE         32
+# define IMGSIZE         31
 #endif
 #define RENKON_CORE     8
 #define RENKON_NETSIZE  11
@@ -34,7 +34,6 @@ u32 (*mem_renkon)[RENKON_WORDS]  = (void *)0x83c40000;
 u32 (*mem_gobou)[GOBOU_WORDS]    = (void *)0x83c80000;
 #elif defined(KINPIRA_DDR)
 u32 *port                        = (void *)0x43c00000;
-// u32 *mem_image                   = (void *)0x83c00000;
 u32 (*mem_renkon)[RENKON_WORDS]  = (void *)0x83c00000;
 u32 (*mem_gobou)[GOBOU_WORDS]    = (void *)0x83c80000;
 #endif
@@ -51,7 +50,7 @@ u32 (*mem_gobou)[GOBOU_WORDS]    = (void *)0x83c80000;
 #define reg_fil_size    &port[8]
 #define reg_pool_size   &port[9]
 #ifdef KINPIRA_DDR
-# define reg_pre_en      &port[10]
+# define reg_pre_req     &port[10]
 # define reg_pre_base    &port[11]
 # define reg_read_len    &port[12]
 # define reg_write_len   &port[13]
@@ -60,5 +59,6 @@ u32 (*mem_gobou)[GOBOU_WORDS]    = (void *)0x83c80000;
 // output reg
 #define reg_r_which     &port[31]
 #define reg_ack         &port[30]
+#define reg_pre_ack     &port[27]
 
 #endif
