@@ -8,7 +8,13 @@
 parameter STEP    = 10;
 parameter DWIDTH  = 16;
 parameter LWIDTH  = 16;
-parameter IMGSIZE = 32;
+`ifndef DIST
+parameter IMGSIZE = 16;
+`else
+// parameter IMGSIZE = BWIDTH - $clog2(DWIDTH/8);
+parameter IMGSIZE = 31; // Number of DWIDTH entry
+`endif
+
 
 parameter D_BIAS     = 2;
 parameter D_RELU     = 2;

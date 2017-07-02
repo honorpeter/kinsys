@@ -322,7 +322,7 @@ module renkon_ctrl_core
                     && input_y$ == img_size$ - 1;
 
   assign img_we   = img_we$;
-  assign img_addr = w_img_addr + w_img_offset;
+  // assign img_addr = w_img_addr + w_img_offset;
 
   assign img_wdata = state$[0] == S_OUTPUT
                    ? out_wdata
@@ -395,6 +395,23 @@ module renkon_ctrl_core
       in_offset$ <= in_offset;
       out_offset$ <= out_offset;
     end
+
+  reg [IMGSIZE-1:0] img_addr$;
+  assign img_addr = img_addr$;
+  always @(posedge clk)
+    if (!xrst)
+      img_addr$ <= 0;
+    else if (req || ack)
+      img_addr$ <= in_offset;
+    else if (s_output_end)
+      if (count_out$ + RENKON_CORE >= total_out$)
+        img_addr$ <= 0;
+      else
+        img_addr$ <= in_offset$;
+    else if (s_input_end && count_in$ == total_in$ - 1)
+      img_addr$ <= out_addr$ + out_offset$;
+    else if (state$[0] == S_INPUT || img_we$)
+      img_addr$ <= img_addr$ + 1;
 
 //==========================================================
 // output control

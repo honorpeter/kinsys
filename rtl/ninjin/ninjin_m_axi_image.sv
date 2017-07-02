@@ -5,8 +5,8 @@
 
 module ninjin_m_axi_image
  #( parameter BURST_MAX     = 256
-  , parameter DATA_WIDTH    = 32
-  , parameter ADDR_WIDTH    = 12
+  , parameter DATA_WIDTH    = BWIDTH
+  , parameter ADDR_WIDTH    = BWIDTH
   , parameter ID_WIDTH      = 12
   , parameter AWUSER_WIDTH  = 0
   , parameter ARUSER_WIDTH  = 0
@@ -24,21 +24,21 @@ module ninjin_m_axi_image
   , input                   bvalid
   , input                   arready
   , input [ID_WIDTH-1:0]    rid
-  , input [BWIDTH-1:0]      rdata
+  , input [DATA_WIDTH-1:0]  rdata
   , input [1:0]             rresp
   , input                   rlast
   , input [RUSER_WIDTH-1:0] ruser
   , input                   rvalid
   , input                   ddr_req
   , input                   ddr_mode
-  , input [MEMSIZE-1:0]     ddr_base
-  , input [MEMSIZE-1:0]     ddr_len
+  , input [MEMSIZE+LSB-1:0] ddr_base
+  , input [LWIDTH-1:0]      ddr_len
   , input [BWIDTH-1:0]      ddr_rdata
 
   , output [3:0]              err
   , output                    awvalid
   , output [ID_WIDTH-1:0]     awid
-  , output [BWIDTH-1:0]       awaddr
+  , output [ADDR_WIDTH-1:0]   awaddr
   , output [7:0]              awlen
   , output [2:0]              awsize
   , output [1:0]              awburst
@@ -48,14 +48,14 @@ module ninjin_m_axi_image
   , output [3:0]              awqos
   , output [AWUSER_WIDTH-1:0] awuser
   , output                    wvalid
-  , output [BWIDTH-1:0]       wdata
-  , output [BWIDTH/8-1:0]     wstrb
+  , output [DATA_WIDTH-1:0]   wdata
+  , output [DATA_WIDTH/8-1:0] wstrb
   , output                    wlast
   , output [WUSER_WIDTH-1:0]  wuser
   , output                    bready
   , output                    arvalid
   , output [ID_WIDTH-1:0]     arid
-  , output [BWIDTH-1:0]       araddr
+  , output [ADDR_WIDTH-1:0]   araddr
   , output [7:0]              arlen
   , output [2:0]              arsize
   , output [1:0]              arburst
@@ -125,9 +125,9 @@ module ninjin_m_axi_image
   reg                     read_active$;
   reg                     req$;
   reg [MEMSIZE-1:0]       read_base$;
-  reg [MEMSIZE-1:0]       read_len$;
+  reg [LWIDTH-1:0]        read_len$;
   reg [MEMSIZE-1:0]       write_base$;
-  reg [MEMSIZE-1:0]       write_len$;
+  reg [LWIDTH-1:0]        write_len$;
   reg                     ddr_we$;
   reg [MEMSIZE-1:0]       ddr_waddr$;
   reg [BWIDTH-1:0]        ddr_wdata$;
@@ -161,11 +161,11 @@ module ninjin_m_axi_image
     else if (ddr_req)
       case (ddr_mode)
         DDR_READ: begin
-          read_base$  <= ddr_base;
+          read_base$  <= ddr_base >> LSB;
           read_len$   <= ddr_len;
         end
         DDR_WRITE: begin
-          write_base$ <= ddr_base;
+          write_base$ <= ddr_base >> LSB;
           write_len$  <= ddr_len;
         end
         default: begin

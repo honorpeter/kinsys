@@ -14,3 +14,4 @@ include ../Makefile
 dist:
 	mkdir -p $(DIST)
 	rsync -L -avz $(SOURCES) $(HEADERS) $(TESTSUITE) $(DIST)
+	sed -i -e "s|// \`define DIST|\`define DIST|g" $(DIST)/common.svh

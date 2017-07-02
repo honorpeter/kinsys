@@ -9,20 +9,26 @@
 
 // BWIDTH ~ base width (memory bandwidth for host system.)
 parameter BWIDTH  = 32;
-parameter REGSIZE = 5;
-
-parameter LSB   = 2;
-// parameter PORT  = 2 ** REGSIZE;
-parameter PORT  = 32;
-
-parameter MEMSIZE = IMGSIZE;
-
-parameter BUFSIZE   = 8;
-parameter BURST_MAX = 256;
-// parameter BUFSIZE   = $clog2(BURST_MAX);
 
 parameter RATE    = BWIDTH / DWIDTH;
 parameter RATELOG = $clog2(RATE);
+
+parameter REGSIZE = 5;
+// parameter PORT  = 2 ** REGSIZE;
+parameter PORT  = 32;
+
+parameter LSB     = 2;
+`ifndef DIST
+parameter MEMSIZE = IMGSIZE - RATELOG;
+`else
+// parameter MEMSIZE = IMGSIZE - RATELOG;
+parameter MEMSIZE = 30;
+`endif
+
+parameter BUFSIZE   = 8;
+parameter BURST_MAX = 256;
+// parameter BURST_MAX = 2 ** BUFSIZE;
+// parameter BUFSIZE   = $clog2(BURST_MAX);
 
 parameter DDR_READ  = 'd0;
 parameter DDR_WRITE = 'd1;

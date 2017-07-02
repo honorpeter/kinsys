@@ -10,33 +10,33 @@ module kinpira_ddr
   // Parameters of Axi Master Bus Interface m_axi_image
   , parameter C_m_axi_image_BURST_MAX     = BURST_MAX
   , parameter C_m_axi_image_ID_WIDTH      = 1
-  , parameter C_m_axi_image_ADDR_WIDTH    = BWIDTH
   , parameter C_m_axi_image_DATA_WIDTH    = BWIDTH
-  , parameter C_m_axi_image_AWUSER_WIDTH  = 0
-  , parameter C_m_axi_image_ARUSER_WIDTH  = 0
-  , parameter C_m_axi_image_WUSER_WIDTH   = 0
-  , parameter C_m_axi_image_RUSER_WIDTH   = 0
-  , parameter C_m_axi_image_BUSER_WIDTH   = 0
+  , parameter C_m_axi_image_ADDR_WIDTH    = MEMSIZE + LSB
+  , parameter C_m_axi_image_AWUSER_WIDTH  = 2//0
+  , parameter C_m_axi_image_ARUSER_WIDTH  = 2//0
+  , parameter C_m_axi_image_WUSER_WIDTH   = 2//0
+  , parameter C_m_axi_image_RUSER_WIDTH   = 2//0
+  , parameter C_m_axi_image_BUSER_WIDTH   = 2//0
 
   // Parameters of Axi Slave Bus Interface s_axi_renkon
   , parameter C_s_axi_renkon_ID_WIDTH     = 12
   , parameter C_s_axi_renkon_DATA_WIDTH   = BWIDTH
   , parameter C_s_axi_renkon_ADDR_WIDTH   = RENKON_CORELOG + RENKON_NETSIZE + LSB
-  , parameter C_s_axi_renkon_AWUSER_WIDTH = 0
-  , parameter C_s_axi_renkon_ARUSER_WIDTH = 0
-  , parameter C_s_axi_renkon_WUSER_WIDTH  = 0
-  , parameter C_s_axi_renkon_RUSER_WIDTH  = 0
-  , parameter C_s_axi_renkon_BUSER_WIDTH  = 0
+  , parameter C_s_axi_renkon_AWUSER_WIDTH = 2//0
+  , parameter C_s_axi_renkon_ARUSER_WIDTH = 2//0
+  , parameter C_s_axi_renkon_WUSER_WIDTH  = 2//0
+  , parameter C_s_axi_renkon_RUSER_WIDTH  = 2//0
+  , parameter C_s_axi_renkon_BUSER_WIDTH  = 2//0
 
   // Parameters of Axi Slave Bus Interface s_axi_gobou
   , parameter C_s_axi_gobou_ID_WIDTH      = 12
   , parameter C_s_axi_gobou_DATA_WIDTH    = BWIDTH
   , parameter C_s_axi_gobou_ADDR_WIDTH    = GOBOU_CORELOG + GOBOU_NETSIZE + LSB
-  , parameter C_s_axi_gobou_AWUSER_WIDTH  = 0
-  , parameter C_s_axi_gobou_ARUSER_WIDTH  = 0
-  , parameter C_s_axi_gobou_WUSER_WIDTH   = 0
-  , parameter C_s_axi_gobou_RUSER_WIDTH   = 0
-  , parameter C_s_axi_gobou_BUSER_WIDTH   = 0
+  , parameter C_s_axi_gobou_AWUSER_WIDTH  = 2//0
+  , parameter C_s_axi_gobou_ARUSER_WIDTH  = 2//0
+  , parameter C_s_axi_gobou_WUSER_WIDTH   = 2//0
+  , parameter C_s_axi_gobou_RUSER_WIDTH   = 2//0
+  , parameter C_s_axi_gobou_BUSER_WIDTH   = 2//0
   )
   // Ports of Axi Slave Bus Interface s_axi_params
   ( input                                     s_axi_params_aclk
@@ -202,6 +202,18 @@ module kinpira_ddr
   , output [C_s_axi_gobou_RUSER_WIDTH-1:0]  s_axi_gobou_ruser
   , output                                  s_axi_gobou_rvalid
   , input                                   s_axi_gobou_rready
+
+  // Debug
+  , (* mark_debug = "true" *) output wire                      ddr_req
+  , (* mark_debug = "true" *) output wire                      ddr_mode
+  , (* mark_debug = "true" *) output wire [MEMSIZE+LSB-1:0]    ddr_base
+  , (* mark_debug = "true" *) output wire [LWIDTH-1:0]         ddr_len
+  , (* mark_debug = "true" *) output wire                      mem_img_we
+  , (* mark_debug = "true" *) output wire [IMGSIZE-1:0]        mem_img_addr
+  , (* mark_debug = "true" *) output wire signed [DWIDTH-1:0]  mem_img_wdata
+  , (* mark_debug = "true" *) output wire signed [DWIDTH-1:0]  mem_img_rdata
+  , (* mark_debug = "true" *) output wire                      req
+  , (* mark_debug = "true" *) output wire                      ack
   );
 
   wire                      clk;
@@ -221,8 +233,8 @@ module kinpira_ddr
   wire [C_s_axi_renkon_DATA_WIDTH-1:0]      mem_renkon_rdata;
 
   // For ninjin
-  wire [2-1:0]              which;
-  wire                      req;
+  wire                      which;
+  // wire                      req;
   wire [IMGSIZE-1:0]        in_offset;
   wire [IMGSIZE-1:0]        out_offset;
   wire [BWIDTH-1:0]         net_offset;
@@ -232,27 +244,29 @@ module kinpira_ddr
   wire [LWIDTH-1:0]         fil_size;
   wire [LWIDTH-1:0]         pool_size;
 
-  wire                      ack;
+  // wire                      ack;
   // mem_img ports
-  wire                      mem_img_we;
-  wire [IMGSIZE-1:0]        mem_img_addr;
-  wire signed [DWIDTH-1:0]  mem_img_wdata;
-  wire signed [DWIDTH-1:0]  mem_img_rdata;
+  // wire                      mem_img_we;
+  // wire [IMGSIZE-1:0]        mem_img_addr;
+  // wire signed [DWIDTH-1:0]  mem_img_wdata;
+  // wire signed [DWIDTH-1:0]  mem_img_rdata;
   // meta inputs
-  wire                      pre_en;
-  wire [IMGSIZE-1:0]        pre_base;
+  wire                      pre_req;
+  wire [MEMSIZE-1:0]        pre_base;
   wire [LWIDTH-1:0]         read_len;
   wire [LWIDTH-1:0]         write_len;
   // m_axi ports (fed back)
   wire                      ddr_we;
-  wire [IMGSIZE-1:0]        ddr_waddr;
+  wire [MEMSIZE-1:0]        ddr_waddr;
   wire [BWIDTH-1:0]         ddr_wdata;
-  wire [IMGSIZE-1:0]        ddr_raddr;
+  wire [MEMSIZE-1:0]        ddr_raddr;
+  // meta outputs
+  wire                      pre_ack;
   // m_axi signals
-  wire                      ddr_req;
-  wire                      ddr_mode;
-  wire [IMGSIZE-1:0]        ddr_base;
-  wire [LWIDTH-1:0]         ddr_len;
+  // wire                      ddr_req;
+  // wire                      ddr_mode;
+  // wire [MEMSIZE+LSB-1:0]    ddr_base;
+  // wire [LWIDTH-1:0]         ddr_len;
   wire [BWIDTH-1:0]         ddr_rdata;
 
   // For renkon
@@ -297,30 +311,67 @@ module kinpira_ddr
   wire [IMGSIZE-1:0]        gobou_img_addr;
   wire signed [DWIDTH-1:0]  gobou_img_wdata;
 
-  reg [2-1:0] which$;
+  reg which$;
 
 
 
   assign clk        = s_axi_params_aclk;
   assign xrst       = s_axi_params_aresetn;
-  assign which      = in_port[0][1:0];
+  assign which      = in_port[0][0];
   assign req        = in_port[1][0];
-  assign in_offset  = in_port[2][IMGSIZE-1:0];
-  assign out_offset = in_port[3][IMGSIZE-1:0];
-  assign net_offset = in_port[4][IMGSIZE-1:0];
+  assign in_offset  = in_port[2][IMGSIZE-1+RATELOG:RATELOG];
+  assign out_offset = in_port[3][IMGSIZE-1+RATELOG:RATELOG];
+  assign net_offset = in_port[4][BWIDTH-1:0];
   assign total_out  = in_port[5][LWIDTH-1:0];
   assign total_in   = in_port[6][LWIDTH-1:0];
   assign img_size   = in_port[7][LWIDTH-1:0];
   assign fil_size   = in_port[8][LWIDTH-1:0];
   assign pool_size  = in_port[9][LWIDTH-1:0];
   // TODO: infer base and len
-  assign pre_en     = in_port[10][0];
-  assign pre_base   = in_port[11][IMGSIZE-1:0];
+  assign pre_req    = in_port[10][0];
+  assign pre_base   = in_port[11][MEMSIZE-1+LSB:LSB];
   assign read_len   = in_port[12][LWIDTH-1:0];
   assign write_len  = in_port[13][LWIDTH-1:0];
 
-  assign out_port[31] = {30'b0, which$};
+  wire [BUFSIZE-1:0] probe_in;
+  assign probe_in = in_port[14][BUFSIZE-1:0];
+
+  reg [LWIDTH-1:0] ddr_req_cnt$;
+  reg pre_req$, ddr_req$;
+  always @(posedge clk)
+    if (!xrst) begin
+      pre_req$ <= 0;
+      ddr_req$ <= 0;
+    end
+    else begin
+      pre_req$ <= pre_req;
+      ddr_req$ <= ddr_req;
+    end
+  always @(posedge clk)
+    if (!xrst)
+      ddr_req_cnt$ <= 0;
+    else if (pre_req && !pre_req$)
+      ddr_req_cnt$ <= 0;
+    else if (ddr_req && !ddr_req$)
+      ddr_req_cnt$ <= ddr_req_cnt$ + 1;
+  wire [BWIDTH-1:0] probe_out;
+  wire [BWIDTH-1:0] probe_out2;
+  assign out_port[31] = {31'b0, which$};
   assign out_port[30] = {31'b0, ack};
+  assign out_port[29] = probe_out;
+  assign out_port[28] = probe_out2;
+  assign out_port[27] = {31'd0, pre_ack};
+  assign out_port[26] = {{BWIDTH-LWIDTH{1'b0}}, ddr_req_cnt$};
+  assign out_port[25] = 32'd0;
+  assign out_port[24] = 32'd0;
+  assign out_port[23] = 32'd0;
+  assign out_port[22] = 32'd0;
+  assign out_port[21] = 32'd0;
+  assign out_port[20] = 32'd0;
+  assign out_port[19] = 32'd0;
+  assign out_port[18] = 32'd0;
+  assign out_port[17] = 32'd0;
+  assign out_port[16] = 32'd0;
 
   // For renkon
   assign renkon_net_sel   = mem_renkon_addr[RENKON_NETSIZE+RENKON_CORELOG-1:RENKON_NETSIZE];

@@ -44,8 +44,8 @@ module gobou_ctrl_core
   reg               img_we$;
   reg [IMGSIZE-1:0] in_offset$;
   reg [IMGSIZE-1:0] out_offset$;
-  reg [IMGSIZE-1:0] input_addr$;
-  reg [IMGSIZE-1:0] output_addr$;
+  reg [IMGSIZE-1:0] in_addr$;
+  reg [IMGSIZE-1:0] out_addr$;
   reg [GOBOU_CORE-1:0]    net_we$;
   reg [GOBOU_NETSIZE-1:0] net_addr$;
   reg [GOBOU_NETSIZE-1:0] net_offset$;
@@ -119,15 +119,15 @@ module gobou_ctrl_core
           img_we$ <= 0;
       endcase
 
-  assign img_addr = w_img_addr + w_img_offset;
+  // assign img_addr = w_img_addr + w_img_offset;
 
   assign img_wdata = state$ == S_OUTPUT
                    ? out_wdata
                    : 0;
 
   assign w_img_addr = state$ == S_OUTPUT
-                    ? output_addr$
-                    : input_addr$;
+                    ? out_addr$
+                    : in_addr$;
 
   assign w_img_offset = state$ == S_OUTPUT
                       ? out_offset$
@@ -135,19 +135,19 @@ module gobou_ctrl_core
 
   always @(posedge clk)
     if (!xrst)
-      input_addr$ <= 0;
+      in_addr$ <= 0;
     else if (state$ == S_BIAS)
-      input_addr$ <= 0;
+      in_addr$ <= 0;
     else if (state$ == S_WEIGHT && !s_weight_end)
-      input_addr$ <= input_addr$ + 1;
+      in_addr$ <= in_addr$ + 1;
 
   always @(posedge clk)
     if (!xrst)
-      output_addr$ <= 0;
+      out_addr$ <= 0;
     else if (ack)
-      output_addr$ <= 0;
+      out_addr$ <= 0;
     else if (img_we$)
-      output_addr$ <= output_addr$ + 1;
+      out_addr$ <= out_addr$ + 1;
 
   always @(posedge clk)
     if (!xrst) begin
@@ -158,6 +158,23 @@ module gobou_ctrl_core
       in_offset$ <= in_offset;
       out_offset$ <= out_offset;
     end
+
+  reg [IMGSIZE-1:0] img_addr$;
+  assign img_addr = img_addr$;
+  always @(posedge clk)
+    if (!xrst)
+      img_addr$ <= 0;
+    else if (req || ack)
+      img_addr$ <= in_offset;
+    else if (s_output_end)
+      if (count_out$ + GOBOU_CORE >= total_out$)
+        img_addr$ <= 0;
+      else
+        img_addr$ <= in_offset$;
+    else if (s_weight_end && count_in$ == total_in$ - 1)
+      img_addr$ <= out_addr$ + out_offset$;
+    else if (state$ == S_WEIGHT || img_we$)
+      img_addr$ <= img_addr$ + 1;
 
 //==========================================================
 // network control

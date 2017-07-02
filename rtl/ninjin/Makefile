@@ -1,5 +1,6 @@
 VERBOSE   = 0
 SIMULATOR = vsim
+# MODULE    = ninjin_ddr_buf.sv
 MODULE    = kinpira_ddr.sv
 DEPENDS   = \
 	ninjin_s_axi_params.sv \

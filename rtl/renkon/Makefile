@@ -25,6 +25,7 @@ SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard test/*.sv)
 INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl/common
 DIST      = ../../dist
+VSIM_LIB  = -L ../ninjin/work
 
 include ../Makefile
 
