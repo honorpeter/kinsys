@@ -28,8 +28,8 @@ module test_ninjin_m_axi_image;
   reg                   rvalid;
   reg                   ddr_req;
   reg                   ddr_mode;
-  reg [MEMSIZE-1:0]     ddr_base;
-  reg [MEMSIZE-1:0]     ddr_len;
+  reg [MEMSIZE+LSB-1:0] ddr_base;
+  reg [LWIDTH-1:0]      ddr_len;
   reg [BWIDTH-1:0]      ddr_rdata;
 
   wire [3:0]              err;
@@ -115,7 +115,7 @@ module test_ninjin_m_axi_image;
     ddr_mode  = 0;
     ddr_base  = 0;
     ddr_len   = 0;
-    ddr_rdata = 0;
+    // ddr_rdata = 0;
 
     ddr_init;
     #(STEP);
@@ -269,6 +269,8 @@ module test_ninjin_m_axi_image;
         "| ",
         "%x ",  ddr_req,
         "%x ",  ddr_mode,
+        "%x ",  ddr_base,
+        "%x ",  ddr_len,
         ": ",
         "%x ",  ddr_we,
         "%x ",  ddr_waddr,

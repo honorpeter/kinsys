@@ -8,8 +8,8 @@ parameter C_s_axi_params_ADDR_WIDTH = REGSIZE + LSB;
 // Parameters of Axi Master Bus Interface m_axi_image
 parameter C_m_axi_image_BURST_MAX     = BURST_MAX;
 parameter C_m_axi_image_ID_WIDTH      = 1;
-parameter C_m_axi_image_ADDR_WIDTH    = BWIDTH;
 parameter C_m_axi_image_DATA_WIDTH    = BWIDTH;
+parameter C_m_axi_image_ADDR_WIDTH    = MEMSIZE + LSB;
 parameter C_m_axi_image_AWUSER_WIDTH  = 0;
 parameter C_m_axi_image_ARUSER_WIDTH  = 0;
 parameter C_m_axi_image_WUSER_WIDTH   = 0;

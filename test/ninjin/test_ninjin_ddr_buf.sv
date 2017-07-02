@@ -5,13 +5,15 @@
 
 // const int READ_LEN   = 128+8;
 // const int WRITE_LEN  = 128+8;
-const int READ_LEN   = 16*12*12;
-const int WRITE_LEN  = 8*4*4;
+// const int READ_LEN   = 16*12*12;
+// const int WRITE_LEN  = 8*4*4;
+const int READ_LEN   = 1*28*28;;
+const int WRITE_LEN  = 8*12*12;
 
 // int READ_OFFSET  = 42;
-const int READ_OFFSET  = 'h0000;
+const int READ_OFFSET  = 'ha000;
 // const int WRITE_OFFSET = 'h0b00;
-const int WRITE_OFFSET = READ_OFFSET + READ_LEN + 1;
+const int WRITE_OFFSET = READ_OFFSET + READ_LEN*RATE;
 
 module test_ninjin_ddr_buf;
 
@@ -20,24 +22,29 @@ module test_ninjin_ddr_buf;
 
   reg                     clk;
   reg                     xrst;
-  reg                     pre_en;
-  reg [IMGSIZE-1:0]       pre_base;
+  reg                     pre_req;
+  reg [MEMSIZE-1:0]       pre_base;
   reg [LWIDTH-1:0]        read_len;
   reg [LWIDTH-1:0]        write_len;
   reg                     mem_we;
   reg [IMGSIZE-1:0]       mem_addr;
   reg signed [DWIDTH-1:0] mem_wdata;
   reg                     ddr_we;
-  reg [IMGSIZE-1:0]       ddr_waddr;
+  reg [MEMSIZE-1:0]       ddr_waddr;
   reg [BWIDTH-1:0]        ddr_wdata;
-  reg [IMGSIZE-1:0]       ddr_raddr;
+  reg [MEMSIZE-1:0]       ddr_raddr;
 
+  wire                      pre_ack;
   wire                      ddr_req;
   wire                      ddr_mode;
-  wire [IMGSIZE-1:0]        ddr_base;
+  wire [MEMSIZE+LSB-1:0]    ddr_base;
   wire [LWIDTH-1:0]         ddr_len;
   wire [BWIDTH-1:0]         ddr_rdata;
   wire signed [DWIDTH-1:0]  mem_rdata;
+
+  reg [BUFSIZE-1:0] probe_in;
+  wire [BWIDTH-1:0] probe_out;
+  wire [BWIDTH-1:0] probe_out2;
 
   integer _ddr_base [1:0];
   integer _ddr_len [1:0];
@@ -67,7 +74,7 @@ module test_ninjin_ddr_buf;
     #(STEP);
 
     xrst      = 1;
-    pre_en    = 0;
+    pre_req    = 0;
     pre_base  = 0;
     read_len  = 0;
     write_len = 0;
@@ -80,31 +87,32 @@ module test_ninjin_ddr_buf;
     ddr_raddr = 0;
     #(STEP);
 
-    $display("### pre_en");
-    setup(READ_OFFSET, READ_LEN, WRITE_LEN);
+    $display("### pre_req");
+    setup(READ_OFFSET >> LSB, READ_LEN, WRITE_LEN);
 
     $display("### reading");
     for (int i = 0; i < READ_LEN; i++) begin
-      read(i + READ_OFFSET);
+      read(i + (READ_OFFSET >> RATELOG));
+      if (i % 14 == 1) #(10*STEP);
+      if (dut.switch_buf) #(10*STEP);
+    end
+    clear;
+
+    $display("### writing");
+    for (int i = 0; i < WRITE_LEN; i++)
+      write(i + (WRITE_OFFSET >> RATELOG), i + 'h0005);
+    clear;
+
+    $display("### reading");
+    for (int i = 0; i < READ_LEN; i++) begin
+      read(i + (READ_OFFSET >> RATELOG));
       if (i % 14 == 1) #(10*STEP);
     end
     clear;
 
     $display("### writing");
     for (int i = 0; i < WRITE_LEN; i++)
-      write(i + WRITE_OFFSET, i + 'h0005);
-    clear;
-
-    $display("### reading");
-    for (int i = 0; i < READ_LEN; i++) begin
-      read(i + READ_OFFSET);
-      if (i % 14 == 1) #(10*STEP);
-    end
-    clear;
-
-    $display("### writing");
-    for (int i = 0; i < WRITE_LEN; i++)
-      write(i + WRITE_OFFSET, i + 'h0005);
+      write(i + (WRITE_OFFSET >> RATELOG), i + 'h0005);
     clear;
 
     #(2*BURST_MAX*STEP);
@@ -139,12 +147,12 @@ module test_ninjin_ddr_buf;
     , input integer wlen
     );
 
-    pre_en    = 1;
+    pre_req    = 1;
     pre_base  = base;
     read_len  = rlen;
     write_len = wlen;
     #(STEP);
-    pre_en = 0;
+    pre_req = 0;
     #(STEP);
 
     #(BURST_MAX*STEP);
@@ -194,8 +202,8 @@ module test_ninjin_ddr_buf;
       #(STEP);
       for (int i = 0; i < _ddr_len[DDR_READ]; i++) begin
         ddr_we    = 1;
-        ddr_waddr = i + _ddr_base[DDR_READ];
-        ddr_wdata = 'h0def000c + ddr_waddr - READ_OFFSET;
+        ddr_waddr = i + (_ddr_base[DDR_READ] >> LSB);
+        ddr_wdata = 'h0def000c + ddr_waddr - (READ_OFFSET >> LSB);
         #(STEP);
         ddr_read_count++;
       end
@@ -214,7 +222,7 @@ module test_ninjin_ddr_buf;
       _ddr_len[DDR_WRITE]  = ddr_len;
       #(STEP);
       for (int i = 0; i < _ddr_len[DDR_WRITE]; i++) begin
-        ddr_raddr = i + _ddr_base[DDR_WRITE];
+        ddr_raddr = i + (_ddr_base[DDR_WRITE] >> LSB);
         #(STEP);
         ddr_write_count++;
       end
@@ -231,17 +239,20 @@ module test_ninjin_ddr_buf;
       case (dut.state$[0])
         2:
           if (dut.mem_addr$ % 2 == 1)
-            assert (mem_rdata == 'h0def) else
+            assert (mem_rdata == 'h0def)
+            else
               $error("read assert failed (odd) @ mem_rdata: %h, target: %h",
                 mem_rdata, 'h0def);
           else
-            assert (mem_rdata == 'h000c + (dut.mem_addr$ - READ_OFFSET)/2) else
+            assert (mem_rdata == 'h000c + (dut.mem_addr$ - (READ_OFFSET >> RATELOG))/2)
+            else
               $error("read assert failed (even) @ mem_rdata: %h, target: %h",
-                mem_rdata, 'h000c + (dut.mem_addr$ - READ_OFFSET)/2);
+                mem_rdata, 'h000c + (dut.mem_addr$ - (READ_OFFSET >> RATELOG))/2);
         3:
-          assert (mem_rdata == 'h0005 + dut.mem_addr$ - WRITE_OFFSET) else
+          assert (mem_rdata == 'h0005 + dut.mem_addr$ - (WRITE_OFFSET >> RATELOG))
+          else
             $error("write assert failed @ mem_rdata: %h, target: %h",
-              mem_rdata, 'h0005 + dut.mem_addr$ - WRITE_OFFSET);
+              mem_rdata, 'h0005 + dut.mem_addr$ - (WRITE_OFFSET >> RATELOG));
         default:
           assert(1'b1);
       endcase
@@ -252,20 +263,20 @@ module test_ninjin_ddr_buf;
   reg [IMGSIZE-1:0] ddr_raddr$;
   wire [DWIDTH-1:0]  ddr_offset;
   always @(posedge clk) ddr_raddr$ <= dut.ddr_raddr;
-  assign ddr_offset = ddr_raddr$-WRITE_OFFSET;
+  assign ddr_offset = ddr_raddr$ - (WRITE_OFFSET >> LSB);
   always @(ddr_we, ddr_waddr, ddr_wdata, ddr_raddr, ddr_rdata) begin
     #(STEP/2-1);
     if (ddr_raddr$ != 0)
       assert (ddr_rdata == {
-        16'h0005 + (2'h2*ddr_offset),
-        16'h0005 + (2'h2*ddr_offset+1'h1)
+        16'h0005 + (2'h2*ddr_offset+1'h1),
+        16'h0005 + (2'h2*ddr_offset)
       })
       else begin
         $error("ddr assert failed @ raddr: %h rdata: %h",
           ddr_raddr$, ddr_rdata);
         $info("expected: %h", {
-          16'h0005 + (2'h2*ddr_offset),
-          16'h0005 + (2'h2*ddr_offset+1'h1)
+          16'h0005 + (2'h2*ddr_offset+1'h1),
+          16'h0005 + (2'h2*ddr_offset)
         });
       end
     #(STEP/2+1);
@@ -300,33 +311,36 @@ module test_ninjin_ddr_buf;
         // "%x ", dut.switch_post_sub,
         "| ",
         "%x ",  mem_we,
-        "%3x ", mem_addr,
-        "%3x ", mem_wdata,
-        "%3x ", mem_rdata,
+        "%4x ", mem_addr,
+        "%x ", mem_wdata,
+        "%x ", mem_rdata,
         "| ",
-        // "%x ",  dut.pre_en,
+        // "%x ",  dut.pre_req,
         // "%x ",  dut.pre_base$,
         // "%d ",  dut.read_len$,
         // "%d ",  dut.write_len$,
         // "%x ",  dut.pre_we,
         // "%x ",  dut.pre_addr,
         // ": ",
-        // "%x ",  ddr_req,
-        // "%x ",  ddr_mode,
-        // "%x ",  ddr_base,
-        // "%x ",  ddr_len,
-        // "| ",
+        "%x ",  ddr_req,
+        "%x ",  ddr_mode,
+        "%x ",  ddr_base,
+        "%x ",  ddr_len,
+        "| ",
         "%x ",  ddr_we,
-        "%3x ", ddr_waddr,
+        "%4x ", ddr_waddr,
         "%7x ", ddr_wdata,
-        "%3x ", ddr_raddr,
+        "%4x ", ddr_raddr,
         "%7x ", ddr_rdata,
         "| ",
-        // "%x ",  dut.pre_base$,
-        // "%x ",  dut.buf_base$[0],
-        // "%x ",  dut.buf_base$[1],
-        // "%x ",  dut.post_base$,
-        // "| ",
+        "%4x ",  dut.pre_base$ << LSB,
+        "%4x ",  dut.buf_base$[0] << LSB,
+        "%4x ",  dut.buf_base$[1] << LSB,
+        "%4x ",  dut.post_base$ << LSB,
+        ": ",
+        "%x ",  dut.post_addr$,
+        "%x ",  dut.mem_addr$,
+        "| ",
         "*%d ", dut.which$,
         "*%d ", dut.mem_which$,
         "*%d ", dut.ddr_which$,
@@ -334,23 +348,23 @@ module test_ninjin_ddr_buf;
         ": ",
         "%x ",  dut.buf_we[0],
         "%x ",  dut.buf_addr[0],
-        "%7x ", dut.buf_wdata[0],
-        "%7x ", dut.buf_rdata[0],
+        // "%7x ", dut.buf_wdata[0],
+        // "%7x ", dut.buf_rdata[0],
         ": ",
         "%x ",  dut.buf_we[1],
         "%x ",  dut.buf_addr[1],
-        "%7x ", dut.buf_wdata[1],
-        "%7x ", dut.buf_rdata[1],
+        // "%7x ", dut.buf_wdata[1],
+        // "%7x ", dut.buf_rdata[1],
         ": ",
         "%x ",  dut.pre_we,
         "%x ",  dut.pre_addr,
-        "%7x ", dut.pre_wdata,
-        "%7x ", dut.pre_rdata,
+        // "%7x ", dut.pre_wdata,
+        // "%7x ", dut.pre_rdata,
         ": ",
         "%x ",  dut.post_we,
         "%x ",  dut.post_addr,
-        "%7x ", dut.post_wdata,
-        "%7x ", dut.post_rdata,
+        // "%7x ", dut.post_wdata,
+        // "%7x ", dut.post_rdata,
         "|"
       );
       #(STEP/2+1);

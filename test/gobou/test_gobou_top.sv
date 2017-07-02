@@ -36,7 +36,7 @@ module test_gobou_top;
   wire                      mem_img_we;
   wire [IMGSIZE-1:0]        mem_img_addr;
   wire signed [DWIDTH-1:0]  mem_img_wdata;
-  wire signed [DWIDTH-1:0]  img_rdata;
+  wire signed [DWIDTH-1:0]  mem_img_rdata;
 
   wire                      gobou_img_we;
   wire [IMGSIZE-1:0]        gobou_img_addr;
@@ -50,13 +50,13 @@ module test_gobou_top;
   assign mem_img_addr   = ack ? img_addr  : gobou_img_addr;
   assign mem_img_wdata  = ack ? img_wdata : gobou_img_wdata;
 
-  assign gobou_img_rdata = img_rdata;
+  assign gobou_img_rdata = mem_img_rdata;
 
   mem_sp #(DWIDTH, IMGSIZE) mem_img(
     .mem_we     (mem_img_we),
     .mem_addr   (mem_img_addr),
     .mem_wdata  (mem_img_wdata),
-    .mem_rdata  (img_rdata),
+    .mem_rdata  (mem_img_rdata),
     .*
   );
 
@@ -71,13 +71,19 @@ module test_gobou_top;
 `ifdef DIRECT
   always @*
     for (int i = 0; i < 2**IMGSIZE; i++)
-      mem_img.mem[i] = mem_i[i];
+      if (i < IMG_OFFSET)
+        mem_img.mem[i] = 0;
+      else
+        mem_img.mem[i] = mem_i[i-IMG_OFFSET];
 
   // This statement is for direct assignment for generated modules
   for (genvar n = 0; n < GOBOU_CORE; n++)
     always @*
       for (int i = 0; i < 2**GOBOU_NETSIZE; i++)
-        dut.pe[n].mem_net.mem[i] = mem_n[n][i];
+        if (i < NET_OFFSET)
+          dut.pe[n].mem_net.mem[i] = 0;
+        else
+          dut.pe[n].mem_net.mem[i] = mem_n[n][i-NET_OFFSET];
 `endif
 
   // clock
@@ -176,17 +182,15 @@ module test_gobou_top;
       $fclose(fd);
       #(STEP);
 
-      img_we = 1;
       for (int i = 0; i < 2**IMGSIZE; i++) begin
-        img_addr = i;
-        #(STEP);
-
+        img_we    = 1;
+        img_addr  = i;
         img_wdata = mem_i[i];
         #(STEP);
       end
 
-      img_we = 0;
-      img_addr = 0;
+      img_we    = 0;
+      img_addr  = 0;
       img_wdata = 0;
       #(STEP);
     end // }}}
@@ -257,14 +261,10 @@ module test_gobou_top;
       $fclose(bd);
 
       for (int n = 0; n < GOBOU_CORE; n++) begin
-        net_sel = n;
-        net_we  = 1;
-        #(STEP);
-
         for (int i = 0; i < 2**GOBOU_NETSIZE; i++) begin
-          net_addr = i;
-          #(STEP);
-
+          net_sel   = n;
+          net_we    = 1;
+          net_addr  = i;
           net_wdata = mem_n[n][i];
           #(STEP);
         end
@@ -392,8 +392,8 @@ module test_gobou_top;
       for (int i = 0; i < out_size; i++) begin
         img_addr = i + OUT_OFFSET;
         #(STEP*2);
-        assert (mem_img.mem[img_addr] == img_rdata);
-        $fdisplay(fd, "%0d", img_rdata);
+        assert (mem_img.mem[img_addr] == mem_img_rdata);
+        $fdisplay(fd, "%0d", mem_img_rdata);
       end
 
       img_addr = 0;
@@ -411,37 +411,26 @@ module test_gobou_top;
       if (now_time >= req_time)
         $display(
           "%5d: ", now_time - req_time,
-          "%d ", xrst,
           "%d ", req,
           "%d ", ack,
-          "%d ", dut.ctrl.ctrl_core.state$,
+          "*%d ", dut.ctrl.ctrl_core.state$,
           "| ",
-          "%d ", dut.ctrl.ctrl_core.out_ctrl.valid,
-          "%d ", dut.ctrl.ctrl_mac.out_ctrl.valid,
-          "%d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
-          "%d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
+          "%d ", dut.ctrl.ctrl_core.img_we$,
+          "%d ", dut.ctrl.ctrl_core.s_output_end,
+          "%d ", dut.ctrl.ctrl_core.img_addr$,
           "| ",
-          "%5d ", dut.pe[0].core.pixel,
-          "%5d ", dut.pe[0].core.weight,
-          "%5d ", dut.pe[0].core.mac.x$,
-          "%5d ", dut.pe[0].core.mac.w$,
-          "%5d ", dut.pe[0].core.mac.accum$,
-          "%5d ", dut.pe[0].core.mac.y$,
-          "%5d ", dut.pe[0].core.bias.bias$,
+          "%d ", mem_img_we,
+          "%d ", mem_img_addr,
+          "%d ", mem_img_wdata,
+          "%d ", mem_img_rdata,
           "| ",
-          "%5d ", dut.pe[0].core.fvec,
-          "%5d ", dut.pe[0].core.bvec,
-          "%5d ", dut.pe[0].core.avec,
+          "%1d ", dut.ctrl.ctrl_core.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_mac.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
           "| ",
-          "%5d@ ", dut.pe[0].core.fvec,
-          "%5d@ ", dut.pe[1].core.fvec,
-          "%5d@ ", dut.pe[2].core.fvec,
-          "%5d@ ", dut.pe[3].core.fvec,
-          "| ",
-          "%5d@ ", dut.pe[0].core.avec,
-          "%5d@ ", dut.pe[1].core.avec,
-          "%5d@ ", dut.pe[2].core.avec,
-          "%5d@ ", dut.pe[3].core.avec,
+          "%3d ",  dut.ctrl.ctrl_core.count_out$,
+          "%3d ",  dut.ctrl.ctrl_core.count_in$,
           "|"
         );
       #(STEP/2+1);
