@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # ref: http://tohka383.hatenablog.jp/entry/20111227/1324979198
 
 if [ -z "${2}" ]; then

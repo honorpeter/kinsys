@@ -50,22 +50,16 @@ if {$proj_name == "zcu102"} {
   }
 }
 
-# set_property HDL_ATTRIBUTE.DEBUG true [get_bd_intf_nets {axi_top_0_m_axi }]
-# set_property HDL_ATTRIBUTE.DEBUG true [get_bd_intf_nets {axi_mem_intercon_1_M00_AXI }]
+set_property HDL_ATTRIBUTE.DEBUG true [get_bd_intf_nets {kinpira_ddr_0_m_axi_image }]
 
-# apply_bd_automation -rule xilinx.com:bd_rule:debug \
-#   -dict [list \
-#     [get_bd_intf_nets axi_top_0_m_axi] \
-#     { AXI_R_ADDRESS "Data and Trigger" AXI_R_DATA "Data and Trigger" \
-#       AXI_W_ADDRESS "Data and Trigger" AXI_W_DATA "Data and Trigger" AXI_W_RESPONSE "Data and Trigger" \
-#       CLK_SRC "/processing_system7_0/FCLK_CLK0" SYSTEM_ILA "Auto" APC_EN "0" \
-#     } \
-#     [get_bd_intf_nets axi_mem_intercon_1_M00_AXI] \
-#     { AXI_R_ADDRESS "Data and Trigger" AXI_R_DATA "Data and Trigger" \
-#       AXI_W_ADDRESS "Data and Trigger" AXI_W_DATA "Data and Trigger" AXI_W_RESPONSE "Data and Trigger" \
-#       CLK_SRC "/processing_system7_0/FCLK_CLK0" SYSTEM_ILA "Auto" APC_EN "0" \
-#     } \
-#   ]
+apply_bd_automation -rule xilinx.com:bd_rule:debug \
+  -dict [list \
+    [get_bd_intf_nets kinpira_ddr_0_m_axi_image] \
+    { AXI_R_ADDRESS "Data and Trigger" AXI_R_DATA "Data and Trigger" \
+      AXI_W_ADDRESS "Data and Trigger" AXI_W_DATA "Data and Trigger" AXI_W_RESPONSE "Data and Trigger" \
+      CLK_SRC "/processing_system7_0/FCLK_CLK0" SYSTEM_ILA "Auto" APC_EN "0" \
+    }
+  ]
 
 regenerate_bd_layout
 save_bd_design
