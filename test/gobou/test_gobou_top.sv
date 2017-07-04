@@ -1,7 +1,9 @@
 `include "gobou.svh"
+`include "ninjin.svh"
 
 // `define SAIF
-// `define DIRECT
+`define DIRECT
+`define NINJIN
 
 int N_IN  = 512;
 int N_OUT = 128;
@@ -52,6 +54,70 @@ module test_gobou_top;
 
   assign gobou_img_rdata = mem_img_rdata;
 
+`ifdef NINJIN
+  reg                     pre_req;
+  reg [MEMSIZE-1:0]       pre_base;
+  reg [LWIDTH-1:0]        read_len;
+  reg [LWIDTH-1:0]        write_len;
+  reg                     ddr_we;
+  reg [MEMSIZE-1:0]       ddr_waddr;
+  reg [BWIDTH-1:0]        ddr_wdata;
+  reg [MEMSIZE-1:0]       ddr_raddr;
+  wire                      pre_ack;
+  wire                      ddr_req;
+  wire                      ddr_mode;
+  wire [MEMSIZE+LSB-1:0]    ddr_base;
+  wire [LWIDTH-1:0]         ddr_len;
+  wire [BWIDTH-1:0]         ddr_rdata;
+  wire [2-1:0]              probe_state;
+  integer _ddr_base [1:0];
+  integer _ddr_len [1:0];
+  ninjin_ddr_buf mem_img(
+    .mem_we     (mem_img_we),
+    .mem_addr   (mem_img_addr),
+    .mem_wdata  (mem_img_wdata),
+    .mem_rdata  (mem_img_rdata),
+    .*
+  );
+  always @(posedge ddr_req) begin
+    #(STEP/2-1);
+    if (ddr_mode == DDR_READ) begin
+      _ddr_base[DDR_READ] = ddr_base;
+      _ddr_len[DDR_READ]  = ddr_len;
+      #(STEP);
+      for (int i = 0; i < _ddr_len[DDR_READ]; i++) begin
+        ddr_we    = 1;
+        ddr_waddr = i + (_ddr_base[DDR_READ] >> LSB);
+        ddr_wdata = {
+          mem_i[2*(ddr_waddr-(IMG_OFFSET >> RATELOG))+1],
+          mem_i[2*(ddr_waddr-(IMG_OFFSET >> RATELOG))]
+        };
+        #(STEP);
+      end
+      ddr_we    = 0;
+      ddr_waddr = 0;
+      ddr_wdata = 0;
+      #(STEP);
+    end
+    #(STEP/2+1);
+  end
+
+  always @(posedge ddr_req) begin
+    #(STEP/2-1);
+    if (ddr_mode == DDR_WRITE) begin
+      _ddr_base[DDR_WRITE] = ddr_base;
+      _ddr_len[DDR_WRITE]  = ddr_len;
+      #(STEP);
+      for (int i = 0; i < _ddr_len[DDR_WRITE]; i++) begin
+        ddr_raddr = i + (_ddr_base[DDR_WRITE] >> LSB);
+        #(STEP);
+      end
+      ddr_raddr = 0;
+      #(STEP);
+    end
+    #(STEP/2+1);
+  end
+`else
   mem_sp #(DWIDTH, IMGSIZE) mem_img(
     .mem_we     (mem_img_we),
     .mem_addr   (mem_img_addr),
@@ -59,6 +125,7 @@ module test_gobou_top;
     .mem_rdata  (mem_img_rdata),
     .*
   );
+`endif
 
   gobou_top dut(
     .img_we     (gobou_img_we),
@@ -69,12 +136,14 @@ module test_gobou_top;
   );
 
 `ifdef DIRECT
+`ifndef NINJIN
   always @*
     for (int i = 0; i < 2**IMGSIZE; i++)
       if (i < IMG_OFFSET)
         mem_img.mem[i] = 0;
       else
         mem_img.mem[i] = mem_i[i-IMG_OFFSET];
+`endif
 
   // This statement is for direct assignment for generated modules
   for (genvar n = 0; n < GOBOU_CORE; n++)
@@ -128,6 +197,28 @@ module test_gobou_top;
 `endif
     // read_network(wdir);
 
+`ifdef NINJIN
+    pre_req   = 0;
+    pre_base  = 0;
+    read_len  = 0;
+    write_len = 0;
+    ddr_we    = 0;
+    ddr_waddr = 0;
+    ddr_wdata = 0;
+    ddr_raddr = 0;
+    #(STEP);
+
+    pre_req   = 1;
+    pre_base  = IMG_OFFSET >> RATELOG;
+    read_len  = N_IN;
+    write_len = GOBOU_CORE;
+    #(STEP);
+    pre_req = 0;
+    #(STEP);
+
+    while (!pre_ack) #(STEP);
+    #(STEP);
+  `endif
 `ifdef SAIF
     $toggle_start();
 `endif
@@ -392,7 +483,10 @@ module test_gobou_top;
       for (int i = 0; i < out_size; i++) begin
         img_addr = i + OUT_OFFSET;
         #(STEP*2);
+        `ifdef NINJIN
+        `else
         assert (mem_img.mem[img_addr] == mem_img_rdata);
+        `endif
         $fdisplay(fd, "%0d", mem_img_rdata);
       end
 
@@ -423,14 +517,36 @@ module test_gobou_top;
           "%d ", mem_img_addr,
           "%d ", mem_img_wdata,
           "%d ", mem_img_rdata,
+          `ifdef NINJIN
           "| ",
-          "%1d ", dut.ctrl.ctrl_core.out_ctrl.valid,
-          "%1d ", dut.ctrl.ctrl_mac.out_ctrl.valid,
-          "%1d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
-          "%1d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
+          "%x ", ddr_req,
+          "%x ", ddr_mode,
+          "%x ", ddr_base,
+          "%x ", ddr_len,
+          ": ",
+          "*%x ", mem_img.state$[0],
+          "*%x ", mem_img.ddr_which$,
+          "%x ", mem_img.count_len$,
+          "%x ", mem_img.count_buf$,
+          `else
           "| ",
-          "%3d ",  dut.ctrl.ctrl_core.count_out$,
-          "%3d ",  dut.ctrl.ctrl_core.count_in$,
+          "%x ", 1'b0,
+          "%x ", 1'b0,
+          "%x ", {MEMSIZE+LSB{1'b0}},
+          "%x ", {LWIDTH{1'b0}},
+          ": ",
+          "*%x ", 2'b0,
+          "%4x ", 4'b0,
+          "%4x ", 4'b0,
+          // "| ",
+          // "%1d ", dut.ctrl.ctrl_core.out_ctrl.valid,
+          // "%1d ", dut.ctrl.ctrl_mac.out_ctrl.valid,
+          // "%1d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
+          // "%1d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
+          // "| ",
+          // "%3d ",  dut.ctrl.ctrl_core.count_out$,
+          // "%3d ",  dut.ctrl.ctrl_core.count_in$,
+        `endif
           "|"
         );
       #(STEP/2+1);

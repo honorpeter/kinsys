@@ -27,14 +27,14 @@
 #include "data/full3_tru.h"
 
 // latency analysis
-/* #include "xtime_l.h"                                        */
-/* #define INIT  XTime begin, end;                             */
-/* #define BEGIN XTime_GetTime(&begin);                        */
-/* #define END   do {                                        \ */
-/*   XTime_GetTime(&end);                                    \ */
-/*   printf("%12.6f [us]\n\n",                               \ */
-/*       (double)(end-begin) / COUNTS_PER_SECOND * 1000000); \ */
-/* } while (0);                                                */
+#include "xtime_l.h"
+#define INIT  XTime begin, end;
+#define BEGIN XTime_GetTime(&begin);
+#define END   do {                                        \
+  XTime_GetTime(&end);                                    \
+  printf("%12.6f [us]\n\n",                               \
+      (double)(end-begin) / COUNTS_PER_SECOND * 1000000); \
+} while (0);
 
 // #include <assert.h>
 #define assert_eq(a, b) do {                                        \
@@ -137,6 +137,8 @@ int main(void)
 
 #elif defined(KINPIRA_DDR)
 
+  INIT
+
   Xil_DCacheDisable();
 
   s16 image[N_IN*ISIZE*ISIZE]     = {0};
@@ -173,33 +175,49 @@ int main(void)
   printf("layer: %p, %p, %p, %p\n", &conv0, &conv1, &full2, &full3);
 
   puts("exec_core(&conv0)");
+  BEGIN
   exec_core(&conv0);
+  END
 
-  for (int i = 0; i < N_C0*PM0SIZE*PM0SIZE; i++) {
-    printf("i == %4d: %4d = %4d - %4d\n",
-      i, pmap0[i] - conv0_tru[i], pmap0[i], conv0_tru[i]);
-    // assert_eq(pmap0[i], conv0_tru[i]);
-  }
-  print_port();
-  // puts("conv0 assert ok");
+  puts("exec_core(&conv1)");
+  BEGIN
+  exec_core(&conv1);
+  END
 
-  // puts("exec_core(&conv1)");
-  // exec_core(&conv1);
-  //
-  // puts("exec_core(&full2)");
-  // exec_core(&full2);
-  //
-  // puts("exec_core(&full3)");
-  // exec_core(&full3);
-  //
-  // for (int i = 0; i < LABEL; i++)
-  //   output[i] = fvec3[i];
+  puts("exec_core(&full2)");
+  BEGIN
+  exec_core(&full2);
+  END
+
+  puts("exec_core(&full3)");
+  BEGIN
+  exec_core(&full3);
+  END
+
+  for (int i = 0; i < 16*12*12; i++)
+    assert_eq(pmap0[i], conv0_tru[i]);
+  puts("conv0 assert ok");
+
+  for (int i = 0; i < 32*4*4; i++)
+    assert_eq(pmap1[i], conv1_tru[i]);
+  puts("conv1 assert ok");
+
+  for (int i = 0; i < 128; i++)
+    assert_eq(fvec2[i], full2_tru[i]);
+  puts("full2 assert ok");
+
+  for (int i = 0; i < 10; i++)
+    assert_eq(fvec3[i], full3_tru[i]);
+  puts("full3 assert ok");
+
+  for (int i = 0; i < LABEL; i++)
+    output[i] = fvec3[i];
 
   Xil_DCacheEnable();
 
 #endif
 
-  // print_result(output, LABEL);
+  print_result(output, LABEL);
 
   return 0;
 }

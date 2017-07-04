@@ -27,9 +27,7 @@ module ninjin_ddr_buf
   , output [BWIDTH-1:0]         ddr_rdata
   // memory data
   , output signed [DWIDTH-1:0]  mem_rdata
-  , input [BUFSIZE-1:0] probe_in
-  , output [BWIDTH-1:0] probe_out
-  , output [BWIDTH-1:0] probe_out2
+  , output [2-1:0]              probe_state
   );
 
   localparam  M_IDLE  = 'd0,
@@ -107,6 +105,8 @@ module ninjin_ddr_buf
   reg [RATELOG-1:0]       word_offset$;
   reg [BUFSIZE-1:0]       post_addr$;
   reg [LWIDTH-1:0]        post_len$;
+
+  assign probe_state = state$[0];
 
 //==========================================================
 // core control
@@ -285,7 +285,7 @@ module ninjin_ddr_buf
             count_buf$ <= 0;
           // TODO: mode == M_INCR for mask?
           else if (mode == M_INCR)
-            if (count_buf$ == RATE*burst_len -1)
+            if (count_buf$ == RATE*burst_len-1)
               count_buf$ <= 0;
             else
               count_buf$ <= count_buf$ + txn_start + 1;
@@ -509,19 +509,6 @@ module ninjin_ddr_buf
       pre_base$ <= 0;
     else
       pre_base$ <= pre_base;
-
-  reg [BWIDTH-1:0] mem [2**BUFSIZE-1:0];
-  reg [BWIDTH-1:0] mem2 [2**BUFSIZE-1:0];
-  reg [BUFSIZE-1:0] addr$;
-  always @(posedge clk) begin
-    if (pre_we)
-      mem[pre_addr] <= pre_wdata;
-    if (post_we)
-      mem2[post_addr] <= post_wdata;
-    addr$ <= probe_in;
-  end
-  assign probe_out = mem[addr$];
-  assign probe_out2 = mem2[addr$];
 
   mem_sp #(BWIDTH, BUFSIZE) mem_pre(
     .mem_we     (pre_we),

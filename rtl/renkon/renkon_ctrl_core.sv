@@ -41,6 +41,7 @@ module renkon_ctrl_core
   wire               s_output_end;
   wire               s_w_weight_end;
   wire               s_w_bias_end;
+  wire               req_edge;
   wire               final_iter;
   wire [IMGSIZE-1:0] w_img_addr;
   wire [IMGSIZE-1:0] w_img_offset;
@@ -51,6 +52,7 @@ module renkon_ctrl_core
   enum reg {
     S_W_WEIGHT, S_W_BIAS
   } state_weight$ [D_PIXELBUF:0];
+  reg               req$;
   reg               ack$;
   reg [LWIDTH-1:0]  total_out$;
   reg [LWIDTH-1:0]  total_in$;
@@ -96,6 +98,14 @@ module renkon_ctrl_core
   assign final_iter = count_in$ == total_in$ - 1
                    && count_out$ + RENKON_CORE >= total_out$;
 
+  assign req_edge = req && !req$;
+
+  always @(posedge clk)
+    if (!xrst)
+      req$ <= 0;
+    else
+      req$ <= req;
+
   //main FSM
   always @(posedge clk)
     if (!xrst) begin
@@ -106,7 +116,7 @@ module renkon_ctrl_core
     else
       case (state$[0])
         S_WAIT:
-          if (req)
+          if (req_edge)
             state$[0] <= S_NETWORK;
         S_NETWORK:
           if (s_network_end)
@@ -154,7 +164,7 @@ module renkon_ctrl_core
       fil_size$    <= 0;
       d_pixelbuf$  <= 0;
     end
-    else if (state$[0] == S_WAIT && req) begin
+    else if (state$[0] == S_WAIT && req_edge) begin
       total_in$    <= total_in;
       total_out$   <= total_out;
       img_size$    <= img_size;
@@ -261,7 +271,7 @@ module renkon_ctrl_core
   always @(posedge clk)
     if (!xrst)
       net_offset$ <= 0;
-    else if (req || ack)
+    else if (req_edge || ack)
       net_offset$ <= net_offset;
 
   always @(posedge clk)
@@ -391,7 +401,7 @@ module renkon_ctrl_core
       in_offset$ <= 0;
       out_offset$ <= 0;
     end
-    else if (req || ack) begin
+    else if (req_edge || ack) begin
       in_offset$ <= in_offset;
       out_offset$ <= out_offset;
     end
@@ -401,7 +411,7 @@ module renkon_ctrl_core
   always @(posedge clk)
     if (!xrst)
       img_addr$ <= 0;
-    else if (req || ack)
+    else if (req_edge || ack)
       img_addr$ <= in_offset;
     else if (s_output_end)
       if (count_out$ + RENKON_CORE >= total_out$)
@@ -451,7 +461,7 @@ module renkon_ctrl_core
   always @(posedge clk)
     if (!xrst)
       ack$ <= 1;
-    else if (req)
+    else if (req_edge)
       ack$ <= 0;
     else if (s_output_end && count_out$ + RENKON_CORE >= total_out$)
       ack$ <= 1;
@@ -509,7 +519,7 @@ module renkon_ctrl_core
           out_ctrl$[0].stop  <= 0;
         end
         else begin
-          out_ctrl$[0].start <= req
+          out_ctrl$[0].start <= req_edge
                               || s_network_end
                               || s_input_end
                                   && count_in$ != total_in$ - 1;

@@ -7,8 +7,10 @@
 // const int WRITE_LEN  = 128+8;
 // const int READ_LEN   = 16*12*12;
 // const int WRITE_LEN  = 8*4*4;
-const int READ_LEN   = 1*28*28;;
-const int WRITE_LEN  = 8*12*12;
+// const int READ_LEN   = 1*28*28;
+// const int WRITE_LEN  = 8*12*12;
+const int READ_LEN   = 512;
+const int WRITE_LEN  = 16;
 
 // int READ_OFFSET  = 42;
 const int READ_OFFSET  = 'ha000;
@@ -42,9 +44,7 @@ module test_ninjin_ddr_buf;
   wire [BWIDTH-1:0]         ddr_rdata;
   wire signed [DWIDTH-1:0]  mem_rdata;
 
-  reg [BUFSIZE-1:0] probe_in;
-  wire [BWIDTH-1:0] probe_out;
-  wire [BWIDTH-1:0] probe_out2;
+  wire [2-1:0] probe_state;
 
   integer _ddr_base [1:0];
   integer _ddr_len [1:0];
@@ -296,7 +296,7 @@ module test_ninjin_ddr_buf;
         "%4x: ", $time/STEP,
         // "%d ", xrst,
         "&%d ", dut.state$[0],
-        // "%d ", dut.mode,
+        "%d ", dut.mode,
         // "%d ", dut.mode$,
         // "%d ", dut.count_len$,
         // "%d ", dut.read_len,

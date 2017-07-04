@@ -25,18 +25,24 @@ module gobou_ctrl_core
   , output                      serial_we
   );
 
-  wire                s_weight_end;
+  localparam SETUP_TIME = 4;
+
+  wire                s_setup_end;
+  wire                s_input_end;
   wire                s_bias_end;
   wire                s_output_end;
+  wire                req_edge;
   wire                final_iter;
   wire [IMGSIZE-1:0]  w_img_addr;
   wire [IMGSIZE-1:0]  w_img_offset;
 
-  enum reg [2-1:0] {
-    S_WAIT, S_WEIGHT, S_BIAS, S_OUTPUT
+  enum reg [3-1:0] {
+    S_WAIT, S_SETUP, S_INPUT, S_BIAS, S_OUTPUT
   } state$;
   ctrl_reg          out_ctrl$;
+  reg               req$;
   reg               ack$;
+  reg [2-1:0]       setup$;
   reg [LWIDTH-1:0]  total_out$;
   reg [LWIDTH-1:0]  total_in$;
   reg [LWIDTH-1:0]  count_out$;
@@ -56,6 +62,17 @@ module gobou_ctrl_core
   assign final_iter = state$ == S_OUTPUT
                    && count_out$ + GOBOU_CORE >= total_out$;
 
+  assign s_setup_end = state$ == S_SETUP
+                    && setup$ == SETUP_TIME - 1;
+
+  assign req_edge = req && !req$;
+
+  always @(posedge clk)
+    if (!xrst)
+      req$ <= 0;
+    else
+      req$ <= req;
+
   always @(posedge clk)
     if (!xrst) begin
       state$     <= S_WAIT;
@@ -65,10 +82,13 @@ module gobou_ctrl_core
     else
       case (state$)
         S_WAIT:
-          if (req)
-            state$ <= S_WEIGHT;
-        S_WEIGHT:
-          if (s_weight_end) begin
+          if (req_edge)
+            state$ <= S_INPUT;
+        S_SETUP:
+          if (s_setup_end)
+            state$ <= S_INPUT;
+        S_INPUT:
+          if (s_input_end) begin
             state$     <= S_BIAS;
             count_in$  <= 0;
           end
@@ -84,7 +104,7 @@ module gobou_ctrl_core
               count_out$ <= 0;
             end
             else begin
-              state$     <= S_WEIGHT;
+              state$     <= S_SETUP;
               count_out$ <= count_out$ + GOBOU_CORE;
             end
         default:
@@ -96,14 +116,25 @@ module gobou_ctrl_core
       total_in$    <= 0;
       total_out$   <= 0;
     end
-    else if (state$ == S_WAIT && req) begin
+    else if (state$ == S_WAIT && req_edge) begin
       total_in$    <= total_in;
       total_out$   <= total_out;
     end
 
+  always @(posedge clk)
+    if (!xrst)
+      setup$ <= 0;
+    else if (state$ == S_SETUP)
+      if (setup$ == SETUP_TIME - 1)
+        setup$ <= 0;
+      else
+        setup$ <= setup$ + 1;
+
 //==========================================================
-// image control
+// input control
 //==========================================================
+
+  assign s_input_end = state$ == S_INPUT && count_in$ == total_in$ - 1;
 
   assign img_we = img_we$;
 
@@ -138,7 +169,7 @@ module gobou_ctrl_core
       in_addr$ <= 0;
     else if (state$ == S_BIAS)
       in_addr$ <= 0;
-    else if (state$ == S_WEIGHT && !s_weight_end)
+    else if (state$ == S_INPUT && !s_input_end)
       in_addr$ <= in_addr$ + 1;
 
   always @(posedge clk)
@@ -154,7 +185,7 @@ module gobou_ctrl_core
       in_offset$ <= 0;
       out_offset$ <= 0;
     end
-    else if (req || ack) begin
+    else if (req_edge || ack) begin
       in_offset$ <= in_offset;
       out_offset$ <= out_offset;
     end
@@ -164,24 +195,23 @@ module gobou_ctrl_core
   always @(posedge clk)
     if (!xrst)
       img_addr$ <= 0;
-    else if (req || ack)
+    else if (req_edge || ack)
       img_addr$ <= in_offset;
     else if (s_output_end)
       if (count_out$ + GOBOU_CORE >= total_out$)
         img_addr$ <= 0;
       else
         img_addr$ <= in_offset$;
-    else if (s_weight_end && count_in$ == total_in$ - 1)
+    else if (s_input_end && count_in$ == total_in$ - 1)
       img_addr$ <= out_addr$ + out_offset$;
-    else if (state$ == S_WEIGHT || img_we$)
+    else if (state$ == S_INPUT || img_we$)
       img_addr$ <= img_addr$ + 1;
 
 //==========================================================
 // network control
 //==========================================================
 
-  assign s_weight_end = state$ == S_WEIGHT && count_in$ == total_in$ - 1;
-  assign s_bias_end   = state$ == S_BIAS;
+  assign s_bias_end  = state$ == S_BIAS;
 
   // assign mem_net_we   = net_we$;
   // assign mem_net_addr = net_addr$ + net_offset$;
@@ -206,7 +236,7 @@ module gobou_ctrl_core
       net_addr$ <= 0;
     else if (final_iter)
       net_addr$ <= 0;
-    else if (state$ == S_WEIGHT)
+    else if (state$ == S_INPUT)
       net_addr$ <= net_addr$ + 1;
     else if (state$ == S_BIAS)
       net_addr$ <= net_addr$ + 1;
@@ -214,7 +244,7 @@ module gobou_ctrl_core
   always @(posedge clk)
     if (!xrst)
       net_offset$ <= 0;
-    else if (req || ack)
+    else if (req_edge || ack)
       net_offset$ <= net_offset;
 
   always @(posedge clk)
@@ -240,9 +270,9 @@ module gobou_ctrl_core
       out_ctrl$.stop  <= 0;
     end
     else begin
-      out_ctrl$.start <= req
+      out_ctrl$.start <= req_edge
                        || s_output_end && (count_out$ + GOBOU_CORE < total_out$);
-      out_ctrl$.valid <= state$ == S_BIAS || state$ == S_WEIGHT;
+      out_ctrl$.valid <= state$ == S_INPUT || state$ == S_BIAS;
       out_ctrl$.stop  <= s_bias_end;
     end
 
@@ -251,7 +281,7 @@ module gobou_ctrl_core
   always @(posedge clk)
     if (!xrst)
       ack$ <= 1;
-    else if (req)
+    else if (req_edge)
       ack$ <= 0;
     else if (s_output_end && count_out$ + GOBOU_CORE >= total_out$)
       ack$ <= 1;

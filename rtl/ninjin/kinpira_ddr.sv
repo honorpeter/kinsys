@@ -214,6 +214,7 @@ module kinpira_ddr
   , (* mark_debug = "true" *) output wire signed [DWIDTH-1:0]  mem_img_rdata
   , (* mark_debug = "true" *) output wire                      req
   , (* mark_debug = "true" *) output wire                      ack
+  , (* mark_debug = "true" *) output wire [2-1:0]              probe_state
   );
 
   wire                      clk;
@@ -333,9 +334,6 @@ module kinpira_ddr
   assign read_len   = in_port[12][LWIDTH-1:0];
   assign write_len  = in_port[13][LWIDTH-1:0];
 
-  wire [BUFSIZE-1:0] probe_in;
-  assign probe_in = in_port[14][BUFSIZE-1:0];
-
   reg [LWIDTH-1:0] ddr_req_cnt$;
   reg pre_req$, ddr_req$;
   always @(posedge clk)
@@ -354,12 +352,10 @@ module kinpira_ddr
       ddr_req_cnt$ <= 0;
     else if (ddr_req && !ddr_req$)
       ddr_req_cnt$ <= ddr_req_cnt$ + 1;
-  wire [BWIDTH-1:0] probe_out;
-  wire [BWIDTH-1:0] probe_out2;
   assign out_port[31] = {31'b0, which$};
   assign out_port[30] = {31'b0, ack};
-  assign out_port[29] = probe_out;
-  assign out_port[28] = probe_out2;
+  assign out_port[29] = 32'd0;
+  assign out_port[28] = 32'd0;
   assign out_port[27] = {31'd0, pre_ack};
   assign out_port[26] = {{BWIDTH-LWIDTH{1'b0}}, ddr_req_cnt$};
   assign out_port[25] = 32'd0;

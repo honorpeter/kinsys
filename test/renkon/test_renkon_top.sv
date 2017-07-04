@@ -80,9 +80,7 @@ module test_renkon_top;
   wire [MEMSIZE+LSB-1:0]    ddr_base;
   wire [LWIDTH-1:0]         ddr_len;
   wire [BWIDTH-1:0]         ddr_rdata;
-  reg [BWIDTH-1:0]         probe_in;
-  wire [BWIDTH-1:0]         probe_out;
-  wire [BWIDTH-1:0]         probe_out2;
+  wire [2-1:0]              probe_state;
   integer _ddr_base [1:0];
   integer _ddr_len [1:0];
   ninjin_ddr_buf mem_img(

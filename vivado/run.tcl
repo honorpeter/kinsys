@@ -20,9 +20,9 @@ projects -build -type app -name $app_name
 
 connect
 targets -set -nocase -filter {name =~ "ARM*#0"}
-# rst
-#
-# fpga $sdk_ws_dir/$hw_project_name/design_1_wrapper.bit
+rst -system
+
+fpga $sdk_ws_dir/$hw_project_name/design_1_wrapper.bit
 loadhw $sdk_ws_dir/$hw_project_name/system.hdf
 source $sdk_ws_dir/$hw_project_name/ps7_init.tcl
 ps7_init

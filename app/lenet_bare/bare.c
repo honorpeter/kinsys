@@ -165,21 +165,19 @@ void exec_core(layer *l)
   switch (l->which) {
     case RENKON:
       *reg_read_len   = l->total_in * l->img_size * l->img_size;
-      *reg_write_len  = RENKON_CORE
+      *reg_write_len  = (l->total_out < RENKON_CORE ? l->total_out : RENKON_CORE)
                       * ((l->img_size - l->fil_size + 1)/(l->pool_size))
                       * ((l->img_size - l->fil_size + 1)/(l->pool_size));
       break;
     case GOBOU:
       *reg_read_len   = l->total_in;
-      *reg_write_len  = GOBOU_CORE;
+      *reg_write_len  = l->total_out < GOBOU_CORE ? l->total_out : GOBOU_CORE;
       break;
     default:
       *reg_read_len   = 0;
       *reg_write_len  = 0;
       break;
   }
-
-  print_port();
 
   *reg_pre_req = 1;
   *reg_pre_req = 0;
