@@ -15,15 +15,15 @@ end
 
 FileUtils.mkdir_p("data")
 
-input = hex_of_floatfile("#{input_dir}/#{input_label}/img#{input_name}.dat")
-File.open("data/input.h", "w") do |f|
+image = hex_of_floatfile("#{input_dir}/#{input_label}/img#{input_name}.dat")
+File.open("data/image.h", "w") do |f|
   f.puts <<~EOS
-    #ifndef _INPUT_H_
-    #define _INPUT_H_
+    #ifndef _IMAGE_H_
+    #define _IMAGE_H_
 
     // PATH: #{input_dir}/#{input_label}/img#{input_name}.dat
-    u32 input[#{input.length}] = {
-    #{input.join("\n")}
+    s16 image[#{image.length}] = {
+    #{image.join("\n")}
     };
 
     #endif

@@ -15,26 +15,15 @@
 
 
 
-void post_image(u32 *image, const u32 offset, const u32 length)
-{
-#ifdef KINPIRA_AXI
-  *reg_which = NINJIN;
-  // NOTE: width of each entry have to be adjusted with care.
-  memmove(&mem_image[offset], image, sizeof(u32)*length);
-#endif
-}
-
-
-
 void define_2d(layer *l,
-  u32 in_offset, u32 out_offset, u32 net_offset,
+  s16 *in_offset, s16 *out_offset, u32 net_offset,
   u32 total_out, u32 total_in,
   u32 img_size, u32 fil_size, u32 pool_size
 )
 {
   l->which      = RENKON;
-  l->in_offset  = in_offset;
-  l->out_offset = out_offset;
+  l->in_offset  = (u32)in_offset;
+  l->out_offset = (u32)out_offset;
   l->net_offset = net_offset;
   l->total_out  = total_out;
   l->total_in   = total_in;
@@ -89,13 +78,13 @@ void assign_2d(layer *l, u32 *weight, u32 *bias)
 
 
 void define_1d(layer *l,
-  u32 in_offset, u32 out_offset, u32 net_offset,
+  s16 *in_offset, s16 *out_offset, u32 net_offset,
   u32 total_out, u32 total_in
 )
 {
   l->which      = GOBOU;
-  l->in_offset  = in_offset;
-  l->out_offset = out_offset;
+  l->in_offset  = (u32)in_offset;
+  l->out_offset = (u32)out_offset;
   l->net_offset = net_offset;
   l->total_out  = total_out;
   l->total_in   = total_in;
@@ -160,7 +149,6 @@ void exec_core(layer *l)
   *reg_fil_size   = l->fil_size;
   *reg_pool_size  = l->pool_size;
 
-#ifdef KINPIRA_DDR
   *reg_pre_base   = l->in_offset;
   switch (l->which) {
     case RENKON:
@@ -186,7 +174,6 @@ void exec_core(layer *l)
     // Nop
   } while (!*reg_pre_ack);
 
-#endif
 
   *reg_req = 0x1;
   *reg_req = 0x0;
@@ -199,26 +186,16 @@ void exec_core(layer *l)
 
 
 
-void get_image(u32 *image, const u32 offset, const u32 length)
-{
-#ifdef KINPIRA_AXI
-  *reg_which = NINJIN;
-  memmove(image, &mem_image[offset], sizeof(u32)*length);
-#endif
-}
-
-
-
-void print_result(u32 *output, const u32 length)
+void print_result(s16 *output, const u32 length)
 {
   int number  = -1;
   int max     = INT_MIN;
 
   for (int i = 0; i < length; i++) {
-    printf("%d: %d\n", i, (s16)output[i]);
+    printf("%d: %d\n", i, output[i]);
 
-    if (max < (s16)output[i]) {
-      max = (s16)output[i];
+    if (max < output[i]) {
+      max = output[i];
       number = i;
     }
   }

@@ -12,7 +12,7 @@ tru_dat = hex_of_decfile("../../data/common/#{layer}_tru.dat")
       #ifndef _#{layer.upcase}_TRU_H_
       #define _#{layer.upcase}_TRU_H_
 
-      u32 #{layer}_tru[#{tru_dat.length}] = {
+      s16 #{layer}_tru[#{tru_dat.length}] = {
       #{tru_dat.join("\n")}
       };
 
