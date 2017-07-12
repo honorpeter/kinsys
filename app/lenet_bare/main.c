@@ -59,6 +59,11 @@ int main(void)
   s16 fvec2[N_F2]                 = {0};
   s16 fvec3[N_F3]                 = {0};
 
+  printf("pmap0: %p\n", pmap0);
+  printf("pmap1: %p\n", pmap1);
+  printf("fvec2: %p\n", fvec2);
+  printf("fvec3: %p\n", fvec3);
+
   setbuf(stdout, NULL);
   printf("\033[2J");
   puts("### start lenet_bare application:");

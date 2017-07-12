@@ -18,16 +18,41 @@ if {[file exists $app_dir/$app_name] != 0} {
 }
 projects -build -type app -name $app_name
 
-connect
-targets -set -nocase -filter {name =~ "ARM*#0"}
-rst -system
+if {$proj_name == "zcu102"} {
+  connect
 
-fpga $sdk_ws_dir/$hw_project_name/design_1_wrapper.bit
-loadhw $sdk_ws_dir/$hw_project_name/system.hdf
-source $sdk_ws_dir/$hw_project_name/ps7_init.tcl
-ps7_init
-ps7_post_config
-dow $sdk_ws_dir/$app_name/Debug/$app_name.elf
+  targets -set -nocase -filter {name =~"APU*"}
+  rst -system
+  targets -set -nocase -filter {name =~"Cortex-A53*0"}
+  rst -processor
 
-con
+  loadhw $sdk_ws_dir/$hw_project_name/system.hdf
+  source $sdk_ws_dir/$hw_project_name/psu_init.tcl
 
+  targets -set -nocase -filter {name =~"APU*"}
+  psu_init
+  psu_ps_pl_isolation_removal
+  psu_ps_pl_reset_config
+  psu_post_config
+  catch {psu_protection}
+
+  targets -set -nocase -filter {name =~"Cortex-A53*0"}
+  dow $sdk_ws_dir/$app_name/Debug/$app_name.elf
+  con
+
+} else {
+  connect
+
+  targets -set -nocase -filter {name =~ "ARM*#0"}
+  # rst -system
+  # fpga $sdk_ws_dir/$hw_project_name/design_1_wrapper.bit
+
+  loadhw $sdk_ws_dir/$hw_project_name/system.hdf
+  source $sdk_ws_dir/$hw_project_name/ps7_init.tcl
+
+  ps7_init
+  ps7_post_config
+
+  dow $sdk_ws_dir/$app_name/Debug/$app_name.elf
+  con
+}
