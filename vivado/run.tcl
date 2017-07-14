@@ -25,6 +25,7 @@ if {$proj_name == "zcu102"} {
   rst -system
   targets -set -nocase -filter {name =~"Cortex-A53*0"}
   rst -processor
+  fpga $sdk_ws_dir/$hw_project_name/design_1_wrapper.bit
 
   loadhw $sdk_ws_dir/$hw_project_name/system.hdf
   source $sdk_ws_dir/$hw_project_name/psu_init.tcl

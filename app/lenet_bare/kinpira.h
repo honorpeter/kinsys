@@ -28,14 +28,24 @@
 #define GOBOU_WORDS  8192
 
 #if defined(KINPIRA_AXI)
+
 u32 *port                        = (void *)0x43c00000;
 u32 *mem_image                   = (void *)0x83c00000;
 u32 (*mem_renkon)[RENKON_WORDS]  = (void *)0x83c40000;
 u32 (*mem_gobou)[GOBOU_WORDS]    = (void *)0x83c80000;
+
 #elif defined(KINPIRA_DDR)
-u32 *port                        = (void *)0x43c00000;
-u32 (*mem_renkon)[RENKON_WORDS]  = (void *)0x83c00000;
-u32 (*mem_gobou)[GOBOU_WORDS]    = (void *)0x83c80000;
+
+// // For zedboard
+// u32 *port                        = (void *)0x43c00000;
+// u32 (*mem_renkon)[RENKON_WORDS]  = (void *)0x83c00000;
+// u32 (*mem_gobou)[GOBOU_WORDS]    = (void *)0x83c80000;
+
+// For zcu102
+u32 *port                        = (void *)0xA0000000;
+u32 (*mem_renkon)[RENKON_WORDS]  = (void *)0xB0080000;
+u32 (*mem_gobou)[GOBOU_WORDS]    = (void *)0xB0000000;
+
 #endif
 
 // input reg

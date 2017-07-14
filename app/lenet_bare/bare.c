@@ -48,7 +48,11 @@ void assign_2d(layer *l, u32 *weight, u32 *bias)
 
   for (u32 n = 0; n < n_out/core; n++) {
     for (u32 dn = 0; dn < core; dn++) {
+      puts("ittekimasu");
+      printf("&mem_renkon[dn][idx]: %p\n", &mem_renkon[dn][idx]);
+      printf("&weight[idx_w]: %p\n", &weight[idx_w]);
       memmove(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
+      puts("kitaku");
       idx_w += unit;
 
       memmove(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);

@@ -59,14 +59,19 @@ int main(void)
   s16 fvec2[N_F2]                 = {0};
   s16 fvec3[N_F3]                 = {0};
 
+  setbuf(stdout, NULL);
+  printf("\033[2J");
+  puts("### start lenet_bare application:");
+
   printf("pmap0: %p\n", pmap0);
+  printf("pmap0: %p\n", &pmap0[1]);
   printf("pmap1: %p\n", pmap1);
   printf("fvec2: %p\n", fvec2);
   printf("fvec3: %p\n", fvec3);
 
-  setbuf(stdout, NULL);
-  printf("\033[2J");
-  puts("### start lenet_bare application:");
+  printf("sizeof(image): %lx\n", sizeof(&image));
+
+  Xil_DCacheDisable();
 
   define_2d(&conv0, image, pmap0, CONV0_PARAM,
             N_C0, N_IN, ISIZE, FSIZE, PSIZE);
@@ -83,8 +88,6 @@ int main(void)
   define_1d(&full3, fvec2, fvec3, FULL3_PARAM,
             N_F3, N_F2);
   assign_1d(&full3, W_full3, b_full3);
-
-  Xil_DCacheDisable();
 
   puts("exec_core(&conv0)");
   BEGIN
