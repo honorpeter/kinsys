@@ -49,6 +49,7 @@ if {$proj_name == "zcu102"} {
       #   CONFIG.PSU__USE__S_AXI_ACE {1} \
       # ] [get_bd_cells zynq_ultra_ps_e_0]
       set_property -dict [list CONFIG.PSU__USE__S_AXI_GP0 {1}] [get_bd_cells zynq_ultra_ps_e_0]
+      set_property -dict [list CONFIG.PSU__USE__M_AXI_GP1 {0}] [get_bd_cells zynq_ultra_ps_e_0]
 
       apply_bd_automation \
         -rule xilinx.com:bd_rule:axi4 \
@@ -56,11 +57,11 @@ if {$proj_name == "zcu102"} {
         [get_bd_intf_pins ${ip_name}_0/s_axi_params]
       apply_bd_automation \
         -rule xilinx.com:bd_rule:axi4 \
-        -config {Master "/zynq_ultra_ps_e_0/M_AXI_HPM1_FPD" Clk "Auto" } \
+        -config {Master "/zynq_ultra_ps_e_0/M_AXI_HPM0_FPD" Clk "Auto" } \
         [get_bd_intf_pins ${ip_name}_0/s_axi_renkon]
       apply_bd_automation \
         -rule xilinx.com:bd_rule:axi4 \
-        -config {Master "/zynq_ultra_ps_e_0/M_AXI_HPM1_FPD" Clk "Auto" } \
+        -config {Master "/zynq_ultra_ps_e_0/M_AXI_HPM0_FPD" Clk "Auto" } \
         [get_bd_intf_pins ${ip_name}_0/s_axi_gobou]
       apply_bd_automation \
         -rule xilinx.com:bd_rule:axi4 \

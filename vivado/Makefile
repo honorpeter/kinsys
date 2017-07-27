@@ -1,4 +1,4 @@
-BOARD = zedboard
+BOARD = zcu102
 IP    = kinpira_ddr
 APP   = lenet
 
@@ -10,7 +10,7 @@ run:
 # avoid friendly fire
 all:
 	@../utils/confirm.sh "Build the project from the beginning?"
-	make clean dist ip proj hw sw peta run
+	make clean dist ip proj hw sw run
 
 peta:
 	./peta.sh ${BOARD} ${APP}

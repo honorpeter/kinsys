@@ -1,7 +1,7 @@
 #ifndef _KINPIRA_H_
 #define _KINPIRA_H_
 
-#include "xil_types.h"
+#include <stdint.h>
 
 #define RENKON  0
 #define GOBOU   1
@@ -20,9 +20,9 @@
 #define RENKON_WORDS 2048
 #define GOBOU_WORDS  8192
 
-u32 *port;
-u32 (*mem_renkon)[RENKON_WORDS];
-u32 (*mem_gobou)[GOBOU_WORDS];
+uint32_t *port;
+uint32_t (*mem_renkon)[RENKON_WORDS];
+uint32_t (*mem_gobou)[GOBOU_WORDS];
 
 // input reg
 #define reg_which       &port[0]
