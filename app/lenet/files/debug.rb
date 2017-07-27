@@ -6,7 +6,7 @@ def hex_of_decfile(path)
 end
 
 ["conv0", "conv1", "full2", "full3"].each do |layer|
-  tru_dat = hex_of_decfile("../../data/common/#{layer}_tru.dat")
+  tru_dat = hex_of_decfile("../../../data/common/#{layer}_tru.dat")
   File.open("data/#{layer}_tru.h", "w") do |f|
     f.puts <<~EOS
       #ifndef _#{layer.upcase}_TRU_H_

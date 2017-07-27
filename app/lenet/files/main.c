@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "kinpira.h"
-#include "bare.h"
+#include "peta.h"
 
 #include "lenet.h"
 
@@ -21,13 +21,13 @@
 #include "data/full3_tru.h"
 
 // latency analysis
-#include <xtime_l.h>
-#define INIT  XTime begin, end;
-#define BEGIN XTime_GetTime(&begin);
-#define END   do {                                        \
-  XTime_GetTime(&end);                                    \
-  printf("%12.6f [us]\n\n",                               \
-      (double)(end-begin) / COUNTS_PER_SECOND * 1000000); \
+#include <time.h>
+#define INIT  clock_t begin, end;
+#define BEGIN begin = clock();
+#define END   do {                                     \
+  end = clock();                                       \
+  printf("%12.6f [us]\n\n",                            \
+      (double)(end-begin) / CLOCKS_PER_SEC * 1000000); \
 } while (0);
 
 // #include <assert.h>
@@ -64,13 +64,8 @@ int main(void)
 
   setbuf(stdout, NULL);
   printf("\033[2J");
-  puts("### start lenet_bare application:");
+  puts("### start lenet application:");
 
-  printf("pmap0: %p\n", pmap0);
-  printf("pmap0: %p\n", &pmap0[1]);
-  printf("pmap1: %p\n", pmap1);
-  printf("fvec2: %p\n", fvec2);
-  printf("fvec3: %p\n", fvec3);
   assert_not(!pmap0, "pmap0 calloc failed");
   assert_not(!pmap1, "pmap1 calloc failed");
   assert_not(!fvec2, "fvec2 calloc failed");
@@ -119,7 +114,6 @@ int main(void)
 
   print_result(fvec3, LABEL);
 
-  // TODO: 人はなぜ conv0 assert failed && full3 assert ok
   puts("");
   for (int i = 0; i < N_C0*PM0SIZE*PM0SIZE; i++)
     assert_eq(pmap0[i], conv0_tru[i]);

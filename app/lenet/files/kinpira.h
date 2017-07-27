@@ -1,7 +1,7 @@
 #ifndef _KINPIRA_H_
 #define _KINPIRA_H_
 
-#include "xil_types.h"
+#include "types.h"
 
 #define RENKON  0
 #define GOBOU   1

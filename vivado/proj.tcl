@@ -15,7 +15,7 @@ switch $proj_name {
   }
   "zcu102" {
     set part_name   xczu9eg-ffvb1156-2-i-es2
-    set board_name  xilinx.com:zcu102:part0:2.0
+    set board_name  xilinx.com:zcu102:part0:2.2
   }
 }
 
@@ -66,31 +66,31 @@ set file "$origin_dir/../dist/ctrl_bus.svh"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
-set_property "is_global_include" "1" $file_obj
+# set_property "is_global_include" "1" $file_obj
 
 set file "$origin_dir/../dist/common.svh"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
-set_property "is_global_include" "1" $file_obj
+# set_property "is_global_include" "1" $file_obj
 
 set file "$origin_dir/../dist/ninjin.svh"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
-set_property "is_global_include" "1" $file_obj
+# set_property "is_global_include" "1" $file_obj
 
 set file "$origin_dir/../dist/renkon.svh"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
-set_property "is_global_include" "1" $file_obj
+# set_property "is_global_include" "1" $file_obj
 
 set file "$origin_dir/../dist/gobou.svh"
 set file [file normalize $file]
 set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
 set_property "file_type" "SystemVerilog" $file_obj
-set_property "is_global_include" "1" $file_obj
+# set_property "is_global_include" "1" $file_obj
 
 set file "$origin_dir/$proj_name/$proj_name.srcs/sources_1/bd/design_1/design_1.bd"
 set file [file normalize $file]

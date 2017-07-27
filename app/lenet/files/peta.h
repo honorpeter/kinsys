@@ -1,11 +1,11 @@
-#ifndef _BARE_H_
-#define _BARE_H_
+#ifndef _PETA_H_
+#define _PETA_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "xil_types.h"
+#include "types.h"
 
 typedef struct {
   u32 which;
@@ -45,6 +45,6 @@ void print_port();
 }
 #endif
 
-#include "bare.c"
+#include "peta.c"
 
 #endif

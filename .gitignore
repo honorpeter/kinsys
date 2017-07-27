@@ -16,6 +16,7 @@ vish_stacktrace.vstf
 dist
 
 app/lenet_bare/data
+app/lenet/files/data
 
 vivado/results
 vivado/reports
@@ -23,6 +24,7 @@ vivado/ip
 vivado/zybo
 vivado/zedboard
 vivado/zcu102
+vivado/linux
 
 doc/build/*
 doc/!.gitkeep

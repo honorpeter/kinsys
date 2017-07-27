@@ -15,7 +15,7 @@ switch $proj_name {
   }
   "zcu102" {
     set part_name   xczu9eg-ffvb1156-2-i-es2
-    set board_name  xilinx.com:zcu102:part0:2.0
+    set board_name  xilinx.com:zcu102:part0:2.2
   }
 }
 

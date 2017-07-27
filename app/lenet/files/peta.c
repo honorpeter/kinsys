@@ -1,41 +1,85 @@
-#ifdef _BARE_H_
+#ifdef _PETA_H_
 
-#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 
-#include <xil_io.h>
-#include <xil_mem.h>
-#include <xil_cache.h>
-#include <xil_types.h>
+#include <stdio.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
 
 #include "kinpira.h"
-#include "bare.h"
+#include "peta.h"
+
+static int __port;
+static int __mem_renkon;
+static int __mem_gobou;
+
+#include <assert.h>
+
+// {{{
+  // ref: http://blog.kmckk.com/archives/2897589.html
+/* Performance Monitor Control Register of Cortex A9*/
+#define PMCR_D 3
+#define PMCR_C 2
+#define PMCR_E 0
+#define PMCNTENSET_C 31
+
+
+volatile __inline__ static unsigned long __attribute__((always_inline))
+pmon_start_cycle_counter()
+{
+  unsigned long x;
+
+  x = 1 << PMCNTENSET_C;
+  __asm__ __volatile__ ("mcr	p15, 0, %0, c9, c12, 1" :: "r" (x));
+  __asm__ __volatile__ ("mrc	p15, 0, %0, c9, c12, 0" : "=r" (x));
+
+  x |= ((1 << PMCR_D) | (1 << PMCR_C) | (1 << PMCR_E));
+  __asm__ __volatile__ ("mcr	p15, 0, %0, c9, c12, 0" :: "r" (x));
+  __asm__ __volatile__ ("mrc	p15, 0, %0, c9, c13, 0" : "=r" (x));
+
+  return x;
+}
+
+volatile __inline__ static unsigned long __attribute__((always_inline))
+pmon_read_cycle_counter()
+{
+  unsigned long x;
+  __asm__ __volatile__ ("mrc	p15, 0, %0, c9, c13, 0": "=r" (x));
+
+  return x;
+}
+// }}}
 
 int kinpira_init(void)
 {
-#define ZEDBOARD
-#if defined(ZEDBOARD)
-  port       = (u32 *)0x43c00000U;
-  mem_renkon = (u32 *)0x43c10000U;
-  mem_gobou  = (u32 *)0x43c80000U;
-#elif defined(ZCU102)
-  port       = (u32 *)0xA0000000U;
-  mem_renkon = (u32 *)0xB0000000U;
-  mem_gobou  = (u32 *)0xB0080000U;
-#endif
+  // Open Kinpira as UIO Driver
+  __port       = open("/dev/uio0", O_RDWR);
+  __mem_renkon = open("/dev/uio1", O_RDWR);
+  __mem_gobou  = open("/dev/uio2", O_RDWR);
 
-#ifndef USE_AMP
-  puts("a");
-#endif
-#ifdef __GNUC__
-  puts("gnuc");
-#elif defined (__ICCARM__)
-  puts("iccarm");
-#else
-  puts("else");
-#endif
-  puts("b");
-  Xil_DCacheDisable();
+  if (__port < 0 || __mem_renkon < 0 || __mem_gobou < 0) {
+    perror("uio open: ");
+    return errno;
+  }
+
+  port       = mmap(NULL, sizeof(u32)*REGSIZE,
+                    PROT_READ | PROT_WRITE, MAP_SHARED, __port, 0);
+
+  mem_renkon = mmap(NULL, sizeof(u32)*RENKON_CORE*RENKON_WORDS,
+                    PROT_READ | PROT_WRITE, MAP_SHARED, __mem_renkon, 0);
+
+  mem_gobou  = mmap(NULL, sizeof(u32)*GOBOU_CORE*GOBOU_WORDS,
+                    PROT_READ | PROT_WRITE, MAP_SHARED, __mem_gobou, 0);
+
+  if (!port || !mem_renkon || !mem_gobou) {
+    fprintf(stderr, "mmap failed\n");
+    return errno;
+  }
+
+  system("modprobe switchdcache");
 
   return 0;
 }
@@ -61,40 +105,27 @@ void define_2d(layer *l,
 
 
 
-#define assert_eq(a, b) do {                                      \
-  if ((a) != (b)) {                                               \
-    printf("Assertion failed: %s == %s, file %s, line %d\n",      \
-            #a, #b, __FILE__, __LINE__);                          \
-    printf("\t%s == %x, %s == %x\n", #a, (u32)(a), #b, (u32)(b)); \
-    return 1;                                                     \
-  }                                                               \
-} while (0)
-
 void assign_2d(layer *l, u32 *weight, u32 *bias)
 {
+  u32 idx_w = 0;
+  u32 idx_b = 0;
+  u32 idx   = l->net_offset;
+
   const u32 core  = RENKON_CORE;
   const u32 n_out = l->total_out;
   const u32 n_in  = l->total_in;
   const u32 fsize = l->fil_size;
   const u32 unit  = n_in * fsize * fsize;
 
-  u32 idx_w = 0;
-  u32 idx_b = 0;
-  u32 idx   = l->net_offset;
-
-  u32 *null = calloc(unit+1, sizeof(u32));
-  printf("null: %p\n", null);
-
   for (u32 n = 0; n < n_out/core; n++) {
     for (u32 dn = 0; dn < core; dn++) {
-      int i;
-      Xil_MemCpy(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
-      for (i=0; i < unit; i++)
-        assert_eq(mem_renkon[dn][idx+i], weight[idx_w+i]);
+      memmove(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
+      for (int i = 0; i < unit; i++)
+        assert(mem_renkon[dn][idx+i] == weight[idx_w+i]);
       idx_w += unit;
 
-      Xil_MemCpy(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
-      assert_eq(mem_renkon[dn][idx+unit], bias[idx_b]);
+      memmove(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
+      assert(mem_renkon[dn][idx+unit] == bias[idx_b]);
       idx_b += 1;
     }
 
@@ -103,30 +134,25 @@ void assign_2d(layer *l, u32 *weight, u32 *bias)
 
   if (n_out % core != 0) {
     for (u32 dn = 0; dn < core; dn++) {
-      int i;
       if (idx_b < n_out) {
-        Xil_MemCpy(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
-        for (i=0; i < unit; i++)
-          assert_eq(mem_renkon[dn][idx+i], weight[idx_w+i]);
+        memmove(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
+        for (int i = 0; i < unit; i++)
+          assert(mem_renkon[dn][idx+i] == weight[idx_w+i]);
         idx_w += unit;
 
-        Xil_MemCpy(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
-        assert_eq(mem_renkon[dn][idx+unit], bias[idx_b]);
+        memmove(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
+        assert(mem_renkon[dn][idx+unit] == bias[idx_b]);
         idx_b += 1;
       }
       else {
-        // Xil_MemCpy(&mem_renkon[dn][idx], &null, sizeof(u32)*(unit+1));
-        // memset(&mem_renkon[dn][idx], 0, sizeof(u32)*(unit+1));
-        for (i=0; i < unit+1; i++) mem_renkon[dn][idx+i] = 0;
-        for (i=0; i < unit+1; i++)
-          assert_eq(mem_renkon[dn][idx+i], 0);
+        memset(&mem_renkon[dn][idx], 0, sizeof(u32)*(unit+1));
+        for (int i = 0; i < unit+1; i++)
+          assert(mem_renkon[dn][idx+i] == 0);
       }
     }
 
     idx += unit + 1;
   }
-
-  free(null);
 }
 
 
@@ -151,27 +177,23 @@ void define_1d(layer *l,
 
 void assign_1d(layer *l, u32 *weight, u32 *bias)
 {
-  const u32 core  = GOBOU_CORE;
-  const u32 n_out = l->total_out;
-  const u32 n_in  = l->total_in;
-
   u32 idx_w = 0;
   u32 idx_b = 0;
   u32 idx   = l->net_offset;
 
-  u32 *null = calloc(n_in+1, sizeof(u32));
-  printf("null: %p\n", null);
+  const u32 core  = GOBOU_CORE;
+  const u32 n_out = l->total_out;
+  const u32 n_in  = l->total_in;
 
   for (u32 n = 0; n < n_out/core; n++) {
     for (u32 dn = 0; dn < core; dn++) {
-      int i;
-      Xil_MemCpy(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
-      for (i=0; i < n_in; i++)
-        assert_eq(mem_gobou[dn][idx+i], weight[idx_w+i]);
+      memmove(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
+      for (int i = 0; i < n_in; i++)
+        assert(mem_gobou[dn][idx+i] == weight[idx_w+i]);
       idx_w += n_in;
 
-      Xil_MemCpy(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
-      assert_eq(mem_gobou[dn][idx+n_in], bias[idx_b]);
+      memmove(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
+      assert(mem_gobou[dn][idx+n_in] == bias[idx_b]);
       idx_b += 1;
     }
 
@@ -180,30 +202,25 @@ void assign_1d(layer *l, u32 *weight, u32 *bias)
 
   if (n_out % core != 0) {
     for (u32 dn = 0; dn < core; dn++) {
-      int i;
       if (idx_b < n_out) {
-        Xil_MemCpy(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
-        for (i=0; i < n_in; i++)
-          assert_eq(mem_gobou[dn][idx+i], weight[idx_w+i]);
+        memmove(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
+        for (int i = 0; i < n_in; i++)
+          assert(mem_gobou[dn][idx+i] == weight[idx_w+i]);
         idx_w += n_in;
 
-        Xil_MemCpy(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
-        assert_eq(mem_gobou[dn][idx+n_in], bias[idx_b]);
+        memmove(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
+        assert(mem_gobou[dn][idx+n_in] == bias[idx_b]);
         idx_b += 1;
       }
       else {
-        Xil_MemCpy(&mem_gobou[dn][idx], &null, sizeof(u32)*(n_in+1));
-        // memset(&mem_gobou[dn][idx], 0, sizeof(u32)*(n_in+1));
-        for (i=0; i < n_in+1; i++) mem_gobou[dn][idx+i] = 0;
-        for (i=0; i < n_in+1; i++)
-          assert_eq(mem_gobou[dn][idx+i], 0);
+        memset(&mem_gobou[dn][idx], 0, sizeof(u32)*(n_in+1));
+        for (int i = 0; i < n_in+1; i++)
+          assert(mem_gobou[dn][idx+i] == 0);
       }
     }
 
     idx += n_in + 1;
   }
-
-  free(null);
 }
 
 
@@ -258,7 +275,15 @@ void exec_core(layer *l)
 
 int kinpira_exit(void)
 {
-  Xil_DCacheEnable();
+  system("modprobe -r switchdcache");
+
+  munmap(port, sizeof(u32)*REGSIZE);
+  munmap(mem_renkon, sizeof(u32)*RENKON_CORE*RENKON_WORDS);
+  munmap(mem_gobou, sizeof(u32)*GOBOU_CORE*GOBOU_WORDS);
+
+  close(__port);
+  close(__mem_renkon);
+  close(__mem_gobou);
 
   return 0;
 }

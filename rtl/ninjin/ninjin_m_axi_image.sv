@@ -260,8 +260,8 @@ module ninjin_m_axi_image
   assign awburst  = 2'b01;
   assign awlock   = 1'b0;
   assign awcache  = 4'b0010;
-  assign awprot   = 3'h0;
-  assign awqos    = 4'h0;
+  assign awprot   = 3'b000;
+  assign awqos    = 4'b0000;
   assign awuser   = 1;
 
   always @(posedge clk)
@@ -373,8 +373,8 @@ module ninjin_m_axi_image
   assign arburst  = 2'b01;
   assign arlock   = 1'b0;
   assign arcache  = 4'b0010;
-  assign arprot   = 3'h0;
-  assign arqos    = 4'h0;
+  assign arprot   = 3'b000;
+  assign arqos    = 4'b0000;
   assign aruser   = 1;
 
   always @(posedge clk)

@@ -19,18 +19,21 @@ if {[file exists $app_dir/$app_name] != 0} {
 projects -build -type app -name $app_name
 
 if {$proj_name == "zcu102"} {
+
   connect
 
-  targets -set -nocase -filter {name =~"APU*"}
+  targets -set -nocase -filter {name =~"PSU"}
   rst -system
   targets -set -nocase -filter {name =~"Cortex-A53*0"}
   rst -processor
+
+  targets -set -nocase -filter {name =~"Cortex-A53*0"}
+  loadhw $sdk_ws_dir/$hw_project_name/system.hdf
+  targets -set -nocase -filter {name =~ "PS TAP"}
   fpga $sdk_ws_dir/$hw_project_name/design_1_wrapper.bit
 
-  loadhw $sdk_ws_dir/$hw_project_name/system.hdf
+  targets -set -nocase -filter {name =~"PSU"}
   source $sdk_ws_dir/$hw_project_name/psu_init.tcl
-
-  targets -set -nocase -filter {name =~"APU*"}
   psu_init
   psu_ps_pl_isolation_removal
   psu_ps_pl_reset_config
@@ -42,18 +45,24 @@ if {$proj_name == "zcu102"} {
   con
 
 } else {
+
   connect
 
   targets -set -nocase -filter {name =~ "ARM*#0"}
-  # rst -system
-  # fpga $sdk_ws_dir/$hw_project_name/design_1_wrapper.bit
+  rst -system
 
+  targets -set -nocase -filter {name =~ "ARM*#0"}
   loadhw $sdk_ws_dir/$hw_project_name/system.hdf
-  source $sdk_ws_dir/$hw_project_name/ps7_init.tcl
+  targets -set -nocase -filter {name =~ "xc7z020"}
+  fpga $sdk_ws_dir/$hw_project_name/design_1_wrapper.bit
 
+  targets -set -nocase -filter {name =~ "ARM*#0"}
+  source $sdk_ws_dir/$hw_project_name/ps7_init.tcl
   ps7_init
   ps7_post_config
 
+  targets -set -nocase -filter {name =~ "ARM*#0"}
   dow $sdk_ws_dir/$app_name/Debug/$app_name.elf
   con
+
 }

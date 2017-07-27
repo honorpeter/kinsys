@@ -1,10 +1,10 @@
 # Define your own block design
-set debug 1
+set debug 0
 
 create_bd_design "design_1"
 
 if {$proj_name == "zcu102"} {
-  create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:2.0 zynq_ultra_ps_e_0
+  create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.0 zynq_ultra_ps_e_0
   create_bd_cell -type ip -vlnv user.org:user:${ip_name}:1.0 ${ip_name}_0
 
   apply_bd_automation \
@@ -37,7 +37,18 @@ if {$proj_name == "zcu102"} {
         [get_bd_intf_pins ${ip_name}_0/s_axi_renkon]
     }
     "kinpira_ddr" {
-      set_property -dict [list CONFIG.PSU__USE__S_AXI_ACP {1}] [get_bd_cells zynq_ultra_ps_e_0]
+      # set_property -dict [list \
+      #   CONFIG.PSU__USE__S_AXI_ACP {1} \
+      #   CONFIG.PSU__USE__S_AXI_GP0 {1} \ # HPC0
+      #   CONFIG.PSU__USE__S_AXI_GP1 {0} \ # HPC1
+      #   CONFIG.PSU__USE__S_AXI_GP2 {1} \ # HP0
+      #   CONFIG.PSU__USE__S_AXI_GP3 {0} \ # HP1
+      #   CONFIG.PSU__USE__S_AXI_GP4 {0} \ # HP2
+      #   CONFIG.PSU__USE__S_AXI_GP5 {0} \ # HP3
+      #   CONFIG.PSU__USE__S_AXI_GP6 {1} \ # LPD
+      #   CONFIG.PSU__USE__S_AXI_ACE {1} \
+      # ] [get_bd_cells zynq_ultra_ps_e_0]
+      set_property -dict [list CONFIG.PSU__USE__S_AXI_GP0 {1}] [get_bd_cells zynq_ultra_ps_e_0]
 
       apply_bd_automation \
         -rule xilinx.com:bd_rule:axi4 \
@@ -46,15 +57,15 @@ if {$proj_name == "zcu102"} {
       apply_bd_automation \
         -rule xilinx.com:bd_rule:axi4 \
         -config {Master "/zynq_ultra_ps_e_0/M_AXI_HPM1_FPD" Clk "Auto" } \
-        [get_bd_intf_pins ${ip_name}_0/s_axi_gobou]
-      apply_bd_automation \
-        -rule xilinx.com:bd_rule:axi4 \
-        -config {Master "/zynq_ultra_ps_e_0/M_AXI_HPM1_FPD" Clk "Auto" } \
         [get_bd_intf_pins ${ip_name}_0/s_axi_renkon]
       apply_bd_automation \
         -rule xilinx.com:bd_rule:axi4 \
+        -config {Master "/zynq_ultra_ps_e_0/M_AXI_HPM1_FPD" Clk "Auto" } \
+        [get_bd_intf_pins ${ip_name}_0/s_axi_gobou]
+      apply_bd_automation \
+        -rule xilinx.com:bd_rule:axi4 \
         -config {Master "/kinpira_ddr_0/m_axi_image" Clk "Auto" }  \
-        [get_bd_intf_pins zynq_ultra_ps_e_0/S_AXI_ACP_FPD]
+        [get_bd_intf_pins zynq_ultra_ps_e_0/S_AXI_HPC0_FPD]
     }
   }
 } else {
@@ -93,7 +104,7 @@ if {$proj_name == "zcu102"} {
     }
     "kinpira_ddr" {
       set_property -dict [list CONFIG.PCW_USE_S_AXI_HP0 {1}] [get_bd_cells processing_system7_0]
-      set_property -dict [list CONFIG.PCW_USE_M_AXI_GP1 {1}] [get_bd_cells processing_system7_0]
+      # set_property -dict [list CONFIG.PCW_USE_M_AXI_GP1 {1}] [get_bd_cells processing_system7_0]
 
       apply_bd_automation \
         -rule xilinx.com:bd_rule:axi4 \
@@ -101,16 +112,16 @@ if {$proj_name == "zcu102"} {
         [get_bd_intf_pins ${ip_name}_0/s_axi_params]
       apply_bd_automation \
         -rule xilinx.com:bd_rule:axi4 \
-        -config {Master "/kinpira_ddr_0/m_axi_image" Clk "Auto" }  \
-        [get_bd_intf_pins processing_system7_0/S_AXI_HP0]
-      apply_bd_automation \
-        -rule xilinx.com:bd_rule:axi4 \
-        -config {Master "/processing_system7_0/M_AXI_GP1" Clk "Auto" } \
+        -config {Master "/processing_system7_0/M_AXI_GP0" Clk "Auto" } \
         [get_bd_intf_pins ${ip_name}_0/s_axi_renkon]
       apply_bd_automation \
         -rule xilinx.com:bd_rule:axi4 \
-        -config {Master "/processing_system7_0/M_AXI_GP1" Clk "Auto" } \
+        -config {Master "/processing_system7_0/M_AXI_GP0" Clk "Auto" } \
         [get_bd_intf_pins ${ip_name}_0/s_axi_gobou]
+      apply_bd_automation \
+        -rule xilinx.com:bd_rule:axi4 \
+        -config {Master "/kinpira_ddr_0/m_axi_image" Clk "Auto" }  \
+        [get_bd_intf_pins processing_system7_0/S_AXI_HP0]
     }
   }
 }

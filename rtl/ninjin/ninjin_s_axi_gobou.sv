@@ -186,7 +186,7 @@ module ninjin_s_axi_gobou
 //==========================================================
 
   assign bvalid = bvalid$;
-  assign buser  = buser$;
+  // assign buser  = buser$;
   assign bresp  = bresp$;
   assign bid    = awid;
 
@@ -288,7 +288,7 @@ module ninjin_s_axi_gobou
   assign rvalid = rvalid$;
   // assign rdata  = rdata$;
   assign rlast  = rlast$;
-  assign ruser  = ruser$;
+  // assign ruser  = ruser$;
   assign rresp  = rresp$;
   assign rid    = arid;
 

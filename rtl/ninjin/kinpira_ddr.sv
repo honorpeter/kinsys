@@ -12,31 +12,31 @@ module kinpira_ddr
   , parameter C_m_axi_image_ID_WIDTH      = 1
   , parameter C_m_axi_image_DATA_WIDTH    = BWIDTH
   , parameter C_m_axi_image_ADDR_WIDTH    = MEMSIZE + LSB
-  , parameter C_m_axi_image_AWUSER_WIDTH  = 2//0
-  , parameter C_m_axi_image_ARUSER_WIDTH  = 2//0
-  , parameter C_m_axi_image_WUSER_WIDTH   = 2//0
-  , parameter C_m_axi_image_RUSER_WIDTH   = 2//0
-  , parameter C_m_axi_image_BUSER_WIDTH   = 2//0
+  , parameter C_m_axi_image_AWUSER_WIDTH  = 0
+  , parameter C_m_axi_image_ARUSER_WIDTH  = 0
+  , parameter C_m_axi_image_WUSER_WIDTH   = 0
+  , parameter C_m_axi_image_RUSER_WIDTH   = 0
+  , parameter C_m_axi_image_BUSER_WIDTH   = 0
 
   // Parameters of Axi Slave Bus Interface s_axi_renkon
   , parameter C_s_axi_renkon_ID_WIDTH     = 12
   , parameter C_s_axi_renkon_DATA_WIDTH   = BWIDTH
   , parameter C_s_axi_renkon_ADDR_WIDTH   = RENKON_CORELOG + RENKON_NETSIZE + LSB
-  , parameter C_s_axi_renkon_AWUSER_WIDTH = 2//0
-  , parameter C_s_axi_renkon_ARUSER_WIDTH = 2//0
-  , parameter C_s_axi_renkon_WUSER_WIDTH  = 2//0
-  , parameter C_s_axi_renkon_RUSER_WIDTH  = 2//0
-  , parameter C_s_axi_renkon_BUSER_WIDTH  = 2//0
+  , parameter C_s_axi_renkon_AWUSER_WIDTH = 0
+  , parameter C_s_axi_renkon_ARUSER_WIDTH = 0
+  , parameter C_s_axi_renkon_WUSER_WIDTH  = 0
+  , parameter C_s_axi_renkon_RUSER_WIDTH  = 0
+  , parameter C_s_axi_renkon_BUSER_WIDTH  = 0
 
   // Parameters of Axi Slave Bus Interface s_axi_gobou
   , parameter C_s_axi_gobou_ID_WIDTH      = 12
   , parameter C_s_axi_gobou_DATA_WIDTH    = BWIDTH
   , parameter C_s_axi_gobou_ADDR_WIDTH    = GOBOU_CORELOG + GOBOU_NETSIZE + LSB
-  , parameter C_s_axi_gobou_AWUSER_WIDTH  = 2//0
-  , parameter C_s_axi_gobou_ARUSER_WIDTH  = 2//0
-  , parameter C_s_axi_gobou_WUSER_WIDTH   = 2//0
-  , parameter C_s_axi_gobou_RUSER_WIDTH   = 2//0
-  , parameter C_s_axi_gobou_BUSER_WIDTH   = 2//0
+  , parameter C_s_axi_gobou_AWUSER_WIDTH  = 0
+  , parameter C_s_axi_gobou_ARUSER_WIDTH  = 0
+  , parameter C_s_axi_gobou_WUSER_WIDTH   = 0
+  , parameter C_s_axi_gobou_RUSER_WIDTH   = 0
+  , parameter C_s_axi_gobou_BUSER_WIDTH   = 0
   )
   // Ports of Axi Slave Bus Interface s_axi_params
   ( input                                     s_axi_params_aclk
@@ -579,6 +579,14 @@ module kinpira_ddr
     .*
   );
 
+  mem_sp #(DWIDTH, RENKON_CORELOG+RENKON_NETSIZE) mem_renkon_debug(
+      .mem_we     (mem_renkon_we),
+      .mem_addr   (mem_renkon_addr),
+      .mem_wdata  (mem_renkon_wdata),
+      .mem_rdata  (mem_renkon_rdata),
+      .*
+  );
+
   ninjin_s_axi_gobou #(
     .ID_WIDTH     (C_s_axi_gobou_ID_WIDTH),
     .DATA_WIDTH   (C_s_axi_gobou_DATA_WIDTH),
@@ -640,6 +648,14 @@ module kinpira_ddr
     .mem_wdata  (mem_gobou_wdata),
     .mem_rdata  (mem_gobou_rdata),
     .*
+  );
+
+  mem_sp #(DWIDTH, GOBOU_CORELOG+GOBOU_NETSIZE) mem_gobou_debug(
+      .mem_we     (mem_gobou_we),
+      .mem_addr   (mem_gobou_addr),
+      .mem_wdata  (mem_gobou_wdata),
+      .mem_rdata  (mem_gobou_rdata),
+      .*
   );
 
   ninjin_ddr_buf mem_img(
