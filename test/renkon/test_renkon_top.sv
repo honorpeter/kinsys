@@ -2,15 +2,15 @@
 `include "ninjin.svh"
 
 // `define SAIF
+// `define NINJIN
 `define DIRECT
-`define NINJIN
 
-// int N_OUT = 32;
-// int N_IN  = 16;
-// int ISIZE = 12;
-int N_OUT = 16;
-int N_IN  = 1;
-int ISIZE = 28;
+int N_OUT = 32;
+int N_IN  = 16;
+int ISIZE = 12;
+// int N_OUT = 16;
+// int N_IN  = 1;
+// int ISIZE = 28;
 int OSIZE = (ISIZE - FSIZE + 1) / PSIZE;
 int IMG_OFFSET = 100;
 int OUT_OFFSET = 5000;

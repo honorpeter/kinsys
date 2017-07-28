@@ -202,19 +202,6 @@ module kinpira_ddr
   , output [C_s_axi_gobou_RUSER_WIDTH-1:0]  s_axi_gobou_ruser
   , output                                  s_axi_gobou_rvalid
   , input                                   s_axi_gobou_rready
-
-  // Debug
-  , (* mark_debug = "true" *) output wire                      ddr_req
-  , (* mark_debug = "true" *) output wire                      ddr_mode
-  , (* mark_debug = "true" *) output wire [MEMSIZE+LSB-1:0]    ddr_base
-  , (* mark_debug = "true" *) output wire [LWIDTH-1:0]         ddr_len
-  , (* mark_debug = "true" *) output wire                      mem_img_we
-  , (* mark_debug = "true" *) output wire [IMGSIZE-1:0]        mem_img_addr
-  , (* mark_debug = "true" *) output wire signed [DWIDTH-1:0]  mem_img_wdata
-  , (* mark_debug = "true" *) output wire signed [DWIDTH-1:0]  mem_img_rdata
-  , (* mark_debug = "true" *) output wire                      req
-  , (* mark_debug = "true" *) output wire                      ack
-  , (* mark_debug = "true" *) output wire [2-1:0]              probe_state
   );
 
   wire                      clk;
@@ -235,7 +222,7 @@ module kinpira_ddr
 
   // For ninjin
   wire                      which;
-  // wire                      req;
+  wire                      req;
   wire [IMGSIZE-1:0]        in_offset;
   wire [IMGSIZE-1:0]        out_offset;
   wire [BWIDTH-1:0]         net_offset;
@@ -245,12 +232,12 @@ module kinpira_ddr
   wire [LWIDTH-1:0]         fil_size;
   wire [LWIDTH-1:0]         pool_size;
 
-  // wire                      ack;
+  wire                      ack;
   // mem_img ports
-  // wire                      mem_img_we;
-  // wire [IMGSIZE-1:0]        mem_img_addr;
-  // wire signed [DWIDTH-1:0]  mem_img_wdata;
-  // wire signed [DWIDTH-1:0]  mem_img_rdata;
+  wire                      mem_img_we;
+  wire [IMGSIZE-1:0]        mem_img_addr;
+  wire signed [DWIDTH-1:0]  mem_img_wdata;
+  wire signed [DWIDTH-1:0]  mem_img_rdata;
   // meta inputs
   wire                      pre_req;
   wire [MEMSIZE-1:0]        pre_base;
@@ -264,10 +251,10 @@ module kinpira_ddr
   // meta outputs
   wire                      pre_ack;
   // m_axi signals
-  // wire                      ddr_req;
-  // wire                      ddr_mode;
-  // wire [MEMSIZE+LSB-1:0]    ddr_base;
-  // wire [LWIDTH-1:0]         ddr_len;
+  wire                      ddr_req;
+  wire                      ddr_mode;
+  wire [MEMSIZE+LSB-1:0]    ddr_base;
+  wire [LWIDTH-1:0]         ddr_len;
   wire [BWIDTH-1:0]         ddr_rdata;
 
   // For renkon
@@ -313,6 +300,7 @@ module kinpira_ddr
   wire signed [DWIDTH-1:0]  gobou_img_wdata;
 
   reg which$;
+  wire [3:0] err;
 
 
 
@@ -334,30 +322,12 @@ module kinpira_ddr
   assign read_len   = in_port[12][LWIDTH-1:0];
   assign write_len  = in_port[13][LWIDTH-1:0];
 
-  reg [LWIDTH-1:0] ddr_req_cnt$;
-  reg pre_req$, ddr_req$;
-  always @(posedge clk)
-    if (!xrst) begin
-      pre_req$ <= 0;
-      ddr_req$ <= 0;
-    end
-    else begin
-      pre_req$ <= pre_req;
-      ddr_req$ <= ddr_req;
-    end
-  always @(posedge clk)
-    if (!xrst)
-      ddr_req_cnt$ <= 0;
-    else if (pre_req && !pre_req$)
-      ddr_req_cnt$ <= 0;
-    else if (ddr_req && !ddr_req$)
-      ddr_req_cnt$ <= ddr_req_cnt$ + 1;
   assign out_port[31] = {31'b0, which$};
   assign out_port[30] = {31'b0, ack};
-  assign out_port[29] = 32'd0;
-  assign out_port[28] = 32'd0;
-  assign out_port[27] = {31'd0, pre_ack};
-  assign out_port[26] = {{BWIDTH-LWIDTH{1'b0}}, ddr_req_cnt$};
+  assign out_port[29] = {31'd0, pre_ack};
+  assign out_port[28] = {28'd0, err};
+  assign out_port[27] = 32'd0;
+  assign out_port[26] = 32'b0;
   assign out_port[25] = 32'd0;
   assign out_port[24] = 32'd0;
   assign out_port[23] = 32'd0;
@@ -373,7 +343,7 @@ module kinpira_ddr
   assign renkon_net_sel   = mem_renkon_addr[RENKON_NETSIZE+RENKON_CORELOG-1:RENKON_NETSIZE];
   assign renkon_net_we    = mem_renkon_we;
   assign renkon_net_addr  = mem_renkon_addr[RENKON_NETSIZE-1:0];
-  assign renkon_net_wdata = mem_renkon_wdata;
+  assign renkon_net_wdata = mem_renkon_wdata[DWIDTH-1:0];
 
   assign renkon_img_rdata  = which == WHICH_RENKON ? mem_img_rdata : 0;
 
@@ -391,7 +361,7 @@ module kinpira_ddr
   assign gobou_net_sel    = mem_gobou_addr[GOBOU_NETSIZE+GOBOU_CORELOG-1:GOBOU_NETSIZE];
   assign gobou_net_we     = mem_gobou_we;
   assign gobou_net_addr   = mem_gobou_addr[GOBOU_NETSIZE-1:0];
-  assign gobou_net_wdata  = mem_gobou_wdata;
+  assign gobou_net_wdata  = mem_gobou_wdata[DWIDTH-1:0];
 
   assign gobou_img_rdata   = which == WHICH_GOBOU ? mem_img_rdata : 0;
 
@@ -418,9 +388,6 @@ module kinpira_ddr
   assign mem_img_wdata  = which == WHICH_RENKON ? renkon_img_wdata
                         : which == WHICH_GOBOU  ? gobou_img_wdata
                         : 0;
-
-  // TODO: this is temporal signal
-  wire [3:0] err;
 
   always @(posedge clk)
     if (!xrst)
@@ -582,8 +549,8 @@ module kinpira_ddr
   mem_sp #(DWIDTH, RENKON_CORELOG+RENKON_NETSIZE) mem_renkon_debug(
       .mem_we     (mem_renkon_we),
       .mem_addr   (mem_renkon_addr),
-      .mem_wdata  (mem_renkon_wdata),
-      .mem_rdata  (mem_renkon_rdata),
+      .mem_wdata  (mem_renkon_wdata[DWIDTH-1:0]),
+      .mem_rdata  (mem_renkon_rdata[DWIDTH-1:0]),
       .*
   );
 
@@ -653,8 +620,8 @@ module kinpira_ddr
   mem_sp #(DWIDTH, GOBOU_CORELOG+GOBOU_NETSIZE) mem_gobou_debug(
       .mem_we     (mem_gobou_we),
       .mem_addr   (mem_gobou_addr),
-      .mem_wdata  (mem_gobou_wdata),
-      .mem_rdata  (mem_gobou_rdata),
+      .mem_wdata  (mem_gobou_wdata[DWIDTH-1:0]),
+      .mem_rdata  (mem_gobou_rdata[DWIDTH-1:0]),
       .*
   );
 

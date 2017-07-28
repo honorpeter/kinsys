@@ -2,8 +2,8 @@
 `include "ninjin.svh"
 
 // `define SAIF
+// `define NINJIN
 `define DIRECT
-`define NINJIN
 
 int N_IN  = 512;
 int N_OUT = 128;

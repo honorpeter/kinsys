@@ -27,7 +27,6 @@ module ninjin_ddr_buf
   , output [BWIDTH-1:0]         ddr_rdata
   // memory data
   , output signed [DWIDTH-1:0]  mem_rdata
-  , output [2-1:0]              probe_state
   );
 
   localparam  M_IDLE  = 'd0,
@@ -105,8 +104,6 @@ module ninjin_ddr_buf
   reg [RATELOG-1:0]       word_offset$;
   reg [BUFSIZE-1:0]       post_addr$;
   reg [LWIDTH-1:0]        post_len$;
-
-  assign probe_state = state$[0];
 
 //==========================================================
 // core control
