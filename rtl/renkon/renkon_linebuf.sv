@@ -1,8 +1,9 @@
 `include "renkon.svh"
 
 module renkon_linebuf
- #( parameter MAXLINE = 5
-  , parameter MAXSIZE = 32 + 4
+ #( parameter MAXFIL = 5
+  , parameter MAXIMG = 32
+  , parameter MAXPAD = (MAXFIL-1)/2
   )
   ( input                      clk
   , input                      xrst
@@ -11,29 +12,31 @@ module renkon_linebuf
   , input  [LWIDTH-1:0]        fil_size
   , input  [LWIDTH-1:0]        pad_size
   , input  signed [DWIDTH-1:0] buf_input
-  , output signed [DWIDTH-1:0] buf_output [MAXLINE**2-1:0]
+  , output signed [DWIDTH-1:0] buf_output [MAXFIL**2-1:0]
   );
 
-  localparam BUFSIZE = $clog2(MAXSIZE+1);
-  localparam BUFLINE = $clog2(MAXLINE+1);
+  localparam BUFSIZE = MAXIMG + 2*MAXPAD + 1;
+  localparam BUFLINE = MAXFIL + MAXPAD + 1;
+  localparam SIZEWIDTH = $clog2(BUFSIZE);
+  localparam LINEWIDTH = $clog2(BUFLINE);
 
   wire                      s_charge_end;
   wire                      s_active_end;
-  wire  [LWIDTH-1:0]        pad_both;
-  wire [MAXLINE:0]          mem_linebuf_we;
-  wire [BUFSIZE-1:0]        mem_linebuf_addr;
-  wire signed [DWIDTH-1:0]  read_mem [MAXLINE:0];
-  wire signed [DWIDTH-1:0]  mux [MAXLINE-1:0][MAXLINE+2-1:0];
+  wire [LWIDTH-1:0]         pad_both;
+  wire [BUFLINE-1:0]        mem_linebuf_we;
+  wire [SIZEWIDTH-1:0]      mem_linebuf_addr;
+  wire signed [DWIDTH-1:0]  read_mem [LINEWIDTH-1:0];
+  wire signed [DWIDTH-1:0]  mux [MAXFIL-1:0][BUFLINE+1-1:0];
 
   enum reg [2-1:0] {
     S_WAIT, S_CHARGE, S_ACTIVE
   } state$;
-  reg [BUFLINE:0]        select$;
-  reg [BUFLINE:0]        mem_count$;
-  reg [BUFSIZE-1:0]      addr_count$;
-  reg [BUFSIZE-1:0]      line_count$;
-  reg signed [DWIDTH-1:0]  buf_input$;
-  reg signed [DWIDTH-1:0]  pixel$ [MAXLINE**2-1:0];
+  reg [LINEWIDTH:0]       select$;
+  reg [LINEWIDTH:0]       mem_count$;
+  reg [SIZEWIDTH-1:0]     addr_count$;
+  reg [SIZEWIDTH-1:0]     line_count$;
+  reg signed [DWIDTH-1:0] buf_input$;
+  reg signed [DWIDTH-1:0] pixel$ [MAXFIL**2-1:0];
 
 //==========================================================
 // core control
@@ -45,7 +48,7 @@ module renkon_linebuf
   assign s_active_end = line_count$ == img_size + pad_both
                      && addr_count$ == img_size + pad_both - 1;
 
-  // assign pad_both = 2 * pad_size;
+  // equals to 2 * pad_size
   assign pad_both = pad_size << 1;
 
   always @(posedge clk)
@@ -88,7 +91,7 @@ module renkon_linebuf
       mem_count$ <= 0;
     else if (state$ == S_CHARGE || state$ == S_ACTIVE)
       if (addr_count$ == img_size + pad_both - 1)
-        if (mem_count$ == MAXLINE)
+        if (mem_count$ == BUFLINE-1)
           mem_count$ <= 0;
         else
           mem_count$ <= mem_count$ + 1;
@@ -109,7 +112,7 @@ module renkon_linebuf
 // select control
 //==========================================================
 
-  for (genvar i = 0; i < MAXLINE**2; i++)
+  for (genvar i = 0; i < MAXFIL**2; i++)
     assign buf_output[i] = pixel$[i];
 
   always @(posedge clk)
@@ -124,28 +127,36 @@ module renkon_linebuf
         else
           select$ <= select$+1;
 
-  for (genvar i = 0; i < MAXLINE; i++)
-    for (genvar k = -1; k < MAXLINE+1; k++)
+  for (genvar i = 0; i < MAXFIL; i++)
+    for (genvar k = -1; k < BUFLINE-1; k++)
       if (k == -1)
         assign mux[i][0]   = 0;
       else
-        assign mux[i][k+1] = read_mem[(i + k) % (MAXLINE + 1)];
+        assign mux[i][k+1] = read_mem[(i + k) % (BUFLINE)];
 
-  for (genvar i = 0; i < MAXLINE; i++)
-    for (genvar j = 0; j < MAXLINE; j++)
-      if (j == MAXLINE-1) begin
+  for (genvar i = 0; i < MAXFIL; i++)
+    for (genvar j = 0; j < MAXFIL; j++)
+      if (j == MAXFIL-1) begin
+        wire in_row = pad_size <= line_count$ + i
+                   && line_count$ + i < img_size + pad_size;
+        wire in_col = pad_size <= addr_count$ + j
+                   && addr_count$ + j < img_size + pad_size;
+        wire in_img = in_row && in_col;
+
         always @(posedge clk)
           if (!xrst)
-            pixel$[MAXLINE * i + j] <= 0;
+            pixel$[MAXFIL * i + j] <= 0;
+          else if (in_img)
+            pixel$[MAXFIL * i + j] <= mux[i][select$];
           else
-            pixel$[MAXLINE * i + j] <= mux[i][select$];
+            pixel$[MAXFIL * i + j] <= 0;
       end
       else begin
         always @(posedge clk)
           if (!xrst)
-            pixel$[MAXLINE * i + j] <= 0;
+            pixel$[MAXFIL * i + j] <= 0;
           else
-            pixel$[MAXLINE * i + j] <= pixel$[MAXLINE * i + (j+1)];
+            pixel$[MAXFIL * i + j] <= pixel$[MAXFIL * i + (j+1)];
       end
 
 //==========================================================
@@ -158,32 +169,14 @@ module renkon_linebuf
                         ? (1 << mem_count$)
                         : 1'b0;
 
-  // always @(posedge clk)
-  //   if (!xrst)
-  //     linebuf_we$ <= 0;
-  //   else
-  //
-  // always @(posedge clk)
-  //   if (!xrst)
-  //     linebuf_addr$ <= 0;
-  //   else
-
-  // always @(posedge clk)
-  //   if (!xrst)
-  //     linebuf_wdata$ <= 0;
-  //   else if (addr_count$ < pad_size || img_size < addr_count$)
-  //     linebuf_wdata$ <= 0;
-  //   else
-  //     linebuf_wdata$ <= buf_input;
-
   always @(posedge clk)
     if (!xrst)
       buf_input$ <= 0;
     else
       buf_input$ <= buf_input;
 
-  for (genvar i = 0; i < MAXLINE+1; i++)
-    mem_sp #(DWIDTH, BUFSIZE) mem_buf(
+  for (genvar i = 0; i < BUFLINE; i++)
+    mem_sp #(DWIDTH, SIZEWIDTH) mem_buf(
       .mem_we     (mem_linebuf_we[i]),
       .mem_addr   (mem_linebuf_addr),
       .mem_wdata  (buf_input$),
