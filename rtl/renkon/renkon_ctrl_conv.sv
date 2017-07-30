@@ -6,7 +6,7 @@ module renkon_ctrl_conv
   , ctrl_bus.slave      in_ctrl
   , input  [2-1:0]      core_state
   , input  [LWIDTH-1:0] w_img_size
-  , input  [LWIDTH-1:0] w_fil_size
+  , input  [LWIDTH-1:0] w_conv_size
   , input               first_input
   , input               last_input
   , ctrl_bus.master     out_ctrl
@@ -34,7 +34,7 @@ module renkon_ctrl_conv
   reg               first_input$;
   reg               last_input$;
   reg [LWIDTH-1:0]  img_size$;
-  reg [LWIDTH-1:0]  fil_size$;
+  reg [LWIDTH-1:0]  conv_size$;
   reg [LWIDTH-1:0]  fea_size$;
   reg               feat_we$   [D_CONV-1:0];
   reg               feat_rst$  [D_CONV-1:0];
@@ -72,14 +72,14 @@ module renkon_ctrl_conv
 
   always @(posedge clk)
     if (!xrst) begin
-      img_size$ <= 0;
-      fil_size$ <= 0;
-      fea_size$ <= 0;
+      img_size$   <= 0;
+      conv_size$  <= 0;
+      fea_size$   <= 0;
     end
     else if (state$ == S_WAIT && in_ctrl.start) begin
-      img_size$ <= w_img_size;
-      fil_size$ <= w_fil_size;
-      fea_size$ <= w_img_size - w_fil_size + 1;
+      img_size$   <= w_img_size;
+      conv_size$  <= w_conv_size;
+      fea_size$   <= w_img_size - w_conv_size + 1;
     end
 
   always @(posedge clk)
@@ -133,12 +133,12 @@ module renkon_ctrl_conv
     else begin
       conv_ctrl$.start <= state$ == S_ACTIVE
                             && core_state$ == S_CORE_INPUT
-                            && conv_x$ == fil_size$ - 2
-                            && conv_y$ == fil_size$ - 1;
+                            && conv_x$ == conv_size$ - 2
+                            && conv_y$ == conv_size$ - 1;
       conv_ctrl$.valid <= state$ == S_ACTIVE
                             && core_state$ == S_CORE_INPUT
-                            && conv_x$ >= fil_size$ - 1
-                            && conv_y$ >= fil_size$ - 1;
+                            && conv_x$ >= conv_size$ - 1
+                            && conv_y$ >= conv_size$ - 1;
       conv_ctrl$.stop  <= state$ == S_ACTIVE
                             && core_state$ == S_CORE_INPUT
                             && conv_x$ == img_size$ - 1

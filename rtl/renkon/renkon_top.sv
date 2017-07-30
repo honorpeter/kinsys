@@ -4,6 +4,7 @@ module renkon_top
   ( input                       clk
   , input                       xrst
   , input                       req
+  , input  signed [DWIDTH-1:0]  img_rdata
   , input  [RENKON_CORELOG-1:0] net_sel
   , input                       net_we
   , input  [RENKON_NETSIZE-1:0] net_addr
@@ -11,12 +12,14 @@ module renkon_top
   , input  [IMGSIZE-1:0]        in_offset
   , input  [IMGSIZE-1:0]        out_offset
   , input  [RENKON_NETSIZE-1:0] net_offset
+
+  // Network parameters
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_size
-  , input  [LWIDTH-1:0]         fil_size
+  , input  [LWIDTH-1:0]         conv_size
   , input  [LWIDTH-1:0]         pool_size
-  , input  signed [DWIDTH-1:0]  img_rdata
+
   , output                      ack
   , output                      img_we
   , output [IMGSIZE-1:0]        img_addr
@@ -27,9 +30,9 @@ module renkon_top
   wire [RENKON_NETSIZE-1:0] mem_net_addr;
   wire signed [DWIDTH-1:0]  net_rdata [RENKON_CORE-1:0];
   wire                      buf_pix_en;
-  wire [LWIDTH-1:0]         w_fea_size;
-  wire [LWIDTH-1:0]         w_fil_size;
   wire [LWIDTH-1:0]         w_img_size;
+  wire [LWIDTH-1:0]         w_conv_size;
+  wire [LWIDTH-1:0]         w_fea_size;
   wire [LWIDTH-1:0]         w_pool_size;
   wire signed [DWIDTH-1:0]  pixel [FSIZE**2-1:0];
   wire                      wreg_we;
@@ -55,7 +58,7 @@ module renkon_top
     .buf_en     (buf_pix_en),
     .buf_input  (img_rdata),
     .img_size   (w_img_size),
-    .fil_size   (w_fil_size),
+    .fil_size   (w_conv_size),
     .buf_output (pixel),
     .*
   );

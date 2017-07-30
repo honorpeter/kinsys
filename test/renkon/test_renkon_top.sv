@@ -36,7 +36,7 @@ module test_renkon_top;
   reg [LWIDTH-1:0]          total_out;
   reg [LWIDTH-1:0]          total_in;
   reg [LWIDTH-1:0]          img_size;
-  reg [LWIDTH-1:0]          fil_size;
+  reg [LWIDTH-1:0]          conv_size;
   reg [LWIDTH-1:0]          pool_size;
   reg                       ack;
   reg signed [DWIDTH-1:0]   mem_i [2**IMGSIZE-1:0];
@@ -194,7 +194,7 @@ module test_renkon_top;
     total_out   = N_OUT;
     total_in    = N_IN;
     img_size    = ISIZE;
-    fil_size    = FSIZE;
+    conv_size   = FSIZE;
     pool_size   = PSIZE;
 
     img_we    = 0;
@@ -628,28 +628,28 @@ module test_renkon_top;
           "%x ", mem_img.count_len$,
           "%x ", mem_img.count_buf$,
           `else
+          // "| ",
+          // "%x ", 1'b0,
+          // "%x ", 1'b0,
+          // "%x ", {MEMSIZE+LSB{1'b0}},
+          // "%x ", {LWIDTH{1'b0}},
+          // ": ",
+          // "*%x ", 2'b0,
+          // "%4x ", 4'b0,
+          // "%4x ", 4'b0,
           "| ",
-          "%x ", 1'b0,
-          "%x ", 1'b0,
-          "%x ", {MEMSIZE+LSB{1'b0}},
-          "%x ", {LWIDTH{1'b0}},
-          ": ",
-          "*%x ", 2'b0,
-          "%4x ", 4'b0,
-          "%4x ", 4'b0,
-          // "| ",
-          // "%1d ", dut.ctrl.ctrl_core.out_ctrl.valid,
-          // "%1d ", dut.ctrl.ctrl_conv.out_ctrl.valid,
-          // "%1d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
-          // "%1d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
-          // "%1d ", dut.ctrl.ctrl_pool.out_ctrl.valid,
-          // "| ",
-          // "%2d ",  dut.ctrl.ctrl_core.count_out$,
-          // "%2d ",  dut.ctrl.ctrl_core.count_in$,
-          // "%2d  ", dut.ctrl.ctrl_core.input_x$,
-          // "%2d  ", dut.ctrl.ctrl_core.input_y$,
-          // "%2d  ", dut.ctrl.ctrl_core.weight_x$,
-          // "%2d  ", dut.ctrl.ctrl_core.weight_y$,
+          "%1d ", dut.ctrl.ctrl_core.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_conv.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_pool.out_ctrl.valid,
+          "| ",
+          "%2d ",  dut.ctrl.ctrl_core.count_out$,
+          "%2d ",  dut.ctrl.ctrl_core.count_in$,
+          "%2d  ", dut.ctrl.ctrl_core.input_x$,
+          "%2d  ", dut.ctrl.ctrl_core.input_y$,
+          "%2d  ", dut.ctrl.ctrl_core.weight_x$,
+          "%2d  ", dut.ctrl.ctrl_core.weight_y$,
         `endif
           "|"
         );

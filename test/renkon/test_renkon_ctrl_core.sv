@@ -7,38 +7,37 @@ module test_renkon_ctrl_core;
   ctrl_bus                 in_ctrl();
   ctrl_reg                 in_ctrl$;
   reg                      req;
-  reg                      img_we;
-  reg [IMGSIZE-1:0]        in_offset;
-  reg [IMGSIZE-1:0]        out_offset;
-  reg [RENKON_NETSIZE-1:0] net_offset;
-  reg signed [DWIDTH-1:0]  img_wdata;
   reg signed [DWIDTH-1:0]  out_wdata;
   reg [RENKON_CORELOG-1:0] net_sel;
   reg                      net_we;
   reg [RENKON_NETSIZE-1:0] net_addr;
+  reg [IMGSIZE-1:0]        in_offset;
+  reg [IMGSIZE-1:0]        out_offset;
+  reg [RENKON_NETSIZE-1:0] net_offset;
   reg [LWIDTH-1:0]         total_out;
   reg [LWIDTH-1:0]         total_in;
   reg [LWIDTH-1:0]         img_size;
-  reg [LWIDTH-1:0]         fil_size;
+  reg [LWIDTH-1:0]         conv_size;
+
   ctrl_bus                 out_ctrl();
   ctrl_reg                 out_ctrl$;
-  reg                      ack;
-  reg [2-1:0]              core_state;
-  reg                      mem_img_we;
-  reg [IMGSIZE-1:0]        mem_img_addr;
-  reg signed [DWIDTH-1:0]  mem_img_wdata;
-  reg [RENKON_CORE-1:0]    mem_net_we;
-  reg [RENKON_NETSIZE-1:0] mem_net_addr;
-  reg                      buf_pix_en;
-  reg                      first_input;
-  reg                      last_input;
-  reg                      wreg_we;
-  reg                      breg_we;
-  reg                      serial_we;
-  reg [RENKON_CORELOG:0]   serial_re;
-  reg [OUTSIZE-1:0]        serial_addr;
-  reg [LWIDTH-1:0]         w_img_size;
-  reg [LWIDTH-1:0]         w_fil_size;
+  wire                      ack;
+  wire [2-1:0]              core_state;
+  wire                      img_we;
+  wire [IMGSIZE-1:0]        img_addr;
+  wire signed [DWIDTH-1:0]  img_wdata;
+  wire [RENKON_CORE-1:0]    mem_net_we;
+  wire [RENKON_NETSIZE-1:0] mem_net_addr;
+  wire                      buf_pix_en;
+  wire                      first_input;
+  wire                      last_input;
+  wire                      wreg_we;
+  wire                      breg_we;
+  wire                      serial_we;
+  wire [RENKON_CORELOG:0]   serial_re;
+  wire [OUTSIZE-1:0]        serial_addr;
+  wire [LWIDTH-1:0]         w_img_size;
+  wire [LWIDTH-1:0]         w_conv_size;
 
   assign in_ctrl.start = in_ctrl$.start;
   assign in_ctrl.valid = in_ctrl$.valid;
@@ -68,28 +67,29 @@ module test_renkon_ctrl_core;
     #(STEP);
 
     xrst = 1;
-    req = 0;
     in_ctrl$ = '{0, 0, 0};
-    img_we = 0;
-    in_offset = 0;
-    out_offset = 0;
-    img_wdata = 0;
+    req = 0;
     out_wdata = 0;
+    net_sel = 0;
     net_we = 0;
     net_addr = 0;
+    in_offset = 0;
+    out_offset = 0;
+    net_offset = 0;
     total_out = 0;
     total_in = 0;
     img_size = 0;
-    fil_size = 0;
+    conv_size = 0;
     #(STEP);
 
     req = 1;
     total_out = 50;
     total_in = 20;
     img_size = 12;
-    fil_size = 5;
+    conv_size = 5;
     in_offset = 0;
     out_offset = 3000;
+    net_offset = 0;
     #(STEP);
 
     req = 0;
@@ -123,34 +123,35 @@ module test_renkon_ctrl_core;
       #(STEP/2-1);
       $display(
         "%5d: ", $time/STEP,
+        "%p ", dut.state$[0],
         "|i: ",
         "%d ", xrst,
         "%d",  in_ctrl$.start,
         "%d",  in_ctrl$.valid,
         "%d ", in_ctrl$.stop,
         "%d ", req,
-        "%d ", img_we,
-        "%d ", in_offset,
-        "%d ", out_offset,
-        "%d ", img_wdata,
         "%d ", out_wdata,
+        "%d ", net_sel,
         "%d ", net_we,
         "%d ", net_addr,
+        "%d ", in_offset,
+        "%d ", out_offset,
+        "%d ", net_offset,
         "%2d ", total_out,
         "%2d ", total_in,
         "%2d ", img_size,
-        "%2d ", fil_size,
+        "%2d ", conv_size,
         "|o: ",
         "%d",  out_ctrl$.start,
         "%d",  out_ctrl$.valid,
         "%d ", out_ctrl$.stop,
         "%d ", ack,
         "%d ", core_state,
-        "%d ", mem_img_we,
-        "%d ", mem_img_addr,
-        "%d ", mem_img_wdata,
+        "%d ", img_we,
+        "%d ", img_addr,
+        "%d ", img_wdata,
         "%d ", mem_net_we,
-        "%d ", mem_net_addr,
+        "@%d ", mem_net_addr,
         "%d ", buf_pix_en,
         "%d ", first_input,
         "%d ", last_input,
@@ -160,7 +161,7 @@ module test_renkon_ctrl_core;
         "%d ", serial_re,
         "%d ", serial_addr,
         "%2d ", w_img_size,
-        "%2d ", w_fil_size,
+        "%2d ", w_conv_size,
         "|r: ",
         "|"
       );

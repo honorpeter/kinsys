@@ -5,6 +5,7 @@ module renkon_ctrl_core
   , input                       xrst
   , ctrl_bus.slave              in_ctrl
   , input                       req
+  , input  signed [DWIDTH-1:0]  out_wdata
   , input  [RENKON_CORELOG-1:0] net_sel
   , input                       net_we
   , input  [RENKON_NETSIZE-1:0] net_addr
@@ -14,8 +15,8 @@ module renkon_ctrl_core
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_size
-  , input  [LWIDTH-1:0]         fil_size
-  , input  signed [DWIDTH-1:0]  out_wdata
+  , input  [LWIDTH-1:0]         conv_size
+
   , ctrl_bus.master             out_ctrl
   , output                      ack
   , output [2-1:0]              core_state
@@ -33,7 +34,7 @@ module renkon_ctrl_core
   , output [RENKON_CORELOG:0]   serial_re
   , output [OUTSIZE-1:0]        serial_addr
   , output [LWIDTH-1:0]         w_img_size
-  , output [LWIDTH-1:0]         w_fil_size
+  , output [LWIDTH-1:0]         w_conv_size
   );
 
   wire               s_network_end;
@@ -57,7 +58,7 @@ module renkon_ctrl_core
   reg [LWIDTH-1:0]  total_out$;
   reg [LWIDTH-1:0]  total_in$;
   reg [LWIDTH-1:0]  img_size$;
-  reg [LWIDTH-1:0]  fil_size$;
+  reg [LWIDTH-1:0]  conv_size$;
   reg [LWIDTH-1:0]  pool_size$;
   reg [LWIDTH-1:0]  count_out$;
   reg [LWIDTH-1:0]  count_in$;
@@ -152,8 +153,8 @@ module renkon_ctrl_core
       else
         state$[i] <= state$[i-1];
 
-  assign w_img_size = img_size$;
-  assign w_fil_size = fil_size$;
+  assign w_img_size  = img_size$;
+  assign w_conv_size = conv_size$;
 
   //wait exec (initialize)
   always @(posedge clk)
@@ -161,14 +162,14 @@ module renkon_ctrl_core
       total_in$    <= 0;
       total_out$   <= 0;
       img_size$    <= 0;
-      fil_size$    <= 0;
+      conv_size$   <= 0;
       d_pixelbuf$  <= 0;
     end
     else if (state$[0] == S_WAIT && req_edge) begin
       total_in$    <= total_in;
       total_out$   <= total_out;
       img_size$    <= img_size;
-      fil_size$    <= fil_size;
+      conv_size$   <= conv_size;
       d_pixelbuf$  <= img_size + 2;
     end
 
@@ -184,9 +185,9 @@ module renkon_ctrl_core
         end
         else begin
           first_input$[0] <= state$[0] == S_INPUT
-                                && count_in$ == 0;
+                          && count_in$ == 0;
           last_input$[0]  <= state$[0] == S_INPUT
-                                && count_in$ == total_in$ - 1;
+                          && count_in$ == total_in$ - 1;
         end
     else
       always @(posedge clk)
@@ -212,13 +213,13 @@ module renkon_ctrl_core
                       : net_addr$ + net_offset$;
 
   assign s_network_end = state$[0] == S_NETWORK
-                            && count_in$ == total_in$ - 1
-                        ? s_w_bias_end
-                        : s_w_weight_end;
+                      && count_in$ == total_in$ - 1
+                       ? s_w_bias_end
+                       : s_w_weight_end;
 
   assign s_w_weight_end = state_weight$[0] == S_W_WEIGHT
-                       && weight_x$ == fil_size$ - 1
-                       && weight_y$ == fil_size$ - 1;
+                       && weight_x$ == conv_size$ - 1
+                       && weight_y$ == conv_size$ - 1;
 
   assign s_w_bias_end   = state_weight$[0] == S_W_BIAS;
 
@@ -284,9 +285,9 @@ module renkon_ctrl_core
         S_NETWORK:
           case (state_weight$[0])
             S_W_WEIGHT:
-              if (weight_x$ == fil_size$ - 1) begin
+              if (weight_x$ == conv_size$ - 1) begin
                 weight_x$ <= 0;
-                if (weight_y$ == fil_size$ - 1)
+                if (weight_y$ == conv_size$ - 1)
                   weight_y$ <= 0;
                 else
                   weight_y$ <= weight_y$ + 1;

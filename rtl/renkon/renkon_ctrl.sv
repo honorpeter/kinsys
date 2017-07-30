@@ -13,7 +13,7 @@ module renkon_ctrl
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         img_size
-  , input  [LWIDTH-1:0]         fil_size
+  , input  [LWIDTH-1:0]         conv_size
   , input  [LWIDTH-1:0]         pool_size
   , input  signed [DWIDTH-1:0]  out_wdata
   , output                      ack
@@ -38,7 +38,7 @@ module renkon_ctrl
   , output [FACCUM-1:0]         mem_feat_addr
   , output [FACCUM-1:0]         mem_feat_addr_d1
   , output [LWIDTH-1:0]         w_img_size
-  , output [LWIDTH-1:0]         w_fil_size
+  , output [LWIDTH-1:0]         w_conv_size
   , output [LWIDTH-1:0]         w_fea_size
   , output [LWIDTH-1:0]         w_pool_size
   );
