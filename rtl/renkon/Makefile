@@ -1,6 +1,6 @@
 VERBOSE   = 0
 SIMULATOR = vsim
-MODULE    = renkon_linebuf.sv
+MODULE    = renkon_linebuf_pad.sv
 # MODULE    = renkon_top.sv
 # DEPENDS   = \
 # 	renkon_ctrl_core.sv \

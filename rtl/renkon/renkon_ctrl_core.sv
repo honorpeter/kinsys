@@ -25,7 +25,7 @@ module renkon_ctrl_core
   , output signed [DWIDTH-1:0]  img_wdata
   , output [RENKON_CORE-1:0]    mem_net_we
   , output [RENKON_NETSIZE-1:0] mem_net_addr
-  , output                      buf_pix_en
+  , output                      buf_pix_req
   , output                      first_input
   , output                      last_input
   , output                      wreg_we
@@ -67,7 +67,7 @@ module renkon_ctrl_core
   reg [LWIDTH-1:0]  weight_x$;
   reg [LWIDTH-1:0]  weight_y$;
   reg [LWIDTH-1:0]  d_pixelbuf$;
-  reg               buf_pix_en$;
+  reg               buf_pix_req$;
   reg               img_we$;
   reg               out_we$;
   reg [IMGSIZE-1:0] in_offset$;
@@ -315,13 +315,13 @@ module renkon_ctrl_core
   assign breg_we  = state$[d_pixelbuf$+1] == S_NETWORK
                  && state_weight$[d_pixelbuf$+1] == S_W_BIAS;
 
-  assign buf_pix_en = buf_pix_en$;
+  assign buf_pix_req = buf_pix_req$;
 
   always @(posedge clk)
     if (!xrst)
-      buf_pix_en$ <= 0;
+      buf_pix_req$ <= 0;
     else
-      buf_pix_en$ <= state$[0] == S_INPUT
+      buf_pix_req$ <= state$[0] == S_INPUT
                    && out_ctrl$[0].start;
 
 //==========================================================

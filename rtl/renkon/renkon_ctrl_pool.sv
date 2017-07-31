@@ -6,7 +6,7 @@ module renkon_ctrl_pool
   , ctrl_bus.slave      in_ctrl
   , input  [LWIDTH-1:0] w_fea_size
   , input  [LWIDTH-1:0] pool_size
-  , output              buf_feat_en
+  , output              buf_feat_req
   , ctrl_bus.master     out_ctrl
   , output              pool_oe
   , output [LWIDTH-1:0] w_pool_size
@@ -17,7 +17,7 @@ module renkon_ctrl_pool
   enum reg {
     S_WAIT, S_ACTIVE
   } state$;
-  reg              buf_feat_en$;
+  reg              buf_feat_req$;
   reg [LWIDTH-1:0] fea_size$;
   reg [LWIDTH-1:0] pool_size$;
   reg [LWIDTH-1:0] d_poolbuf$;
@@ -106,13 +106,13 @@ module renkon_ctrl_pool
 // pool control
 //==========================================================
 
-  assign buf_feat_en = buf_feat_en$;
+  assign buf_feat_req = buf_feat_req$;
 
   always @(posedge clk)
     if (!xrst)
-      buf_feat_en$ <= 0;
+      buf_feat_req$ <= 0;
     else
-      buf_feat_en$ <= in_ctrl.start;
+      buf_feat_req$ <= in_ctrl.start;
 
   assign pool_ctrl.start = pool_ctrl$[d_poolbuf$].start;
   assign pool_ctrl.valid = pool_ctrl$[d_poolbuf$].valid;
@@ -184,13 +184,5 @@ module renkon_ctrl_pool
           out_ctrl$[i].valid <= out_ctrl$[i-1].valid;
           out_ctrl$[i].stop  <= out_ctrl$[i-1].stop;
         end
-
-  assign buf_feat_en = buf_feat_en$;
-
-  always @(posedge clk)
-    if (!xrst)
-      buf_feat_en$ <= 0;
-    else
-      buf_feat_en$ <= in_ctrl.start;
 
 endmodule
