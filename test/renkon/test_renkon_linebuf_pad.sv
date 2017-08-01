@@ -16,8 +16,8 @@ module test_renkon_linebuf_pad;
   reg  signed [DWIDTH-1:0] buf_input;
 
   wire                     buf_ack;
-  wire                     buf_ready;
   wire                     buf_valid;
+  wire                     buf_ready;
   wire signed [DWIDTH-1:0] buf_output [FILTER**2-1:0];
 
   reg signed [DWIDTH-1:0] mem_input [IMAGE**2+1-1:0];

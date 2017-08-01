@@ -52,8 +52,7 @@ module test_renkon_linebuf;
     end
     #(STEP/2+1);
 
-    // #(STEP*10);
-    #(STEP*(IMAGE+FILTER));
+    #(STEP*10);
 
     $finish();
   end
@@ -64,14 +63,6 @@ module test_renkon_linebuf;
 
   //display
   initial write_output;
-  reg [LWIDTH-1:0] col_count_d$ [2:1];
-  reg [LWIDTH-1:0] row_count_d$ [2:1];
-  always @(posedge clk) begin
-    col_count_d$[1] <= dut.col_count$;
-    row_count_d$[1] <= dut.row_count$;
-    col_count_d$[2] <= col_count_d$[1];
-    row_count_d$[2] <= row_count_d$[1];
-  end
   task write_output;
     int fd;
     int i, j;
@@ -80,7 +71,6 @@ module test_renkon_linebuf;
       i = 0; j = 0;
       forever begin
         #(STEP/2-1);
-        // if (row_count_d$[2] >= FILTER && col_count_d$[2] >= FILTER-1) begin
         if (buf_valid) begin
           $fwrite(fd, "Block %0d:\n", (IMAGE-FILTER+1)*i+j);
           for (int di = 0; di < FILTER; di++) begin

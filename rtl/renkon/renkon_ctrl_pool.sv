@@ -128,14 +128,16 @@ module renkon_ctrl_pool
         end
         else begin
           pool_ctrl$[0].start <= state$ == S_ACTIVE
-                                    && pool_x$ == pool_size$ - 2
-                                    && pool_y$ == pool_size$ - 1;
+                              && pool_x$ == pool_size$ - 2
+                              && pool_y$ == pool_size$ - 1;
+
           pool_ctrl$[0].valid <= state$ == S_ACTIVE
-                                    && pool_exec_x$ == pool_size$ - 1
-                                    && pool_exec_y$ == pool_size$ - 1;
+                              && pool_exec_x$ == pool_size$ - 1
+                              && pool_exec_y$ == pool_size$ - 1;
+
           pool_ctrl$[0].stop  <= state$ == S_ACTIVE
-                                    && pool_x$ == fea_size$ - 1
-                                    && pool_y$ == fea_size$ - 1;
+                              && pool_x$ == fea_size$ - 1
+                              && pool_y$ == fea_size$ - 1;
         end
     else
       always @(posedge clk)

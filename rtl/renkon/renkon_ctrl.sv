@@ -17,7 +17,7 @@ module renkon_ctrl
   , input  [LWIDTH-1:0]         pool_size
   , input  signed [DWIDTH-1:0]  out_wdata
   , output                      ack
-  , output                      buf_pix_en
+  , output                      buf_pix_req
   , output                      wreg_we
   , output                      conv_oe
   , output                      breg_we
@@ -27,7 +27,7 @@ module renkon_ctrl
   , output                      serial_we
   , output [RENKON_CORELOG:0]   serial_re
   , output [OUTSIZE-1:0]        serial_addr
-  , output                      buf_feat_en
+  , output                      buf_feat_req
   , output                      img_we
   , output [IMGSIZE-1:0]        img_addr
   , output signed [DWIDTH-1:0]  img_wdata

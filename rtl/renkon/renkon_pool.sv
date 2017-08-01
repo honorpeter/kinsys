@@ -4,7 +4,7 @@ module renkon_pool
   ( input                      clk
   , input                      xrst
   , input                      out_en
-  , input                      buf_feat_en
+  , input                      buf_feat_req
   , input         [LWIDTH-1:0] w_fea_size
   , input         [LWIDTH-1:0] w_pool_size
   , input  signed [DWIDTH-1:0] pixel_in
@@ -14,10 +14,12 @@ module renkon_pool
   wire signed [DWIDTH-1:0] pixel_feat [PSIZE**2-1:0];
 
   renkon_linebuf #(PSIZE, D_POOLBUF) buf_feat(
-    .buf_en     (buf_feat_en),
+    .buf_req     (buf_feat_req),
     .buf_input  (pixel_in),
     .img_size   (w_fea_size),
     .fil_size   (w_pool_size),
+    .buf_ack    (),
+    .buf_valid  (),
     .buf_output (pixel_feat),
     .*
   );

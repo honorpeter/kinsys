@@ -60,8 +60,10 @@ module renkon_top
     .buf_input  (img_rdata),
     .img_size   (w_img_size),
     .fil_size   (w_conv_size),
-    .pad_size   (w_conv_pad),
-    .buf_fetch  (),
+    .pad_size   (0),
+    .buf_ack    (),
+    .buf_valid  (),
+    .buf_ready  (),
     .buf_output (pixel),
     .*
   );

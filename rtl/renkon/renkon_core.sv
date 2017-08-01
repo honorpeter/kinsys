@@ -5,7 +5,7 @@ module renkon_core
   , input                       xrst
   , input                       bias_oe
   , input                       breg_we
-  , input                       buf_feat_en
+  , input                       buf_feat_req
   , input                       conv_oe
   , input                       mem_feat_rst
   , input                       mem_feat_we

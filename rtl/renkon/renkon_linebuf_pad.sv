@@ -12,8 +12,8 @@ module renkon_linebuf_pad
   , input  [LWIDTH-1:0]         pad_size
   , input  signed [DWIDTH-1:0]  buf_input
   , output                      buf_ack
-  , output                      buf_ready
   , output                      buf_valid
+  , output                      buf_ready
   , output signed [DWIDTH-1:0]  buf_output [MAXFIL**2-1:0]
   );
 
