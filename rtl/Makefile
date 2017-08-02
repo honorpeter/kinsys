@@ -45,7 +45,7 @@ com:
 edit:
 	@nvim -O $(TARGET) $(MODULE)
 
-DIFF=nvim -d#diff
+DIFF=diff#nvim -d
 diff:
 	@$(DIFF) ../../data/$(notdir $(PWD))/output_$(MODULE:.sv=.dat) \
 		 ../../data/$(notdir $(PWD))/true_$(MODULE:.sv=.dat)

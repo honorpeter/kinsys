@@ -34,12 +34,12 @@ module renkon_linebuf_pad
   enum reg [2-1:0] {
     S_WAIT, S_CHARGE, S_ACTIVE
   } state$;
-  reg [LINEWIDTH:0]       select$;
   reg [LINEWIDTH:0]       mem_count$;
   reg [SIZEWIDTH-1:0]     col_count$;
   reg [SIZEWIDTH-1:0]     row_count$;
   reg signed [DWIDTH-1:0] buf_input$;
-  reg                     buf_valid$ [1:0];
+  reg [LINEWIDTH:0]       select$ [2-1:0];
+  reg                     buf_valid$ [3-1:0];
   reg signed [DWIDTH-1:0] pixel$ [MAXFIL**2-1:0];
 
 //==========================================================
@@ -119,22 +119,31 @@ module renkon_linebuf_pad
   for (genvar i = 0; i < MAXFIL**2; i++)
     assign buf_output[i] = pixel$[i];
 
-  always @(posedge clk)
-    if (!xrst)
-      select$ <= 0;
-    else if (state$ == S_WAIT)
-      select$ <= 0;
-    else if (state$ == S_ACTIVE)
-      if (col_count$ == 0)
-        if (select$ == 0)
-          if (pad_size == 0)
-            select$ <= 1;
+  for (genvar i = 0; i < 2; i++)
+    if (i == 0) begin
+      // TODO: need refactoring
+      always @(posedge clk)
+        if (!xrst)
+          select$[0] <= 0;
+        else if (state$ == S_WAIT)
+          select$[0] <= 0;
+        else if (state$ == S_ACTIVE && col_count$ == 0)
+          if (select$[0] == 0)
+            select$[0] <= pad_size == 0
+                        ? 1
+                        : BUFLINE - (pad_size - 1);
+          else if (select$[0] == fil_size + 1)
+            select$[0] <= 1;
           else
-            select$ <= fil_size + 1;
-        else if (select$ == fil_size + 1)
-          select$ <= 1;
+            select$[0] <= select$[0] + 1;
+    end
+    else begin
+      always @(posedge clk)
+        if (!xrst)
+          select$[i] <= 0;
         else
-          select$ <= select$ + 1;
+          select$[i] <= select$[i-1];
+    end
 
   for (genvar i = 0; i < MAXFIL; i++)
     for (genvar k = -1; k < BUFLINE; k++)
@@ -143,19 +152,26 @@ module renkon_linebuf_pad
       else
         assign mux[i][k+1] = read_mem[(i + k) % BUFLINE];
 
-  for (genvar i = 0; i < MAXFIL; i++)
+  for (genvar i = 0; i < MAXFIL; i++) begin : block
+    reg in_row$[2-1:0];
+    always @(posedge clk)
+      if (!xrst) begin
+        in_row$[0] <= 0;
+        in_row$[1] <= 0;
+      end
+      else begin
+        in_row$[0] <= fil_size - pad_size <= row_count$ + i
+                   && row_count$ + i < img_size + fil_size;
+        in_row$[1] <= in_row$[0];
+      end
+
     for (genvar j = 0; j < MAXFIL; j++)
       if (j == MAXFIL-1) begin
-        reg in_row$;
-        always @(posedge clk)
-          in_row$ <= fil_size - pad_size <= row_count$ + i
-                  && row_count$ + i < img_size + fil_size;
-
         always @(posedge clk)
           if (!xrst)
             pixel$[MAXFIL * i + j] <= 0;
-          else if (in_row$)
-            pixel$[MAXFIL * i + j] <= mux[i][select$];
+          else if (in_row$[1])
+            pixel$[MAXFIL * i + j] <= mux[i][select$[1]];
           else
             pixel$[MAXFIL * i + j] <= 0;
       end
@@ -166,6 +182,7 @@ module renkon_linebuf_pad
           else
             pixel$[MAXFIL * i + j] <= pixel$[MAXFIL * i + (j+1)];
       end
+  end : block
 
 //==========================================================
 // memory
@@ -173,27 +190,49 @@ module renkon_linebuf_pad
 
   wire in_col = fil_size - 1 <= col_count$ && col_count$ < img_size + pad_both;
 
-  assign buf_ready = (state$ != S_WAIT || (pad_size == 0 ? buf_req : 0))
-                  && 0 <= row_count$   && row_count$   < img_size
-                  && 1 <= col_count$+1 && col_count$+1 < img_size + 1;
+  assign buf_ready = state$ != S_WAIT
+                  && 0 <= row_count$ && row_count$ < img_size
+                  && pad_size <= col_count$ && col_count$ < img_size + pad_size;
 
-  assign buf_valid = buf_valid$[1];
+  assign buf_valid = buf_valid$[2];
 
-  assign mem_linebuf_addr = col_count$;
-
-  assign mem_linebuf_we = state$ != S_WAIT
-                        ? 1 << mem_count$
-                        : 1'b0;
-
+  // assign mem_linebuf_addr = col_count$;
+  reg [SIZEWIDTH-1:0] linebuf_addr$;
+  assign mem_linebuf_addr = linebuf_addr$;
   always @(posedge clk)
-    if (!xrst) begin
-      buf_valid$[0] <= 0;
-      buf_valid$[1] <= 0;
-    end
-    else begin
-      buf_valid$[0] <= state$ == S_ACTIVE && in_col;
-      buf_valid$[1] <= buf_valid$[0];
-    end
+    if (!xrst)
+      linebuf_addr$ <= 0;
+    else if (state$ == S_WAIT)
+      linebuf_addr$ <= 0;
+    else
+      linebuf_addr$ <= col_count$;
+
+  // assign mem_linebuf_we = state$ != S_WAIT
+  //                       ? 1 << mem_count$
+  //                       : 1'b0;
+  reg [BUFLINE-1:0] linebuf_we$;
+  assign mem_linebuf_we = linebuf_we$;
+  always @(posedge clk)
+    if (!xrst)
+      linebuf_we$ <= 0;
+    else if (state$ == S_WAIT)
+      linebuf_we$ <= 0;
+    else
+      linebuf_we$ <= 1 << mem_count$;
+
+  for (genvar i = 0; i < 3; i++)
+    if (i == 0)
+      always @(posedge clk)
+        if (!xrst)
+          buf_valid$[0] <= 0;
+        else
+          buf_valid$[0] <= state$ == S_ACTIVE && in_col;
+    else
+      always @(posedge clk)
+        if (!xrst)
+          buf_valid$[i] <= 0;
+        else
+          buf_valid$[i] <= buf_valid$[i-1];
 
   always @(posedge clk)
     if (!xrst)

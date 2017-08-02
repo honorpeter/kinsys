@@ -37,6 +37,7 @@ module test_renkon_top;
   reg [LWIDTH-1:0]          total_in;
   reg [LWIDTH-1:0]          img_size;
   reg [LWIDTH-1:0]          conv_size;
+  reg [LWIDTH-1:0]          conv_pad;
   reg [LWIDTH-1:0]          pool_size;
   reg                       ack;
   reg signed [DWIDTH-1:0]   mem_i [2**IMGSIZE-1:0];
@@ -66,6 +67,7 @@ module test_renkon_top;
   assign renkon_img_rdata = mem_img_rdata;
 
 `ifdef NINJIN
+/// {{{
   reg                     pre_req;
   reg [MEMSIZE-1:0]       pre_base;
   reg [LWIDTH-1:0]        read_len;
@@ -128,6 +130,7 @@ module test_renkon_top;
     end
     #(STEP/2+1);
   end
+// }}}
 `else
   mem_sp #(DWIDTH, IMGSIZE) mem_img(
     .mem_we     (mem_img_we),
@@ -195,6 +198,7 @@ module test_renkon_top;
     total_in    = N_IN;
     img_size    = ISIZE;
     conv_size   = FSIZE;
+    conv_pad   = 0;
     pool_size   = PSIZE;
 
     img_we    = 0;
@@ -612,10 +616,12 @@ module test_renkon_top;
           "%d ", ack,
           "*%d ", dut.ctrl.ctrl_core.state$[0],
           "| ",
-          "%d ", mem_img_we,
+          // "%d ", mem_img_we,
           "%d ", mem_img_addr,
-          "%d ", mem_img_wdata,
-          "%d ", mem_img_rdata,
+          // "%4d ", mem_img_wdata,
+          // "%4d ", mem_img_rdata,
+          ": ",
+          "%4d ", dut.pixel[0],
           `ifdef NINJIN
           "| ",
           "%x ", ddr_req,
@@ -628,21 +634,18 @@ module test_renkon_top;
           "%x ", mem_img.count_len$,
           "%x ", mem_img.count_buf$,
           `else
-          // "| ",
-          // "%x ", 1'b0,
-          // "%x ", 1'b0,
-          // "%x ", {MEMSIZE+LSB{1'b0}},
-          // "%x ", {LWIDTH{1'b0}},
-          // ": ",
-          // "*%x ", 2'b0,
-          // "%4x ", 4'b0,
-          // "%4x ", 4'b0,
           "| ",
-          "%1d ", dut.ctrl.ctrl_core.out_ctrl.valid,
-          "%1d ", dut.ctrl.ctrl_conv.out_ctrl.valid,
-          "%1d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
-          "%1d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
-          "%1d ", dut.ctrl.ctrl_pool.out_ctrl.valid,
+          "%1b ", dut.ctrl.ctrl_core.out_ctrl.valid,
+          "%1b ", dut.ctrl.ctrl_conv.out_ctrl.valid,
+          "%1b ", dut.ctrl.ctrl_bias.out_ctrl.valid,
+          "%1b ", dut.ctrl.ctrl_relu.out_ctrl.valid,
+          "%1b ", dut.ctrl.ctrl_pool.out_ctrl.valid,
+          "| ",
+          "%1b ",  dut.buf_pix.buf_req,
+          ": ",
+          "%1b ",  dut.buf_pix.buf_ack,
+          "%1b ",  dut.buf_pix.buf_valid,
+          "%1b ",  dut.buf_pix.buf_ready,
           "| ",
           "%2d ",  dut.ctrl.ctrl_core.count_out$,
           "%2d ",  dut.ctrl.ctrl_core.count_in$,
@@ -650,6 +653,19 @@ module test_renkon_top;
           "%2d  ", dut.ctrl.ctrl_core.input_y$,
           "%2d  ", dut.ctrl.ctrl_core.weight_x$,
           "%2d  ", dut.ctrl.ctrl_core.weight_y$,
+          "| ",
+          "%1b ",  dut.pe[0].core.pool.buf_feat.buf_req,
+          ": ",
+          "%2d ",  dut.pe[0].core.pool.buf_feat.row_count$,
+          "%2d ",  dut.pe[0].core.pool.buf_feat.col_count$,
+          ": ",
+          "%1b ",  dut.pe[0].core.pool.buf_feat.buf_ack,
+          "%1b ",  dut.pe[0].core.pool.buf_feat.buf_valid,
+          "| ",
+          "%2d  ", dut.ctrl.ctrl_pool.pool_x$,
+          "%2d  ", dut.ctrl.ctrl_pool.pool_y$,
+          "%2d  ", dut.ctrl.ctrl_pool.pool_exec_x$,
+          "%2d  ", dut.ctrl.ctrl_pool.pool_exec_y$,
         `endif
           "|"
         );

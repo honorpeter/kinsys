@@ -42,13 +42,14 @@ module test_renkon_linebuf;
     #(STEP*5);
 
     buf_req = 1;
+    #(STEP);
+    buf_req = 0;
+
     #(STEP/2-1);
-    while (buf_req || !buf_ack) begin
+    while (!buf_ack) begin
       addr++;
       #(STEP);
       buf_input = mem_input[addr];
-
-      if (buf_req) buf_req = 0;
     end
     #(STEP/2+1);
 
@@ -120,7 +121,7 @@ module test_renkon_linebuf;
         "%4d ", buf_output[7],
         "%4d ", buf_output[8],
         "|r: ",
-        "%b ", dut.select$,
+        "%b ", dut.select$[1],
         "%2d ", dut.col_count$,
         "%1d ", dut.mem_count$,
         "%2d ", dut.row_count$,

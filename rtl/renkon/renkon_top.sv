@@ -18,6 +18,7 @@ module renkon_top
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_size
   , input  [LWIDTH-1:0]         conv_size
+  , input  [LWIDTH-1:0]         conv_pad
   , input  [LWIDTH-1:0]         pool_size
 
   , output                      ack
@@ -30,6 +31,9 @@ module renkon_top
   wire [RENKON_NETSIZE-1:0] mem_net_addr;
   wire signed [DWIDTH-1:0]  net_rdata [RENKON_CORE-1:0];
   wire                      buf_pix_req;
+  wire                      buf_pix_ack;
+  wire                      buf_pix_valid;
+  wire                      buf_pix_ready;
   wire [LWIDTH-1:0]         w_img_size;
   wire [LWIDTH-1:0]         w_conv_size;
   wire [LWIDTH-1:0]         w_conv_pad;
@@ -60,10 +64,10 @@ module renkon_top
     .buf_input  (img_rdata),
     .img_size   (w_img_size),
     .fil_size   (w_conv_size),
-    .pad_size   (0),
-    .buf_ack    (),
-    .buf_valid  (),
-    .buf_ready  (),
+    .pad_size   (w_conv_pad),
+    .buf_ack    (buf_pix_ack),
+    .buf_valid  (buf_pix_valid),
+    .buf_ready  (buf_pix_ready),
     .buf_output (pixel),
     .*
   );

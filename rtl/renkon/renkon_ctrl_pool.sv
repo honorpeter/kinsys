@@ -106,7 +106,8 @@ module renkon_ctrl_pool
 // pool control
 //==========================================================
 
-  assign buf_feat_req = buf_feat_req$;
+  assign buf_feat_req = in_ctrl.start;
+  // assign buf_feat_req = buf_feat_req$;
 
   always @(posedge clk)
     if (!xrst)

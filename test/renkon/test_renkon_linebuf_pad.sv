@@ -1,9 +1,8 @@
 `include "renkon.svh"
 
 parameter IMAGE = 32;
-parameter FILTER = 3;
+parameter FILTER = 5;
 parameter PAD = (FILTER-1)/2;
-// parameter PAD = 0;
 
 module test_renkon_linebuf_pad;
 
@@ -47,13 +46,14 @@ module test_renkon_linebuf_pad;
     #(STEP*5);
 
     buf_req = 1;
+    #(STEP);
+    buf_req = 0;
+
     #(STEP/2-1);
-    while (buf_req || !buf_ack) begin
+    while (!buf_ack) begin
       if (buf_ready) addr++;
       #(STEP);
       buf_input = mem_input[addr];
-
-      if (buf_req) buf_req = 0;
     end
     #(STEP/2+1);
 
@@ -115,30 +115,32 @@ module test_renkon_linebuf_pad;
         "%b ", buf_valid,
         "; ",
         "%4d ", buf_output[0],
-        "%4d ", buf_output[1],
-        "%4d ", buf_output[2],
-        "; ",
-        "%4d ", buf_output[3],
-        "%4d ", buf_output[4],
         "%4d ", buf_output[5],
-        "; ",
-        "%4d ", buf_output[6],
-        "%4d ", buf_output[7],
-        "%4d ", buf_output[8],
+        "%4d ", buf_output[10],
+        "%4d ", buf_output[15],
+        "%4d ", buf_output[20],
         "|r: ",
-        "%d ", dut.select$,
+        "%d ", dut.select$[1],
         "%2d ", dut.col_count$,
         "%1d ", dut.mem_count$,
         "%2d ", dut.row_count$,
+        "; ",
+        "%b",  dut.block[0].in_row$[1],
+        "%b",  dut.block[1].in_row$[1],
+        "%b",  dut.block[2].in_row$[1],
+        // "%b",  dut.block[3].in_row$[1],
+        // "%b ",  dut.block[4].in_row$[1],
         ";mem ",
         "%b ", dut.mem_linebuf_we,
         "%d ", dut.mem_linebuf_addr,
         "%d ", dut.buf_input$,
         "{",
+        "%4d, ", dut.read_mem[5],
+        "%4d, ", dut.read_mem[4],
         "%4d, ", dut.read_mem[3],
         "%4d, ", dut.read_mem[2],
         "%4d, ", dut.read_mem[1],
-        "%4d, ", dut.read_mem[0],
+        "%4d",   dut.read_mem[0],
         "}",
         "|m: ",
         "%3d ", (IMAGE-FILTER+1)*i+j,

@@ -16,6 +16,10 @@ module renkon_ctrl_core
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_size
   , input  [LWIDTH-1:0]         conv_size
+  , input  [LWIDTH-1:0]         conv_pad
+  , input                       buf_pix_ack
+  , input                       buf_pix_valid
+  , input                       buf_pix_ready
 
   , ctrl_bus.master             out_ctrl
   , output                      ack
@@ -35,6 +39,7 @@ module renkon_ctrl_core
   , output [OUTSIZE-1:0]        serial_addr
   , output [LWIDTH-1:0]         w_img_size
   , output [LWIDTH-1:0]         w_conv_size
+  , output [LWIDTH-1:0]         w_conv_pad
   );
 
   wire               s_network_end;
@@ -59,7 +64,7 @@ module renkon_ctrl_core
   reg [LWIDTH-1:0]  total_in$;
   reg [LWIDTH-1:0]  img_size$;
   reg [LWIDTH-1:0]  conv_size$;
-  reg [LWIDTH-1:0]  pool_size$;
+  reg [LWIDTH-1:0]  conv_pad$;
   reg [LWIDTH-1:0]  count_out$;
   reg [LWIDTH-1:0]  count_in$;
   reg [LWIDTH-1:0]  input_x$;
@@ -155,22 +160,24 @@ module renkon_ctrl_core
 
   assign w_img_size  = img_size$;
   assign w_conv_size = conv_size$;
+  assign w_conv_pad  = conv_pad$;
 
   //wait exec (initialize)
   always @(posedge clk)
     if (!xrst) begin
-      total_in$    <= 0;
-      total_out$   <= 0;
-      img_size$    <= 0;
-      conv_size$   <= 0;
-      d_pixelbuf$  <= 0;
+      total_in$   <= 0;
+      total_out$  <= 0;
+      img_size$   <= 0;
+      conv_size$  <= 0;
+      d_pixelbuf$ <= 0;
     end
     else if (state$[0] == S_WAIT && req_edge) begin
-      total_in$    <= total_in;
-      total_out$   <= total_out;
-      img_size$    <= img_size;
-      conv_size$   <= conv_size;
-      d_pixelbuf$  <= img_size + 2;
+      total_in$   <= total_in;
+      total_out$  <= total_out;
+      img_size$   <= img_size;
+      conv_size$  <= conv_size;
+      conv_pad$   <= conv_pad;
+      d_pixelbuf$ <= img_size + 2;
     end
 
   assign first_input = first_input$[d_pixelbuf$];
@@ -315,7 +322,8 @@ module renkon_ctrl_core
   assign breg_we  = state$[d_pixelbuf$+1] == S_NETWORK
                  && state_weight$[d_pixelbuf$+1] == S_W_BIAS;
 
-  assign buf_pix_req = buf_pix_req$;
+  // assign buf_pix_req = buf_pix_req$;
+  assign buf_pix_req = state$[0] == S_INPUT && out_ctrl$[0].start;
 
   always @(posedge clk)
     if (!xrst)
@@ -445,7 +453,7 @@ module renkon_ctrl_core
       serial_end$ <= 0;
     else
       serial_end$ <= serial_re$ == RENKON_CORE
-                   && serial_addr$ == serial_cnt$ - 1;
+                  && serial_addr$ == serial_cnt$ - 1;
 
   always @(posedge clk)
     if (!xrst)
@@ -521,11 +529,13 @@ module renkon_ctrl_core
         end
         else begin
           out_ctrl$[0].start <= req_edge
-                              || s_network_end
-                              || s_input_end
-                                  && count_in$ != total_in$ - 1;
+                             || s_network_end
+                             || s_input_end
+                                && count_in$ != total_in$ - 1;
+
           out_ctrl$[0].valid <= state$[0] == S_NETWORK
-                              || state$[0] == S_INPUT;
+                             || state$[0] == S_INPUT;
+
           out_ctrl$[0].stop  <= s_network_end || s_input_end;
         end
     else
