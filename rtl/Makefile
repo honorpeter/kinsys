@@ -33,8 +33,11 @@ endif
 
 all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.com)
 
-test: $(DEPENDS:.sv=.com) $(MODULE:.sv=.com) $(TARGET:.sv=.log)
-test-all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.log)
+test: $(TARGET:.sv=.log)
+test-all: $(TESTSUITE:.sv=.log)
+
+$(TARGET:.sv=.log): $(DEPENDS:.sv=.com) $(MODULE:.sv=.com)
+$(TESTSUITE:.sv=.log): $(SOURCES:.sv=.com)
 
 log:
 	@nvim $(TARGET:.sv=.log)
