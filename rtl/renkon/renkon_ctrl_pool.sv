@@ -6,13 +6,19 @@ module renkon_ctrl_pool
   , ctrl_bus.slave      in_ctrl
   , input  [LWIDTH-1:0] w_fea_size
   , input  [LWIDTH-1:0] pool_size
-  , output              buf_feat_req
   , ctrl_bus.master     out_ctrl
   , output              pool_oe
   , output [LWIDTH-1:0] w_pool_size
   );
 
   ctrl_bus pool_ctrl();
+
+  wire buf_feat_req;
+  wire buf_feat_ack;
+  wire buf_feat_valid;
+  wire [PSIZE:0] buf_feat_we;
+  wire [$clog2(PSIZE+1)-1:0] buf_feat_addr;
+  wire [$clog2(PSIZE+1)-1:0] buf_feat_sel;
 
   enum reg {
     S_WAIT, S_ACTIVE
@@ -109,15 +115,15 @@ module renkon_ctrl_pool
   assign buf_feat_req = in_ctrl.start;
   // assign buf_feat_req = buf_feat_req$;
 
+  assign pool_ctrl.start = pool_ctrl$[d_poolbuf$].start;
+  assign pool_ctrl.valid = pool_ctrl$[d_poolbuf$].valid;
+  assign pool_ctrl.stop  = pool_ctrl$[d_poolbuf$].stop;
+
   always @(posedge clk)
     if (!xrst)
       buf_feat_req$ <= 0;
     else
       buf_feat_req$ <= in_ctrl.start;
-
-  assign pool_ctrl.start = pool_ctrl$[d_poolbuf$].start;
-  assign pool_ctrl.valid = pool_ctrl$[d_poolbuf$].valid;
-  assign pool_ctrl.stop  = pool_ctrl$[d_poolbuf$].stop;
 
   for (genvar i = 0; i < D_POOLBUF; i++)
     if (i == 0)
@@ -152,6 +158,17 @@ module renkon_ctrl_pool
           pool_ctrl$[i].valid <= pool_ctrl$[i-1].valid;
           pool_ctrl$[i].stop  <= pool_ctrl$[i-1].stop;
         end
+
+  renkon_ctrl_linebuf #(PSIZE, D_POOLBUF) ctrl_buf_feat(
+    .img_size   (w_fea_size),
+    .fil_size   (w_pool_size),
+    .buf_req    (buf_feat_req),
+    .buf_ack    (buf_feat_ack),
+    .buf_valid  (buf_feat_valid),
+    .buf_we     (buf_feat_we),
+    .buf_sel    (buf_feat_sel),
+    .*
+  );
 
 //==========================================================
 // output control

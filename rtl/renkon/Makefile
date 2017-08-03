@@ -4,6 +4,8 @@ MODULE    = renkon_linebuf.sv
 DEPENDS   = renkon_ctrl_linebuf.sv
 # MODULE    = renkon_top.sv
 # DEPENDS   = \
+# 	renkon_ctrl_linebuf_pad.sv \
+# 	renkon_ctrl_linebuf.sv \
 # 	renkon_ctrl_core.sv \
 # 	renkon_ctrl_conv.sv \
 # 	renkon_ctrl_bias.sv \

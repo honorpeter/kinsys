@@ -5,20 +5,30 @@ parameter FILTER = 3;
 
 module test_renkon_linebuf;
 
+  localparam BUFSIZE = IMAGE + 1;
+  localparam BUFLINE = FILTER + 1;
+  localparam SIZEWIDTH = $clog2(BUFSIZE);
+  localparam LINEWIDTH = $clog2(BUFLINE);
+
   reg                     clk;
   reg                     xrst;
-  reg                     buf_req;
   reg        [LWIDTH-1:0] img_size;
   reg        [LWIDTH-1:0] fil_size;
+  reg                     buf_req;
   reg signed [DWIDTH-1:0] buf_input;
 
   wire                      buf_ack;
   wire                      buf_valid;
+  wire [LINEWIDTH:0]        buf_rsel;
+  wire [LINEWIDTH:0]        buf_wsel;
+  wire                      buf_we;
+  wire [SIZEWIDTH-1:0]      buf_addr;
   wire signed [DWIDTH-1:0]  buf_output [FILTER**2-1:0];
 
-  reg signed [DWIDTH-1:0] mem_input [IMAGE**2-1:0];
+  reg signed [DWIDTH-1:0] mem_input [2*IMAGE**2-1:0];
 
   renkon_linebuf #(FILTER, IMAGE) dut(.*);
+  renkon_ctrl_linebuf #(FILTER, IMAGE) ctrl(.*);
 
   // clock
   initial begin
@@ -47,7 +57,7 @@ module test_renkon_linebuf;
 
     #(STEP/2-1);
     while (!buf_ack) begin
-      addr++;
+      if (addr < img_size ** 2) addr++;
       #(STEP);
       buf_input = mem_input[addr];
     end
@@ -60,6 +70,7 @@ module test_renkon_linebuf;
 
   task read_input;
     $readmemh("../../data/renkon/input_renkon_linebuf.dat", mem_input);
+    mem_input[IMAGE**2] = 0;
   endtask
 
   //display
@@ -99,7 +110,9 @@ module test_renkon_linebuf;
         "%5d: ", $time/STEP,
         "%b ", buf_req,
         "%b ", buf_ack,
-        "%d ", dut.state$,
+        "%d ", ctrl.state$,
+        "|t: ",
+        "%d ", addr,
         "|i: ",
         "%1d ", xrst,
         "%1d ", buf_req,
@@ -121,19 +134,21 @@ module test_renkon_linebuf;
         "%4d ", buf_output[7],
         "%4d ", buf_output[8],
         "|r: ",
-        "%b ", dut.select$[1],
-        "%2d ", dut.col_count$,
-        "%1d ", dut.mem_count$,
-        "%2d ", dut.row_count$,
+        "%d ", ctrl.buf_wsel$,
+        "%d ", ctrl.buf_rsel$[1],
+        "%d ", ctrl.buf_we,
+        "%2d ", ctrl.col_count$,
+        "%1d ", ctrl.mem_count$,
+        "%2d ", ctrl.row_count$,
         ";mem ",
-        "%b ", dut.mem_linebuf_we,
-        "%d ", dut.mem_linebuf_addr,
-        "%4d ", dut.buf_input$,
+        "%b ",  dut.mem_linebuf_we,
+        "%d ",  dut.mem_linebuf_addr,
+        "%4d ", dut.mem_linebuf_wdata,
         "{",
-        "%4d, ", dut.read_mem[3],
-        "%4d, ", dut.read_mem[2],
-        "%4d, ", dut.read_mem[1],
-        "%4d, ", dut.read_mem[0],
+        "%4d, ", dut.mem_linebuf_rdata[3],
+        "%4d, ", dut.mem_linebuf_rdata[2],
+        "%4d, ", dut.mem_linebuf_rdata[1],
+        "%4d, ", dut.mem_linebuf_rdata[0],
         "}",
         "|"
       );

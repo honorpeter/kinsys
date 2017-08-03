@@ -14,12 +14,7 @@ module renkon_pool
   wire signed [DWIDTH-1:0] pixel_feat [PSIZE**2-1:0];
 
   renkon_linebuf #(PSIZE, D_POOLBUF) buf_feat(
-    .buf_req     (buf_feat_req),
     .buf_input  (pixel_in),
-    .img_size   (w_fea_size),
-    .fil_size   (w_pool_size),
-    .buf_ack    (),
-    .buf_valid  (),
     .buf_output (pixel_feat),
     .*
   );
