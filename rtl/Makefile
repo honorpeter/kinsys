@@ -39,6 +39,9 @@ test-all: $(TESTSUITE:.sv=.log)
 $(TARGET:.sv=.log): $(DEPENDS:.sv=.com) $(MODULE:.sv=.com)
 $(TESTSUITE:.sv=.log): $(SOURCES:.sv=.com)
 
+ci:
+	@watchmedo shell-command -W -R -p "*.sv" -c "$(MAKE) test"
+
 log:
 	@nvim $(TARGET:.sv=.log)
 

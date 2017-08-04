@@ -15,7 +15,9 @@ module renkon_ctrl_linebuf
   , input  [LWIDTH-1:0]     fil_size
   , input                   buf_req
   , output                  buf_ack
+  , output                  buf_start
   , output                  buf_valid
+  , output                  buf_stop
   , output [LINEWIDTH:0]    buf_wsel
   , output [LINEWIDTH:0]    buf_rsel
   , output                  buf_we
@@ -24,7 +26,6 @@ module renkon_ctrl_linebuf
 
   wire  s_charge_end;
   wire  s_active_end;
-  wire  in_col;
 
   enum reg [2-1:0] {
     S_WAIT, S_CHARGE, S_ACTIVE
@@ -34,7 +35,9 @@ module renkon_ctrl_linebuf
   reg [SIZEWIDTH-1:0]     row_count$;
   reg [LINEWIDTH:0]       buf_wsel$;
   reg [LINEWIDTH:0]       buf_rsel$ [2-1:0];
+  reg                     buf_start$ [3-1:0];
   reg                     buf_valid$ [3-1:0];
+  reg                     buf_stop$ [3-1:0];
   reg                     linebuf_we$;
   reg [SIZEWIDTH-1:0]     linebuf_addr$;
 
@@ -42,7 +45,8 @@ module renkon_ctrl_linebuf
 // core control
 //==========================================================
 
-  assign buf_ack = state$ == S_WAIT;
+  reg buf_ack$ [3-1:0];
+  assign buf_ack = state$ == S_WAIT && buf_ack$[1];
 
   assign s_charge_end = mem_count$ == fil_size - 1
                      && col_count$ == img_size - 1;
@@ -67,6 +71,22 @@ module renkon_ctrl_linebuf
         default:
           state$ <= S_WAIT;
       endcase
+
+  for (genvar i = 0; i < 3; i++)
+    if (i == 0) begin
+      always @(posedge clk)
+        if (!xrst)
+          buf_ack$[0] <= 0;
+        else
+          buf_ack$[0] <= state$ == S_WAIT;
+    end
+    else begin
+      always @(posedge clk)
+        if (!xrst)
+          buf_ack$[i] <= 0;
+        else
+          buf_ack$[i] <= buf_ack$[i-1];
+    end
 
 //==========================================================
 // address control
@@ -148,10 +168,9 @@ module renkon_ctrl_linebuf
   assign buf_we   = linebuf_we$;
   assign buf_addr = linebuf_addr$;
 
-  assign in_col = fil_size - 1 <= col_count$
-               && col_count$ < img_size;
-
+  assign buf_start = buf_start$[2];
   assign buf_valid = buf_valid$[2];
+  assign buf_stop  = buf_stop$[2];
 
   always @(posedge clk)
     if (!xrst)
@@ -172,17 +191,34 @@ module renkon_ctrl_linebuf
   for (genvar i = 0; i < 3; i++)
     if (i == 0) begin
       always @(posedge clk)
-        if (!xrst)
+        if (!xrst) begin
+          buf_start$[0] <= 0;
           buf_valid$[0] <= 0;
-        else
-          buf_valid$[0] <= state$ == S_ACTIVE && in_col;
+          buf_stop$[0]  <= 0;
+        end
+        else begin
+          buf_start$[0] <= state$ == S_ACTIVE
+                        && row_count$ == fil_size
+                        && col_count$ == fil_size - 2;
+          buf_valid$[0] <= state$ == S_ACTIVE
+                        && fil_size - 1 <= col_count$ && col_count$ < img_size;
+          buf_stop$[0]  <= state$ == S_ACTIVE
+                        && row_count$ == img_size
+                        && col_count$ == img_size - 1;
+        end
     end
     else begin
       always @(posedge clk)
-        if (!xrst)
+        if (!xrst) begin
+          buf_start$[i] <= 0;
           buf_valid$[i] <= 0;
-        else
+          buf_stop$[i]  <= 0;
+        end
+        else begin
+          buf_start$[i] <= buf_start$[i-1];
           buf_valid$[i] <= buf_valid$[i-1];
+          buf_stop$[i]  <= buf_stop$[i-1];
+        end
     end
 
 endmodule

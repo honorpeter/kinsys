@@ -9,16 +9,19 @@ module renkon_ctrl_pool
   , ctrl_bus.master     out_ctrl
   , output              pool_oe
   , output [LWIDTH-1:0] w_pool_size
+  , output [$clog2(PSIZE+1):0]        buf_feat_wsel
+  , output [$clog2(PSIZE+1):0]        buf_feat_rsel
+  , output                            buf_feat_we
+  , output [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
   );
 
   ctrl_bus pool_ctrl();
 
-  wire buf_feat_req;
-  wire buf_feat_ack;
-  wire buf_feat_valid;
-  wire [PSIZE:0] buf_feat_we;
-  wire [$clog2(PSIZE+1)-1:0] buf_feat_addr;
-  wire [$clog2(PSIZE+1)-1:0] buf_feat_sel;
+  wire                            buf_feat_req;
+  wire                            buf_feat_ack;
+  wire                            buf_feat_start;
+  wire                            buf_feat_valid;
+  wire                            buf_feat_stop;
 
   enum reg {
     S_WAIT, S_ACTIVE
@@ -108,12 +111,56 @@ module renkon_ctrl_pool
           end
       endcase
 
+  reg [LWIDTH-1:0] temp_x$;
+  reg [LWIDTH-1:0] temp_y$;
+  reg [LWIDTH-1:0] temp_exec_x$;
+  reg [LWIDTH-1:0] temp_exec_y$;
+  always @(posedge clk)
+    if (!xrst) begin
+      temp_x$ <= 0;
+      temp_y$ <= 0;
+      temp_exec_x$ <= 0;
+      temp_exec_y$ <= 0;
+    end
+    else if (buf_feat_ack) begin
+      temp_x$      <= 0;
+      temp_y$      <= 0;
+      temp_exec_x$ <= 0;
+      temp_exec_y$ <= 0;
+    end
+    else begin
+      if (temp_x$ == fea_size$ - pool_size$) begin
+        temp_x$ <= 0;
+
+        if (temp_y$ == fea_size$ - pool_size$)
+          temp_y$ <= 0;
+        else
+          temp_y$ <= temp_y$ + 1;
+
+        if (temp_exec_y$ == pool_size$ - 1)
+          temp_exec_y$ <= 0;
+        else
+          temp_exec_y$ <= temp_exec_y$ + 1;
+      end
+      else if (buf_feat_valid)
+        temp_x$ <= temp_x$ + 1;
+
+      if (temp_exec_x$ == pool_size$ - 1)
+        temp_exec_x$ <= 0;
+      else if (buf_feat_valid)
+        temp_exec_x$ <= temp_exec_x$ + 1;
+    end
+
 //==========================================================
 // pool control
 //==========================================================
 
   assign buf_feat_req = in_ctrl.start;
   // assign buf_feat_req = buf_feat_req$;
+
+  // assign pool_ctrl.start = temp_ctrl$.start;
+  // assign pool_ctrl.valid = temp_ctrl$.valid;
+  // assign pool_ctrl.stop  = temp_ctrl$.stop;
 
   assign pool_ctrl.start = pool_ctrl$[d_poolbuf$].start;
   assign pool_ctrl.valid = pool_ctrl$[d_poolbuf$].valid;
@@ -124,6 +171,38 @@ module renkon_ctrl_pool
       buf_feat_req$ <= 0;
     else
       buf_feat_req$ <= in_ctrl.start;
+
+  reg buf_feat_valid$;
+  always @(posedge clk)
+    buf_feat_valid$ <= buf_feat_valid;
+  wire buf_feat_valid_edge = buf_feat_valid && !buf_feat_valid$;
+
+  ctrl_reg         temp_ctrl$;
+  wire temp_ctrl$_start = buf_feat_start;
+  wire temp_ctrl$_valid = buf_feat_valid
+                       && temp_exec_x$ == 0 && temp_exec_y$ == 0;
+  wire temp_ctrl$_stop  = buf_feat_stop;
+  always @(posedge clk)
+    if (!xrst) begin
+      temp_ctrl$.start <= 0;
+      temp_ctrl$.valid <= 0;
+      temp_ctrl$.stop  <= 0;
+    end
+    else begin
+      assert (temp_ctrl$_start == pool_ctrl.start);
+      assert (temp_ctrl$_valid == pool_ctrl.valid);
+      assert (temp_ctrl$_stop  == pool_ctrl.stop);
+      temp_ctrl$.start <= state$ == S_ACTIVE
+                       && buf_feat_start;
+
+      temp_ctrl$.valid <= state$ == S_ACTIVE
+                       && temp_exec_x$ == 0
+                       && temp_exec_y$ == 0
+                       && buf_feat_valid;
+
+      temp_ctrl$.stop  <= state$ == S_ACTIVE
+                       && buf_feat_stop;
+    end
 
   for (genvar i = 0; i < D_POOLBUF; i++)
     if (i == 0)
@@ -162,11 +241,17 @@ module renkon_ctrl_pool
   renkon_ctrl_linebuf #(PSIZE, D_POOLBUF) ctrl_buf_feat(
     .img_size   (w_fea_size),
     .fil_size   (w_pool_size),
+
     .buf_req    (buf_feat_req),
     .buf_ack    (buf_feat_ack),
+    .buf_start  (buf_feat_start),
     .buf_valid  (buf_feat_valid),
+    .buf_stop   (buf_feat_stop),
+
+    .buf_wsel   (buf_feat_wsel),
+    .buf_rsel   (buf_feat_rsel),
     .buf_we     (buf_feat_we),
-    .buf_sel    (buf_feat_sel),
+    .buf_addr   (buf_feat_addr),
     .*
   );
 
@@ -188,9 +273,13 @@ module renkon_ctrl_pool
           out_ctrl$[0].stop  <= 0;
         end
         else begin
-          out_ctrl$[0].start <= pool_ctrl.start;
-          out_ctrl$[0].valid <= pool_ctrl.valid;
-          out_ctrl$[0].stop  <= pool_ctrl.stop;
+          // out_ctrl$[0].start <= pool_ctrl.start;
+          // out_ctrl$[0].valid <= pool_ctrl.valid;
+          // out_ctrl$[0].stop  <= pool_ctrl.stop;
+          out_ctrl$[0].start <= buf_feat_start;
+          out_ctrl$[0].valid <= buf_feat_valid
+                             && temp_exec_x$ == 0 && temp_exec_y$ == 0;
+          out_ctrl$[0].stop  <= buf_feat_stop;
         end
     else
       always @(posedge clk)

@@ -5,7 +5,6 @@ module renkon_core
   , input                       xrst
   , input                       bias_oe
   , input                       breg_we
-  , input                       buf_feat_req
   , input                       conv_oe
   , input                       mem_feat_rst
   , input                       mem_feat_we
@@ -16,6 +15,10 @@ module renkon_core
   , input         [FACCUM-1:0]  mem_feat_addr_d1
   , input         [LWIDTH-1:0]  w_fea_size
   , input         [LWIDTH-1:0]  w_pool_size
+  , input  [$clog2(PSIZE+1):0]        buf_feat_wsel
+  , input  [$clog2(PSIZE+1):0]        buf_feat_rsel
+  , input                             buf_feat_we
+  , input  [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
   , input  signed [DWIDTH-1:0]  pixel [FSIZE**2-1:0]
   , input  signed [DWIDTH-1:0]  net_rdata
   , output signed [DWIDTH-1:0]  pmap

@@ -45,11 +45,14 @@ module renkon_top
   wire                      mem_feat_rst;
   wire [FACCUM-1:0]         mem_feat_addr;
   wire [FACCUM-1:0]         mem_feat_addr_d1;
+  wire [$clog2(PSIZE+1):0]        buf_feat_wsel;
+  wire [$clog2(PSIZE+1):0]        buf_feat_rsel;
+  wire                            buf_feat_we;
+  wire [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr;
   wire                      conv_oe;
   wire                      breg_we;
   wire                      bias_oe;
   wire                      relu_oe;
-  wire                      buf_feat_req;
   wire                      pool_oe;
   wire                      serial_we;
   wire [RENKON_CORELOG:0]   serial_re;

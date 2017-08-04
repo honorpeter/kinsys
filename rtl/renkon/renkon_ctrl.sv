@@ -34,7 +34,6 @@ module renkon_ctrl
   , output                      serial_we
   , output [RENKON_CORELOG:0]   serial_re
   , output [OUTSIZE-1:0]        serial_addr
-  , output                      buf_feat_req
   , output                      img_we
   , output [IMGSIZE-1:0]        img_addr
   , output signed [DWIDTH-1:0]  img_wdata
@@ -44,6 +43,10 @@ module renkon_ctrl
   , output                      mem_feat_rst
   , output [FACCUM-1:0]         mem_feat_addr
   , output [FACCUM-1:0]         mem_feat_addr_d1
+  , output [$clog2(PSIZE+1):0]        buf_feat_wsel
+  , output [$clog2(PSIZE+1):0]        buf_feat_rsel
+  , output                            buf_feat_we
+  , output [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
   , output [LWIDTH-1:0]         w_img_size
   , output [LWIDTH-1:0]         w_conv_size
   , output [LWIDTH-1:0]         w_conv_pad

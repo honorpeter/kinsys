@@ -3,21 +3,21 @@
 module renkon_linebuf
  #( parameter MAXFIL = 5
   , parameter MAXIMG = 32
-
-  , localparam BUFSIZE = MAXIMG + 1
-  , localparam BUFLINE = MAXFIL + 1
-  , localparam SIZEWIDTH = $clog2(BUFSIZE)
-  , localparam LINEWIDTH = $clog2(BUFLINE)
   )
-  ( input                       clk
-  , input                       xrst
-  , input  [LINEWIDTH:0]        buf_wsel
-  , input  [LINEWIDTH:0]        buf_rsel
-  , input                       buf_we
-  , input  [SIZEWIDTH-1:0]      buf_addr
-  , input  signed [DWIDTH-1:0]  buf_input
-  , output signed [DWIDTH-1:0]  buf_output [MAXFIL**2-1:0]
+  ( input                         clk
+  , input                         xrst
+  , input  [$clog2(MAXFIL+1):0]   buf_wsel
+  , input  [$clog2(MAXFIL+1):0]   buf_rsel
+  , input                         buf_we
+  , input  [$clog2(MAXIMG+1)-1:0] buf_addr
+  , input  signed [DWIDTH-1:0]    buf_input
+  , output signed [DWIDTH-1:0]    buf_output [MAXFIL**2-1:0]
   );
+
+  localparam BUFSIZE = MAXIMG + 1;
+  localparam BUFLINE = MAXFIL + 1;
+  localparam SIZEWIDTH = $clog2(BUFSIZE);
+  localparam LINEWIDTH = $clog2(BUFLINE);
 
   wire [BUFLINE-1:0]        mem_linebuf_we;
   wire [SIZEWIDTH-1:0]      mem_linebuf_addr;
