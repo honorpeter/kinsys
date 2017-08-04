@@ -30,10 +30,12 @@ module renkon_top
   wire [RENKON_CORE-1:0]    mem_net_we;
   wire [RENKON_NETSIZE-1:0] mem_net_addr;
   wire signed [DWIDTH-1:0]  net_rdata [RENKON_CORE-1:0];
-  wire                      buf_pix_req;
-  wire                      buf_pix_ack;
-  wire                      buf_pix_valid;
-  wire                      buf_pix_ready;
+  wire                            buf_pix_wcol;
+  wire                            buf_pix_rrow [FSIZE-1:0];
+  wire [$clog2(FSIZE+1):0]        buf_pix_wsel;
+  wire [$clog2(FSIZE+1):0]        buf_pix_rsel;
+  wire                            buf_pix_we;
+  wire [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr;
   wire [LWIDTH-1:0]         w_img_size;
   wire [LWIDTH-1:0]         w_conv_size;
   wire [LWIDTH-1:0]         w_conv_pad;
@@ -63,14 +65,13 @@ module renkon_top
   renkon_ctrl ctrl(.*);
 
   renkon_linebuf_pad #(FSIZE, D_PIXELBUF) buf_pix(
-    .buf_req    (buf_pix_req),
+    .buf_wcol   (buf_pix_wcol),
+    .buf_rrow   (buf_pix_rrow),
+    .buf_wsel   (buf_pix_wsel),
+    .buf_rsel   (buf_pix_rsel),
+    .buf_we     (buf_pix_we),
+    .buf_addr   (buf_pix_addr),
     .buf_input  (img_rdata),
-    .img_size   (w_img_size),
-    .fil_size   (w_conv_size),
-    .pad_size   (w_conv_pad),
-    .buf_ack    (buf_pix_ack),
-    .buf_valid  (buf_pix_valid),
-    .buf_ready  (buf_pix_ready),
     .buf_output (pixel),
     .*
   );

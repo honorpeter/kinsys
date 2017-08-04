@@ -6,22 +6,36 @@ parameter PAD = (FILTER-1)/2;
 
 module test_renkon_linebuf_pad;
 
-  reg                     clk;
-  reg                     xrst;
-  reg                     buf_req;
-  reg  [LWIDTH-1:0]        img_size;
-  reg  [LWIDTH-1:0]        fil_size;
-  reg  [LWIDTH-1:0]        pad_size;
-  reg  signed [DWIDTH-1:0] buf_input;
+  localparam BUFSIZE = IMAGE + 1;
+  localparam BUFLINE = FILTER + 1;
+  localparam SIZEWIDTH = $clog2(BUFSIZE);
+  localparam LINEWIDTH = $clog2(BUFLINE);
 
-  wire                     buf_ack;
-  wire                     buf_valid;
-  wire                     buf_ready;
-  wire signed [DWIDTH-1:0] buf_output [FILTER**2-1:0];
+  reg                       clk;
+  reg                       xrst;
+  reg                       buf_req;
+  reg  [LWIDTH-1:0]         img_size;
+  reg  [LWIDTH-1:0]         fil_size;
+  reg  [LWIDTH-1:0]         pad_size;
+  reg  signed [DWIDTH-1:0]  buf_input;
+
+  wire                      buf_ack;
+  wire                      buf_start;
+  wire                      buf_valid;
+  wire                      buf_stop;
+  wire                      buf_ready;
+  wire                      buf_wcol;
+  wire                      buf_rrow [FILTER-1:0];
+  wire [LINEWIDTH:0]        buf_wsel;
+  wire [LINEWIDTH:0]        buf_rsel;
+  wire                      buf_we;
+  wire [SIZEWIDTH-1:0]      buf_addr;
+  wire signed [DWIDTH-1:0]  buf_output [FILTER**2-1:0];
 
   reg signed [DWIDTH-1:0] mem_input [IMAGE**2+1-1:0];
 
   renkon_linebuf_pad #(FILTER, IMAGE) dut(.*);
+  renkon_ctrl_linebuf_pad #(FILTER, IMAGE) ctrl(.*);
 
   // clock
   initial begin
@@ -104,49 +118,29 @@ module test_renkon_linebuf_pad;
         "%4d: ", $time/STEP,
         "%b ", buf_req,
         "%b ", buf_ack,
-        "%d ", dut.state$,
+        "%d ", ctrl.state$,
         "|i: ",
-        "%1d ", xrst,
-        "%2d ", img_size,
-        "%1d ", fil_size,
-        "%4d ", buf_input,
+        "%b ",  buf_we,
+        "%4d ", buf_addr,
+        "%4d ", dut.buf_input$,
         "|o: ",
-        "%b ", buf_ready,
+        "%b ", buf_start,
         "%b ", buf_valid,
-        "; ",
-        "%4d ", buf_output[0],
-        "%4d ", buf_output[5],
-        "%4d ", buf_output[10],
-        "%4d ", buf_output[15],
-        "%4d ", buf_output[20],
+        "%b ", buf_ready,
+        "%b ", buf_stop,
         "|r: ",
-        "%d ", dut.select$[1],
-        "%2d ", dut.col_count$,
-        "%1d ", dut.mem_count$,
-        "%2d ", dut.row_count$,
+        "%b ", buf_ready,
+        "%4d ", addr,
         "; ",
-        "%b",  dut.block[0].in_row$[1],
-        "%b",  dut.block[1].in_row$[1],
-        "%b",  dut.block[2].in_row$[1],
-        // "%b",  dut.block[3].in_row$[1],
-        // "%b ",  dut.block[4].in_row$[1],
-        ";mem ",
-        "%b ", dut.mem_linebuf_we,
-        "%d ", dut.mem_linebuf_addr,
-        "%d ", dut.buf_input$,
-        "{",
-        "%4d, ", dut.read_mem[5],
-        "%4d, ", dut.read_mem[4],
-        "%4d, ", dut.read_mem[3],
-        "%4d, ", dut.read_mem[2],
-        "%4d, ", dut.read_mem[1],
-        "%4d",   dut.read_mem[0],
-        "}",
-        "|m: ",
-        "%3d ", (IMAGE-FILTER+1)*i+j,
-        "%2d ", i,
-        "%2d ", j,
-        // "%4p", dut.mux,
+        "%d ", buf_wsel,
+        "%d ", buf_rsel,
+        "%2d ", ctrl.col_count$,
+        "%1d ", ctrl.mem_count$,
+        "%2d ", ctrl.row_count$,
+        "; ",
+        "%b ", ctrl.buf_start$[0],
+        "%b ", ctrl.buf_valid$[0],
+        "%b ", ctrl.buf_stop$[0],
         "|"
       );
       #(STEP/2+1);

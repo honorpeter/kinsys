@@ -33,13 +33,13 @@ module renkon_ctrl_linebuf
   reg [LINEWIDTH-1:0]     mem_count$;
   reg [SIZEWIDTH-1:0]     col_count$;
   reg [SIZEWIDTH-1:0]     row_count$;
-  reg [LINEWIDTH:0]       buf_wsel$;
-  reg [LINEWIDTH:0]       buf_rsel$ [2-1:0];
   reg                     buf_start$ [3-1:0];
   reg                     buf_valid$ [3-1:0];
   reg                     buf_stop$ [3-1:0];
-  reg                     linebuf_we$;
-  reg [SIZEWIDTH-1:0]     linebuf_addr$;
+  reg [LINEWIDTH:0]       buf_wsel$;
+  reg [LINEWIDTH:0]       buf_rsel$ [2-1:0];
+  reg                     buf_we$;
+  reg [SIZEWIDTH-1:0]     buf_addr$;
 
 //==========================================================
 // core control
@@ -165,8 +165,8 @@ module renkon_ctrl_linebuf
 // memory
 //==========================================================
 
-  assign buf_we   = linebuf_we$;
-  assign buf_addr = linebuf_addr$;
+  assign buf_we   = buf_we$;
+  assign buf_addr = buf_addr$;
 
   assign buf_start = buf_start$[2];
   assign buf_valid = buf_valid$[2];
@@ -174,19 +174,19 @@ module renkon_ctrl_linebuf
 
   always @(posedge clk)
     if (!xrst)
-      linebuf_addr$ <= 0;
+      buf_we$ <= 0;
     else if (state$ == S_WAIT)
-      linebuf_addr$ <= 0;
+      buf_we$ <= 0;
     else
-      linebuf_addr$ <= col_count$;
+      buf_we$ <= row_count$ < img_size;
 
   always @(posedge clk)
     if (!xrst)
-      linebuf_we$ <= 0;
+      buf_addr$ <= 0;
     else if (state$ == S_WAIT)
-      linebuf_we$ <= 0;
+      buf_addr$ <= 0;
     else
-      linebuf_we$ <= row_count$ < img_size;
+      buf_addr$ <= col_count$;
 
   for (genvar i = 0; i < 3; i++)
     if (i == 0) begin
@@ -201,7 +201,8 @@ module renkon_ctrl_linebuf
                         && row_count$ == fil_size
                         && col_count$ == fil_size - 2;
           buf_valid$[0] <= state$ == S_ACTIVE
-                        && fil_size - 1 <= col_count$ && col_count$ < img_size;
+                        && fil_size - 1 <= col_count$
+                        && col_count$ < img_size;
           buf_stop$[0]  <= state$ == S_ACTIVE
                         && row_count$ == img_size
                         && col_count$ == img_size - 1;

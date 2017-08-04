@@ -17,9 +17,6 @@ module renkon_ctrl_core
   , input  [LWIDTH-1:0]         img_size
   , input  [LWIDTH-1:0]         conv_size
   , input  [LWIDTH-1:0]         conv_pad
-  , input                       buf_pix_ack
-  , input                       buf_pix_valid
-  , input                       buf_pix_ready
 
   , ctrl_bus.master             out_ctrl
   , output                      ack
@@ -29,7 +26,6 @@ module renkon_ctrl_core
   , output signed [DWIDTH-1:0]  img_wdata
   , output [RENKON_CORE-1:0]    mem_net_we
   , output [RENKON_NETSIZE-1:0] mem_net_addr
-  , output                      buf_pix_req
   , output                      first_input
   , output                      last_input
   , output                      wreg_we
@@ -40,6 +36,12 @@ module renkon_ctrl_core
   , output [LWIDTH-1:0]         w_img_size
   , output [LWIDTH-1:0]         w_conv_size
   , output [LWIDTH-1:0]         w_conv_pad
+  , output                            buf_pix_wcol
+  , output                            buf_pix_rrow [FSIZE-1:0]
+  , output [$clog2(FSIZE+1):0]        buf_pix_wsel
+  , output [$clog2(FSIZE+1):0]        buf_pix_rsel
+  , output                            buf_pix_we
+  , output [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr
   );
 
   wire               s_network_end;
@@ -51,6 +53,12 @@ module renkon_ctrl_core
   wire               final_iter;
   wire [IMGSIZE-1:0] w_img_addr;
   wire [IMGSIZE-1:0] w_img_offset;
+  wire                  buf_pix_req;
+  wire                  buf_pix_ack;
+  wire                  buf_pix_start;
+  wire                  buf_pix_valid;
+  wire                  buf_pix_ready;
+  wire                  buf_pix_stop;
 
   enum reg [2-1:0] {
     S_WAIT=0, S_NETWORK=1, S_INPUT=2, S_OUTPUT=3
@@ -206,6 +214,27 @@ module renkon_ctrl_core
           first_input$[i] <= first_input$[i-1];
           last_input$[i]  <= last_input$[i-1];
         end
+
+  renkon_ctrl_linebuf_pad #(FSIZE, D_PIXELBUF) ctrl_buf_pix(
+    .img_size   (w_img_size),
+    .fil_size   (w_conv_size),
+    .pad_size   (w_conv_pad),
+
+    .buf_req    (buf_pix_req),
+    .buf_ack    (buf_pix_ack),
+    .buf_start  (buf_pix_start),
+    .buf_valid  (buf_pix_valid),
+    .buf_ready  (buf_pix_ready),
+    .buf_stop   (buf_pix_stop),
+
+    .buf_wcol   (buf_pix_wcol),
+    .buf_rrow   (buf_pix_rrow),
+    .buf_wsel   (buf_pix_wsel),
+    .buf_rsel   (buf_pix_rsel),
+    .buf_we     (buf_pix_we),
+    .buf_addr   (buf_pix_addr),
+    .*
+  );
 
 //==========================================================
 // network control
