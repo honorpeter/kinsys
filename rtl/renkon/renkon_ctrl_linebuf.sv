@@ -46,7 +46,7 @@ module renkon_ctrl_linebuf
 //==========================================================
 
   reg buf_ack$ [3-1:0];
-  assign buf_ack = state$ == S_WAIT && buf_ack$[1];
+  assign buf_ack = state$ == S_WAIT && buf_ack$[2];
 
   assign s_charge_end = mem_count$ == fil_size - 1
                      && col_count$ == img_size - 1;

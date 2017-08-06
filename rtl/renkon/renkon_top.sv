@@ -45,8 +45,8 @@ module renkon_top
   wire                      wreg_we;
   wire                      mem_feat_we;
   wire                      mem_feat_rst;
-  wire [FACCUM-1:0]         mem_feat_addr;
-  wire [FACCUM-1:0]         mem_feat_addr_d1;
+  wire [FACCUM-1:0]         mem_feat_raddr;
+  wire [FACCUM-1:0]         mem_feat_waddr;
   wire [$clog2(PSIZE+1):0]        buf_feat_wsel;
   wire [$clog2(PSIZE+1):0]        buf_feat_rsel;
   wire                            buf_feat_we;

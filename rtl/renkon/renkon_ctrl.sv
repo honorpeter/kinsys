@@ -42,8 +42,8 @@ module renkon_ctrl
   , output [RENKON_NETSIZE-1:0] mem_net_addr
   , output                      mem_feat_we
   , output                      mem_feat_rst
-  , output [FACCUM-1:0]         mem_feat_addr
-  , output [FACCUM-1:0]         mem_feat_addr_d1
+  , output [FACCUM-1:0]         mem_feat_raddr
+  , output [FACCUM-1:0]         mem_feat_waddr
   , output [$clog2(PSIZE+1):0]        buf_feat_wsel
   , output [$clog2(PSIZE+1):0]        buf_feat_rsel
   , output                            buf_feat_we

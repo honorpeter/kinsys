@@ -1,7 +1,7 @@
 `include "renkon.svh"
 
 parameter IMAGE = 32;
-parameter FILTER = 3;
+parameter FILTER = 5;
 
 module test_renkon_linebuf;
 
@@ -40,7 +40,17 @@ module test_renkon_linebuf;
   end
 
   //flow
-  int addr = 0;
+  reg [LWIDTH-1:0] addr = 0;
+  always@(posedge clk) begin
+    if (!xrst)
+      addr <= 0;
+    else if (buf_ack)
+      addr <= 0;
+    else if (addr < img_size ** 2)
+      addr <= addr + 1;
+    buf_input <= mem_input[addr];
+  end
+
   initial begin
     xrst = 0;
     read_input;
@@ -57,13 +67,7 @@ module test_renkon_linebuf;
     #(STEP);
     buf_req = 0;
 
-    #(STEP/2-1);
-    while (!buf_ack) begin
-      if (addr < img_size ** 2) addr++;
-      #(STEP);
-      buf_input = mem_input[addr];
-    end
-    #(STEP/2+1);
+    while (!buf_ack) #(STEP);
 
     #(STEP*10);
 
@@ -113,26 +117,27 @@ module test_renkon_linebuf;
         "%b ", buf_req,
         "%b ", buf_ack,
         "%d ", ctrl.state$,
-        "|i: ",
+        "| ",
+        "%1d ", ctrl.buf_wsel,
+        "%1d ", ctrl.buf_rsel,
         "%b ",  buf_we,
-        "%4d ", buf_addr,
+        "%2d ", buf_addr,
+        "%4d ", buf_input,
+        "%4d ", dut.buf_input,
         "%4d ", dut.buf_input$,
-        "|o: ",
+        "| ",
         "%b ", buf_start,
         "%b ", buf_valid,
         "%b ", buf_stop,
-        "|r: ",
+        ": ",
+        "%4d ", dut.buf_output[0],
+        "%4d ", dut.buf_output[4],
+        "| ",
         "%4d ", addr,
         "; ",
-        "%d ", ctrl.buf_wsel,
-        "%d ", ctrl.buf_rsel,
         "%2d ", ctrl.col_count$,
         "%1d ", ctrl.mem_count$,
         "%2d ", ctrl.row_count$,
-        "; ",
-        "%b ", ctrl.buf_start$[0],
-        "%b ", ctrl.buf_valid$[0],
-        "%b ", ctrl.buf_stop$[0],
         "|"
       );
       #(STEP/2+1);

@@ -39,9 +39,9 @@ module renkon_ctrl_linebuf_pad
   reg [LINEWIDTH:0]   mem_count$;
   reg [SIZEWIDTH-1:0] col_count$;
   reg [SIZEWIDTH-1:0] row_count$;
-  reg                 buf_start$ [3-1:0];
-  reg                 buf_valid$ [3-1:0];
-  reg                 buf_stop$ [3-1:0];
+  reg                 buf_start$ [4-1:0];
+  reg                 buf_valid$ [4-1:0];
+  reg                 buf_stop$ [4-1:0];
   reg                 buf_wcol$;
   reg                 buf_rrow$ [2-1:0][MAXFIL-1:0];
   reg [LINEWIDTH:0]   buf_wsel$;
@@ -53,7 +53,8 @@ module renkon_ctrl_linebuf_pad
 // core control
 //==========================================================
 
-  assign buf_ack = state$ == S_WAIT;
+  reg buf_ack$ [4-1:0];
+  assign buf_ack = state$ == S_WAIT && buf_ack$[2];
 
   assign s_charge_end = mem_count$ == fil_size - pad_size - 1
                      && col_count$ == img_size + pad_both - 1;
@@ -81,6 +82,22 @@ module renkon_ctrl_linebuf_pad
         default:
           state$ <= S_WAIT;
       endcase
+
+  for (genvar i = 0; i < 4; i++)
+    if (i == 0) begin
+      always @(posedge clk)
+        if (!xrst)
+          buf_ack$[0] <= 0;
+        else
+          buf_ack$[0] <= state$ == S_WAIT;
+    end
+    else begin
+      always @(posedge clk)
+        if (!xrst)
+          buf_ack$[i] <= 0;
+        else
+          buf_ack$[i] <= buf_ack$[i-1];
+    end
 
 //==========================================================
 // address control
@@ -124,7 +141,7 @@ module renkon_ctrl_linebuf_pad
 //==========================================================
 
   // assign buf_wcol = buf_wcol$;
-  assign buf_wcol = buf_ready;
+  assign buf_wcol = buf_wcol$;
   assign buf_rrow = buf_rrow$[1];
 
   assign buf_wsel = buf_wsel$;
@@ -134,7 +151,7 @@ module renkon_ctrl_linebuf_pad
     if (!xrst)
       buf_wcol$ <= 0;
     else
-      buf_wcol$ <= 0;
+      buf_wcol$ <= buf_ready;
 
   for (genvar i = 0; i < 2; i++)
     for (genvar j = 0; j < MAXFIL; j++)
@@ -173,8 +190,8 @@ module renkon_ctrl_linebuf_pad
         else if (state$ == S_ACTIVE && col_count$ == 0)
           if (buf_rsel$[0] == 0)
             buf_rsel$[0] <= pad_size == 0
-                        ? 1
-                        : BUFLINE - (pad_size - 1);
+                          ? 1
+                          : BUFLINE - (pad_size - 1);
           else if (buf_rsel$[0] == fil_size + 1)
             buf_rsel$[0] <= 1;
           else
@@ -219,7 +236,7 @@ module renkon_ctrl_linebuf_pad
     else
       buf_addr$ <= col_count$;
 
-  for (genvar i = 0; i < 3; i++)
+  for (genvar i = 0; i < 4; i++)
     if (i == 0) begin
       always @(posedge clk)
         if (!xrst) begin

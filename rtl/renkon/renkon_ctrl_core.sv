@@ -96,7 +96,7 @@ module renkon_ctrl_core
   reg [OUTSIZE-1:0] serial_addr$;
   reg               serial_end$;
   reg               output_end$;
-  reg               wreg_we$     [D_PIXELBUF-1:0];
+  // reg               wreg_we$     [D_PIXELBUF-1:0];
   reg               first_input$ [D_PIXELBUF-1:0];
   reg               last_input$  [D_PIXELBUF-1:0];
   ctrl_reg          out_ctrl$    [D_PIXELBUF-1:0];
@@ -157,7 +157,8 @@ module renkon_ctrl_core
             end
       endcase
 
-  assign core_state = state$[d_pixelbuf$];
+  assign core_state = state$[0];
+  // assign core_state = state$[d_pixelbuf$];
 
   for (genvar i = 1; i < D_PIXELBUF+1; i++)
     always @(posedge clk)
@@ -188,8 +189,10 @@ module renkon_ctrl_core
       d_pixelbuf$ <= img_size + 2;
     end
 
-  assign first_input = first_input$[d_pixelbuf$];
-  assign last_input  = last_input$[d_pixelbuf$];
+  // assign first_input = first_input$[d_pixelbuf$];
+  // assign last_input  = last_input$[d_pixelbuf$];
+  assign first_input = first_input$[0];
+  assign last_input  = last_input$[0];
 
   for (genvar i = 0; i < D_PIXELBUF; i++)
     if (i == 0)
@@ -214,27 +217,6 @@ module renkon_ctrl_core
           first_input$[i] <= first_input$[i-1];
           last_input$[i]  <= last_input$[i-1];
         end
-
-  renkon_ctrl_linebuf_pad #(FSIZE, D_PIXELBUF) ctrl_buf_pix(
-    .img_size   (w_img_size),
-    .fil_size   (w_conv_size),
-    .pad_size   (w_conv_pad),
-
-    .buf_req    (buf_pix_req),
-    .buf_ack    (buf_pix_ack),
-    .buf_start  (buf_pix_start),
-    .buf_valid  (buf_pix_valid),
-    .buf_ready  (buf_pix_ready),
-    .buf_stop   (buf_pix_stop),
-
-    .buf_wcol   (buf_pix_wcol),
-    .buf_rrow   (buf_pix_rrow),
-    .buf_wsel   (buf_pix_wsel),
-    .buf_rsel   (buf_pix_rsel),
-    .buf_we     (buf_pix_we),
-    .buf_addr   (buf_pix_addr),
-    .*
-  );
 
 //==========================================================
 // network control
@@ -290,13 +272,28 @@ module renkon_ctrl_core
   //     else
   //       net_we$[i] <= 0;
 
+  // always @(posedge clk)
+  //   if (!xrst)
+  //     net_addr$ <= 0;
+  //   else if (final_iter && state_weight$[d_pixelbuf$] == S_W_BIAS)
+  //     net_addr$ <= 0;
+  //   else if (state$[d_pixelbuf$] == S_NETWORK)
+  //     case (state_weight$[d_pixelbuf$])
+  //       S_W_WEIGHT:
+  //         net_addr$ <= net_addr$ + 1;
+  //       S_W_BIAS:
+  //         net_addr$ <= net_addr$ + 1;
+  //       default:
+  //         net_addr$ <= net_addr$;
+  //     endcase
+
   always @(posedge clk)
     if (!xrst)
       net_addr$ <= 0;
-    else if (final_iter && state_weight$[d_pixelbuf$] == S_W_BIAS)
+    else if (final_iter && state_weight$[0] == S_W_BIAS)
       net_addr$ <= 0;
-    else if (state$[d_pixelbuf$] == S_NETWORK)
-      case (state_weight$[d_pixelbuf$])
+    else if (state$[0] == S_NETWORK)
+      case (state_weight$[0])
         S_W_WEIGHT:
           net_addr$ <= net_addr$ + 1;
         S_W_BIAS:
@@ -345,29 +342,52 @@ module renkon_ctrl_core
 // params control
 //==========================================================
 
-  assign wreg_we  = state$[d_pixelbuf$+1] == S_NETWORK
-                 && state_weight$[d_pixelbuf$+1] == S_W_WEIGHT;
+  // assign wreg_we  = state$[d_pixelbuf$+1] == S_NETWORK
+  //                && state_weight$[d_pixelbuf$+1] == S_W_WEIGHT;
+  //
+  // assign breg_we  = state$[d_pixelbuf$+1] == S_NETWORK
+  //                && state_weight$[d_pixelbuf$+1] == S_W_BIAS;
 
-  assign breg_we  = state$[d_pixelbuf$+1] == S_NETWORK
-                 && state_weight$[d_pixelbuf$+1] == S_W_BIAS;
+  reg wreg_we$, breg_we$;
+  assign wreg_we  = wreg_we$;
+  assign breg_we  = breg_we$;
+
+  always @(posedge clk)
+    if (!xrst) begin
+      wreg_we$ <= 0;
+      breg_we$ <= 0;
+    end
+    else if (state$[0] != S_NETWORK) begin
+      wreg_we$ <= 0;
+      breg_we$ <= 0;
+    end
+    else begin
+      wreg_we$ <= state_weight$[0] == S_W_WEIGHT;
+      breg_we$ <= state_weight$[0] == S_W_BIAS;
+    end
 
   // assign buf_pix_req = buf_pix_req$;
-  assign buf_pix_req = state$[0] == S_INPUT && out_ctrl$[0].start;
+  // assign buf_pix_req = state$[0] == S_INPUT && out_ctrl$[0].start;
+  assign buf_pix_req = s_network_end;
 
   always @(posedge clk)
     if (!xrst)
       buf_pix_req$ <= 0;
     else
-      buf_pix_req$ <= state$[0] == S_INPUT
-                   && out_ctrl$[0].start;
+      buf_pix_req$ <= s_network_end;
+      // buf_pix_req$ <= state$[0] == S_INPUT
+      //              && out_ctrl$[0].start;
 
 //==========================================================
 // input control
 //==========================================================
 
+  reg [LWIDTH-1:0] temp_x$, temp_y$;
   assign s_input_end = state$[0] == S_INPUT
-                    && input_x$ == img_size$ - 1
-                    && input_y$ == img_size$ - 1;
+                    && temp_x$ == img_size$ - conv_size$
+                    && temp_y$ == img_size$ - conv_size$;
+                    // && input_x$ == img_size$ - 1
+                    // && input_y$ == img_size$ - 1;
 
   assign img_we   = img_we$;
   // assign img_addr = w_img_addr + w_img_offset;
@@ -384,6 +404,8 @@ module renkon_ctrl_core
                       ? out_offset$
                       : in_offset$;
 
+  reg buf_pix_ready$;
+  always@(posedge clk) buf_pix_ready$ <= buf_pix_ready;
   always @(posedge clk)
     if (!xrst) begin
       input_x$ <= 0;
@@ -399,7 +421,7 @@ module renkon_ctrl_core
             else
               input_y$ <= input_y$ + 1;
           end
-          else
+          else if (buf_pix_ready$)
             input_x$ <= input_x$ + 1;
         default: begin
           input_x$ <= 0;
@@ -444,6 +466,7 @@ module renkon_ctrl_core
       out_offset$ <= out_offset;
     end
 
+  // TODO: split modes
   reg [IMGSIZE-1:0] img_addr$;
   assign img_addr = img_addr$;
   always @(posedge clk)
@@ -458,7 +481,8 @@ module renkon_ctrl_core
         img_addr$ <= in_offset$;
     else if (s_input_end && count_in$ == total_in$ - 1)
       img_addr$ <= out_addr$ + out_offset$;
-    else if (state$[0] == S_INPUT || img_we$)
+    // else if (state$[0] == S_INPUT || img_we$)
+    else if (buf_pix_ready || img_we$)
       img_addr$ <= img_addr$ + 1;
 
 //==========================================================
@@ -471,9 +495,15 @@ module renkon_ctrl_core
   assign serial_re    = serial_re$;
   assign serial_addr  = serial_addr$;
 
-  assign out_ctrl.start = out_ctrl$[d_pixelbuf$].start;
-  assign out_ctrl.valid = out_ctrl$[d_pixelbuf$].valid;
-  assign out_ctrl.stop  = out_ctrl$[d_pixelbuf$].stop;
+  // assign out_ctrl.start = out_ctrl$[0].start;
+  // assign out_ctrl.valid = out_ctrl$[0].valid;
+  // assign out_ctrl.stop  = out_ctrl$[0].stop;
+  assign out_ctrl.start = buf_pix_start;
+  assign out_ctrl.valid = buf_pix_valid;
+  assign out_ctrl.stop  = buf_pix_stop;
+  // assign out_ctrl.start = out_ctrl$[d_pixelbuf$].start;
+  // assign out_ctrl.valid = out_ctrl$[d_pixelbuf$].valid;
+  // assign out_ctrl.stop  = out_ctrl$[d_pixelbuf$].stop;
 
   assign s_output_end = output_end$;
 
@@ -557,15 +587,17 @@ module renkon_ctrl_core
           out_ctrl$[0].stop  <= 0;
         end
         else begin
-          out_ctrl$[0].start <= req_edge
-                             || s_network_end
-                             || s_input_end
-                                && count_in$ != total_in$ - 1;
+          out_ctrl$[0].start <= buf_pix_start;
+          out_ctrl$[0].valid <= buf_pix_valid;
+          out_ctrl$[0].stop  <= buf_pix_stop;
 
-          out_ctrl$[0].valid <= state$[0] == S_NETWORK
-                             || state$[0] == S_INPUT;
-
-          out_ctrl$[0].stop  <= s_network_end || s_input_end;
+          // out_ctrl$[0].start <= s_network_end
+          //                    || s_input_end
+          //                       && count_in$ != total_in$ - 1;
+          //
+          // out_ctrl$[0].valid <= state$[0] == S_INPUT;
+          //
+          // out_ctrl$[0].stop  <= s_input_end;
         end
     else
       always @(posedge clk)
@@ -579,5 +611,81 @@ module renkon_ctrl_core
           out_ctrl$[i].valid <= out_ctrl$[i-1].valid;
           out_ctrl$[i].stop  <= out_ctrl$[i-1].stop;
         end
+
+  renkon_ctrl_linebuf_pad #(FSIZE, D_PIXELBUF) ctrl_buf_pix(
+    .img_size   (w_img_size),
+    .fil_size   (w_conv_size),
+    .pad_size   (w_conv_pad),
+
+    .buf_req    (buf_pix_req),
+    .buf_ack    (buf_pix_ack),
+    .buf_start  (buf_pix_start),
+    .buf_valid  (buf_pix_valid),
+    .buf_ready  (buf_pix_ready),
+    .buf_stop   (buf_pix_stop),
+
+    .buf_wcol   (buf_pix_wcol),
+    .buf_rrow   (buf_pix_rrow),
+    .buf_wsel   (buf_pix_wsel),
+    .buf_rsel   (buf_pix_rsel),
+    .buf_we     (buf_pix_we),
+    .buf_addr   (buf_pix_addr),
+    .*
+  );
+
+  reg [LWIDTH-1:0] temp_wx$, temp_wy$;
+  always @(posedge clk)
+    if (!xrst) begin
+      temp_wx$ <= 0;
+      temp_wy$ <= 0;
+    end
+    else
+      case (state$[0])
+        S_NETWORK:
+          case (state_weight$[0])
+            S_W_WEIGHT:
+              if (temp_wx$ == conv_size$ - 1) begin
+                temp_wx$ <= 0;
+                if (temp_wy$ == conv_size$ - 1)
+                  temp_wy$ <= 0;
+                else
+                  temp_wy$ <= temp_wy$ + 1;
+              end
+              else
+                temp_wx$ <= temp_wx$ + 1;
+            default: begin
+              temp_wx$ <= 0;
+              temp_wy$ <= 0;
+            end
+          endcase
+        default: begin
+          temp_wx$ <= 0;
+          temp_wy$ <= 0;
+        end
+      endcase
+
+  always @(posedge clk)
+    if (!xrst) begin
+      temp_x$ <= 0;
+      temp_y$ <= 0;
+    end
+    else case (state$[0])
+      S_INPUT:
+        if (buf_pix_valid) begin
+          if (temp_x$ == img_size$ - conv_size$) begin
+            temp_x$ <= 0;
+            if (temp_y$ == img_size$ - conv_size$)
+              temp_y$ <= 0;
+            else
+              temp_y$ <= temp_y$ + 1;
+          end
+          else
+            temp_x$ <= temp_x$ + 1;
+        end
+      default: begin
+        temp_x$ <= 0;
+        temp_y$ <= 0;
+      end
+  endcase
 
 endmodule

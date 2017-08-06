@@ -64,7 +64,7 @@ module renkon_linebuf
 //==========================================================
 
   assign mem_linebuf_addr   = buf_addr;
-  assign mem_linebuf_wdata  = buf_input$;
+  assign mem_linebuf_wdata  = buf_input;
 
   always @(posedge clk)
     if (!xrst)

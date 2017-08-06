@@ -69,7 +69,7 @@ module renkon_linebuf_pad
 //==========================================================
 
   assign mem_linebuf_addr   = buf_addr;
-  assign mem_linebuf_wdata  = buf_input$;
+  assign mem_linebuf_wdata  = buf_wcol ? buf_input : 0;
 
   always @(posedge clk)
     if (!xrst)
@@ -79,17 +79,17 @@ module renkon_linebuf_pad
     else
       buf_input$ <= 0;
 
-  for (genvar i = 0; i < BUFLINE; i++) begin
+  for (genvar i = 0; i < BUFLINE; i++) begin:b
     assign mem_linebuf_we[i] = buf_we
                             && buf_wsel == i + 1;
 
     mem_sp #(DWIDTH, SIZEWIDTH) mem_buf(
       .mem_we     (mem_linebuf_we[i]),
       .mem_addr   (mem_linebuf_addr),
-      .mem_wdata  (buf_input$),
+      .mem_wdata  (mem_linebuf_wdata),
       .mem_rdata  (mem_linebuf_rdata[i]),
       .*
     );
-  end
+  end:b
 
 endmodule

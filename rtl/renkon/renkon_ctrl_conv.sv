@@ -12,8 +12,8 @@ module renkon_ctrl_conv
   , ctrl_bus.master     out_ctrl
   , output              mem_feat_we
   , output              mem_feat_rst
-  , output [FACCUM-1:0] mem_feat_addr
-  , output [FACCUM-1:0] mem_feat_addr_d1
+  , output [FACCUM-1:0] mem_feat_raddr
+  , output [FACCUM-1:0] mem_feat_waddr
   , output              conv_oe
   , output [LWIDTH-1:0] w_fea_size
   );
@@ -82,6 +82,40 @@ module renkon_ctrl_conv
       fea_size$   <= w_img_size - w_conv_size + 1;
     end
 
+  // always @(posedge clk)
+  //   if (!xrst) begin
+  //     conv_x$ <= 0;
+  //     conv_y$ <= 0;
+  //   end
+  //   else
+  //     case (state$)
+  //       S_WAIT: begin
+  //         conv_x$ <= 0;
+  //         conv_y$ <= 0;
+  //       end
+  //       S_ACTIVE:
+  //         if (core_state$ == S_CORE_INPUT && in_ctrl.valid)
+  //           if (conv_x$ == img_size$ - 1) begin
+  //             conv_x$ <= 0;
+  //             if (conv_y$ == img_size$ - 1)
+  //               conv_y$ <= 0;
+  //             else
+  //               conv_y$ <= conv_y$ + 1;
+  //           end
+  //           else
+  //             conv_x$ <= conv_x$ + 1;
+  //         else if (core_state$ == S_CORE_OUTPUT && !wait_back$)
+  //           if (conv_x$ == fea_size$ - 1) begin
+  //             conv_x$ <= 0;
+  //             if (conv_y$ == fea_size$ - 1)
+  //               conv_y$ <= 0;
+  //             else
+  //               conv_y$ <= conv_y$ + 1;
+  //           end
+  //           else
+  //             conv_x$ <= conv_x$ + 1;
+  //     endcase
+
   always @(posedge clk)
     if (!xrst) begin
       conv_x$ <= 0;
@@ -94,17 +128,27 @@ module renkon_ctrl_conv
           conv_y$ <= 0;
         end
         S_ACTIVE:
-          if (core_state$ == S_CORE_INPUT && in_ctrl.valid)
-            if (conv_x$ == img_size$ - 1) begin
+          if (core_state$ == S_CORE_INPUT) begin
+          //   if (conv_x$ == img_size$ - conv_size$ + 1) begin
+          //     conv_x$ <= 0;
+          //     if (conv_y$ == img_size$ - conv_size$ + 1)
+          //       conv_y$ <= 0;
+          //     else
+          //       conv_y$ <= conv_y$ + 1;
+          //   end
+          //   else
+          //     conv_x$ <= conv_x$ + 1;
+            if (conv_x$ == fea_size$ - 1) begin
               conv_x$ <= 0;
-              if (conv_y$ == img_size$ - 1)
+              if (conv_y$ == fea_size$ - 1)
                 conv_y$ <= 0;
               else
                 conv_y$ <= conv_y$ + 1;
             end
-            else
+            else if (in_ctrl.valid)
               conv_x$ <= conv_x$ + 1;
-          else if (core_state$ == S_CORE_OUTPUT && !wait_back$)
+          end
+          else if (core_state$ == S_CORE_OUTPUT && !wait_back$) begin
             if (conv_x$ == fea_size$ - 1) begin
               conv_x$ <= 0;
               if (conv_y$ == fea_size$ - 1)
@@ -114,15 +158,19 @@ module renkon_ctrl_conv
             end
             else
               conv_x$ <= conv_x$ + 1;
+          end
       endcase
 
 //==========================================================
 // conv control
 //==========================================================
 
-  assign conv_ctrl.start = conv_ctrl$.start;
-  assign conv_ctrl.valid = conv_ctrl$.valid;
-  assign conv_ctrl.stop  = conv_ctrl$.stop;
+  assign conv_ctrl.start = in_ctrl.start;
+  assign conv_ctrl.valid = in_ctrl.valid;
+  assign conv_ctrl.stop  = in_ctrl.stop;
+  // assign conv_ctrl.start = conv_ctrl$.start;
+  // assign conv_ctrl.valid = conv_ctrl$.valid;
+  // assign conv_ctrl.stop  = conv_ctrl$.stop;
 
   always @(posedge clk)
     if (!xrst) begin
@@ -132,17 +180,19 @@ module renkon_ctrl_conv
     end
     else begin
       conv_ctrl$.start <= state$ == S_ACTIVE
-                            && core_state$ == S_CORE_INPUT
-                            && conv_x$ == conv_size$ - 2
-                            && conv_y$ == conv_size$ - 1;
+                       && core_state$ == S_CORE_INPUT
+                       && conv_x$ == conv_size$ - 2
+                       && conv_y$ == conv_size$ - 1;
+
       conv_ctrl$.valid <= state$ == S_ACTIVE
-                            && core_state$ == S_CORE_INPUT
-                            && conv_x$ >= conv_size$ - 1
-                            && conv_y$ >= conv_size$ - 1;
+                       && core_state$ == S_CORE_INPUT
+                       && conv_x$ >= conv_size$ - 1
+                       && conv_y$ >= conv_size$ - 1;
+
       conv_ctrl$.stop  <= state$ == S_ACTIVE
-                            && core_state$ == S_CORE_INPUT
-                            && conv_x$ == img_size$ - 1
-                            && conv_y$ == img_size$ - 1;
+                       && core_state$ == S_CORE_INPUT
+                       && conv_x$ == img_size$ - 1
+                       && conv_y$ == img_size$ - 1;
     end
 
   always @(posedge clk)
@@ -161,8 +211,8 @@ module renkon_ctrl_conv
 
   assign mem_feat_we      = feat_we$[D_CONV-1];
   assign mem_feat_rst     = feat_rst$[D_CONV-1];
-  assign mem_feat_addr    = feat_addr$[D_CONV-1];
-  assign mem_feat_addr_d1 = feat_addr$[D_CONV];
+  assign mem_feat_raddr   = feat_addr$[D_CONV-1];
+  assign mem_feat_waddr   = feat_addr$[D_CONV];
 
   for (genvar i = 0; i < D_CONV; i++)
     if (i == 0)
@@ -199,10 +249,10 @@ module renkon_ctrl_conv
           feat_addr$[0] <= 0;
         else if (conv_ctrl.stop || wait_back$)
           feat_addr$[0] <= 0;
-        else if (conv_ctrl.valid
-                  || (core_state$ == S_CORE_OUTPUT
-                        && conv_x$ <= fea_size$ - 1
-                        && conv_y$ <= fea_size$ - 1))
+        else if (
+          conv_ctrl.valid || (core_state$ == S_CORE_OUTPUT
+            && conv_x$ <= fea_size$ - 1 && conv_y$ <= fea_size$ - 1)
+        )
           feat_addr$[0] <= feat_addr$[0] + 1;
     end
     else begin
@@ -229,19 +279,23 @@ module renkon_ctrl_conv
     end
     else begin
       accum_ctrl$.start <= state$ == S_ACTIVE
-                              && core_state$ == S_CORE_INPUT
-                              && conv_x$ == img_size$ - 1
-                              && conv_y$ == img_size$ - 1
-                              && last_input$;
+                        && core_state$ == S_CORE_INPUT
+                        && conv_x$ == fea_size$ - 1
+                        && conv_y$ == fea_size$ - 1
+                        // && conv_x$ == img_size$ - 1
+                        // && conv_y$ == img_size$ - 1
+                        && last_input$;
+
       accum_ctrl$.valid <= state$ == S_ACTIVE
-                              && core_state$ == S_CORE_OUTPUT
-                              && conv_x$ <= fea_size$ - 1
-                              && conv_y$ <= fea_size$ - 1
-                              && !wait_back$;
+                        && core_state$ == S_CORE_OUTPUT
+                        && conv_x$ <= fea_size$ - 1
+                        && conv_y$ <= fea_size$ - 1
+                        && !wait_back$;
+
       accum_ctrl$.stop  <= state$ == S_ACTIVE
-                              && core_state$ == S_CORE_OUTPUT
-                              && conv_x$ == fea_size$ - 1
-                              && conv_y$ == fea_size$ - 1;
+                        && core_state$ == S_CORE_OUTPUT
+                        && conv_x$ == fea_size$ - 1
+                        && conv_y$ == fea_size$ - 1;
     end
 
 //==========================================================
@@ -262,9 +316,27 @@ module renkon_ctrl_conv
           out_ctrl$[0].stop  <= 0;
         end
         else begin
-          out_ctrl$[0].start <= accum_ctrl.start;
-          out_ctrl$[0].valid <= accum_ctrl.valid;
-          out_ctrl$[0].stop  <= accum_ctrl.stop;
+          // out_ctrl$[0].start <= accum_ctrl.start;
+          // out_ctrl$[0].valid <= accum_ctrl.valid;
+          // out_ctrl$[0].stop  <= accum_ctrl.stop;
+          out_ctrl$[0].start <= state$ == S_ACTIVE
+                            && core_state$ == S_CORE_INPUT
+                            && conv_x$ == fea_size$ - 1
+                            && conv_y$ == fea_size$ - 1
+                            // && conv_x$ == img_size$ - 1
+                            // && conv_y$ == img_size$ - 1
+                            && last_input$;
+
+          out_ctrl$[0].valid <= state$ == S_ACTIVE
+                            && core_state$ == S_CORE_OUTPUT
+                            && conv_x$ <= fea_size$ - 1
+                            && conv_y$ <= fea_size$ - 1
+                            && !wait_back$;
+
+          out_ctrl$[0].stop  <= state$ == S_ACTIVE
+                            && core_state$ == S_CORE_OUTPUT
+                            && conv_x$ == fea_size$ - 1
+                            && conv_y$ == fea_size$ - 1;
         end
     end
     else begin
@@ -286,10 +358,10 @@ module renkon_ctrl_conv
       wait_back$ <= 0;
     else if (in_ctrl.start)
       wait_back$ <= 0;
-    else if ((state$ == S_ACTIVE)
-                && (core_state$ == S_CORE_OUTPUT)
-                && conv_x$ == fea_size$ - 1
-                && conv_y$ == fea_size$ - 1)
+    else if (
+      state$ == S_ACTIVE && core_state$ == S_CORE_OUTPUT
+      && conv_x$ == fea_size$ - 1 && conv_y$ == fea_size$ - 1
+    )
       wait_back$ <= 1;
 
 endmodule

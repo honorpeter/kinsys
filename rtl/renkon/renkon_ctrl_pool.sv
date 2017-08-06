@@ -189,9 +189,9 @@ module renkon_ctrl_pool
       temp_ctrl$.stop  <= 0;
     end
     else begin
-      assert (temp_ctrl$_start == pool_ctrl.start);
-      assert (temp_ctrl$_valid == pool_ctrl.valid);
-      assert (temp_ctrl$_stop  == pool_ctrl.stop);
+      // assert (temp_ctrl$_start == pool_ctrl.start);
+      // assert (temp_ctrl$_valid == pool_ctrl.valid);
+      // assert (temp_ctrl$_stop  == pool_ctrl.stop);
       temp_ctrl$.start <= state$ == S_ACTIVE
                        && buf_feat_start;
 

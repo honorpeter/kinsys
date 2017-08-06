@@ -2,7 +2,8 @@
 
 parameter IMAGE = 32;
 parameter FILTER = 5;
-parameter PAD = (FILTER-1)/2;
+// parameter PAD = (FILTER-1)/2;
+parameter PAD = 0;
 
 module test_renkon_linebuf_pad;
 
@@ -45,7 +46,17 @@ module test_renkon_linebuf_pad;
   end
 
   //flow
-  int addr = 0;
+  reg [LWIDTH-1:0] addr = 0;
+  always@(posedge clk) begin
+    if (!xrst)
+      addr <= 0;
+    else if (buf_ack)
+      addr <= 0;
+    else if (buf_ready)
+      addr <= addr + 1;
+    buf_input <= mem_input[addr];
+  end
+
   initial begin
     xrst = 0;
     read_input;
@@ -56,20 +67,13 @@ module test_renkon_linebuf_pad;
     img_size  = IMAGE;
     fil_size  = FILTER;
     pad_size  = PAD;
-    buf_input = mem_input[0];
     #(STEP*5);
 
     buf_req = 1;
     #(STEP);
     buf_req = 0;
 
-    #(STEP/2-1);
-    while (!buf_ack) begin
-      if (buf_ready) addr++;
-      #(STEP);
-      buf_input = mem_input[addr];
-    end
-    #(STEP/2+1);
+    while (!buf_ack) #(STEP);
 
     #(STEP*10);
 
@@ -119,28 +123,37 @@ module test_renkon_linebuf_pad;
         "%b ", buf_req,
         "%b ", buf_ack,
         "%d ", ctrl.state$,
-        "|i: ",
+        "| ",
+        "%1d ", buf_wcol,
+        "%1b",  buf_rrow[0],
+        "%1b",  buf_rrow[1],
+        "%1b",  buf_rrow[2],
+        "%1b",  buf_rrow[3],
+        "%1b ", buf_rrow[4],
+        "%1d ", buf_wsel,
+        "%1d ", buf_rsel,
         "%b ",  buf_we,
-        "%4d ", buf_addr,
-        "%4d ", dut.buf_input$,
-        "|o: ",
+        "%2d ", buf_addr,
+        "%4d ", buf_input,
+        "| ",
         "%b ", buf_start,
         "%b ", buf_valid,
         "%b ", buf_ready,
         "%b ", buf_stop,
-        "|r: ",
-        "%b ", buf_ready,
+        ": ",
+        "%4d ", dut.buf_output[0],
+        "%4d ", dut.buf_output[4],
+        "| ",
+        "%b ",  buf_ready,
         "%4d ", addr,
         "; ",
-        "%d ", buf_wsel,
-        "%d ", buf_rsel,
         "%2d ", ctrl.col_count$,
         "%1d ", ctrl.mem_count$,
         "%2d ", ctrl.row_count$,
-        "; ",
-        "%b ", ctrl.buf_start$[0],
-        "%b ", ctrl.buf_valid$[0],
-        "%b ", ctrl.buf_stop$[0],
+        // "; ",
+        // "%1d ", dut.mem_linebuf_we[0],
+        // "%2d ", dut.mem_linebuf_addr,
+        // "%4d ", dut.mem_linebuf_wdata,
         "|"
       );
       #(STEP/2+1);
