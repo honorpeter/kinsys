@@ -39,9 +39,10 @@ module renkon_ctrl_linebuf_pad
   reg [LINEWIDTH:0]   mem_count$;
   reg [SIZEWIDTH-1:0] col_count$;
   reg [SIZEWIDTH-1:0] row_count$;
-  reg                 buf_start$ [4-1:0];
-  reg                 buf_valid$ [4-1:0];
-  reg                 buf_stop$ [4-1:0];
+  reg                 buf_ack$ [3-1:0];
+  reg                 buf_start$ [3-1:0];
+  reg                 buf_valid$ [3-1:0];
+  reg                 buf_stop$ [3-1:0];
   reg                 buf_wcol$;
   reg                 buf_rrow$ [2-1:0][MAXFIL-1:0];
   reg [LINEWIDTH:0]   buf_wsel$;
@@ -53,7 +54,6 @@ module renkon_ctrl_linebuf_pad
 // core control
 //==========================================================
 
-  reg buf_ack$ [4-1:0];
   assign buf_ack = state$ == S_WAIT && buf_ack$[2];
 
   assign s_charge_end = mem_count$ == fil_size - pad_size - 1
@@ -83,7 +83,7 @@ module renkon_ctrl_linebuf_pad
           state$ <= S_WAIT;
       endcase
 
-  for (genvar i = 0; i < 4; i++)
+  for (genvar i = 0; i < 3; i++)
     if (i == 0) begin
       always @(posedge clk)
         if (!xrst)
@@ -140,7 +140,6 @@ module renkon_ctrl_linebuf_pad
 // select control
 //==========================================================
 
-  // assign buf_wcol = buf_wcol$;
   assign buf_wcol = buf_wcol$;
   assign buf_rrow = buf_rrow$[1];
 
@@ -236,7 +235,7 @@ module renkon_ctrl_linebuf_pad
     else
       buf_addr$ <= col_count$;
 
-  for (genvar i = 0; i < 4; i++)
+  for (genvar i = 0; i < 3; i++)
     if (i == 0) begin
       always @(posedge clk)
         if (!xrst) begin
@@ -248,9 +247,11 @@ module renkon_ctrl_linebuf_pad
           buf_start$[0] <= state$ == S_ACTIVE
                         && row_count$ == fil_size - pad_size
                         && col_count$ == fil_size - 2;
+
           buf_valid$[0] <= state$ == S_ACTIVE
                         && fil_size - 1 <= col_count$
                         && col_count$ < img_size + pad_both;
+
           buf_stop$[0]  <= state$ == S_ACTIVE
                         && row_count$ == img_size + pad_size
                         && col_count$ == img_size + pad_both - 1;

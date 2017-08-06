@@ -13,7 +13,7 @@ module renkon_ctrl_bias
   assign out_ctrl.start = out_ctrl$[D_BIAS-1].start;
   assign out_ctrl.valid = out_ctrl$[D_BIAS-1].valid;
   assign out_ctrl.stop  = out_ctrl$[D_BIAS-1].stop;
-  assign bias_oe  = out_ctrl$[D_BIAS-2].valid;
+  assign bias_oe        = out_ctrl$[D_BIAS-2].valid;
 
   for (genvar i = 0; i < D_BIAS; i++)
     if (i == 0)

@@ -51,7 +51,7 @@ module renkon_linebuf_pad
         always @(posedge clk)
           if (!xrst)
             pixel$[MAXFIL * i + j] <= 0;
-          else if (buf_rrow)
+          else if (buf_rrow[i])
             pixel$[MAXFIL * i + j] <= mux[i][buf_rsel];
           else
             pixel$[MAXFIL * i + j] <= 0;

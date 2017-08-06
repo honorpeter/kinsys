@@ -30,22 +30,22 @@ module renkon_ctrl_linebuf
   enum reg [2-1:0] {
     S_WAIT, S_CHARGE, S_ACTIVE
   } state$;
-  reg [LINEWIDTH-1:0]     mem_count$;
-  reg [SIZEWIDTH-1:0]     col_count$;
-  reg [SIZEWIDTH-1:0]     row_count$;
-  reg                     buf_start$ [3-1:0];
-  reg                     buf_valid$ [3-1:0];
-  reg                     buf_stop$ [3-1:0];
-  reg [LINEWIDTH:0]       buf_wsel$;
-  reg [LINEWIDTH:0]       buf_rsel$ [2-1:0];
-  reg                     buf_we$;
-  reg [SIZEWIDTH-1:0]     buf_addr$;
+  reg [LINEWIDTH-1:0] mem_count$;
+  reg [SIZEWIDTH-1:0] col_count$;
+  reg [SIZEWIDTH-1:0] row_count$;
+  reg                 buf_ack$ [3-1:0];
+  reg                 buf_start$ [3-1:0];
+  reg                 buf_valid$ [3-1:0];
+  reg                 buf_stop$ [3-1:0];
+  reg [LINEWIDTH:0]   buf_wsel$;
+  reg [LINEWIDTH:0]   buf_rsel$ [2-1:0];
+  reg                 buf_we$;
+  reg [SIZEWIDTH-1:0] buf_addr$;
 
 //==========================================================
 // core control
 //==========================================================
 
-  reg buf_ack$ [3-1:0];
   assign buf_ack = state$ == S_WAIT && buf_ack$[2];
 
   assign s_charge_end = mem_count$ == fil_size - 1
