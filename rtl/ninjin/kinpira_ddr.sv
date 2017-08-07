@@ -240,6 +240,7 @@ module kinpira_ddr
   wire [LWIDTH-1:0]         total_in;
   wire [LWIDTH-1:0]         img_size;
   wire [LWIDTH-1:0]         conv_size;
+  wire [LWIDTH-1:0]         conv_pad;
   wire [LWIDTH-1:0]         pool_size;
 
   wire                      ack;
@@ -281,6 +282,7 @@ module kinpira_ddr
   wire [LWIDTH-1:0]         renkon_total_in;
   wire [LWIDTH-1:0]         renkon_img_size;
   wire [LWIDTH-1:0]         renkon_conv_size;
+  wire [LWIDTH-1:0]         renkon_conv_pad;
   wire [LWIDTH-1:0]         renkon_pool_size;
 
   wire                      renkon_ack;
@@ -369,8 +371,9 @@ module kinpira_ddr
   assign total_out  = base_param[2*LWIDTH-1:LWIDTH];
   assign total_in   = base_param[LWIDTH-1:0];
 
-  assign img_size   = conv_param[2*LWIDTH-1:LWIDTH];
-  assign conv_size  = conv_param[LWIDTH-1:0];
+  assign conv_pad   = conv_param[BWIDTH-1:2*LWIDTH];
+  assign conv_size  = conv_param[2*LWIDTH-1:LWIDTH];
+  assign img_size   = conv_param[LWIDTH-1:0];
 
   assign pool_size  = pool_param[LWIDTH-1:0];
 
@@ -392,6 +395,7 @@ module kinpira_ddr
   assign renkon_total_in   = which == WHICH_RENKON ? total_in : 0;
   assign renkon_img_size   = which == WHICH_RENKON ? img_size : 0;
   assign renkon_conv_size  = which == WHICH_RENKON ? conv_size : 0;
+  assign renkon_conv_pad   = which == WHICH_RENKON ? conv_pad : 0;
   assign renkon_pool_size  = which == WHICH_RENKON ? pool_size : 0;
 
 
@@ -692,6 +696,7 @@ module kinpira_ddr
     .total_in   (renkon_total_in[LWIDTH-1:0]),
     .img_size   (renkon_img_size[LWIDTH-1:0]),
     .conv_size  (renkon_conv_size[LWIDTH-1:0]),
+    .conv_pad   (renkon_conv_pad[LWIDTH-1:0]),
     .pool_size  (renkon_pool_size[LWIDTH-1:0]),
     .img_rdata  (renkon_img_rdata[DWIDTH-1:0]),
     .*
