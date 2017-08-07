@@ -25,15 +25,14 @@ module renkon_linebuf
   wire signed [DWIDTH-1:0]  mem_linebuf_rdata [BUFLINE-1:0];
   wire signed [DWIDTH-1:0]  mux [MAXFIL-1:0][BUFLINE+1-1:0];
 
-  reg signed [DWIDTH-1:0] buf_input$;
-  reg signed [DWIDTH-1:0] buf_output$ [MAXFIL**2-1:0];
+  reg signed [DWIDTH-1:0] pixel$ [MAXFIL**2-1:0];
 
 //==========================================================
 // select control
 //==========================================================
 
   for (genvar i = 0; i < MAXFIL**2; i++)
-    assign buf_output[i] = buf_output$[i];
+    assign buf_output[i] = pixel$[i];
 
   for (genvar i = 0; i < MAXFIL; i++)
     for (genvar k = -1; k < BUFLINE; k++)
@@ -47,16 +46,16 @@ module renkon_linebuf
       if (j == MAXFIL-1) begin
         always @(posedge clk)
           if (!xrst)
-            buf_output$[MAXFIL * i + j] <= 0;
+            pixel$[MAXFIL * i + j] <= 0;
           else
-            buf_output$[MAXFIL * i + j] <= mux[i][buf_rsel];
+            pixel$[MAXFIL * i + j] <= mux[i][buf_rsel];
       end
       else begin
         always @(posedge clk)
           if (!xrst)
-            buf_output$[MAXFIL * i + j] <= 0;
+            pixel$[MAXFIL * i + j] <= 0;
           else
-            buf_output$[MAXFIL * i + j] <= buf_output$[MAXFIL * i + (j+1)];
+            pixel$[MAXFIL * i + j] <= pixel$[MAXFIL * i + (j+1)];
       end
 
 //==========================================================
@@ -65,12 +64,6 @@ module renkon_linebuf
 
   assign mem_linebuf_addr   = buf_addr;
   assign mem_linebuf_wdata  = buf_input;
-
-  always @(posedge clk)
-    if (!xrst)
-      buf_input$ <= 0;
-    else
-      buf_input$ <= buf_input;
 
   for (genvar i = 0; i < BUFLINE; i++) begin
     assign mem_linebuf_we[i] = buf_we

@@ -55,8 +55,8 @@ module renkon_ctrl_core
   wire               req_edge;
   wire               final_iter;
   wire [LWIDTH-1:0]  conv_pad_both;
-  wire [IMGSIZE-1:0] w_img_addr;
-  wire [IMGSIZE-1:0] w_img_offset;
+  // wire [IMGSIZE-1:0] w_img_addr;
+  // wire [IMGSIZE-1:0] w_img_offset;
   wire               buf_pix_req;
   wire               buf_pix_ack;
   wire               buf_pix_start;
@@ -93,10 +93,11 @@ module renkon_ctrl_core
   reg               s_output_end$;
   reg               buf_pix_req$;
   reg               img_we$;
+  reg [IMGSIZE-1:0] img_addr$;
   reg               out_we$;
   reg [IMGSIZE-1:0] in_offset$;
   reg [IMGSIZE-1:0] out_offset$;
-  reg [IMGSIZE-1:0] in_addr$;
+  // reg [IMGSIZE-1:0] in_addr$;
   reg [IMGSIZE-1:0] out_addr$;
   // reg [RENKON_CORE-1:0]    net_we$;
   reg [RENKON_NETSIZE-1:0] net_addr$;
@@ -222,8 +223,7 @@ module renkon_ctrl_core
                       ? net_addr
                       : net_addr$ + net_offset$;
 
-  assign s_network_end = state$ == S_NETWORK
-                      && count_in$ == total_in$ - 1
+  assign s_network_end = state$ == S_NETWORK && count_in$ == total_in$ - 1
                        ? s_w_bias_end
                        : s_w_weight_end;
 
@@ -338,19 +338,70 @@ module renkon_ctrl_core
                     && input_y$ == img_size$ - conv_size$;
 
   assign img_we   = img_we$;
+  assign img_addr = img_addr$;
   // assign img_addr = w_img_addr + w_img_offset;
 
-  assign img_wdata = state$ == S_OUTPUT
-                   ? out_wdata
-                   : 0;
+  assign img_wdata = out_wdata;
+  // assign img_wdata = state$ == S_OUTPUT
+  //                  ? out_wdata
+  //                  : 0;
 
-  assign w_img_addr = state$ == S_OUTPUT
-                    ? out_addr$
-                    : in_addr$;
+  // assign w_img_addr = state$ == S_OUTPUT
+  //                   ? out_addr$
+  //                   : in_addr$;
 
-  assign w_img_offset = state$ == S_OUTPUT
-                      ? out_offset$
-                      : in_offset$;
+  // assign w_img_offset = state$ == S_OUTPUT
+  //                     ? out_offset$
+  //                     : in_offset$;
+
+  always @(posedge clk)
+    if (!xrst)
+      img_we$ <= 0;
+    else
+      case (state$)
+        S_OUTPUT:
+          img_we$ <= out_we$;
+        default:
+          img_we$ <= 0;
+      endcase
+
+  // always @(posedge clk)
+  //   if (!xrst)
+  //     in_addr$ <= 0;
+  //   else if (state$ == S_OUTPUT)
+  //     in_addr$ <= 0;
+  //   else if (state$ == S_INPUT)
+  //     in_addr$ <= in_addr$ + 1;
+  //
+  always @(posedge clk)
+    if (!xrst)
+      out_addr$ <= 0;
+    else if (ack)
+      out_addr$ <= 0;
+    else if (img_we$)
+      out_addr$ <= out_addr$ + 1;
+
+  always @(posedge clk)
+    if (!xrst) begin
+      in_offset$ <= 0;
+      out_offset$ <= 0;
+    end
+    else if (req_edge || ack) begin
+      in_offset$ <= in_offset;
+      out_offset$ <= out_offset;
+    end
+
+  always @(posedge clk)
+    if (!xrst)
+      img_addr$ <= 0;
+    else if (ack)
+      img_addr$ <= in_offset;
+    else if (s_output_end)
+      img_addr$ <= in_offset$;
+    else if (s_input_end && count_in$ == total_in$ - 1)
+      img_addr$ <= out_addr$ + out_offset$;
+    else if (buf_pix_ready || img_we$)
+      img_addr$ <= img_addr$ + 1;
 
   always @(posedge clk)
     if (!xrst) begin
@@ -376,61 +427,6 @@ module renkon_ctrl_core
         end
       endcase
 
-  always @(posedge clk)
-    if (!xrst)
-      img_we$ <= 0;
-    else
-      case (state$)
-        S_OUTPUT:
-          img_we$ <= out_we$;
-        default:
-          img_we$ <= 0;
-      endcase
-
-  always @(posedge clk)
-    if (!xrst)
-      in_addr$ <= 0;
-    else if (state$ == S_OUTPUT)
-      in_addr$ <= 0;
-    else if (state$ == S_INPUT)
-      in_addr$ <= in_addr$ + 1;
-
-  always @(posedge clk)
-    if (!xrst)
-      out_addr$ <= 0;
-    else if (ack)
-      out_addr$ <= 0;
-    else if (img_we$)
-      out_addr$ <= out_addr$ + 1;
-
-  always @(posedge clk)
-    if (!xrst) begin
-      in_offset$ <= 0;
-      out_offset$ <= 0;
-    end
-    else if (req_edge || ack) begin
-      in_offset$ <= in_offset;
-      out_offset$ <= out_offset;
-    end
-
-  // TODO: split modes
-  reg [IMGSIZE-1:0] img_addr$;
-  assign img_addr = img_addr$;
-  always @(posedge clk)
-    if (!xrst)
-      img_addr$ <= 0;
-    else if (req_edge || ack)
-      img_addr$ <= in_offset;
-    else if (s_output_end)
-      if (count_out$ + RENKON_CORE >= total_out$)
-        img_addr$ <= 0;
-      else
-        img_addr$ <= in_offset$;
-    else if (s_input_end && count_in$ == total_in$ - 1)
-      img_addr$ <= out_addr$ + out_offset$;
-    else if (buf_pix_ready || img_we$)
-      img_addr$ <= img_addr$ + 1;
-
 //==========================================================
 // output control
 //==========================================================
@@ -446,13 +442,6 @@ module renkon_ctrl_core
   assign out_ctrl.start = buf_pix_start;
   assign out_ctrl.valid = buf_pix_valid;
   assign out_ctrl.stop  = buf_pix_stop;
-
-  always @(posedge clk)
-    if (!xrst)
-      serial_end$ <= 0;
-    else
-      serial_end$ <= serial_re$ == RENKON_CORE
-                  && serial_addr$ == serial_cnt$ - 1;
 
   always @(posedge clk)
     if (!xrst)
@@ -497,14 +486,6 @@ module renkon_ctrl_core
 
   always @(posedge clk)
     if (!xrst)
-      serial_cnt$ <= 0;
-    else if (s_output_end)
-      serial_cnt$ <= 0;
-    else if (state$ == S_OUTPUT && in_ctrl.valid)
-      serial_cnt$ <= serial_cnt$ + 1;
-
-  always @(posedge clk)
-    if (!xrst)
       serial_addr$ <= 0;
     else if (s_output_end)
       serial_addr$ <= 0;
@@ -518,6 +499,21 @@ module renkon_ctrl_core
         serial_addr$ <= 0;
       else
         serial_addr$ <= serial_addr$ + 1;
+
+  always @(posedge clk)
+    if (!xrst)
+      serial_cnt$ <= 0;
+    else if (s_output_end)
+      serial_cnt$ <= 0;
+    else if (state$ == S_OUTPUT && in_ctrl.valid)
+      serial_cnt$ <= serial_cnt$ + 1;
+
+  always @(posedge clk)
+    if (!xrst)
+      serial_end$ <= 0;
+    else
+      serial_end$ <= serial_re$ == RENKON_CORE
+                  && serial_addr$ == serial_cnt$ - 1;
 
   renkon_ctrl_linebuf_pad #(FSIZE, D_PIXELBUF) ctrl_buf_pix(
     .img_size   (img_size$),

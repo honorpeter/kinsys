@@ -175,8 +175,9 @@ module renkon_ctrl_conv
         else if (in_ctrl.stop || wait_back$)
           feat_addr$[0] <= 0;
         else if (
-          in_ctrl.valid || (core_state$ == S_CORE_OUTPUT
-            && conv_x$ <= fea_size$ - 1 && conv_y$ <= fea_size$ - 1)
+          in_ctrl.valid
+          || (core_state$ == S_CORE_OUTPUT
+              && conv_x$ <= fea_size$ - 1 && conv_y$ <= fea_size$ - 1)
         )
           feat_addr$[0] <= feat_addr$[0] + 1;
     end

@@ -28,7 +28,6 @@ module renkon_linebuf_pad
   wire signed [DWIDTH-1:0]  mem_linebuf_rdata [BUFLINE-1:0];
   wire signed [DWIDTH-1:0]  mux [MAXFIL-1:0][BUFLINE+1-1:0];
 
-  reg signed [DWIDTH-1:0] buf_input$;
   reg signed [DWIDTH-1:0] pixel$ [MAXFIL**2-1:0];
 
 //==========================================================
@@ -70,14 +69,6 @@ module renkon_linebuf_pad
 
   assign mem_linebuf_addr   = buf_addr;
   assign mem_linebuf_wdata  = buf_wcol ? buf_input : 0;
-
-  always @(posedge clk)
-    if (!xrst)
-      buf_input$ <= 0;
-    else if (buf_wcol)
-      buf_input$ <= buf_input;
-    else
-      buf_input$ <= 0;
 
   for (genvar i = 0; i < BUFLINE; i++) begin:b
     assign mem_linebuf_we[i] = buf_we
