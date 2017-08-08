@@ -3,12 +3,12 @@
 module renkon_ctrl_pool
   ( input               clk
   , input               xrst
+  , input               w_pool_en
   , ctrl_bus.slave      in_ctrl
   , input  [LWIDTH-1:0] w_fea_size
-  , input  [LWIDTH-1:0] pool_size
+  , input  [LWIDTH-1:0] w_pool_size
   , ctrl_bus.master     out_ctrl
   , output              pool_oe
-  , output [LWIDTH-1:0] w_pool_size
   , output [$clog2(PSIZE+1):0]        buf_feat_wsel
   , output [$clog2(PSIZE+1):0]        buf_feat_rsel
   , output                            buf_feat_we
@@ -50,8 +50,6 @@ module renkon_ctrl_pool
             state$ <= S_WAIT;
       endcase
 
-  assign w_pool_size = pool_size$;
-
   always @(posedge clk)
     if (!xrst) begin
       fea_size$  <= 0;
@@ -59,7 +57,7 @@ module renkon_ctrl_pool
     end
     else if (state$ == S_WAIT && in_ctrl.start) begin
       fea_size$  <= w_fea_size;
-      pool_size$ <= pool_size;
+      pool_size$ <= w_pool_size;
     end
 
   always @(posedge clk)
@@ -102,7 +100,7 @@ module renkon_ctrl_pool
 // pool control
 //==========================================================
 
-  assign buf_feat_req = in_ctrl.start;
+  assign buf_feat_req = w_pool_en ? in_ctrl.start : 0;
   // assign buf_feat_req = buf_feat_req$;
 
   always @(posedge clk)
@@ -132,9 +130,16 @@ module renkon_ctrl_pool
 // output control
 //==========================================================
 
-  assign out_ctrl.start = out_ctrl$[D_POOL-1].start;
-  assign out_ctrl.valid = out_ctrl$[D_POOL-1].valid;
-  assign out_ctrl.stop  = out_ctrl$[D_POOL-1].stop;
+  assign out_ctrl.start = w_pool_en
+                        ? out_ctrl$[D_POOL-1].start
+                        : out_ctrl$[0].start;
+  assign out_ctrl.valid = w_pool_en
+                        ? out_ctrl$[D_POOL-1].valid
+                        : out_ctrl$[0].valid;
+  assign out_ctrl.stop  = w_pool_en
+                        ? out_ctrl$[D_POOL-1].stop
+                        : out_ctrl$[0].stop;
+
   assign pool_oe        = out_ctrl$[D_POOL-2].valid;
 
   for (genvar i = 0; i < D_POOL; i++)
@@ -144,6 +149,11 @@ module renkon_ctrl_pool
           out_ctrl$[0].start <= 0;
           out_ctrl$[0].valid <= 0;
           out_ctrl$[0].stop  <= 0;
+        end
+        else if (!w_pool_en) begin
+          out_ctrl$[0].start <= in_ctrl.start;
+          out_ctrl$[0].valid <= in_ctrl.valid;
+          out_ctrl$[0].stop  <= in_ctrl.stop;
         end
         else begin
           out_ctrl$[0].start <= buf_feat_start;

@@ -13,6 +13,8 @@ module gobou_ctrl_core
   , input  [GOBOU_NETSIZE-1:0]  net_offset
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
+  , input                       bias_en
+  , input                       relu_en
   , input  signed [DWIDTH-1:0]  out_wdata
   , ctrl_bus.master             out_ctrl
   , output                      ack
@@ -21,7 +23,9 @@ module gobou_ctrl_core
   , output signed [DWIDTH-1:0]  img_wdata
   , output [GOBOU_CORE-1:0]     mem_net_we
   , output [GOBOU_NETSIZE-1:0]  mem_net_addr
+  , output                      w_bias_en
   , output                      breg_we
+  , output                      w_relu_en
   , output                      serial_we
   );
 
@@ -55,9 +59,15 @@ module gobou_ctrl_core
   reg [GOBOU_CORE-1:0]    net_we$;
   reg [GOBOU_NETSIZE-1:0] net_addr$;
   reg [GOBOU_NETSIZE-1:0] net_offset$;
+  reg               bias_en$;
   reg               breg_we$;
+  reg               relu_en$;
   reg               serial_we$;
   reg [LWIDTH-1:0]  serial_cnt$;
+
+//==========================================================
+// core control
+//==========================================================
 
   assign final_iter = state$ == S_OUTPUT
                    && count_out$ + GOBOU_CORE >= total_out$;
@@ -112,16 +122,6 @@ module gobou_ctrl_core
       endcase
 
   always @(posedge clk)
-    if (!xrst) begin
-      total_in$    <= 0;
-      total_out$   <= 0;
-    end
-    else if (state$ == S_WAIT && req_edge) begin
-      total_in$    <= total_in;
-      total_out$   <= total_out;
-    end
-
-  always @(posedge clk)
     if (!xrst)
       setup$ <= 0;
     else if (state$ == S_SETUP)
@@ -129,6 +129,27 @@ module gobou_ctrl_core
         setup$ <= 0;
       else
         setup$ <= setup$ + 1;
+
+//==========================================================
+// params control
+//==========================================================
+
+  assign w_bias_en = bias_en$;
+  assign w_relu_en = relu_en$;
+
+  always @(posedge clk)
+    if (!xrst) begin
+      total_in$   <= 0;
+      total_out$  <= 0;
+      bias_en$    <= 0;
+      relu_en$    <= 0;
+    end
+    else if (state$ == S_WAIT && req_edge) begin
+      total_in$   <= total_in;
+      total_out$  <= total_out;
+      bias_en$    <= bias_en;
+      relu_en$    <= relu_en;
+    end
 
 //==========================================================
 // input control

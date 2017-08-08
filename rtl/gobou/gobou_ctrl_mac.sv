@@ -44,7 +44,7 @@ module gobou_ctrl_mac
           accum_we$[i] <= accum_we$[i-1];
     end
 
-  for (genvar i = 0; i < D_MAC+1; i++)
+  for (genvar i = 0; i < D_MAC; i++)
     if (i == 0) begin
       always @(posedge clk)
         if (!xrst)

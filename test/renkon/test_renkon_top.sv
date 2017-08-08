@@ -12,7 +12,8 @@ int ISIZE = 12;
 // int N_IN  = 1;
 // int ISIZE = 28;
 int FEAT  = ISIZE + 2*PAD - FSIZE + 1;
-int OSIZE = FEAT / PSIZE;
+// int OSIZE = FEAT / PSIZE;
+int OSIZE = FEAT;
 int IMG_OFFSET = 100;
 int OUT_OFFSET = 5000;
 int NET_OFFSET = 0;
@@ -34,19 +35,22 @@ module test_renkon_top;
   reg [IMGSIZE-1:0]         in_offset;
   reg [IMGSIZE-1:0]         out_offset;
   reg [RENKON_NETSIZE-1:0]  net_offset;
+
   reg [LWIDTH-1:0]          total_out;
   reg [LWIDTH-1:0]          total_in;
   reg [LWIDTH-1:0]          img_size;
   reg [LWIDTH-1:0]          conv_size;
   reg [LWIDTH-1:0]          conv_pad;
+  reg                       bias_en;
+  reg                       relu_en;
+  reg                       pool_en;
   reg [LWIDTH-1:0]          pool_size;
-  reg                       ack;
-  reg signed [DWIDTH-1:0]   mem_i [2**IMGSIZE-1:0];
-  reg signed [DWIDTH-1:0]   mem_n [RENKON_CORE-1:0][2**RENKON_NETSIZE-1:0];
 
-  reg                      img_we;
-  reg [IMGSIZE-1:0]        img_addr;
-  reg signed [DWIDTH-1:0]  img_wdata;
+  wire                      ack;
+
+  reg                       img_we;
+  reg [IMGSIZE-1:0]         img_addr;
+  reg signed [DWIDTH-1:0]   img_wdata;
 
   wire                      mem_img_we;
   wire [IMGSIZE-1:0]        mem_img_addr;
@@ -57,6 +61,9 @@ module test_renkon_top;
   wire [IMGSIZE-1:0]        renkon_img_addr;
   wire signed [DWIDTH-1:0]  renkon_img_wdata;
   wire signed [DWIDTH-1:0]  renkon_img_rdata;
+
+  bit signed [DWIDTH-1:0]   mem_i [2**IMGSIZE-1:0];
+  bit signed [DWIDTH-1:0]   mem_n [RENKON_CORE-1:0][2**RENKON_NETSIZE-1:0];
 
   int req_time = 2**30;
   int now_time = 0;
@@ -200,6 +207,9 @@ module test_renkon_top;
     img_size    = ISIZE;
     conv_size   = FSIZE;
     conv_pad    = PAD;
+    bias_en     = 1;
+    relu_en     = 1;
+    pool_en     = 0;
     pool_size   = PSIZE;
 
     img_we    = 0;
@@ -249,9 +259,10 @@ module test_renkon_top;
     #(STEP);
     req = 0;
 
-    // while(!ack) #(STEP);
-    #(STEP*20000);
+    while(!ack) #(STEP);
+
     #(STEP*10);
+
     req_time = 2**30;
 
 `ifdef SAIF
@@ -641,11 +652,11 @@ module test_renkon_top;
           // "%2d ", dut.ctrl.ctrl_pool.temp_x$,
           // "%2d ", dut.ctrl.ctrl_pool.temp_y$,
           "| ",
-          "%4d ", dut.pe[0].core.conv.pixel_in[0],
-          "%4d ", dut.pe[0].core.conv.pixel_in[5],
-          "%4d ", dut.pe[0].core.conv.pixel_in[10],
-          "%4d ", dut.pe[0].core.conv.pixel_in[15],
-          "%4d ", dut.pe[0].core.conv.pixel_in[20],
+          // "%4d ", dut.pe[0].core.conv.pixel_in[0],
+          // "%4d ", dut.pe[0].core.conv.pixel_in[5],
+          // "%4d ", dut.pe[0].core.conv.pixel_in[10],
+          // "%4d ", dut.pe[0].core.conv.pixel_in[15],
+          // "%4d ", dut.pe[0].core.conv.pixel_in[20],
           ": ",
           "%4d ", dut.pe[0].core.conv.result,
           "%5d ", dut.pe[0].core.fmap,
@@ -719,6 +730,10 @@ module test_renkon_top;
           // "%4d ", dut.pe[0].core.pool.pixel_feat[1],
           // "%4d ", dut.pe[0].core.pool.pixel_feat[2],
           // "%4d ", dut.pe[0].core.pool.pixel_feat[3],
+          "| ",
+          "%1b ", dut.w_bias_en,
+          "%1b ", dut.w_relu_en,
+          "%1b ", dut.w_pool_en,
           "|"
         );
       end

@@ -12,6 +12,8 @@ module gobou_ctrl
   , input  [GOBOU_NETSIZE-1:0]  net_offset
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
+  , input                       bias_en
+  , input                       relu_en
   , input  signed [DWIDTH-1:0]  out_wdata
   , output                      ack
   , output                      img_we
@@ -24,7 +26,9 @@ module gobou_ctrl
   , output                      mac_oe
   , output                      accum_we
   , output                      accum_rst
+  , output                      w_bias_en
   , output                      bias_oe
+  , output                      w_relu_en
   , output                      relu_oe
   );
 

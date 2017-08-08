@@ -17,6 +17,9 @@ module renkon_ctrl
   , input  [LWIDTH-1:0]         img_size
   , input  [LWIDTH-1:0]         conv_size
   , input  [LWIDTH-1:0]         conv_pad
+  , input                       bias_en
+  , input                       relu_en
+  , input                       pool_en
   , input  [LWIDTH-1:0]         pool_size
 
   , output                      ack
@@ -52,6 +55,9 @@ module renkon_ctrl
   , output [LWIDTH-1:0]         w_conv_size
   , output [LWIDTH-1:0]         w_conv_pad
   , output [LWIDTH-1:0]         w_fea_size
+  , output                      w_bias_en
+  , output                      w_relu_en
+  , output                      w_pool_en
   , output [LWIDTH-1:0]         w_pool_size
   );
 

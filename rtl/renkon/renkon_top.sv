@@ -19,6 +19,9 @@ module renkon_top
   , input  [LWIDTH-1:0]         img_size
   , input  [LWIDTH-1:0]         conv_size
   , input  [LWIDTH-1:0]         conv_pad
+  , input                       bias_en
+  , input                       relu_en
+  , input                       pool_en
   , input  [LWIDTH-1:0]         pool_size
 
   , output                      ack
@@ -40,6 +43,9 @@ module renkon_top
   wire [LWIDTH-1:0]         w_conv_size;
   wire [LWIDTH-1:0]         w_conv_pad;
   wire [LWIDTH-1:0]         w_fea_size;
+  wire                      w_bias_en;
+  wire                      w_relu_en;
+  wire                      w_pool_en;
   wire [LWIDTH-1:0]         w_pool_size;
   wire signed [DWIDTH-1:0]  pixel [FSIZE**2-1:0];
   wire                      wreg_we;
@@ -88,7 +94,7 @@ module renkon_top
     renkon_core core(
       .net_rdata    (net_rdata[i]),
       .pixel        (pixel),
-      .pmap         (result[i]),
+      .result       (result[i]),
       .*
     );
   end : pe

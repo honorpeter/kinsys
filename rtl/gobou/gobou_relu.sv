@@ -3,6 +3,7 @@
 module gobou_relu
   ( input clk
   , input xrst
+  , input enable
   , input out_en
   , input signed [DWIDTH-1:0] pixel_in
   , output signed [DWIDTH-1:0] pixel_out
@@ -22,6 +23,8 @@ module gobou_relu
   always @(posedge clk)
     if (!xrst)
       pixel_out$ <= 0;
+    else if (!enable)
+      pixel_out$ <= pixel_in;
     else if (out_en)
       if (pixel_in$ > 0)
         pixel_out$ <= pixel_in$;

@@ -105,10 +105,15 @@ int main(void)
   relu(amap, bmap);
   pool(pmap, amap);
 
+  // for range(n, n_out)
+  //   for range(i, osize)
+  //     for range(j, osize)
+  //       printf("%d\n", pmap[n][i][j]);
+
   for range(n, n_out)
-    for range(i, osize)
-      for range(j, osize)
-        printf("%d\n", pmap[n][i][j]);
+    for range(i, feat)
+      for range(j, feat)
+        printf("%d\n", amap[n][i][j]);
 
   return 0;
 }

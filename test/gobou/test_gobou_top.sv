@@ -27,9 +27,10 @@ module test_gobou_top;
   reg [GOBOU_NETSIZE-1:0] net_offset;
   reg [LWIDTH-1:0]        total_out;
   reg [LWIDTH-1:0]        total_in;
-  reg                     ack;
-  reg signed [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
-  reg signed [DWIDTH-1:0] mem_n [GOBOU_CORE-1:0][2**GOBOU_NETSIZE-1:0];
+  reg                     bias_en;
+  reg                     relu_en;
+
+  wire                    ack;
 
   reg                      img_we;
   reg [IMGSIZE-1:0]        img_addr;
@@ -44,6 +45,9 @@ module test_gobou_top;
   wire [IMGSIZE-1:0]        gobou_img_addr;
   wire signed [DWIDTH-1:0]  gobou_img_wdata;
   wire signed [DWIDTH-1:0]  gobou_img_rdata;
+
+  bit signed [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
+  bit signed [DWIDTH-1:0] mem_n [GOBOU_CORE-1:0][2**GOBOU_NETSIZE-1:0];
 
   int req_time = 2**30;
   int now_time = 0;
@@ -182,6 +186,8 @@ module test_gobou_top;
     net_offset  = NET_OFFSET;
     total_out   = N_OUT;
     total_in    = N_IN;
+    bias_en     = 1;
+    relu_en     = 1;
 
     img_we    = 0;
     img_addr  = 0;
@@ -230,7 +236,9 @@ module test_gobou_top;
     req = 0;
 
     while(!ack) #(STEP);
+
     #(STEP*10);
+
     req_time = 2**30;
 
 `ifdef SAIF

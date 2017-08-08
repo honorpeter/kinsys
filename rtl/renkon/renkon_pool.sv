@@ -3,6 +3,7 @@
 module renkon_pool
   ( input                      clk
   , input                      xrst
+  , input                      enable
   , input                      out_en
   , input         [LWIDTH-1:0] w_fea_size
   , input         [LWIDTH-1:0] w_pool_size
@@ -14,7 +15,12 @@ module renkon_pool
   , output signed [DWIDTH-1:0] pixel_out
   );
 
+  wire signed [DWIDTH-1:0] pmap;
   wire signed [DWIDTH-1:0] pixel_feat [PSIZE**2-1:0];
+
+  reg signed [DWIDTH-1:0] pixel_out$;
+
+  assign pixel_out = pixel_out$;
 
   renkon_linebuf #(PSIZE, D_POOLBUF) buf_feat(
     .buf_wsel   (buf_feat_wsel),
@@ -29,8 +35,16 @@ module renkon_pool
   if (PSIZE == 2)
     renkon_pool_max4 pool_tree(
       .pixel (pixel_feat),
-      .pmap  (pixel_out),
+      .pmap  (pmap),
       .*
     );
+
+  always @(posedge clk)
+    if(!xrst)
+      pixel_out$ <= 0;
+    else if (!enable)
+      pixel_out$ <= pixel_in;
+    else if (out_en)
+      pixel_out$ <= pmap;
 
 endmodule

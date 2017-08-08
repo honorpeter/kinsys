@@ -17,6 +17,10 @@ module renkon_ctrl_core
   , input  [LWIDTH-1:0]         img_size
   , input  [LWIDTH-1:0]         conv_size
   , input  [LWIDTH-1:0]         conv_pad
+  , input                       bias_en
+  , input                       relu_en
+  , input                       pool_en
+  , input  [LWIDTH-1:0]         pool_size
 
   , ctrl_bus.master             out_ctrl
   , output                      ack
@@ -37,6 +41,10 @@ module renkon_ctrl_core
   , output [LWIDTH-1:0]         w_conv_size
   , output [LWIDTH-1:0]         w_conv_pad
   , output [LWIDTH-1:0]         w_fea_size
+  , output                      w_bias_en
+  , output                      w_relu_en
+  , output                      w_pool_en
+  , output [LWIDTH-1:0]         w_pool_size
   , output                            buf_pix_wcol
   , output                            buf_pix_rrow [FSIZE-1:0]
   , output [$clog2(FSIZE+1):0]        buf_pix_wsel
@@ -110,7 +118,11 @@ module renkon_ctrl_core
   reg               first_input$;
   reg               last_input$;
   reg               wreg_we$;
+  reg               bias_en$;
   reg               breg_we$;
+  reg               relu_en$;
+  reg               pool_en$;
+  reg [LWIDTH-1:0]  pool_size$;
 
 
 
@@ -125,8 +137,8 @@ module renkon_ctrl_core
 
   assign core_state = state$;
 
-  // equals to 2 * pad_size
-  assign conv_pad_both = conv_pad << 1;
+  assign first_input = first_input$;
+  assign last_input  = last_input$;
 
   always @(posedge clk)
     if (!xrst)
@@ -171,33 +183,6 @@ module renkon_ctrl_core
             end
       endcase
 
-  assign w_img_size  = img_size$;
-  assign w_conv_size = conv_size$;
-  assign w_conv_pad  = conv_pad$;
-  assign w_fea_size  = fea_size$;
-
-  //wait exec (initialize)
-  always @(posedge clk)
-    if (!xrst) begin
-      total_in$   <= 0;
-      total_out$  <= 0;
-      img_size$   <= 0;
-      conv_size$  <= 0;
-      conv_pad$   <= 0;
-      fea_size$   <= 0;
-    end
-    else if (state$ == S_WAIT && req_edge) begin
-      total_in$   <= total_in;
-      total_out$  <= total_out;
-      img_size$   <= img_size;
-      conv_size$  <= conv_size;
-      conv_pad$   <= conv_pad;
-      fea_size$   <= img_size + conv_pad_both - conv_size + 1;
-    end
-
-  assign first_input = first_input$;
-  assign last_input  = last_input$;
-
   always @(posedge clk)
     if (!xrst) begin
       first_input$ <= 0;
@@ -209,6 +194,75 @@ module renkon_ctrl_core
       last_input$  <= state$ == S_INPUT
                    && count_in$ == total_in$ - 1;
     end
+
+//==========================================================
+// params control
+//==========================================================
+
+  assign w_img_size   = img_size$;
+  assign w_conv_size  = conv_size$;
+  assign w_conv_pad   = conv_pad$;
+  assign w_fea_size   = fea_size$;
+  assign w_bias_en    = bias_en$;
+  assign w_relu_en    = relu_en$;
+  assign w_pool_en    = pool_en$;
+  assign w_pool_size  = pool_size$;
+
+  assign wreg_we = wreg_we$;
+  assign breg_we = breg_we$;
+
+  // equals to 2 * pad_size
+  assign conv_pad_both = conv_pad << 1;
+
+  //wait exec (initialize)
+  always @(posedge clk)
+    if (!xrst) begin
+      total_in$   <= 0;
+      total_out$  <= 0;
+      img_size$   <= 0;
+      conv_size$  <= 0;
+      conv_pad$   <= 0;
+      fea_size$   <= 0;
+      bias_en$    <= 0;
+      relu_en$    <= 0;
+      pool_en$    <= 0;
+      pool_size$  <= 0;
+    end
+    else if (state$ == S_WAIT && req_edge) begin
+      total_in$   <= total_in;
+      total_out$  <= total_out;
+      img_size$   <= img_size;
+      conv_size$  <= conv_size;
+      conv_pad$   <= conv_pad;
+      fea_size$   <= img_size + conv_pad_both - conv_size + 1;
+      bias_en$    <= bias_en;
+      relu_en$    <= relu_en;
+      pool_en$    <= pool_en;
+      pool_size$  <= pool_size;
+    end
+
+  always @(posedge clk)
+    if (!xrst) begin
+      wreg_we$ <= 0;
+      breg_we$ <= 0;
+    end
+    else if (state$ != S_NETWORK) begin
+      wreg_we$ <= 0;
+      breg_we$ <= 0;
+    end
+    else begin
+      wreg_we$ <= state_weight$ == S_W_WEIGHT;
+      breg_we$ <= state_weight$ == S_W_BIAS;
+    end
+
+  // assign buf_pix_req = buf_pix_req$;
+  assign buf_pix_req = s_network_end;
+
+  always @(posedge clk)
+    if (!xrst)
+      buf_pix_req$ <= 0;
+    else
+      buf_pix_req$ <= s_network_end;
 
 //==========================================================
 // network control
@@ -298,36 +352,6 @@ module renkon_ctrl_core
           weight_y$ <= 0;
         end
       endcase
-
-//==========================================================
-// params control
-//==========================================================
-
-  assign wreg_we = wreg_we$;
-  assign breg_we = breg_we$;
-
-  always @(posedge clk)
-    if (!xrst) begin
-      wreg_we$ <= 0;
-      breg_we$ <= 0;
-    end
-    else if (state$ != S_NETWORK) begin
-      wreg_we$ <= 0;
-      breg_we$ <= 0;
-    end
-    else begin
-      wreg_we$ <= state_weight$ == S_W_WEIGHT;
-      breg_we$ <= state_weight$ == S_W_BIAS;
-    end
-
-  // assign buf_pix_req = buf_pix_req$;
-  assign buf_pix_req = s_network_end;
-
-  always @(posedge clk)
-    if (!xrst)
-      buf_pix_req$ <= 0;
-    else
-      buf_pix_req$ <= s_network_end;
 
 //==========================================================
 // input control
