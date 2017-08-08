@@ -38,31 +38,15 @@ void conv(Mat3D<T> &output, Mat3D<T> &input, Mat4D<T> &weight)
   for range(j, isize)
     padded[n][i+pad][j+pad] = input[n][i][j];
 
-  FILE *fp[n_in];
-  char hoge[256];
-  for range(m, n_in) {
-    sprintf(hoge, "feat%d.dat", m);
-    fp[m] = fopen(hoge, "w");
-  }
   for range(n, n_out)
   for range(i, feat)
   for range(j, feat) {
     output[n][i][j] = 0;
-    for range(m, n_in) {
+    for range(m, n_in)
     for range(di, fsize)
     for range(dj, fsize)
       output[n][i][j] += mul<T>(padded[m][i+di][j+dj], weight[n][m][di][dj]);
-      if (j == feat - 1)
-        if (i == feat - 1)
-          fprintf(fp[m], "%5d\n\n", output[n][i][j]);
-        else
-          fprintf(fp[m], "%5d\n", output[n][i][j]);
-      else
-        fprintf(fp[m], "%5d ", output[n][i][j]);
-    }
   }
-  for range(m, n_in)
-    fclose(fp[m]);
 }
 
 template <typename T>
