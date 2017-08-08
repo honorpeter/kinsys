@@ -159,7 +159,7 @@ module renkon_ctrl_linebuf_pad
           if (!xrst)
             buf_rrow$[0][j] <= 0;
           else
-            buf_rrow$[0][j] <= fil_size - pad_size <= row_count$ + j
+            buf_rrow$[0][j] <= fil_size <= row_count$ + j
                             && row_count$ + j < img_size + fil_size;
         end
       else begin

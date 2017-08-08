@@ -21,7 +21,6 @@ module gobou_mac
   reg signed [2*DWIDTH-1:0] pro$;
   reg signed [DWIDTH-1:0] pro_short$;
 
-  // TODO: adjust the bitwidth of multiplication results.
   assign pro = x$ * w$;
   assign pro_short = round(pro$);
   assign y = y$;

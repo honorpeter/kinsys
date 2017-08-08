@@ -280,7 +280,6 @@ module ninjin_ddr_buf
         S_READ:
           if (s_read_end)
             count_buf$ <= 0;
-          // TODO: mode == M_INCR for mask?
           else if (mode == M_INCR)
             if (count_buf$ == RATE*burst_len-1)
               count_buf$ <= 0;

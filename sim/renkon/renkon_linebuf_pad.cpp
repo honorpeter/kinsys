@@ -1,10 +1,10 @@
 #include <cstdio>
 #include <lib.hpp>
 
-const int isize = 32;
+const int isize = 12;
 const int fsize = 5;
-// const int pad   = (fsize-1)/2;
-const int pad   = 0;
+const int pad   = (fsize-1)/2;
+// const int pad   = 0;
 
 int main(void)
 {

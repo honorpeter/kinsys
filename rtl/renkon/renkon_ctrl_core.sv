@@ -334,8 +334,8 @@ module renkon_ctrl_core
 //==========================================================
 
   assign s_input_end = state$ == S_INPUT
-                    && input_x$ == img_size$ - conv_size$
-                    && input_y$ == img_size$ - conv_size$;
+                    && input_x$ == fea_size$ - 1
+                    && input_y$ == fea_size$ - 1;
 
   assign img_we   = img_we$;
   assign img_addr = img_addr$;
@@ -411,9 +411,9 @@ module renkon_ctrl_core
     else
       case (state$)
         S_INPUT: if (buf_pix_valid) begin
-          if (input_x$ == img_size$ - conv_size$) begin
+          if (input_x$ == fea_size$ - 1) begin
             input_x$ <= 0;
-            if (input_y$ == img_size$ - conv_size$)
+            if (input_y$ == fea_size$ - 1)
               input_y$ <= 0;
             else
               input_y$ <= input_y$ + 1;

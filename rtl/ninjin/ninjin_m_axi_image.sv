@@ -1,8 +1,5 @@
 `include "ninjin.svh"
 
-// TODO: addr$ assignment may be wrong.
-// cf. ) burst_size = BURST_MAX * BWIDTH/8;
-
 module ninjin_m_axi_image
  #( parameter BURST_MAX     = 256
   , parameter DATA_WIDTH    = BWIDTH
@@ -287,7 +284,7 @@ module ninjin_m_axi_image
 // {{{
 
   assign wvalid = wvalid$;
-  assign wdata  = wdata$;
+  // assign wdata  = wdata$;
   assign wstrb  = {BWIDTH/8{1'b1}};
   assign wlast  = wlast$;
   assign wuser  = 0;
@@ -296,14 +293,16 @@ module ninjin_m_axi_image
 
   // TODO: re-define this temp signal
   reg have_awaddr$;
-  always @(posedge clk)
+  reg next_awaddr$;
+  always @(posedge clk) begin
     have_awaddr$ <= awready && awvalid$;
+    next_awaddr$ <= have_awaddr$;
+  end
   always @(posedge clk)
     if (!xrst)
       wvalid$ <= 0;
     else if (wreq_pulse)
       wvalid$ <= 0;
-    // else if (!wvalid$ && write_start$)
     else if (!wvalid$ && have_awaddr$)
       wvalid$ <= 1;
     else if (wnext && wlast$)
@@ -438,9 +437,10 @@ module ninjin_m_axi_image
   assign ddr_waddr  = ddr_waddr$;
   assign ddr_wdata  = ddr_wdata$;
 
-  assign ddr_raddr  = wnext && write_idx$ != write_len$ - 1
-                    ? ddr_raddr$ + 1
-                    : ddr_raddr$;
+  // assign ddr_raddr  = ddr_raddr$;
+  // assign ddr_raddr  = wnext && write_idx$ != write_len$ - 1
+  //                   ? ddr_raddr$ + 1
+  //                   : ddr_raddr$;
 
   always @(posedge clk)
     if (!xrst)
@@ -483,6 +483,52 @@ module ninjin_m_axi_image
       ddr_raddr$ <= ddr_raddr$ + 1;
     else if (wnext && write_idx$ != write_len$ - 1)
       ddr_raddr$ <= ddr_raddr$ + 1;
+
+// }}}
+//==========================================================
+// temp TODO: absolutely need refactoring
+//==========================================================
+// {{{
+
+  reg [MEMSIZE-1:0]     tmp_addr$;
+  reg [DATA_WIDTH-1:0]  tmp_data$;
+  reg [DATA_WIDTH-1:0]  tmp_data2$;
+
+  assign ddr_raddr  = tmp_addr$;
+  assign wdata  = tmp_data$;
+
+  always @(posedge clk)
+    if (!xrst)
+      tmp_addr$ <= 0;
+    else if (write_start$)
+      tmp_addr$ <= write_base$;
+    else if (awready && awvalid$)
+      tmp_addr$ <= tmp_addr$ + 1;
+    else if (have_awaddr$)
+      tmp_addr$ <= tmp_addr$ + 1;
+    else if (wnext && write_idx$ != write_len$ - 1)
+      tmp_addr$ <= tmp_addr$ + 1;
+
+  always @(posedge clk)
+    if (!xrst)
+      tmp_data$ <= 0;
+    // else if (state_write$ == S_IDLE)
+    //   tmp_data$ <= 0;
+    else if (have_awaddr$)
+      tmp_data$ <= ddr_rdata;
+    else if (wnext)
+      if (write_idx$ == 0)
+        tmp_data$ <= tmp_data2$;
+      else if (write_idx$ != write_len$ - 1)
+        tmp_data$ <= ddr_rdata;
+
+  always @(posedge clk)
+    if (!xrst)
+      tmp_data2$ <= 0;
+    else if (state_write$ == S_IDLE)
+      tmp_data2$ <= 0;
+    else if (next_awaddr$)
+      tmp_data2$ <= ddr_rdata;
 
 // }}}
 endmodule

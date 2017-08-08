@@ -334,6 +334,18 @@ module kinpira_ddr
   assign conv_param = in_port[10][BWIDTH-1:0];
   assign pool_param = in_port[11][BWIDTH-1:0];
 
+  // Network parameters
+  assign total_out  = base_param[2*LWIDTH-1:LWIDTH];
+  assign total_in   = base_param[LWIDTH-1:0];
+
+  assign conv_pad   = conv_param[BWIDTH-1:2*LWIDTH];
+  assign conv_size  = conv_param[2*LWIDTH-1:LWIDTH];
+  assign img_size   = conv_param[LWIDTH-1:0];
+
+  assign pool_size  = pool_param[LWIDTH-1:0];
+
+
+
   assign out_port[31] = {31'b0, which$};
   assign out_port[30] = {31'b0, ack};
   assign out_port[29] = {31'd0, pre_ack};
@@ -366,16 +378,6 @@ module kinpira_ddr
   assign mem_img_wdata  = which == WHICH_RENKON ? renkon_img_wdata
                         : which == WHICH_GOBOU  ? gobou_img_wdata
                         : 0;
-
-  // Network parameters
-  assign total_out  = base_param[2*LWIDTH-1:LWIDTH];
-  assign total_in   = base_param[LWIDTH-1:0];
-
-  assign conv_pad   = conv_param[BWIDTH-1:2*LWIDTH];
-  assign conv_size  = conv_param[2*LWIDTH-1:LWIDTH];
-  assign img_size   = conv_param[LWIDTH-1:0];
-
-  assign pool_size  = pool_param[LWIDTH-1:0];
 
 
 

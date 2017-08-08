@@ -1,9 +1,9 @@
 `include "renkon.svh"
 
-parameter IMAGE = 32;
+parameter IMAGE = 12;
 parameter FILTER = 5;
-// parameter PAD = (FILTER-1)/2;
-parameter PAD = 0;
+parameter PADDING = (FILTER-1)/2;
+// parameter PADDING = 0;
 
 module test_renkon_linebuf_pad;
 
@@ -66,7 +66,7 @@ module test_renkon_linebuf_pad;
     buf_req   = 0;
     img_size  = IMAGE;
     fil_size  = FILTER;
-    pad_size  = PAD;
+    pad_size  = PADDING;
     #(STEP*5);
 
     buf_req = 1;
@@ -96,14 +96,14 @@ module test_renkon_linebuf_pad;
       forever begin
         #(STEP/2-1);
         if (buf_valid) begin
-          $fwrite(fd, "Block %0d:\n", (IMAGE+2*PAD-FILTER+1)*i+j);
+          $fwrite(fd, "Block %0d:\n", (IMAGE+2*PADDING-FILTER+1)*i+j);
           for (int di = 0; di < FILTER; di++) begin
             for (int dj = 0; dj < FILTER; dj++)
               $fwrite(fd, "%5d", buf_output[FILTER*di+dj]);
             $fwrite(fd, "\n");
           end
           $fwrite(fd, "\n");
-          if (j == (IMAGE+2*PAD-FILTER+1) - 1) begin
+          if (j == (IMAGE+2*PADDING-FILTER+1) - 1) begin
             i++; j=0;
           end
           else j++;
@@ -142,7 +142,16 @@ module test_renkon_linebuf_pad;
         "%b ", buf_stop,
         ": ",
         "%4d ", dut.buf_output[0],
+        "%4d ", dut.buf_output[5],
+        "%4d ", dut.buf_output[10],
+        "%4d ", dut.buf_output[15],
+        "%4d ", dut.buf_output[20],
+        ": ",
         "%4d ", dut.buf_output[4],
+        "%4d ", dut.buf_output[9],
+        "%4d ", dut.buf_output[14],
+        "%4d ", dut.buf_output[19],
+        "%4d ", dut.buf_output[24],
         "| ",
         "%b ",  buf_ready,
         "%4d ", addr,
