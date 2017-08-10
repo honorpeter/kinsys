@@ -15,9 +15,9 @@ int main(void)
   setbuf(stdout, NULL);
   printf("\033[2J");
 #if defined(zedboard)
-  puts("### rev_lenet @ zedboard\n");
+  puts("### lenet_bare @ zedboard\n");
 #elif defined(zcu102)
-  puts("### rev_lenet @ zcu102\n");
+  puts("### lenet_bare @ zcu102\n");
 #endif
 
   TIME(LeNet_init(image, &label));
