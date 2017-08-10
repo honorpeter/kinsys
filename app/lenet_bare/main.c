@@ -26,7 +26,7 @@ int main(void)
 
   print_result(label, LABEL);
   assert_rep(label, full3_tru, N_F3);
-  puts("assert okk");
+  puts("assert ok");
 
   TIME(LeNet_exit());
 
