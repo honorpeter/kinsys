@@ -1,15 +1,23 @@
-#ifdef _BARE_H_
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
+
+#include "kinpira.h"
+#include "types.h"
+#include "bare.h"
 
 #include <xil_mem.h>
 #include <xil_cache.h>
-#include <xil_types.h>
 
-#include "kinpira.h"
-#include "bare.h"
+
+
+static u32 bit(u32 value, int high, int low)
+{
+  return value << (31-high) >> (31-high) >> low;
+}
+
+
 
 int kinpira_init(void)
 {
@@ -31,33 +39,12 @@ int kinpira_init(void)
 
 
 
-void define_2d(layer *l,
-  s16 *in_offset, s16 *out_offset, u32 net_offset,
-  u32 total_out, u32 total_in,
-  u32 img_size, u32 fil_size, u32 pool_size
-)
-{
-  l->which      = RENKON;
-  l->in_offset  = (u32)(UINTPTR)in_offset;
-  l->out_offset = (u32)(UINTPTR)out_offset;
-  l->net_offset = net_offset;
-  l->total_out  = total_out;
-  l->total_in   = total_in;
-  l->img_size   = img_size;
-  l->fil_size   = fil_size;
-  l->pool_size  = pool_size;
-  assert_eq(in_offset, l->in_offset);
-  assert_eq(out_offset, l->out_offset);
-}
-
-
-
-void assign_2d(layer *l, u32 *weight, u32 *bias)
+void assign_map(layer *l, u32 *weight, u32 *bias)
 {
   const u32 core  = RENKON_CORE;
-  const u32 n_out = l->total_out;
-  const u32 n_in  = l->total_in;
-  const u32 fsize = l->fil_size;
+  const u32 n_out = bit(l->base_param, 2*LWIDTH-1, LWIDTH);
+  const u32 n_in  = bit(l->base_param, LWIDTH-1, 0);
+  const u32 fsize = bit(l->conv_param, 2*LWIDTH-1, LWIDTH);
   const u32 unit  = n_in * fsize * fsize;
 
   u32 idx_w = 0;
@@ -100,31 +87,11 @@ void assign_2d(layer *l, u32 *weight, u32 *bias)
 
 
 
-void define_1d(layer *l,
-  s16 *in_offset, s16 *out_offset, u32 net_offset,
-  u32 total_out, u32 total_in
-)
-{
-  l->which      = GOBOU;
-  l->in_offset  = (u32)(UINTPTR)in_offset;
-  l->out_offset = (u32)(UINTPTR)out_offset;
-  l->net_offset = net_offset;
-  l->total_out  = total_out;
-  l->total_in   = total_in;
-  l->img_size   = 0;
-  l->fil_size   = 0;
-  l->pool_size  = 0;
-  assert_eq(in_offset, l->in_offset);
-  assert_eq(out_offset, l->out_offset);
-}
-
-
-
-void assign_1d(layer *l, u32 *weight, u32 *bias)
+void assign_vec(layer *l, u32 *weight, u32 *bias)
 {
   const u32 core  = GOBOU_CORE;
-  const u32 n_out = l->total_out;
-  const u32 n_in  = l->total_in;
+  const u32 n_out = bit(l->base_param, 2*LWIDTH-1, LWIDTH);
+  const u32 n_in  = bit(l->base_param, LWIDTH-1, 0);
 
   u32 idx_w = 0;
   u32 idx_b = 0;
@@ -169,37 +136,23 @@ void assign_1d(layer *l, u32 *weight, u32 *bias)
 void exec_core(layer *l)
 {
   *reg_which      = l->which;
-  *reg_req        = 0x0;
   *reg_in_offset  = l->in_offset;
   *reg_out_offset = l->out_offset;
   *reg_net_offset = l->net_offset;
-  *reg_total_out  = l->total_out;
-  *reg_total_in   = l->total_in;
-  *reg_img_size   = l->img_size;
-  *reg_fil_size   = l->fil_size;
-  *reg_pool_size  = l->pool_size;
 
   *reg_pre_base   = l->in_offset;
-  switch (l->which) {
-    case RENKON:
-      *reg_read_len   = l->total_in * l->img_size * l->img_size;
-      *reg_write_len  = (l->total_out < RENKON_CORE ? l->total_out : RENKON_CORE)
-                      * ((l->img_size - l->fil_size + 1)/(l->pool_size))
-                      * ((l->img_size - l->fil_size + 1)/(l->pool_size));
-      break;
-    case GOBOU:
-      *reg_read_len   = l->total_in;
-      *reg_write_len  = l->total_out < GOBOU_CORE ? l->total_out : GOBOU_CORE;
-      break;
-    default:
-      *reg_read_len   = 0;
-      *reg_write_len  = 0;
-      break;
-  }
+  *reg_read_len   = l->read_len;
+  *reg_write_len  = l->write_len;
+
+  *reg_base_param = l->base_param;
+  *reg_conv_param = l->conv_param;
+  *reg_bias_param = l->bias_param;
+  // *reg_norm_param = l->norm_param;
+  *reg_actv_param = l->actv_param;
+  *reg_pool_param = l->pool_param;
 
   *reg_pre_req = 1;
   *reg_pre_req = 0;
-
   do {
     // Nop
   } while (!*reg_pre_ack);
@@ -207,12 +160,12 @@ void exec_core(layer *l)
 
   *reg_req = 0x1;
   *reg_req = 0x0;
-
-  // Blocking till PL finishing the operation
   do {
     // Nop
   } while (!*reg_ack);
 }
+
+
 
 int kinpira_exit(void)
 {
@@ -226,14 +179,14 @@ int kinpira_exit(void)
 void print_result(s16 *output, const u32 length)
 {
   int number  = -1;
-  int max     = output[0];
+  int max     = INT_MIN;
 
   for (int i = 0; i < length; i++) {
     printf("%d: %d\n", i, output[i]);
 
     if (max < output[i]) {
-      max = output[i];
       number = i;
+      max    = output[i];
     }
   }
 
@@ -264,6 +217,3 @@ void print_port()
   );
 }
 
-
-
-#endif

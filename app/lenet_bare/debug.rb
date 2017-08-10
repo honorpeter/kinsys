@@ -12,7 +12,7 @@ end
       #ifndef _#{layer.upcase}_TRU_H_
       #define _#{layer.upcase}_TRU_H_
 
-      s16 #{layer}_tru[#{tru_dat.length}] = {
+      static s16 #{layer}_tru[#{tru_dat.length}] = {
       #{tru_dat.join("\n")}
       };
 

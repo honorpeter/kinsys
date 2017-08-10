@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include <xil_types.h>
+#include "types.h"
 
 // latency analysis
 #include <xtime_l.h>
@@ -17,6 +17,7 @@ extern "C" {
       (double)(end-begin) / COUNTS_PER_SECOND * 1000000); \
 } while (0);
 #define TIME(func) do { \
+  INIT                  \
   puts(#func);          \
   BEGIN                 \
   (func);               \
@@ -47,34 +48,13 @@ extern "C" {
   }                                                     \
 } while (0)
 
-typedef struct {
-  u32 which;
-  u32 in_offset;
-  u32 out_offset;
-  u32 net_offset;
-  u32 total_out;
-  u32 total_in;
-  u32 img_size;
-  u32 fil_size;
-  u32 pool_size;
-} layer;
-
 int kinpira_init(void);
 
 int kinpira_exit(void);
 
-void define_2d(layer *l,
-  s16 *in_offset, s16 *out_offset, u32 net_offset,
-  u32 total_out, u32 total_in,
-  u32 img_size, u32 fil_size, u32 pool_size
-);
-void assign_2d(layer *l, u32 *weight, u32 *bias);
+void assign_map(layer *l, u32 *weight, u32 *bias);
 
-void define_1d(layer *l,
-  s16 *in_offset, s16 *out_offset, u32 net_offset,
-  u32 total_out, u32 total_in
-);
-void assign_1d(layer *l, u32 *weight, u32 *bias);
+void assign_vec(layer *l, u32 *weight, u32 *bias);
 
 void exec_core(layer *l);
 
@@ -85,7 +65,5 @@ void print_port();
 #ifdef __cplusplus
 }
 #endif
-
-#include "bare.c"
 
 #endif

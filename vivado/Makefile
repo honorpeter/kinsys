@@ -1,11 +1,12 @@
-BOARD = zedboard
-IP    = kinpira_ddr
-APP   = lenet
+BOARD    = zedboard
+IP       = kinpira_ddr
+APP_BARE = lenet_bare
+APP_PETA = lenet
 
 .PHONY: run sw hw zybo zedboard ip all clean linux
 
 run:
-	xsct run.tcl ${BOARD} ${APP}_bare
+	xsct run.tcl ${BOARD} ${APP_BARE}
 
 # avoid friendly fire
 all:
@@ -13,7 +14,7 @@ all:
 	make clean dist ip proj hw sw run
 
 peta:
-	./peta.sh ${BOARD} ${APP}
+	./peta.sh ${BOARD} ${APP_PETA}
 
 peta_run:
 	(cd linux; \
@@ -26,7 +27,7 @@ sw:
 	rm -rf ${BOARD}/${BOARD}.sdk/*
 	rm -rf ${BOARD}/${BOARD}.sdk/.metadata
 	cp ~/tmp/design_1_wrapper.hdf ${BOARD}/${BOARD}.sdk/
-	xsct sw.tcl ${BOARD} ${APP}_bare
+	xsct sw.tcl ${BOARD} ${APP_BARE}
 
 hw:
 	vivado -nojournal -nolog -mode batch -source hw.tcl -tclargs ${BOARD} ${IP}

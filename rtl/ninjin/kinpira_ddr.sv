@@ -235,7 +235,7 @@ module kinpira_ddr
   wire [BWIDTH-1:0]         base_param;
   wire [BWIDTH-1:0]         conv_param;
   wire [BWIDTH-1:0]         bias_param;
-  wire [BWIDTH-1:0]         relu_param;
+  wire [BWIDTH-1:0]         actv_param;
   wire [BWIDTH-1:0]         pool_param;
 
   wire [LWIDTH-1:0]         total_out;
@@ -343,7 +343,7 @@ module kinpira_ddr
   assign base_param = in_port[9][BWIDTH-1:0];
   assign conv_param = in_port[10][BWIDTH-1:0];
   assign bias_param = in_port[11][BWIDTH-1:0];
-  assign relu_param = in_port[12][BWIDTH-1:0];
+  assign actv_param = in_port[12][BWIDTH-1:0];
   assign pool_param = in_port[13][BWIDTH-1:0];
 
   // Network parameters
@@ -356,7 +356,7 @@ module kinpira_ddr
 
   assign bias_en    = bias_param[BWIDTH-1];
 
-  assign relu_en    = relu_param[BWIDTH-1];
+  assign relu_en    = actv_param[BWIDTH-1];
 
   assign pool_en    = pool_param[BWIDTH-1];
   assign pool_size  = pool_param[LWIDTH-1:0];

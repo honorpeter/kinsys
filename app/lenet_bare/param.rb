@@ -22,7 +22,7 @@ File.open("data/image.h", "w") do |f|
     #define _IMAGE_H_
 
     // PATH: #{input_dir}/#{input_label}/img#{input_name}.dat
-    s16 image[#{image.length}] = {
+    static s16 image[#{image.length}] = {
     #{image.join("\n")}
     };
 
@@ -41,7 +41,7 @@ Dir.glob("#{param_dir}/*") do |layer_path|
         #define _#{type.upcase}_#{layer.upcase}_H_
 
         // PATH: #{layer_path}/#{type}.dat
-        u32 #{type}_#{layer}[#{param.length}] = {
+        static u32 #{type}_#{layer}[#{param.length}] = {
         #{param.join("\n")}
         };
 
