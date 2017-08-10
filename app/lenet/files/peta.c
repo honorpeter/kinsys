@@ -79,7 +79,7 @@ int kinpira_init(void)
     return errno;
   }
 
-  system("modprobe switchdcache");
+//  system("modprobe switchdcache");
 
   return 0;
 }
@@ -87,14 +87,14 @@ int kinpira_init(void)
 
 
 void define_2d(layer *l,
-  s16 *in_offset, s16 *out_offset, u32 net_offset,
+  u32 in_offset, u32 out_offset, u32 net_offset,
   u32 total_out, u32 total_in,
   u32 img_size, u32 fil_size, u32 pool_size
 )
 {
   l->which      = RENKON;
-  l->in_offset  = (u32)(UINTPTR)in_offset;
-  l->out_offset = (u32)(UINTPTR)out_offset;
+  l->in_offset  = in_offset;
+  l->out_offset = out_offset;
   l->net_offset = net_offset;
   l->total_out  = total_out;
   l->total_in   = total_in;
@@ -158,13 +158,13 @@ void assign_2d(layer *l, u32 *weight, u32 *bias)
 
 
 void define_1d(layer *l,
-  s16 *in_offset, s16 *out_offset, u32 net_offset,
+  u32 in_offset, u32 out_offset, u32 net_offset,
   u32 total_out, u32 total_in
 )
 {
   l->which      = GOBOU;
-  l->in_offset  = (u32)(UINTPTR)in_offset;
-  l->out_offset = (u32)(UINTPTR)out_offset;
+  l->in_offset  = in_offset;
+  l->out_offset = out_offset;
   l->net_offset = net_offset;
   l->total_out  = total_out;
   l->total_in   = total_in;
@@ -275,7 +275,7 @@ void exec_core(layer *l)
 
 int kinpira_exit(void)
 {
-  system("modprobe -r switchdcache");
+//  system("modprobe -r switchdcache");
 
   munmap(port, sizeof(u32)*REGSIZE);
   munmap(mem_renkon, sizeof(u32)*RENKON_CORE*RENKON_WORDS);
@@ -292,7 +292,7 @@ int kinpira_exit(void)
 
 void print_result(s16 *output, const u32 length)
 {
-  int number  = -1;
+  int number  = 0;
   int max     = output[0];
 
   for (int i = 0; i < length; i++) {

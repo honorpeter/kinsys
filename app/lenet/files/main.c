@@ -56,31 +56,73 @@ int main(void)
   layer conv0, conv1;
   layer full2, full3;
 
+  // Create udmabuf
+  system("modprobe udmabuf udmabuf0=1048576");
+  int fd;
+  char attr[1024];
+  u32 phys_addr;
+  if ((fd = open("/sys/class/udmabuf/udmabuf0/phys_addr", O_RDONLY)) == -1) {
+      puts("file open error.");
+      exit(-1);
+  }
+  read(fd, attr, 1024);
+  sscanf(attr, "%x", &phys_addr);
+  close(fd);
+  printf("udmabuf created at: %x.\n", phys_addr);
+
+  // Copy image -> udmabuf
+  const int image_size = ISIZE * ISIZE;
+  const int imagebuf_size = sizeof(s16)*ISIZE*ISIZE;
+  int o_sync = O_SYNC; // disable cache
+  if ((fd = open("/dev/udmabuf0", O_RDWR | o_sync)) == -1) {
+      puts("udmabuf open error.");
+      exit(-1);
+  }
+  s16* imagebuf = mmap(NULL, imagebuf_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+  memcpy(imagebuf, image, imagebuf_size);
+  for (int i = 0; i < image_size; i++)
+      assert(imagebuf[i] == image[i]);
+
   // NOTE: maps could be multi dimentional array
-  s16 *pmap0 = calloc(N_C0*PM0SIZE*PM0SIZE, sizeof(s16));
-  s16 *pmap1 = calloc(N_C1*PM1SIZE*PM1SIZE, sizeof(s16));
-  s16 *fvec2 = calloc(N_F2, sizeof(s16));
-  s16 *fvec3 = calloc(N_F3, sizeof(s16));
+  const int pmap0_size = sizeof(s16)*N_C0*PM0SIZE*PM0SIZE;
+  const int pmap1_size = sizeof(s16)*N_C1*PM1SIZE*PM1SIZE;
+  const int fvec2_size = sizeof(s16)*N_F2;
+  const int fvec3_size = sizeof(s16)*N_F3;
+  const int pagesize = sysconf(_SC_PAGESIZE);
+  const int pmap0_offset = (imagebuf_size / pagesize + 1) * pagesize;
+  const int pmap1_offset = pmap0_offset + (pmap0_size / pagesize + 1) * pagesize;
+  const int fvec2_offset = pmap1_offset + (pmap1_size / pagesize + 1) * pagesize;
+  const int fvec3_offset = fvec2_offset + (fvec2_size / pagesize + 1) * pagesize;
+  s16 *pmap0 = mmap(NULL, pmap0_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, pmap0_offset);
+  s16 *pmap1 = mmap(NULL, pmap1_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, pmap1_offset);
+  s16 *fvec2 = mmap(NULL, fvec2_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, fvec2_offset);
+  s16 *fvec3 = mmap(NULL, fvec3_size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, fvec3_offset);
 
   setbuf(stdout, NULL);
   printf("\033[2J");
   puts("### start lenet application:");
 
-  assert_not(!pmap0, "pmap0 calloc failed");
-  assert_not(!pmap1, "pmap1 calloc failed");
-  assert_not(!fvec2, "fvec2 calloc failed");
-  assert_not(!fvec3, "fvec3 calloc failed");
+  assert_not(!pmap0, "pmap0 mmap failed");
+  assert_not(!pmap1, "pmap1 mmap failed");
+  assert_not(!fvec2, "fvec2 mmap failed");
+  assert_not(!fvec3, "fvec3 mmap failed");
 
-  define_2d(&conv0, image, pmap0, CONV0_PARAM,
+  const u32 image_phys_addr = phys_addr;
+  const u32 pmap0_phys_addr = phys_addr + pmap0_offset;
+  const u32 pmap1_phys_addr = phys_addr + pmap1_offset;
+  const u32 fvec2_phys_addr = phys_addr + fvec2_offset;
+  const u32 fvec3_phys_addr = phys_addr + fvec3_offset;
+
+  define_2d(&conv0, image_phys_addr, pmap0_phys_addr, CONV0_PARAM,
             N_C0, N_IN, ISIZE, FSIZE, PSIZE);
 
-  define_2d(&conv1, pmap0, pmap1, CONV1_PARAM,
+  define_2d(&conv1, pmap0_phys_addr, pmap1_phys_addr, CONV1_PARAM,
             N_C1, N_C0, PM0SIZE, FSIZE, PSIZE);
 
-  define_1d(&full2, pmap1, fvec2, FULL2_PARAM,
+  define_1d(&full2, pmap1_phys_addr, fvec2_phys_addr, FULL2_PARAM,
             N_F2, N_C1*PM1SIZE*PM1SIZE);
 
-  define_1d(&full3, fvec2, fvec3, FULL3_PARAM,
+  define_1d(&full3, fvec2_phys_addr, fvec3_phys_addr, FULL3_PARAM,
             N_F3, N_F2);
 
   kinpira_init();
@@ -130,6 +172,16 @@ int main(void)
   for (int i = 0; i < N_F3; i++)
     assert_eq(fvec3[i], full3_tru[i]);
   puts("full3 assert ok");
+
+
+  // Delete udmabuf
+  munmap(imagebuf, image_size);
+  munmap(pmap0, pmap0_size);
+  munmap(pmap1, pmap1_size);
+  munmap(fvec2, fvec2_size);
+  munmap(fvec3, fvec3_size);
+  close(fd);
+  system("modprobe -r udmabuf");
 
   return 0;
 }

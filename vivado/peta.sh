@@ -27,6 +27,7 @@ if [ ! -e $PETA_NAME ]; then
   ### User applications
   petalinux-create --type apps --name $APP_NAME --enable
   petalinux-create --type modules --name switchdcache --enable
+  petalinux-create --type modules --name udmabuf --enable
 
   rm project-spec/meta-user/recipes-apps/$APP_NAME/files/$APP_NAME.c
   cp -r $TOP/app/$APP_NAME/* project-spec/meta-user/recipes-apps/$APP_NAME
