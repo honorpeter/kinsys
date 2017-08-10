@@ -15,6 +15,8 @@ parameter RENKON_NETSIZE = 11;
 parameter FACCUM  = 10; // expected max featuremap size (cf. $clog2(24x24))
 parameter OUTSIZE = 10; // expected max output size (cf. $clog2(4x4x32))
 parameter FSIZE   = 5;
+// parameter PAD     = 0;
+parameter PAD     = (FSIZE-1)/2;
 parameter PSIZE   = 2;
 
 // Delay for each module (corresponds to the number of stages)

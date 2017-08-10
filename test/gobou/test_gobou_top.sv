@@ -2,8 +2,8 @@
 `include "ninjin.svh"
 
 // `define SAIF
+// `define NINJIN
 `define DIRECT
-`define NINJIN
 
 int N_IN  = 512;
 int N_OUT = 128;
@@ -27,9 +27,10 @@ module test_gobou_top;
   reg [GOBOU_NETSIZE-1:0] net_offset;
   reg [LWIDTH-1:0]        total_out;
   reg [LWIDTH-1:0]        total_in;
-  reg                     ack;
-  reg signed [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
-  reg signed [DWIDTH-1:0] mem_n [GOBOU_CORE-1:0][2**GOBOU_NETSIZE-1:0];
+  reg                     bias_en;
+  reg                     relu_en;
+
+  wire                    ack;
 
   reg                      img_we;
   reg [IMGSIZE-1:0]        img_addr;
@@ -44,6 +45,9 @@ module test_gobou_top;
   wire [IMGSIZE-1:0]        gobou_img_addr;
   wire signed [DWIDTH-1:0]  gobou_img_wdata;
   wire signed [DWIDTH-1:0]  gobou_img_rdata;
+
+  bit signed [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
+  bit signed [DWIDTH-1:0] mem_n [GOBOU_CORE-1:0][2**GOBOU_NETSIZE-1:0];
 
   int req_time = 2**30;
   int now_time = 0;
@@ -182,6 +186,8 @@ module test_gobou_top;
     net_offset  = NET_OFFSET;
     total_out   = N_OUT;
     total_in    = N_IN;
+    bias_en     = 1;
+    relu_en     = 1;
 
     img_we    = 0;
     img_addr  = 0;
@@ -230,7 +236,9 @@ module test_gobou_top;
     req = 0;
 
     while(!ack) #(STEP);
+
     #(STEP*10);
+
     req_time = 2**30;
 
 `ifdef SAIF
@@ -509,44 +517,34 @@ module test_gobou_top;
           "%d ", ack,
           "*%d ", dut.ctrl.ctrl_core.state$,
           "| ",
-          "%d ", dut.ctrl.ctrl_core.img_we$,
-          "%d ", dut.ctrl.ctrl_core.s_output_end,
-          "%d ", dut.ctrl.ctrl_core.img_addr$,
-          "| ",
           "%d ", mem_img_we,
           "%d ", mem_img_addr,
           "%d ", mem_img_wdata,
           "%d ", mem_img_rdata,
-          `ifdef NINJIN
           "| ",
-          "%x ", ddr_req,
-          "%x ", ddr_mode,
-          "%x ", ddr_base,
-          "%x ", ddr_len,
-          ": ",
-          "*%x ", mem_img.state$[0],
-          "*%x ", mem_img.ddr_which$,
-          "%x ", mem_img.count_len$,
-          "%x ", mem_img.count_buf$,
-          `else
+          "%1d ", dut.ctrl.ctrl_core.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_mac.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
+          "%1d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
           "| ",
-          "%x ", 1'b0,
-          "%x ", 1'b0,
-          "%x ", {MEMSIZE+LSB{1'b0}},
-          "%x ", {LWIDTH{1'b0}},
+          "%3d ",  dut.ctrl.ctrl_core.count_out$,
+          "%3d ",  dut.ctrl.ctrl_core.count_in$,
+          "| ",
+          "%1b ",  dut.pe[0].core.mac.reset,
+          "%1b ",  dut.pe[0].core.mac.out_en,
+          "%1b ",  dut.pe[0].core.mac.accum_we,
           ": ",
-          "*%x ", 2'b0,
-          "%4x ", 4'b0,
-          "%4x ", 4'b0,
-          // "| ",
-          // "%1d ", dut.ctrl.ctrl_core.out_ctrl.valid,
-          // "%1d ", dut.ctrl.ctrl_mac.out_ctrl.valid,
-          // "%1d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
-          // "%1d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
-          // "| ",
-          // "%3d ",  dut.ctrl.ctrl_core.count_out$,
-          // "%3d ",  dut.ctrl.ctrl_core.count_in$,
-        `endif
+          "%4d ",  dut.pe[0].core.mac.x,
+          "%4d ",  dut.pe[0].core.mac.w,
+          "%4d ",  dut.pe[0].core.mac.x$,
+          "%4d ",  dut.pe[0].core.mac.w$,
+          "%4d ",  dut.pe[0].core.mac.pro_short$,
+          "%5d ",  dut.pe[0].core.mac.accum$,
+          "%4d ",  dut.pe[0].core.mac.y$,
+          "%4d ",  dut.pe[0].core.bias.pixel_out,
+          "%4d ",  dut.pe[0].core.relu.pixel_out,
+          ": ",
+          "%4d ",  dut.pe[0].core.bias.bias$,
           "|"
         );
       #(STEP/2+1);

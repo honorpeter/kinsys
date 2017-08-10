@@ -4,30 +4,40 @@ module renkon_ctrl
   ( input                       clk
   , input                       xrst
   , input                       req
+  , input  signed [DWIDTH-1:0]  out_wdata
   , input  [RENKON_CORELOG-1:0] net_sel
   , input                       net_we
   , input  [RENKON_NETSIZE-1:0] net_addr
   , input  [IMGSIZE-1:0]        in_offset
   , input  [IMGSIZE-1:0]        out_offset
   , input  [RENKON_NETSIZE-1:0] net_offset
+
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         img_size
-  , input  [LWIDTH-1:0]         fil_size
+  , input  [LWIDTH-1:0]         conv_size
+  , input  [LWIDTH-1:0]         conv_pad
+  , input                       bias_en
+  , input                       relu_en
+  , input                       pool_en
   , input  [LWIDTH-1:0]         pool_size
-  , input  signed [DWIDTH-1:0]  out_wdata
+
   , output                      ack
-  , output                      buf_pix_en
   , output                      wreg_we
   , output                      conv_oe
   , output                      breg_we
   , output                      bias_oe
   , output                      relu_oe
   , output                      pool_oe
+  , output                            buf_pix_wcol
+  , output                            buf_pix_rrow [FSIZE-1:0]
+  , output [$clog2(FSIZE+1):0]        buf_pix_wsel
+  , output [$clog2(FSIZE+1):0]        buf_pix_rsel
+  , output                            buf_pix_we
+  , output [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr
   , output                      serial_we
   , output [RENKON_CORELOG:0]   serial_re
   , output [OUTSIZE-1:0]        serial_addr
-  , output                      buf_feat_en
   , output                      img_we
   , output [IMGSIZE-1:0]        img_addr
   , output signed [DWIDTH-1:0]  img_wdata
@@ -35,11 +45,19 @@ module renkon_ctrl
   , output [RENKON_NETSIZE-1:0] mem_net_addr
   , output                      mem_feat_we
   , output                      mem_feat_rst
-  , output [FACCUM-1:0]         mem_feat_addr
-  , output [FACCUM-1:0]         mem_feat_addr_d1
+  , output [FACCUM-1:0]         mem_feat_raddr
+  , output [FACCUM-1:0]         mem_feat_waddr
+  , output [$clog2(PSIZE+1):0]        buf_feat_wsel
+  , output [$clog2(PSIZE+1):0]        buf_feat_rsel
+  , output                            buf_feat_we
+  , output [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
   , output [LWIDTH-1:0]         w_img_size
-  , output [LWIDTH-1:0]         w_fil_size
+  , output [LWIDTH-1:0]         w_conv_size
+  , output [LWIDTH-1:0]         w_conv_pad
   , output [LWIDTH-1:0]         w_fea_size
+  , output                      w_bias_en
+  , output                      w_relu_en
+  , output                      w_pool_en
   , output [LWIDTH-1:0]         w_pool_size
   );
 

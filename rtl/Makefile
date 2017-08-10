@@ -33,8 +33,15 @@ endif
 
 all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.com)
 
-test: $(DEPENDS:.sv=.com) $(MODULE:.sv=.com) $(TARGET:.sv=.log)
-test-all: $(SOURCES:.sv=.com) $(TESTSUITE:.sv=.log)
+test: $(TARGET:.sv=.log)
+test-all: $(TESTSUITE:.sv=.log)
+
+$(TARGET:.sv=.log): $(DEPENDS:.sv=.com) $(MODULE:.sv=.com)
+# $(TESTSUITE:.sv=.log): $(SOURCES:.sv=.com)
+
+ci:
+	@watchmedo shell-command -W -R \
+	  -p "*.sv" -c "$(MAKE) test diff" {../,../../test}
 
 log:
 	@nvim $(TARGET:.sv=.log)
@@ -45,7 +52,7 @@ com:
 edit:
 	@nvim -O $(TARGET) $(MODULE)
 
-DIFF=diff#nvim -d
+DIFF=diff -qs#nvim -d
 diff:
 	@$(DIFF) ../../data/$(notdir $(PWD))/output_$(MODULE:.sv=.dat) \
 		 ../../data/$(notdir $(PWD))/true_$(MODULE:.sv=.dat)
@@ -98,9 +105,9 @@ endif
 
 V_TARGET    = $(shell echo $* | tac -s/ | head -1)
 ifeq ($(SIMULATOR),xsim)
-  XVLOG_OPT = -sv -i $(INCLUDE) # --verbose 2
+  XVLOG_OPT = -sv -i $(INCLUDE) --verbose 2
   COMPILE   = xvlog $(XVLOG_OPT) $<
-  XELAB_OPT = -debug typical
+  XELAB_OPT = #-debug typical
   ELABORATE = xelab $(XELAB_OPT) $(V_TARGET) -s $(V_TARGET)_sim
   XSIM_OPT  = -R #$(XVLOG_OPT)
   SIMULATE  = xsim $(V_TARGET)_sim $(XSIM_OPT)

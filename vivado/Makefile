@@ -10,7 +10,7 @@ run:
 # avoid friendly fire
 all:
 	@../utils/confirm.sh "Build the project from the beginning?"
-	make clean dist ip proj hw sw peta run
+	make clean dist ip proj hw sw run
 
 peta:
 	./peta.sh ${BOARD} ${APP}
@@ -22,10 +22,10 @@ peta_run:
 	)
 
 sw:
-	cp ${BOARD}/${BOARD}.sdk/design_1_wrapper.hdf /tmp
+	cp ${BOARD}/${BOARD}.sdk/design_1_wrapper.hdf ~/tmp
 	rm -rf ${BOARD}/${BOARD}.sdk/*
 	rm -rf ${BOARD}/${BOARD}.sdk/.metadata
-	cp /tmp/design_1_wrapper.hdf ${BOARD}/${BOARD}.sdk/
+	cp ~/tmp/design_1_wrapper.hdf ${BOARD}/${BOARD}.sdk/
 	xsct sw.tcl ${BOARD} ${APP}_bare
 
 hw:

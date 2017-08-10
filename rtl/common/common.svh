@@ -7,7 +7,7 @@
 
 parameter STEP    = 10;
 parameter DWIDTH  = 16;
-parameter LWIDTH  = 16;
+parameter LWIDTH  = 12;
 `ifndef DIST
 parameter IMGSIZE = 16;
 `else

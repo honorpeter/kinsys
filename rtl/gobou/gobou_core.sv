@@ -6,16 +6,21 @@ module gobou_core
   , input                       mac_oe
   , input                       accum_rst
   , input                       accum_we
+  , input                       w_bias_en
   , input                       breg_we
   , input                       bias_oe
+  , input                       w_relu_en
   , input                       relu_oe
   , input  signed [DWIDTH-1:0]  pixel
   , input  signed [DWIDTH-1:0]  weight
-  , output signed [DWIDTH-1:0]  avec
+  , output signed [DWIDTH-1:0]  result
   );
 
   wire signed [DWIDTH-1:0] fvec;
   wire signed [DWIDTH-1:0] bvec;
+  wire signed [DWIDTH-1:0] avec;
+
+  assign result = avec;
 
   gobou_mac mac(
     .out_en   (mac_oe),
@@ -28,6 +33,7 @@ module gobou_core
   );
 
   gobou_bias bias(
+    .enable     (w_bias_en),
     .read_bias  (weight),
     .breg_we    (breg_we),
     .out_en     (bias_oe),
@@ -37,6 +43,7 @@ module gobou_core
   );
 
   gobou_relu relu(
+    .enable     (w_relu_en),
     .out_en     (relu_oe),
     .pixel_in   (bvec),
     .pixel_out  (avec),

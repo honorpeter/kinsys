@@ -51,5 +51,6 @@ if {[file exists $sdk_ws_dir/$app_name] == 0} {
   }
 }
 
+configapp -app $app_name define-compiler-symbols $proj_name
 projects -build
 

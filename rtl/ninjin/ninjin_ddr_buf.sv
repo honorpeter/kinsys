@@ -27,7 +27,6 @@ module ninjin_ddr_buf
   , output [BWIDTH-1:0]         ddr_rdata
   // memory data
   , output signed [DWIDTH-1:0]  mem_rdata
-  , output [2-1:0]              probe_state
   );
 
   localparam  M_IDLE  = 'd0,
@@ -105,8 +104,6 @@ module ninjin_ddr_buf
   reg [RATELOG-1:0]       word_offset$;
   reg [BUFSIZE-1:0]       post_addr$;
   reg [LWIDTH-1:0]        post_len$;
-
-  assign probe_state = state$[0];
 
 //==========================================================
 // core control
@@ -283,7 +280,6 @@ module ninjin_ddr_buf
         S_READ:
           if (s_read_end)
             count_buf$ <= 0;
-          // TODO: mode == M_INCR for mask?
           else if (mode == M_INCR)
             if (count_buf$ == RATE*burst_len-1)
               count_buf$ <= 0;

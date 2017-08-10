@@ -72,18 +72,18 @@ The contents of each directory is summarized as below:
 
   - Mainly written by C++ 14
 
-* syn
+* synth
 
   - Contains scripts for synthesizing the design using Design Compiler.
 
   - TODO: Performance could be evaluated using tcl scripts for PrimeTime.
 
-* (icc)
+* (pandr)
 
   - TODO: Contains scripts for routing and placing netlists from the design
     using IC Compiler.
 
-* tests
+* test
 
   - Contains testbench modules for each module in ``rtl``.
 
@@ -104,14 +104,14 @@ The contents of each directory is summarized as below:
   - Contains general scripts for synthesizing and implementing the design
     using Vivado.
 
-* zedboard
+* vivado/zedboard
 
   - Contains the implemented design or/and tcl scripts
     for Avnet ZedBoard using Vivado.
 
   - Not commited on the repository currently.
 
-* zcu102
+* vivado/zcu102
 
   - Contains the implemented design or/and tcl scripts
     for Xilinx Zynq UltraScale+ MPSoC ZCU102 using Vivado.

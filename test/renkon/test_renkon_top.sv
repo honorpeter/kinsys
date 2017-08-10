@@ -2,16 +2,18 @@
 `include "ninjin.svh"
 
 // `define SAIF
+// `define NINJIN
 `define DIRECT
-`define NINJIN
 
-// int N_OUT = 32;
-// int N_IN  = 16;
-// int ISIZE = 12;
-int N_OUT = 16;
-int N_IN  = 1;
-int ISIZE = 28;
-int OSIZE = (ISIZE - FSIZE + 1) / PSIZE;
+int N_OUT = 32;
+int N_IN  = 16;
+int ISIZE = 12;
+// int N_OUT = 16;
+// int N_IN  = 1;
+// int ISIZE = 28;
+int FEAT  = ISIZE + 2*PAD - FSIZE + 1;
+// int OSIZE = FEAT / PSIZE;
+int OSIZE = FEAT;
 int IMG_OFFSET = 100;
 int OUT_OFFSET = 5000;
 int NET_OFFSET = 0;
@@ -33,18 +35,22 @@ module test_renkon_top;
   reg [IMGSIZE-1:0]         in_offset;
   reg [IMGSIZE-1:0]         out_offset;
   reg [RENKON_NETSIZE-1:0]  net_offset;
+
   reg [LWIDTH-1:0]          total_out;
   reg [LWIDTH-1:0]          total_in;
   reg [LWIDTH-1:0]          img_size;
-  reg [LWIDTH-1:0]          fil_size;
+  reg [LWIDTH-1:0]          conv_size;
+  reg [LWIDTH-1:0]          conv_pad;
+  reg                       bias_en;
+  reg                       relu_en;
+  reg                       pool_en;
   reg [LWIDTH-1:0]          pool_size;
-  reg                       ack;
-  reg signed [DWIDTH-1:0]   mem_i [2**IMGSIZE-1:0];
-  reg signed [DWIDTH-1:0]   mem_n [RENKON_CORE-1:0][2**RENKON_NETSIZE-1:0];
 
-  reg                      img_we;
-  reg [IMGSIZE-1:0]        img_addr;
-  reg signed [DWIDTH-1:0]  img_wdata;
+  wire                      ack;
+
+  reg                       img_we;
+  reg [IMGSIZE-1:0]         img_addr;
+  reg signed [DWIDTH-1:0]   img_wdata;
 
   wire                      mem_img_we;
   wire [IMGSIZE-1:0]        mem_img_addr;
@@ -56,6 +62,9 @@ module test_renkon_top;
   wire signed [DWIDTH-1:0]  renkon_img_wdata;
   wire signed [DWIDTH-1:0]  renkon_img_rdata;
 
+  bit signed [DWIDTH-1:0]   mem_i [2**IMGSIZE-1:0];
+  bit signed [DWIDTH-1:0]   mem_n [RENKON_CORE-1:0][2**RENKON_NETSIZE-1:0];
+
   int req_time = 2**30;
   int now_time = 0;
 
@@ -66,6 +75,7 @@ module test_renkon_top;
   assign renkon_img_rdata = mem_img_rdata;
 
 `ifdef NINJIN
+/// {{{
   reg                     pre_req;
   reg [MEMSIZE-1:0]       pre_base;
   reg [LWIDTH-1:0]        read_len;
@@ -128,6 +138,7 @@ module test_renkon_top;
     end
     #(STEP/2+1);
   end
+// }}}
 `else
   mem_sp #(DWIDTH, IMGSIZE) mem_img(
     .mem_we     (mem_img_we),
@@ -194,7 +205,11 @@ module test_renkon_top;
     total_out   = N_OUT;
     total_in    = N_IN;
     img_size    = ISIZE;
-    fil_size    = FSIZE;
+    conv_size   = FSIZE;
+    conv_pad    = PAD;
+    bias_en     = 1;
+    relu_en     = 1;
+    pool_en     = 0;
     pool_size   = PSIZE;
 
     img_we    = 0;
@@ -226,7 +241,7 @@ module test_renkon_top;
     pre_req   = 1;
     pre_base  = IMG_OFFSET >> RATELOG;
     read_len  = N_IN * ISIZE * ISIZE;
-    write_len = RENKON_CORE * ((ISIZE-FSIZE+1)/PSIZE) * ((ISIZE-FSIZE+1)/PSIZE);
+    write_len = RENKON_CORE * (FEAT/PSIZE) * (FEAT/PSIZE);
     #(STEP);
     pre_req = 0;
     #(STEP);
@@ -245,7 +260,9 @@ module test_renkon_top;
     req = 0;
 
     while(!ack) #(STEP);
+
     #(STEP*10);
+
     req_time = 2**30;
 
 `ifdef SAIF
@@ -606,53 +623,120 @@ module test_renkon_top;
       #(STEP/2-1);
       now_time = $time/STEP;
       if (now_time >= req_time)
+      begin
         $display(
           "%5d: ", now_time - req_time,
-          "%d ", req,
-          "%d ", ack,
-          "*%d ", dut.ctrl.ctrl_core.state$[0],
+          // "%d ",  req,
+          // "%d ",  ack,
+          "*%d ", dut.ctrl.ctrl_core.state$,
           "| ",
-          "%d ", mem_img_we,
-          "%d ", mem_img_addr,
-          "%d ", mem_img_wdata,
-          "%d ", mem_img_rdata,
-          `ifdef NINJIN
-          "| ",
-          "%x ", ddr_req,
-          "%x ", ddr_mode,
-          "%x ", ddr_base,
-          "%x ", ddr_len,
-          ": ",
-          "*%x ", mem_img.state$[0],
-          "*%x ", mem_img.ddr_which$,
-          "%x ", mem_img.count_len$,
-          "%x ", mem_img.count_buf$,
-          `else
-          "| ",
-          "%x ", 1'b0,
-          "%x ", 1'b0,
-          "%x ", {MEMSIZE+LSB{1'b0}},
-          "%x ", {LWIDTH{1'b0}},
-          ": ",
-          "*%x ", 2'b0,
-          "%4x ", 4'b0,
-          "%4x ", 4'b0,
+          "%1d ", mem_img_we,
+          "%4d ", mem_img_addr,
+          "%4d ", mem_img_wdata,
+          "%4d ", mem_img_rdata,
           // "| ",
-          // "%1d ", dut.ctrl.ctrl_core.out_ctrl.valid,
-          // "%1d ", dut.ctrl.ctrl_conv.out_ctrl.valid,
-          // "%1d ", dut.ctrl.ctrl_bias.out_ctrl.valid,
-          // "%1d ", dut.ctrl.ctrl_relu.out_ctrl.valid,
-          // "%1d ", dut.ctrl.ctrl_pool.out_ctrl.valid,
+          // "%3d ", dut.mem_net_addr,
+          // "%4d ", dut.net_rdata[0],
+          // "%3d ", dut.pe[0].core.bias.bias$,
+          "| ",
+          "%2d ", dut.ctrl.ctrl_core.count_out$,
+          "%2d ", dut.ctrl.ctrl_core.count_in$,
+          "%2d ", dut.ctrl.ctrl_core.input_x$,
+          "%2d ", dut.ctrl.ctrl_core.input_y$,
+          "%2d ", dut.ctrl.ctrl_core.weight_x$,
+          "%2d ", dut.ctrl.ctrl_core.weight_y$,
+          ": ",
+          "%2d ", dut.ctrl.ctrl_conv.conv_x$,
+          "%2d ", dut.ctrl.ctrl_conv.conv_y$,
+          // ": ",
+          // "%2d ", dut.ctrl.ctrl_pool.temp_x$,
+          // "%2d ", dut.ctrl.ctrl_pool.temp_y$,
+          "| ",
+          // "%4d ", dut.pe[0].core.conv.pixel_in[0],
+          // "%4d ", dut.pe[0].core.conv.pixel_in[5],
+          // "%4d ", dut.pe[0].core.conv.pixel_in[10],
+          // "%4d ", dut.pe[0].core.conv.pixel_in[15],
+          // "%4d ", dut.pe[0].core.conv.pixel_in[20],
+          ": ",
+          "%4d ", dut.pe[0].core.conv.result,
+          "%5d ", dut.pe[0].core.fmap,
+          // "%5d ", dut.pe[0].core.bmap,
+          // "%4d ", dut.pe[0].core.amap,
+          // "%4d ", dut.pe[0].core.pmap,
+          "| ",
+          "%1b%1b%1b ", dut.ctrl.ctrl_core.out_ctrl.start,
+                        dut.ctrl.ctrl_core.out_ctrl.valid,
+                        dut.ctrl.ctrl_core.out_ctrl.stop,
+          "%1b%1b%1b ", dut.ctrl.ctrl_conv.out_ctrl.start,
+                        dut.ctrl.ctrl_conv.out_ctrl.valid,
+                        dut.ctrl.ctrl_conv.out_ctrl.stop,
+          "%1b%1b%1b ", dut.ctrl.ctrl_bias.out_ctrl.start,
+                        dut.ctrl.ctrl_bias.out_ctrl.valid,
+                        dut.ctrl.ctrl_bias.out_ctrl.stop,
+          "%1b%1b%1b ", dut.ctrl.ctrl_relu.out_ctrl.start,
+                        dut.ctrl.ctrl_relu.out_ctrl.valid,
+                        dut.ctrl.ctrl_relu.out_ctrl.stop,
+          "%1b%1b%1b ", dut.ctrl.ctrl_pool.out_ctrl.start,
+                        dut.ctrl.ctrl_pool.out_ctrl.valid,
+                        dut.ctrl.ctrl_pool.out_ctrl.stop,
+          "| ",
+          // "%1b ", dut.ctrl.ctrl_core.buf_pix_req,
+          // "%1b ", dut.ctrl.ctrl_core.buf_pix_ack,
+          // "%1b ", dut.ctrl.ctrl_core.buf_pix_start,
+          // "%1b ", dut.ctrl.ctrl_core.buf_pix_valid,
+          // "%1b ", dut.ctrl.ctrl_core.buf_pix_ready,
+          // "%1b ", dut.ctrl.ctrl_core.buf_pix_stop,
+          // ": ",
+          // "%2d ", dut.ctrl.ctrl_core.ctrl_buf_pix.row_count$,
+          // "%2d ", dut.ctrl.ctrl_core.ctrl_buf_pix.col_count$,
+          // "%1b ", dut.ctrl.ctrl_core.ctrl_buf_pix.buf_valid$[0],
+          // ": ",
+          "%1b ", dut.ctrl.ctrl_core.buf_pix_wcol,
+          "%1b",  dut.ctrl.ctrl_core.buf_pix_rrow[0],
+          "%1b",  dut.ctrl.ctrl_core.buf_pix_rrow[1],
+          "%1b",  dut.ctrl.ctrl_core.buf_pix_rrow[2],
+          "%1b",  dut.ctrl.ctrl_core.buf_pix_rrow[3],
+          "%1b ", dut.ctrl.ctrl_core.buf_pix_rrow[4],
+          // "%1d ", dut.ctrl.ctrl_core.buf_pix_wsel,
+          // "%1d ", dut.ctrl.ctrl_core.buf_pix_rsel,
+          // "%1d ", dut.ctrl.ctrl_core.buf_pix_we,
+          // "%2d ", dut.ctrl.ctrl_core.buf_pix_addr,
           // "| ",
-          // "%2d ",  dut.ctrl.ctrl_core.count_out$,
-          // "%2d ",  dut.ctrl.ctrl_core.count_in$,
-          // "%2d  ", dut.ctrl.ctrl_core.input_x$,
-          // "%2d  ", dut.ctrl.ctrl_core.input_y$,
-          // "%2d  ", dut.ctrl.ctrl_core.weight_x$,
-          // "%2d  ", dut.ctrl.ctrl_core.weight_y$,
-        `endif
+          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_req,
+          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_ack,
+          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_start,
+          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_valid,
+          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_stop,
+          // ": ",
+          // "%1d ", dut.ctrl.ctrl_pool.buf_feat_wsel,
+          // "%1d ", dut.ctrl.ctrl_pool.buf_feat_rsel,
+          // "%1d ", dut.ctrl.ctrl_pool.buf_feat_we,
+          // "%2d ", dut.ctrl.ctrl_pool.buf_feat_addr,
+          // "| ",
+          // "*%1d ", dut.ctrl.ctrl_conv.state$,
+          // "%1b ", dut.ctrl.ctrl_conv.first_input$,
+          // "%1b ", dut.ctrl.ctrl_conv.last_input$,
+          // "*%1d ", dut.ctrl.ctrl_conv.core_state$,
+          // "%1b ", dut.ctrl.ctrl_conv.wait_back$,
+          "| ",
+          "%1d ", dut.pe[0].core.conv.mem_feat_rst,
+          "%1d ", dut.pe[0].core.conv.mem_feat_we,
+          "%4d ", dut.pe[0].core.conv.mem_feat_waddr,
+          "%5d ", dut.pe[0].core.conv.mem_feat_wdata,
+          "%4d ", dut.pe[0].core.conv.mem_feat_raddr,
+          "%5d ", dut.pe[0].core.conv.mem_feat_rdata,
+          // "| ",
+          // "%4d ", dut.pe[0].core.pool.pixel_feat[0],
+          // "%4d ", dut.pe[0].core.pool.pixel_feat[1],
+          // "%4d ", dut.pe[0].core.pool.pixel_feat[2],
+          // "%4d ", dut.pe[0].core.pool.pixel_feat[3],
+          "| ",
+          "%1b ", dut.w_bias_en,
+          "%1b ", dut.w_relu_en,
+          "%1b ", dut.w_pool_en,
           "|"
         );
+      end
       #(STEP/2+1);
     end // }}}
   end

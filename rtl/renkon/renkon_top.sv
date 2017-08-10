@@ -4,6 +4,7 @@ module renkon_top
   ( input                       clk
   , input                       xrst
   , input                       req
+  , input  signed [DWIDTH-1:0]  img_rdata
   , input  [RENKON_CORELOG-1:0] net_sel
   , input                       net_we
   , input  [RENKON_NETSIZE-1:0] net_addr
@@ -11,12 +12,18 @@ module renkon_top
   , input  [IMGSIZE-1:0]        in_offset
   , input  [IMGSIZE-1:0]        out_offset
   , input  [RENKON_NETSIZE-1:0] net_offset
+
+  // Network parameters
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_size
-  , input  [LWIDTH-1:0]         fil_size
+  , input  [LWIDTH-1:0]         conv_size
+  , input  [LWIDTH-1:0]         conv_pad
+  , input                       bias_en
+  , input                       relu_en
+  , input                       pool_en
   , input  [LWIDTH-1:0]         pool_size
-  , input  signed [DWIDTH-1:0]  img_rdata
+
   , output                      ack
   , output                      img_we
   , output [IMGSIZE-1:0]        img_addr
@@ -26,22 +33,34 @@ module renkon_top
   wire [RENKON_CORE-1:0]    mem_net_we;
   wire [RENKON_NETSIZE-1:0] mem_net_addr;
   wire signed [DWIDTH-1:0]  net_rdata [RENKON_CORE-1:0];
-  wire                      buf_pix_en;
-  wire [LWIDTH-1:0]         w_fea_size;
-  wire [LWIDTH-1:0]         w_fil_size;
+  wire                            buf_pix_wcol;
+  wire                            buf_pix_rrow [FSIZE-1:0];
+  wire [$clog2(FSIZE+1):0]        buf_pix_wsel;
+  wire [$clog2(FSIZE+1):0]        buf_pix_rsel;
+  wire                            buf_pix_we;
+  wire [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr;
   wire [LWIDTH-1:0]         w_img_size;
+  wire [LWIDTH-1:0]         w_conv_size;
+  wire [LWIDTH-1:0]         w_conv_pad;
+  wire [LWIDTH-1:0]         w_fea_size;
+  wire                      w_bias_en;
+  wire                      w_relu_en;
+  wire                      w_pool_en;
   wire [LWIDTH-1:0]         w_pool_size;
   wire signed [DWIDTH-1:0]  pixel [FSIZE**2-1:0];
   wire                      wreg_we;
   wire                      mem_feat_we;
   wire                      mem_feat_rst;
-  wire [FACCUM-1:0]         mem_feat_addr;
-  wire [FACCUM-1:0]         mem_feat_addr_d1;
+  wire [FACCUM-1:0]         mem_feat_raddr;
+  wire [FACCUM-1:0]         mem_feat_waddr;
+  wire [$clog2(PSIZE+1):0]        buf_feat_wsel;
+  wire [$clog2(PSIZE+1):0]        buf_feat_rsel;
+  wire                            buf_feat_we;
+  wire [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr;
   wire                      conv_oe;
   wire                      breg_we;
   wire                      bias_oe;
   wire                      relu_oe;
-  wire                      buf_feat_en;
   wire                      pool_oe;
   wire                      serial_we;
   wire [RENKON_CORELOG:0]   serial_re;
@@ -51,11 +70,14 @@ module renkon_top
 
   renkon_ctrl ctrl(.*);
 
-  renkon_linebuf #(FSIZE, D_PIXELBUF) buf_pix(
-    .buf_en     (buf_pix_en),
+  renkon_linebuf_pad #(FSIZE, D_PIXELBUF) buf_pix(
+    .buf_wcol   (buf_pix_wcol),
+    .buf_rrow   (buf_pix_rrow),
+    .buf_wsel   (buf_pix_wsel),
+    .buf_rsel   (buf_pix_rsel),
+    .buf_we     (buf_pix_we),
+    .buf_addr   (buf_pix_addr),
     .buf_input  (img_rdata),
-    .img_size   (w_img_size),
-    .fil_size   (w_fil_size),
     .buf_output (pixel),
     .*
   );
@@ -72,7 +94,7 @@ module renkon_top
     renkon_core core(
       .net_rdata    (net_rdata[i]),
       .pixel        (pixel),
-      .pmap         (result[i]),
+      .result       (result[i]),
       .*
     );
   end : pe

@@ -2,8 +2,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include <xil_io.h>
 #include <xil_mem.h>
 #include <xil_cache.h>
 #include <xil_types.h>
@@ -13,28 +13,17 @@
 
 int kinpira_init(void)
 {
-#define ZEDBOARD
-#if defined(ZEDBOARD)
-  port       = (u32 *)0x43c00000U;
-  mem_renkon = (u32 *)0x43c10000U;
-  mem_gobou  = (u32 *)0x43c80000U;
-#elif defined(ZCU102)
-  port       = (u32 *)0xA0000000U;
-  mem_renkon = (u32 *)0xB0000000U;
-  mem_gobou  = (u32 *)0xB0080000U;
+#if defined(zedboard)
+  port       = (u32 *)                  0x43c00000U;
+  mem_renkon = (u32 (*)[RENKON_WORDS])  0x43c10000U;
+  mem_gobou  = (u32 (*)[GOBOU_WORDS])   0x43c80000U;
+#elif defined(zcu102)
+#define memcpy Xil_MemCpy
+  port       = (u32 *)                  0xA0000000U;
+  mem_renkon = (u32 (*)[RENKON_WORDS])  0xA0010000U;
+  mem_gobou  = (u32 (*)[GOBOU_WORDS])   0xA0080000U;
 #endif
 
-#ifndef USE_AMP
-  puts("a");
-#endif
-#ifdef __GNUC__
-  puts("gnuc");
-#elif defined (__ICCARM__)
-  puts("iccarm");
-#else
-  puts("else");
-#endif
-  puts("b");
   Xil_DCacheDisable();
 
   return 0;
@@ -57,18 +46,11 @@ void define_2d(layer *l,
   l->img_size   = img_size;
   l->fil_size   = fil_size;
   l->pool_size  = pool_size;
+  assert_eq(in_offset, l->in_offset);
+  assert_eq(out_offset, l->out_offset);
 }
 
 
-
-#define assert_eq(a, b) do {                                      \
-  if ((a) != (b)) {                                               \
-    printf("Assertion failed: %s == %s, file %s, line %d\n",      \
-            #a, #b, __FILE__, __LINE__);                          \
-    printf("\t%s == %x, %s == %x\n", #a, (u32)(a), #b, (u32)(b)); \
-    return 1;                                                     \
-  }                                                               \
-} while (0)
 
 void assign_2d(layer *l, u32 *weight, u32 *bias)
 {
@@ -83,18 +65,13 @@ void assign_2d(layer *l, u32 *weight, u32 *bias)
   u32 idx   = l->net_offset;
 
   u32 *null = calloc(unit+1, sizeof(u32));
-  printf("null: %p\n", null);
 
   for (u32 n = 0; n < n_out/core; n++) {
     for (u32 dn = 0; dn < core; dn++) {
-      int i;
-      Xil_MemCpy(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
-      for (i=0; i < unit; i++)
-        assert_eq(mem_renkon[dn][idx+i], weight[idx_w+i]);
+      memcpy(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
       idx_w += unit;
 
-      Xil_MemCpy(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
-      assert_eq(mem_renkon[dn][idx+unit], bias[idx_b]);
+      memcpy(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
       idx_b += 1;
     }
 
@@ -103,23 +80,15 @@ void assign_2d(layer *l, u32 *weight, u32 *bias)
 
   if (n_out % core != 0) {
     for (u32 dn = 0; dn < core; dn++) {
-      int i;
       if (idx_b < n_out) {
-        Xil_MemCpy(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
-        for (i=0; i < unit; i++)
-          assert_eq(mem_renkon[dn][idx+i], weight[idx_w+i]);
+        memcpy(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
         idx_w += unit;
 
-        Xil_MemCpy(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
-        assert_eq(mem_renkon[dn][idx+unit], bias[idx_b]);
+        memcpy(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
         idx_b += 1;
       }
       else {
-        // Xil_MemCpy(&mem_renkon[dn][idx], &null, sizeof(u32)*(unit+1));
-        // memset(&mem_renkon[dn][idx], 0, sizeof(u32)*(unit+1));
-        for (i=0; i < unit+1; i++) mem_renkon[dn][idx+i] = 0;
-        for (i=0; i < unit+1; i++)
-          assert_eq(mem_renkon[dn][idx+i], 0);
+        memcpy(&mem_renkon[dn][idx], null, sizeof(u32)*(unit+1));
       }
     }
 
@@ -145,6 +114,8 @@ void define_1d(layer *l,
   l->img_size   = 0;
   l->fil_size   = 0;
   l->pool_size  = 0;
+  assert_eq(in_offset, l->in_offset);
+  assert_eq(out_offset, l->out_offset);
 }
 
 
@@ -160,18 +131,13 @@ void assign_1d(layer *l, u32 *weight, u32 *bias)
   u32 idx   = l->net_offset;
 
   u32 *null = calloc(n_in+1, sizeof(u32));
-  printf("null: %p\n", null);
 
   for (u32 n = 0; n < n_out/core; n++) {
     for (u32 dn = 0; dn < core; dn++) {
-      int i;
-      Xil_MemCpy(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
-      for (i=0; i < n_in; i++)
-        assert_eq(mem_gobou[dn][idx+i], weight[idx_w+i]);
+      memcpy(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
       idx_w += n_in;
 
-      Xil_MemCpy(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
-      assert_eq(mem_gobou[dn][idx+n_in], bias[idx_b]);
+      memcpy(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
       idx_b += 1;
     }
 
@@ -180,23 +146,15 @@ void assign_1d(layer *l, u32 *weight, u32 *bias)
 
   if (n_out % core != 0) {
     for (u32 dn = 0; dn < core; dn++) {
-      int i;
       if (idx_b < n_out) {
-        Xil_MemCpy(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
-        for (i=0; i < n_in; i++)
-          assert_eq(mem_gobou[dn][idx+i], weight[idx_w+i]);
+        memcpy(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
         idx_w += n_in;
 
-        Xil_MemCpy(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
-        assert_eq(mem_gobou[dn][idx+n_in], bias[idx_b]);
+        memcpy(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
         idx_b += 1;
       }
       else {
-        Xil_MemCpy(&mem_gobou[dn][idx], &null, sizeof(u32)*(n_in+1));
-        // memset(&mem_gobou[dn][idx], 0, sizeof(u32)*(n_in+1));
-        for (i=0; i < n_in+1; i++) mem_gobou[dn][idx+i] = 0;
-        for (i=0; i < n_in+1; i++)
-          assert_eq(mem_gobou[dn][idx+i], 0);
+        memcpy(&mem_gobou[dn][idx], null, sizeof(u32)*(n_in+1));
       }
     }
 
@@ -287,14 +245,14 @@ void print_result(s16 *output, const u32 length)
 void print_port()
 {
   printf(
-    "&port[0]:  %08x &port[1]:  %08x &port[2]:  %08x &port[3]:  %08x\n"
-    "&port[4]:  %08x &port[5]:  %08x &port[6]:  %08x &port[7]:  %08x\n"
-    "&port[8]:  %08x &port[9]:  %08x &port[10]: %08x &port[11]: %08x\n"
-    "&port[12]: %08x &port[13]: %08x &port[14]: %08x &port[15]: %08x\n"
-    "&port[16]: %08x &port[17]: %08x &port[18]: %08x &port[19]: %08x\n"
-    "&port[20]: %08x &port[21]: %08x &port[22]: %08x &port[23]: %08x\n"
-    "&port[24]: %08x &port[25]: %08x &port[26]: %08x &port[27]: %08x\n"
-    "&port[28]: %08x &port[29]: %08x &port[30]: %08x &port[31]: %08x\n"
+    "&port[0]:  %08lx &port[1]:  %08lx &port[2]:  %08lx &port[3]:  %08lx\n"
+    "&port[4]:  %08lx &port[5]:  %08lx &port[6]:  %08lx &port[7]:  %08lx\n"
+    "&port[8]:  %08lx &port[9]:  %08lx &port[10]: %08lx &port[11]: %08lx\n"
+    "&port[12]: %08lx &port[13]: %08lx &port[14]: %08lx &port[15]: %08lx\n"
+    "&port[16]: %08lx &port[17]: %08lx &port[18]: %08lx &port[19]: %08lx\n"
+    "&port[20]: %08lx &port[21]: %08lx &port[22]: %08lx &port[23]: %08lx\n"
+    "&port[24]: %08lx &port[25]: %08lx &port[26]: %08lx &port[27]: %08lx\n"
+    "&port[28]: %08lx &port[29]: %08lx &port[30]: %08lx &port[31]: %08lx\n"
     , port[0], port[1], port[2], port[3]
     , port[4], port[5], port[6], port[7]
     , port[8], port[9], port[10], port[11]

@@ -3,14 +3,12 @@
 // TODO: currently, odd WRITE_LEN won't work.
 //       (However, actual WRITE_LEN may be CORE * ~, where CORE is even)
 
-// const int READ_LEN   = 128+8;
-// const int WRITE_LEN  = 128+8;
-// const int READ_LEN   = 16*12*12;
-// const int WRITE_LEN  = 8*4*4;
+const int READ_LEN   = 16*12*12;
+const int WRITE_LEN  = 8*4*4;
 // const int READ_LEN   = 1*28*28;
 // const int WRITE_LEN  = 8*12*12;
-const int READ_LEN   = 512;
-const int WRITE_LEN  = 16;
+// const int READ_LEN   = 512;
+// const int WRITE_LEN  = 16;
 
 // int READ_OFFSET  = 42;
 const int READ_OFFSET  = 'ha000;
@@ -74,7 +72,7 @@ module test_ninjin_ddr_buf;
     #(STEP);
 
     xrst      = 1;
-    pre_req    = 0;
+    pre_req   = 0;
     pre_base  = 0;
     read_len  = 0;
     write_len = 0;
@@ -297,7 +295,7 @@ module test_ninjin_ddr_buf;
         // "%d ", xrst,
         "&%d ", dut.state$[0],
         "%d ", dut.mode,
-        // "%d ", dut.mode$,
+        "%d ", dut.mode$,
         // "%d ", dut.count_len$,
         // "%d ", dut.read_len,
         // "%d ", $signed(dut.rest_len),
@@ -314,7 +312,7 @@ module test_ninjin_ddr_buf;
         "%4x ", mem_addr,
         "%x ", mem_wdata,
         "%x ", mem_rdata,
-        "| ",
+        // "| ",
         // "%x ",  dut.pre_req,
         // "%x ",  dut.pre_base$,
         // "%d ",  dut.read_len$,
@@ -322,49 +320,50 @@ module test_ninjin_ddr_buf;
         // "%x ",  dut.pre_we,
         // "%x ",  dut.pre_addr,
         // ": ",
-        "%x ",  ddr_req,
-        "%x ",  ddr_mode,
-        "%x ",  ddr_base,
-        "%x ",  ddr_len,
-        "| ",
-        "%x ",  ddr_we,
-        "%4x ", ddr_waddr,
-        "%7x ", ddr_wdata,
-        "%4x ", ddr_raddr,
-        "%7x ", ddr_rdata,
-        "| ",
-        "%4x ",  dut.pre_base$ << LSB,
-        "%4x ",  dut.buf_base$[0] << LSB,
-        "%4x ",  dut.buf_base$[1] << LSB,
-        "%4x ",  dut.post_base$ << LSB,
-        ": ",
-        "%x ",  dut.post_addr$,
-        "%x ",  dut.mem_addr$,
+        // "%x ",  ddr_req,
+        // "%x ",  ddr_mode,
+        // "%x ",  ddr_base,
+        // "%x ",  ddr_len,
+        // "| ",
+        // "%x ",  ddr_we,
+        // "%4x ", ddr_waddr,
+        // "%7x ", ddr_wdata,
+        // "%4x ", ddr_raddr,
+        // "%7x ", ddr_rdata,
+        // "| ",
+        // "%4x ",  dut.pre_base$ << LSB,
+        // "%4x ",  dut.post_base$ << LSB,
         "| ",
         "*%d ", dut.which$,
         "*%d ", dut.mem_which$,
         "*%d ", dut.ddr_which$,
         "%d ",  dut.switch_buf,
         ": ",
+        "%x ",  dut.buf_addr$,
+        "| ",
         "%x ",  dut.buf_we[0],
         "%x ",  dut.buf_addr[0],
         // "%7x ", dut.buf_wdata[0],
-        // "%7x ", dut.buf_rdata[0],
+        "%8x ", dut.buf_rdata[0],
         ": ",
+        "%4x ",  dut.buf_base$[0],
+        "| ",
         "%x ",  dut.buf_we[1],
         "%x ",  dut.buf_addr[1],
         // "%7x ", dut.buf_wdata[1],
-        // "%7x ", dut.buf_rdata[1],
+        "%8x ", dut.buf_rdata[1],
         ": ",
+        "%4x ",  dut.buf_base$[1],
+        "| ",
         "%x ",  dut.pre_we,
         "%x ",  dut.pre_addr,
         // "%7x ", dut.pre_wdata,
-        // "%7x ", dut.pre_rdata,
-        ": ",
+        "%8x ", dut.pre_rdata,
+        "| ",
         "%x ",  dut.post_we,
         "%x ",  dut.post_addr,
         // "%7x ", dut.post_wdata,
-        // "%7x ", dut.post_rdata,
+        "%8x ", dut.post_rdata,
         "|"
       );
       #(STEP/2+1);

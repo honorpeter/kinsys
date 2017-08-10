@@ -1,11 +1,13 @@
 `include "renkon.svh"
 
-module renkon_linebuf
+module renkon_linebuf_pad
  #( parameter MAXFIL = 5
   , parameter MAXIMG = 32
   )
   ( input                         clk
   , input                         xrst
+  , input                         buf_wcol
+  , input                         buf_rrow [MAXFIL-1:0]
   , input  [$clog2(MAXFIL+1):0]   buf_wsel
   , input  [$clog2(MAXFIL+1):0]   buf_rsel
   , input                         buf_we
@@ -14,7 +16,8 @@ module renkon_linebuf
   , output signed [DWIDTH-1:0]    buf_output [MAXFIL**2-1:0]
   );
 
-  localparam BUFSIZE = MAXIMG + 1;
+  localparam MAXPAD = (MAXFIL-1)/2;
+  localparam BUFSIZE = MAXIMG + 2*MAXPAD + 1;
   localparam BUFLINE = MAXFIL + 1;
   localparam SIZEWIDTH = $clog2(BUFSIZE);
   localparam LINEWIDTH = $clog2(BUFLINE);
@@ -47,8 +50,10 @@ module renkon_linebuf
         always @(posedge clk)
           if (!xrst)
             pixel$[MAXFIL * i + j] <= 0;
-          else
+          else if (buf_rrow[i])
             pixel$[MAXFIL * i + j] <= mux[i][buf_rsel];
+          else
+            pixel$[MAXFIL * i + j] <= 0;
       end
       else begin
         always @(posedge clk)
@@ -63,9 +68,9 @@ module renkon_linebuf
 //==========================================================
 
   assign mem_linebuf_addr   = buf_addr;
-  assign mem_linebuf_wdata  = buf_input;
+  assign mem_linebuf_wdata  = buf_wcol ? buf_input : 0;
 
-  for (genvar i = 0; i < BUFLINE; i++) begin
+  for (genvar i = 0; i < BUFLINE; i++) begin:b
     assign mem_linebuf_we[i] = buf_we
                             && buf_wsel == i + 1;
 
@@ -76,6 +81,6 @@ module renkon_linebuf
       .mem_rdata  (mem_linebuf_rdata[i]),
       .*
     );
-  end
+  end:b
 
 endmodule

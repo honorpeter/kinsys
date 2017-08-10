@@ -1,7 +1,11 @@
 VERBOSE   = 0
 SIMULATOR = vsim
+# MODULE    = renkon_linebuf_pad.sv
+# DEPENDS   = renkon_ctrl_linebuf_pad.sv
 MODULE    = renkon_top.sv
 DEPENDS   = \
+	renkon_ctrl_linebuf_pad.sv \
+	renkon_ctrl_linebuf.sv \
 	renkon_ctrl_core.sv \
 	renkon_ctrl_conv.sv \
 	renkon_ctrl_bias.sv \
@@ -9,6 +13,7 @@ DEPENDS   = \
 	renkon_ctrl_pool.sv \
 	renkon_ctrl.sv \
 	renkon_linebuf.sv \
+	renkon_linebuf_pad.sv \
 	renkon_conv_tree25.sv \
 	renkon_conv_wreg.sv \
 	renkon_accum.sv \

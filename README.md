@@ -42,16 +42,12 @@ TODOs
     + we have just a little BRAM today
 
 * Renkon (2D-Coprocessor)
-  - Implement the padding option for conv module.
+  - # Implement the padding option for conv module.
   - Implement the universal filter-size conv module.
     + with 1 MAC for each module
   - Bypass pool module.
   - Implement the stride option for pool module.
   - Implement the universal filter-size pool module.
-
-* Ninjin (AXI4-Interface)
-  - Use DRAM for image memory with Central-DMA.
-  - Use memory-mapped AXI4.
 
 * Other parts
   - Provide sufficient documents
