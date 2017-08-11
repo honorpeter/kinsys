@@ -52,9 +52,14 @@ int kinpira_init(void);
 
 int kinpira_exit(void);
 
-void assign_map(layer *l, u32 *weight, u32 *bias);
+map *define_map(int map_c, int map_w, int map_h);
+vec *define_vec(int vec_l);
 
+void assign_map(layer *l, u32 *weight, u32 *bias);
 void assign_vec(layer *l, u32 *weight, u32 *bias);
+
+void undef_map(map *r);
+void undef_vec(vec *r);
 
 void exec_core(layer *l);
 

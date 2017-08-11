@@ -27,7 +27,7 @@ typedef struct {
   u32 net_offset;
   u32 read_len;
   u32 write_len;
-  u32 base_param;
+  u32 base_param[2];
   u32 conv_param;
   u32 bias_param;
   u32 norm_param;

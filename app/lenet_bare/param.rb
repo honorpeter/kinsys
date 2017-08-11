@@ -16,7 +16,7 @@ end
 FileUtils.mkdir_p("data")
 
 image = hex_of_floatfile("#{input_dir}/#{input_label}/img#{input_name}.dat")
-File.open("data/image.h", "w") do |f|
+File.open("src/data/image.h", "w") do |f|
   f.puts <<~EOS
     #ifndef _IMAGE_H_
     #define _IMAGE_H_
@@ -35,7 +35,7 @@ Dir.glob("#{param_dir}/*") do |layer_path|
 
   ["W", "b"].each do |type|
     param = hex_of_floatfile("#{layer_path}/#{type}.dat")
-    File.open("data/#{type}_#{layer}.h", "w") do |f|
+    File.open("src/data/#{type}_#{layer}.h", "w") do |f|
       f.puts <<~EOS
         #ifndef _#{type.upcase}_#{layer.upcase}_H_
         #define _#{type.upcase}_#{layer.upcase}_H_

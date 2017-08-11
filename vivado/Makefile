@@ -8,6 +8,11 @@ APP_PETA = lenet
 run:
 	xsct run.tcl ${BOARD} ${APP_BARE}
 
+	# (cd linux; \
+	#   xsct -eval "connect; target 13; rst; target 16; \
+	#   `petalinux-boot --jtag --fpga --kernel --tcl /tmp 2> /dev/null \
+	#     | /bin/grep -v '^INFO:'`" \
+	# )
 # avoid friendly fire
 all:
 	@../utils/confirm.sh "Build the project from the beginning?"
@@ -18,8 +23,8 @@ peta:
 
 peta_run:
 	(cd linux; \
-	  xsct -eval "connect; targets 1; rst"; \
 	  petalinux-boot --jtag --fpga --kernel \
+	    --xsdb-conn "connect; target 13; rst; target 16" \
 	)
 
 sw:

@@ -17,8 +17,33 @@ typedef uint16_t  u16;
 typedef uint32_t  u32;
 typedef uint64_t  u64;
 
-typedef intptr_t INTPTR;
+typedef intptr_t  INTPTR;
 typedef uintptr_t UINTPTR;
+
+typedef struct {
+  u32 which;
+  u32 in_offset;
+  u32 out_offset;
+  u32 net_offset;
+  u32 read_len;
+  u32 write_len;
+  u32 base_param[2];
+  u32 conv_param;
+  u32 bias_param;
+  u32 norm_param;
+  u32 actv_param;
+  u32 pool_param;
+} layer;
+
+typedef struct {
+  int shape[3];
+  s16 *body;
+} map;
+
+typedef struct {
+  int shape;
+  s16 *body;
+} vec;
 
 #ifdef __cplusplus
 }

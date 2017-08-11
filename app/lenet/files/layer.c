@@ -16,34 +16,6 @@ static void define_pool(layer *l, u32 *param);
 
 
 
-map *define_map(int map_c, int map_w, int map_h)
-{
-  map *r = malloc(sizeof(map));
-
-  r->shape[0] = map_c;
-  r->shape[1] = map_w;
-  r->shape[2] = map_h;
-
-  r->body = calloc(map_c*map_w*map_h, sizeof(u16));
-
-  return r;
-}
-
-
-
-vec *define_vec(int vec_l)
-{
-  vec *r = malloc(sizeof(vec));
-
-  r->shape = vec_l;
-
-  r->body = calloc(vec_l, sizeof(u16));
-
-  return r;
-}
-
-
-
 layer *map_layer(
   map *in, map *out, u32 net_offset,
   u32 *conv_param, u32 *norm_param, u32 *actv_param, u32 *pool_param
@@ -61,8 +33,10 @@ layer *map_layer(
                 * out->shape[1]
                 * out->shape[2];
 
-  l->base_param = out->shape[0] << LWIDTH
-                | in->shape[0];
+  l->base_param[0] = out->shape[0] << LWIDTH
+                   | in->shape[0];
+
+  l->base_param[1] = in->shape[1];
 
   define_conv(l, conv_param);
   define_norm(l, norm_param);
@@ -96,8 +70,10 @@ layer *vec_layer(
                 ? out->shape
                 : GOBOU_CORE;
 
-  l->base_param = out->shape << LWIDTH
-                | in->shape;
+  l->base_param[0] = out->shape << LWIDTH
+                   | in->shape;
+
+  l->base_param[1] = 0;
 
   define_full(l, full_param);
   define_norm(l, norm_param);
@@ -112,20 +88,19 @@ layer *vec_layer(
 
 
 
-u32 *convolution_2d(int img_size, int fil_size, enum conv_mode mode)
+u32 *convolution_2d(int fil_size, enum conv_mode mode)
 {
   u32 *param = calloc(2, sizeof(u32));
 
-  param[0] |= img_size;
   param[0] |= fil_size << LWIDTH;
 
   if (mode & CONV_VALID)
-    param[0] |= 0 << 2*LWIDTH;
+    param[0] |= 0;
   else if (mode & CONV_SAME)
-    param[0] |= (fil_size-1)/2 << 2*LWIDTH;
+    param[0] |= (fil_size-1)/2;
 
   if (mode & CONV_BIAS)
-    param[1] |= 1U << 31;
+    param[1] |= 1U << (BWIDTH-1);
 
   return param;
 }
@@ -151,7 +126,7 @@ u32 *fully_connected(enum full_mode mode)
   u32 *param = calloc(2, sizeof(u32));
 
   if (mode & FULL_BIAS)
-    param[1] |= 1U << 31;
+    param[1] |= 1U << (BWIDTH-1);
 
   return param;
 }
@@ -287,22 +262,6 @@ int label(vec *output)
   }
 
   return number;
-}
-
-
-
-void undef_map(map *r)
-{
-  free(r->body);
-  free(r);
-}
-
-
-
-void undef_vec(vec *r)
-{
-  free(r->body);
-  free(r);
 }
 
 

@@ -15,7 +15,7 @@ vish_stacktrace.vstf
 
 dist
 
-app/lenet_bare/data
+app/lenet_bare/src/data
 app/lenet/files/data
 
 vivado/results

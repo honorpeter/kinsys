@@ -8,7 +8,7 @@
 
 #define BWIDTH          32
 #define DWIDTH          16
-#define LWIDTH          12
+#define LWIDTH          16
 #define IMGSIZE         31
 #define REGSIZE         32
 
@@ -35,11 +35,12 @@ uint32_t (*mem_gobou)[GOBOU_WORDS];
 #define reg_read_len    &port[7]
 #define reg_write_len   &port[8]
 
-#define reg_base_param  &port[9]
-#define reg_conv_param  &port[10]
-#define reg_bias_param  &port[11]
-#define reg_actv_param  &port[12]
-#define reg_pool_param  &port[13]
+#define reg_base_param0 &port[9]
+#define reg_base_param1 &port[10]
+#define reg_conv_param  &port[11]
+#define reg_bias_param  &port[12]
+#define reg_actv_param  &port[13]
+#define reg_pool_param  &port[14]
 
 // output reg
 #define reg_r_which     &port[31]

@@ -37,9 +37,6 @@ module renkon_ctrl_core
   , output                      serial_we
   , output [RENKON_CORELOG:0]   serial_re
   , output [OUTSIZE-1:0]        serial_addr
-  , output [LWIDTH-1:0]         w_img_size
-  , output [LWIDTH-1:0]         w_conv_size
-  , output [LWIDTH-1:0]         w_conv_pad
   , output [LWIDTH-1:0]         w_fea_size
   , output                      w_bias_en
   , output                      w_relu_en
@@ -199,9 +196,6 @@ module renkon_ctrl_core
 // params control
 //==========================================================
 
-  assign w_img_size   = img_size$;
-  assign w_conv_size  = conv_size$;
-  assign w_conv_pad   = conv_pad$;
   assign w_fea_size   = fea_size$;
   assign w_bias_en    = bias_en$;
   assign w_relu_en    = relu_en$;

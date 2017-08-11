@@ -7,7 +7,7 @@ end
 
 ["conv0", "conv1", "full2", "full3"].each do |layer|
   tru_dat = hex_of_decfile("../../data/common/#{layer}_tru.dat")
-  File.open("data/#{layer}_tru.h", "w") do |f|
+  File.open("src/data/#{layer}_tru.h", "w") do |f|
     f.puts <<~EOS
       #ifndef _#{layer.upcase}_TRU_H_
       #define _#{layer.upcase}_TRU_H_

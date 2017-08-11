@@ -14,7 +14,7 @@ set hw_project_name ${top_module_name}_hw_platform_0
 
 setws $sdk_ws_dir
 if {[file exists $app_dir/$app_name] != 0} {
-  exec cp -rf {*}[glob $app_dir/$app_name/*] $sdk_ws_dir/$app_name/src
+  exec cp -rf {*}[glob $app_dir/$app_name/*] $sdk_ws_dir/$app_name
 }
 projects -build -type app -name $app_name
 

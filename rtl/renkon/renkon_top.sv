@@ -39,9 +39,6 @@ module renkon_top
   wire [$clog2(FSIZE+1):0]        buf_pix_rsel;
   wire                            buf_pix_we;
   wire [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr;
-  wire [LWIDTH-1:0]         w_img_size;
-  wire [LWIDTH-1:0]         w_conv_size;
-  wire [LWIDTH-1:0]         w_conv_pad;
   wire [LWIDTH-1:0]         w_fea_size;
   wire                      w_bias_en;
   wire                      w_relu_en;

@@ -5,9 +5,6 @@ module renkon_ctrl_conv
   , input               xrst
   , ctrl_bus.slave      in_ctrl
   , input  [2-1:0]      core_state
-  , input  [LWIDTH-1:0] w_img_size
-  , input  [LWIDTH-1:0] w_conv_size
-  , input  [LWIDTH-1:0] w_conv_pad
   , input  [LWIDTH-1:0] w_fea_size
   , input               first_input
   , input               last_input
@@ -31,9 +28,6 @@ module renkon_ctrl_conv
   reg               wait_back$;
   reg               first_input$;
   reg               last_input$;
-  reg [LWIDTH-1:0]  img_size$;
-  reg [LWIDTH-1:0]  conv_size$;
-  reg [LWIDTH-1:0]  conv_pad$;
   reg [LWIDTH-1:0]  fea_size$;
   reg               feat_we$   [D_CONV-1:0];
   reg               feat_rst$  [D_CONV-1:0];
@@ -67,14 +61,9 @@ module renkon_ctrl_conv
 
   always @(posedge clk)
     if (!xrst) begin
-      img_size$   <= 0;
-      conv_size$  <= 0;
       fea_size$   <= 0;
     end
     else if (state$ == S_WAIT && in_ctrl.start) begin
-      img_size$   <= w_img_size;
-      conv_size$  <= w_conv_size;
-      conv_pad$   <= w_conv_pad;
       fea_size$   <= w_fea_size;
     end
 

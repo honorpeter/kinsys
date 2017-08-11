@@ -41,15 +41,16 @@ void LeNet_init(s16 *input, s16 **output)
 
   set_input(input, image);
 
+  // TODO: remove ISIZE from convolution_2d (w/ rtl)
   conv0 = map_layer(image, pmap0, CONV0_PARAM,
-    convolution_2d(ISIZE, FSIZE, CONV_BIAS | CONV_VALID),
+    convolution_2d(FSIZE, CONV_BIAS | CONV_VALID),
     NULL,
     activation(ACTV_RELU),
     max_pooling(PSIZE)
   );
 
   conv1 = map_layer(pmap0, pmap1, CONV1_PARAM,
-    convolution_2d(PM0SIZE, FSIZE, CONV_BIAS | CONV_VALID),
+    convolution_2d(FSIZE, CONV_BIAS | CONV_VALID),
     NULL,
     activation(ACTV_RELU),
     max_pooling(PSIZE)

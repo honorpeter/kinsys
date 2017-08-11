@@ -51,9 +51,6 @@ module renkon_ctrl
   , output [$clog2(PSIZE+1):0]        buf_feat_rsel
   , output                            buf_feat_we
   , output [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
-  , output [LWIDTH-1:0]         w_img_size
-  , output [LWIDTH-1:0]         w_conv_size
-  , output [LWIDTH-1:0]         w_conv_pad
   , output [LWIDTH-1:0]         w_fea_size
   , output                      w_bias_en
   , output                      w_relu_en

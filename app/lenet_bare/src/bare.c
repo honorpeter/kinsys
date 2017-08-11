@@ -39,11 +39,39 @@ int kinpira_init(void)
 
 
 
+map *define_map(int map_c, int map_w, int map_h)
+{
+  map *r = malloc(sizeof(map));
+
+  r->shape[0] = map_c;
+  r->shape[1] = map_w;
+  r->shape[2] = map_h;
+
+  r->body = calloc(map_c*map_w*map_h, sizeof(u16));
+
+  return r;
+}
+
+
+
+vec *define_vec(int vec_l)
+{
+  vec *r = malloc(sizeof(vec));
+
+  r->shape = vec_l;
+
+  r->body = calloc(vec_l, sizeof(u16));
+
+  return r;
+}
+
+
+
 void assign_map(layer *l, u32 *weight, u32 *bias)
 {
   const u32 core  = RENKON_CORE;
-  const u32 n_out = bit(l->base_param, 2*LWIDTH-1, LWIDTH);
-  const u32 n_in  = bit(l->base_param, LWIDTH-1, 0);
+  const u32 n_out = bit(l->base_param[0], 2*LWIDTH-1, LWIDTH);
+  const u32 n_in  = bit(l->base_param[0], LWIDTH-1, 0);
   const u32 fsize = bit(l->conv_param, 2*LWIDTH-1, LWIDTH);
   const u32 unit  = n_in * fsize * fsize;
 
@@ -90,8 +118,8 @@ void assign_map(layer *l, u32 *weight, u32 *bias)
 void assign_vec(layer *l, u32 *weight, u32 *bias)
 {
   const u32 core  = GOBOU_CORE;
-  const u32 n_out = bit(l->base_param, 2*LWIDTH-1, LWIDTH);
-  const u32 n_in  = bit(l->base_param, LWIDTH-1, 0);
+  const u32 n_out = bit(l->base_param[0], 2*LWIDTH-1, LWIDTH);
+  const u32 n_in  = bit(l->base_param[0], LWIDTH-1, 0);
 
   u32 idx_w = 0;
   u32 idx_b = 0;
@@ -133,23 +161,40 @@ void assign_vec(layer *l, u32 *weight, u32 *bias)
 
 
 
+void undef_map(map *r)
+{
+  free(r->body);
+  free(r);
+}
+
+
+
+void undef_vec(vec *r)
+{
+  free(r->body);
+  free(r);
+}
+
+
+
 void exec_core(layer *l)
 {
-  *reg_which      = l->which;
-  *reg_in_offset  = l->in_offset;
-  *reg_out_offset = l->out_offset;
-  *reg_net_offset = l->net_offset;
+  *reg_which        = l->which;
+  *reg_in_offset    = l->in_offset;
+  *reg_out_offset   = l->out_offset;
+  *reg_net_offset   = l->net_offset;
 
-  *reg_pre_base   = l->in_offset;
-  *reg_read_len   = l->read_len;
-  *reg_write_len  = l->write_len;
+  *reg_pre_base     = l->in_offset;
+  *reg_read_len     = l->read_len;
+  *reg_write_len    = l->write_len;
 
-  *reg_base_param = l->base_param;
-  *reg_conv_param = l->conv_param;
-  *reg_bias_param = l->bias_param;
+  *reg_base_param0  = l->base_param[0];
+  *reg_base_param1  = l->base_param[1];
+  *reg_conv_param   = l->conv_param;
+  *reg_bias_param   = l->bias_param;
   // *reg_norm_param = l->norm_param;
-  *reg_actv_param = l->actv_param;
-  *reg_pool_param = l->pool_param;
+  *reg_actv_param   = l->actv_param;
+  *reg_pool_param   = l->pool_param;
 
   *reg_pre_req = 1;
   *reg_pre_req = 0;

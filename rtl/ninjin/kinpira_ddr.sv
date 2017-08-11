@@ -232,7 +232,7 @@ module kinpira_ddr
   wire [IMGSIZE-1:0]        out_offset;
   wire [BWIDTH-1:0]         net_offset;
 
-  wire [BWIDTH-1:0]         base_param;
+  wire [BWIDTH-1:0]         base_param [1:0];
   wire [BWIDTH-1:0]         conv_param;
   wire [BWIDTH-1:0]         bias_param;
   wire [BWIDTH-1:0]         actv_param;
@@ -340,19 +340,20 @@ module kinpira_ddr
   assign read_len   = in_port[7][LWIDTH-1:0];
   assign write_len  = in_port[8][LWIDTH-1:0];
 
-  assign base_param = in_port[9][BWIDTH-1:0];
-  assign conv_param = in_port[10][BWIDTH-1:0];
-  assign bias_param = in_port[11][BWIDTH-1:0];
-  assign actv_param = in_port[12][BWIDTH-1:0];
-  assign pool_param = in_port[13][BWIDTH-1:0];
+  assign base_param[0] = in_port[9][BWIDTH-1:0];
+  assign base_param[1] = in_port[10][BWIDTH-1:0];
+  assign conv_param    = in_port[11][BWIDTH-1:0];
+  assign bias_param    = in_port[12][BWIDTH-1:0];
+  assign actv_param    = in_port[13][BWIDTH-1:0];
+  assign pool_param    = in_port[14][BWIDTH-1:0];
 
   // Network parameters
-  assign total_out  = base_param[2*LWIDTH-1:LWIDTH];
-  assign total_in   = base_param[LWIDTH-1:0];
+  assign total_out  = base_param[0][2*LWIDTH-1:LWIDTH];
+  assign total_in   = base_param[0][LWIDTH-1:0];
+  assign img_size   = base_param[1][LWIDTH-1:0];
 
-  assign conv_pad   = conv_param[BWIDTH-1:2*LWIDTH];
   assign conv_size  = conv_param[2*LWIDTH-1:LWIDTH];
-  assign img_size   = conv_param[LWIDTH-1:0];
+  assign conv_pad   = conv_param[LWIDTH-1:0];
 
   assign bias_en    = bias_param[BWIDTH-1];
 
