@@ -24,8 +24,8 @@ layer *map_layer(
   layer *l = malloc(sizeof(layer));
 
   l->which      = WHICH_RENKON;
-  l->in_offset  = (u32)(UINTPTR)in->body;
-  l->out_offset = (u32)(UINTPTR)out->body;
+  l->in_offset  = in->phys_addr;
+  l->out_offset = out->phys_addr;
   l->net_offset = net_offset;
 
   l->read_len   = in->shape[0] * in->shape[1] * in->shape[2];
@@ -61,8 +61,8 @@ layer *vec_layer(
   layer *l = malloc(sizeof(layer));
 
   l->which      = WHICH_GOBOU;
-  l->in_offset  = (u32)(UINTPTR)in->body;
-  l->out_offset = (u32)(UINTPTR)out->body;
+  l->in_offset  = in->phys_addr;
+  l->out_offset = out->phys_addr;
   l->net_offset = net_offset;
 
   l->read_len   = in->shape;

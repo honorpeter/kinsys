@@ -20,10 +20,11 @@ static int __mem_renkon;
 static int __mem_gobou;
 static int udmabuf0;
 
-static u32 phys_addr;
 
 static int pagesize;
-static int offset;
+
+static u32 phys_addr;
+static u32 offset;
 
 static u32 bit(u32 value, int high, int low)
 {
@@ -65,8 +66,8 @@ int kinpira_init(void)
   char attr[1024];
 
   system("modprobe udmabuf udmabuf0=1048576");
-  fd = open("/sys/class/udmabuf/udmabuf0/phys_addr", O_RDONLY);
 
+  fd = open("/sys/class/udmabuf/udmabuf0/phys_addr", O_RDONLY);
   if (fd < 0) {
     perror("phys_addr open error: ");
     return errno;
@@ -111,6 +112,7 @@ int kinpira_exit(void)
 
   close(udmabuf0);
 
+  system("modprobe -r udmabuf");
   system("modprobe -r uio_pdrv_genirq");
 
   return 0;
@@ -128,9 +130,11 @@ map *define_map(int map_c, int map_w, int map_h)
 
   int map_size = sizeof(s16)*map_c*map_w*map_h;
 
-  // r->body = calloc(map_c*map_w*map_h, sizeof(u16));
+  r->phys_addr = phys_addr + offset;
+
   r->body = mmap(NULL, map_size,
-                 PROT_READ | PROT_WRITE, MAP_SHARED, udmabuf0, offset);
+                 PROT_READ | PROT_WRITE, MAP_SHARED,
+                 udmabuf0, offset);
 
   offset += (map_size / pagesize + 1) * pagesize;
 
@@ -145,9 +149,15 @@ vec *define_vec(int vec_l)
 
   r->shape = vec_l;
 
-  // r->body = calloc(vec_l, sizeof(u16));
-  r->body = mmap(NULL, sizeof(s16)*vec_l,
-                 PROT_READ | PROT_WRITE, MAP_SHARED, udmabuf0, offset);
+  int vec_size = sizeof(s16)*vec_l;
+
+  r->phys_addr = phys_addr + offset;
+
+  r->body = mmap(NULL, vec_size,
+                 PROT_READ | PROT_WRITE, MAP_SHARED,
+                 udmabuf0, offset);
+
+  offset += (vec_size / pagesize + 1) * pagesize;
 
   return r;
 }
@@ -242,7 +252,7 @@ void assign_vec(layer *l, u32 *weight, u32 *bias)
 
 void undef_map(map *r)
 {
-  free(r->body);
+  munmap(r->body, sizeof(s16)*r->shape[0]*r->shape[1]*r->shape[2]);
   free(r);
 }
 
@@ -250,7 +260,7 @@ void undef_map(map *r)
 
 void undef_vec(vec *r)
 {
-  free(r->body);
+  munmap(r->body, sizeof(s16)*r->shape);
   free(r);
 }
 
