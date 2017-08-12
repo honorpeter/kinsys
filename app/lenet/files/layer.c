@@ -221,58 +221,6 @@ static void define_pool(layer *l, u32 *param)
 
 
 
-void set_input(s16 **in, map *out)
-{
-#if 0
-  free(out->body);
-
-  out->body = in;
-#endif
-
-  memmove(out->body, in, out->shape[0]*out->shape[1]*out->shape[2]*sizeof(s16));
-}
-
-
-
-void map2vec(map *in, vec *out)
-{
-#if 0
-  free(out->body);
-#endif
-
-  out->shape = in->shape[0] * in->shape[1] * in->shape[2];
-  out->phys_addr = in->phys_addr;
-  out->body  = in->body;
-}
-
-
-
-void set_output(vec *in, s16 **out)
-{
-  *out = in->body;
-}
-
-
-
-int label(vec *output)
-{
-  const int length = output->shape;
-
-  int number  = -1;
-  int max     = INT_MIN;
-
-  for (int i = 0; i < length; i++) {
-    if (max < output->body[i]) {
-      number = i;
-      max    = output->body[i];
-    }
-  }
-
-  return number;
-}
-
-
-
 void undef_layer(layer *r)
 {
   free(r);

@@ -54,13 +54,12 @@ int kinpira_exit(void);
 map *define_map(int map_c, int map_w, int map_h);
 vec *define_vec(int vec_l);
 
-void assign_map(layer *l, u32 *weight, u32 *bias);
-void assign_vec(layer *l, u32 *weight, u32 *bias);
+void set_input(s16 **in, map *out);
+vec *vec_of_map(map *m);
+void set_output(vec *in, s16 **out);
 
 void undef_map(map *r);
 void undef_vec(vec *r);
-
-void exec_core(layer *l);
 
 #ifdef __cplusplus
 }
