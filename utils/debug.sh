@@ -7,10 +7,10 @@ make clean all
 ./debug_gen.rb $1 $2
 ./debug.out $1 $2
 
-cd $TOP/app/lenet_bare
+cd $TOP/app/lenet
 ./param.rb $1 $2
 ./debug.rb
 
-cd $TOP/vivado
-make sw run
+# cd $TOP/vivado
+# make sw run
 

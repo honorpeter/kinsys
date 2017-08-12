@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-void print_result(s16 *output, const u32 length);
+void print_result(s16 *output, const int length);
 
 void print_port();
 

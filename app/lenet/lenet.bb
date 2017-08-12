@@ -8,11 +8,16 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 SRC_URI = "file://main.c \
+           file://lenet.c \
+           file://lenet.h \
+           file://layer.c \
+           file://layer.h \
            file://peta.c \
            file://peta.h \
-           file://kinpira.h \
-           file://lenet.h \
+           file://util.c \
+           file://util.h \
            file://types.h \
+           file://kinpira.h \
            file://data/W_conv0.h \
            file://data/W_conv1.h \
            file://data/W_full2.h \

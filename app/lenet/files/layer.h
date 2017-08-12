@@ -41,7 +41,7 @@ u32 *normalization();
 u32 *activation(enum actv_mode mode);
 u32 *max_pooling(int pool_size);
 
-void set_input(s16 *in, map *out);
+void set_input(s16 **in, map *out);
 void map2vec(map *in, vec *out);
 void set_output(vec *in, s16 **out);
 int label(vec *output);

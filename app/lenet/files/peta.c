@@ -80,7 +80,6 @@ int kinpira_init(void)
   // int o_sync = O_SYNC; // disable cache
   // if ((udmabuf0 = open("/dev/udmabuf0", O_RDWR | o_sync)) == -1) {
   udmabuf0 = open("/dev/udmabuf0", O_RDWR | O_SYNC);
-
   if (udmabuf0 < 0) {
     perror("udmabuf open error: ");
     return errno;

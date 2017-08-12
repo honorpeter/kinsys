@@ -21,7 +21,7 @@ all:
 peta:
 	./peta.sh ${BOARD} ${APP_PETA}
 
-peta_run:
+run_peta:
 	(cd linux; \
 	  petalinux-boot --jtag --fpga --kernel \
 	    --xsdb-conn "connect; target 13; rst; target 16" \
