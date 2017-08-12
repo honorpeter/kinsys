@@ -36,7 +36,13 @@ extern "C" {
 
 #define assert_rep(a, b, len) do {  \
   for (int i = 0; i < (len); i++) { \
-    assert_eq(*((a)+i), *((b)+i));  \
+    if (*((a)+i) != *((b)+i)) {                                 \
+      printf("Assertion failed: %s == %s, file %s, line %d\n",  \
+              #a, #b, __FILE__, __LINE__);                      \
+      printf("\t%d: %s == %lx, %s == %lx\n",                    \
+              i, #a, (u32)*((a)+i), #b, (u32)*((b)+i));         \
+      return 1;                                                 \
+    }                                                           \
   }                                 \
 } while (0)
 
@@ -51,13 +57,17 @@ extern "C" {
 int kinpira_init(void);
 int kinpira_exit(void);
 
+map *define_map_nobody(int map_c, int map_w, int map_h);
+vec *define_vec_nobody(int vec_l);
 map *define_map(int map_c, int map_w, int map_h);
 vec *define_vec(int vec_l);
 
 void set_input(s16 **in, map *out);
-vec *vec_of_map(map *m);
+void map2vec(map *in, vec *out);
 void set_output(vec *in, s16 **out);
 
+void undef_map_nobody(map *r);
+void undef_vec_nobody(vec *r);
 void undef_map(map *r);
 void undef_vec(vec *r);
 

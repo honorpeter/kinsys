@@ -43,11 +43,6 @@ layer *map_layer(
   define_actv(l, actv_param);
   define_pool(l, pool_param);
 
-  free(conv_param);
-  free(norm_param);
-  free(actv_param);
-  free(pool_param);
-
   return l;
 }
 
@@ -78,10 +73,6 @@ layer *vec_layer(
   define_full(l, full_param);
   define_norm(l, norm_param);
   define_actv(l, actv_param);
-
-  free(full_param);
-  free(norm_param);
-  free(actv_param);
 
   return l;
 }
@@ -117,6 +108,8 @@ static void define_conv(layer *l, u32 *param)
     l->conv_param = param[0];
     l->bias_param = param[1];
   }
+
+  free(param);
 }
 
 
@@ -142,6 +135,8 @@ static void define_full(layer *l, u32 *param)
   else {
     l->bias_param = param[1];
   }
+
+  free(param);
 }
 
 
@@ -164,6 +159,8 @@ static void define_norm(layer *l, u32 *param)
     fprintf(stderr, "normalization is not yet implemented.\n");
     exit(1);
   }
+
+  free(param);
 }
 
 
@@ -193,6 +190,8 @@ static void define_actv(layer *l, u32 *param)
   else {
     l->actv_param = param[0];
   }
+
+  free(param);
 }
 
 
@@ -217,6 +216,8 @@ static void define_pool(layer *l, u32 *param)
   else {
     l->pool_param = param[0];
   }
+
+  free(param);
 }
 
 

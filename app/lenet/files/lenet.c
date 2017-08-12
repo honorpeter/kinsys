@@ -3,8 +3,9 @@
 
 #include "lenet.h"
 #include "types.h"
-#include "layer.h"
+#include "util.h"
 #include "peta.h"
+#include "layer.h"
 
 #include "data/W_conv0.h"
 #include "data/b_conv0.h"
@@ -89,10 +90,10 @@ void LeNet_eval(void)
   exec_core(full2);
   exec_core(full3);
 
-  // assert_rep(pmap0->body, conv0_tru, N_C0*PM0SIZE*PM0SIZE);
-  // assert_rep(pmap1->body, conv1_tru, N_C1*PM1SIZE*PM1SIZE);
-  // assert_rep(fvec2->body, full2_tru, N_F2);
-  // assert_rep(fvec3->body, full3_tru, N_F3);
+  assert_rep(pmap0->body, conv0_tru, N_C0*PM0SIZE*PM0SIZE);
+  assert_rep(pmap1->body, conv1_tru, N_C1*PM1SIZE*PM1SIZE);
+  assert_rep(fvec2->body, full2_tru, N_F2);
+  assert_rep(fvec3->body, full3_tru, N_F3);
 }
 
 
