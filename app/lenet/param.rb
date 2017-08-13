@@ -13,7 +13,7 @@ def hex_of_floatfile(path)
   float.map {|num| format("  0b%.16b,", num.to_i & 0xffff)}
 end
 
-FileUtils.mkdir_p("data")
+FileUtils.mkdir_p("files/data")
 
 image = hex_of_floatfile("#{input_dir}/#{input_label}/img#{input_name}.dat")
 File.open("files/data/image.h", "w") do |f|

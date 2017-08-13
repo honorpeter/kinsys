@@ -37,11 +37,13 @@ typedef struct {
 
 typedef struct {
   int shape[3];
+  u32 phys_addr;
   s16 *body;
 } map;
 
 typedef struct {
   int shape;
+  u32 phys_addr;
   s16 *body;
 } vec;
 

@@ -8,11 +8,6 @@ APP_PETA = lenet
 run:
 	xsct run.tcl ${BOARD} ${APP_BARE}
 
-	# (cd linux; \
-	#   xsct -eval "connect; target 13; rst; target 16; \
-	#   `petalinux-boot --jtag --fpga --kernel --tcl /tmp 2> /dev/null \
-	#     | /bin/grep -v '^INFO:'`" \
-	# )
 # avoid friendly fire
 all:
 	@../utils/confirm.sh "Build the project from the beginning?"
@@ -30,7 +25,7 @@ run_peta:
 sw:
 	cp ${BOARD}/${BOARD}.sdk/design_1_wrapper.hdf ~/tmp
 	rm -rf ${BOARD}/${BOARD}.sdk/${APP_BARE}{,_bsp}
-	rm -rf ${BOARD}/${BOARD}.sdk/.metadata
+	rm -rf ${BOARD}/${BOARD}.sdk/{.metadata,design_1_wrapper_hw_platform_0}
 	cp ~/tmp/design_1_wrapper.hdf ${BOARD}/${BOARD}.sdk/
 	xsct sw.tcl ${BOARD} ${APP_BARE}
 

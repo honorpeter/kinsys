@@ -3,22 +3,23 @@
 #include <string.h>
 #include <limits.h>
 
+#include "peta.h"
+#include "kinpira.h"
+#include "types.h"
+
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
 
-#include "kinpira.h"
-#include "types.h"
-#include "peta.h"
 
-#include <assert.h>
 
 static int __port;
 static int __mem_renkon;
 static int __mem_gobou;
 static int udmabuf0;
+
 
 
 static int pagesize;
@@ -120,11 +121,11 @@ map *define_map(int map_c, int map_w, int map_h)
 
   int map_size = sizeof(s16)*map_c*map_w*map_h;
 
-  r->phys_addr = phys_addr + offset;
-
   r->body = mmap(NULL, map_size,
                  PROT_READ | PROT_WRITE, MAP_SHARED,
                  udmabuf0, offset);
+
+  r->phys_addr = phys_addr + offset;
 
   offset += (map_size / pagesize + 1) * pagesize;
 
@@ -141,11 +142,11 @@ vec *define_vec(int vec_l)
 
   int vec_size = sizeof(s16)*vec_l;
 
-  r->phys_addr = phys_addr + offset;
-
   r->body = mmap(NULL, vec_size,
                  PROT_READ | PROT_WRITE, MAP_SHARED,
                  udmabuf0, offset);
+
+  r->phys_addr = phys_addr + offset;
 
   offset += (vec_size / pagesize + 1) * pagesize;
 

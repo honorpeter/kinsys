@@ -14,11 +14,11 @@ enum conv_mode {
 };
 
 enum norm_mode {
-  NORM_NIL
+  NORM_NIL,
 };
 
 enum pool_mode {
-  POOL_MAX = 1U << 0
+  POOL_MAX = 1U << 0,
 };
 
 enum full_mode {

@@ -3,6 +3,7 @@
 
 #include "lenet.h"
 #include "types.h"
+#include "util.h"
 #include "layer.h"
 #include "bare.h"
 
@@ -15,13 +16,6 @@
 #include "data/W_full3.h"
 #include "data/b_full3.h"
 
-#include "data/conv0_tru.h"
-#include "data/conv1_tru.h"
-#include "data/full2_tru.h"
-#include "data/full3_tru.h"
-
-
-
 static map *image, *pmap0, *pmap1;
 static layer *conv0, *conv1;
 
@@ -30,49 +24,48 @@ static layer *full2, *full3;
 
 
 
-void LeNet_init(s16 *input, s16 **output)
+void LeNet_init(s16 **input, s16 **output)
 {
+  kinpira_init();
+
   image = define_map(N_IN, ISIZE, ISIZE);
   pmap0 = define_map(N_C0, PM0SIZE, PM0SIZE);
   pmap1 = define_map(N_C1, PM1SIZE, PM1SIZE);
-  pvec1 = define_vec(N_C1*PM1SIZE*PM1SIZE);
+  pvec1 = malloc(sizeof(vec));
   fvec2 = define_vec(N_F2);
   fvec3 = define_vec(N_F3);
 
   set_input(input, image);
 
-  // TODO: remove ISIZE from convolution_2d (w/ rtl)
-  conv0 = map_layer(image, pmap0, CONV0_PARAM,
+  conv0 = map_layer(image, pmap0,
     convolution_2d(FSIZE, CONV_BIAS | CONV_VALID),
     NULL,
     activation(ACTV_RELU),
-    max_pooling(PSIZE)
+    pooling_2d(PSIZE, POOL_MAX)
   );
 
-  conv1 = map_layer(pmap0, pmap1, CONV1_PARAM,
+  conv1 = map_layer(pmap0, pmap1,
     convolution_2d(FSIZE, CONV_BIAS | CONV_VALID),
     NULL,
     activation(ACTV_RELU),
-    max_pooling(PSIZE)
+    pooling_2d(PSIZE, POOL_MAX)
   );
 
   map2vec(pmap1, pvec1);
 
-  full2 = vec_layer(pvec1, fvec2, FULL2_PARAM,
+  full2 = vec_layer(pvec1, fvec2,
     fully_connected(FULL_BIAS),
     NULL,
     activation(ACTV_RELU)
   );
 
-  full3 = vec_layer(fvec2, fvec3, FULL3_PARAM,
+  full3 = vec_layer(fvec2, fvec3,
     fully_connected(FULL_BIAS),
     NULL,
     activation(ACTV_RELU)
   );
 
   set_output(fvec3, output);
-
-  kinpira_init();
 
   assign_map(conv0, W_conv0, b_conv0);
   assign_map(conv1, W_conv1, b_conv1);
@@ -89,6 +82,7 @@ void LeNet_eval(void)
   exec_core(full2);
   exec_core(full3);
 
+  // assert_rep(image->body, image, N_IN*ISIZE*ISIZE);
   // assert_rep(pmap0->body, conv0_tru, N_C0*PM0SIZE*PM0SIZE);
   // assert_rep(pmap1->body, conv1_tru, N_C1*PM1SIZE*PM1SIZE);
   // assert_rep(fvec2->body, full2_tru, N_F2);
@@ -99,10 +93,10 @@ void LeNet_eval(void)
 
 void LeNet_exit(void)
 {
-  kinpira_exit();
-
+  undef_map(image);
   undef_map(pmap0);
   undef_map(pmap1);
+  free(pvec1);
   undef_vec(fvec2);
   undef_vec(fvec3);
 
@@ -110,5 +104,7 @@ void LeNet_exit(void)
   undef_layer(conv1);
   undef_layer(full2);
   undef_layer(full3);
+
+  kinpira_exit();
 }
 

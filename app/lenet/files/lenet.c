@@ -4,8 +4,8 @@
 #include "lenet.h"
 #include "types.h"
 #include "util.h"
-#include "peta.h"
 #include "layer.h"
+#include "peta.h"
 
 #include "data/W_conv0.h"
 #include "data/b_conv0.h"
@@ -16,16 +16,7 @@
 #include "data/W_full3.h"
 #include "data/b_full3.h"
 
-// #include "data/image.h"
-// #include "data/conv0_tru.h"
-// #include "data/conv0_tru.h"
-// #include "data/conv1_tru.h"
-// #include "data/full2_tru.h"
-// #include "data/full3_tru.h"
-
-
-
-static map *imbuf, *pmap0, *pmap1;
+static map *image, *pmap0, *pmap1;
 static layer *conv0, *conv1;
 
 static vec *pvec1, *fvec2, *fvec3;
@@ -37,16 +28,16 @@ void LeNet_init(s16 **input, s16 **output)
 {
   kinpira_init();
 
-  imbuf = define_map(N_IN, ISIZE, ISIZE);
+  image = define_map(N_IN, ISIZE, ISIZE);
   pmap0 = define_map(N_C0, PM0SIZE, PM0SIZE);
   pmap1 = define_map(N_C1, PM1SIZE, PM1SIZE);
   pvec1 = malloc(sizeof(vec));
   fvec2 = define_vec(N_F2);
   fvec3 = define_vec(N_F3);
 
-  set_input(input, imbuf);
+  set_input(input, image);
 
-  conv0 = map_layer(imbuf, pmap0,
+  conv0 = map_layer(image, pmap0,
     convolution_2d(FSIZE, CONV_BIAS | CONV_VALID),
     NULL,
     activation(ACTV_RELU),
@@ -91,7 +82,7 @@ void LeNet_eval(void)
   TIME(exec_core(full2));
   TIME(exec_core(full3));
 
-  // assert_rep(imbuf->body, image, N_IN*ISIZE*ISIZE);
+  // assert_rep(image->body, image, N_IN*ISIZE*ISIZE);
   // assert_rep(pmap0->body, conv0_tru, N_C0*PM0SIZE*PM0SIZE);
   // assert_rep(pmap1->body, conv1_tru, N_C1*PM1SIZE*PM1SIZE);
   // assert_rep(fvec2->body, full2_tru, N_F2);
@@ -102,7 +93,7 @@ void LeNet_eval(void)
 
 void LeNet_exit(void)
 {
-  undef_map(imbuf);
+  undef_map(image);
   undef_map(pmap0);
   undef_map(pmap1);
   free(pvec1);

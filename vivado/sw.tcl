@@ -1,10 +1,12 @@
 #!/usr/bin/env xsct
-
 # ref: http://www.fpgadeveloper.com/2016/11/tcl-automation-tips-for-vivado-xilinx-sdk.html
 
 set origin_dir .
 set proj_name [lindex $argv 0]
 set app_name  [lindex $argv 1]
+
+set stack_size 0x20000
+set heap_size  0x20000
 
 set sdk_ws_dir $origin_dir/$proj_name/$proj_name.sdk
 if {[file exists $sdk_ws_dir] == 0} {
@@ -50,6 +52,11 @@ if {[file exists $sdk_ws_dir/$app_name] == 0} {
       -os standalone
   }
 }
+
+exec sed -i \
+  -e "1i _STACK_SIZE = ${stack_size};" \
+  -e "1i _HEAP_SIZE = ${heap_size};" \
+  $sdk_ws_dir/$app_name/src/lscript.ld
 
 configapp -app $app_name define-compiler-symbols $proj_name
 projects -build
