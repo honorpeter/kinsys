@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <limits.h>
 
 #include "util.h"
 #include "kinpira.h"
 #include "types.h"
+
+#include <assert.h>
 
 static u32 bit(u32 value, int high, int low)
 {
@@ -28,9 +31,12 @@ void assign_map(layer *l, u32 *weight, u32 *bias)
   for (u32 n = 0; n < n_out/core; n++) {
     for (u32 dn = 0; dn < core; dn++) {
       memmove(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
+      for (int i = 0; i < unit; i++)
+        assert(mem_renkon[dn][idx+i] == weight[idx_w+i]);
       idx_w += unit;
 
       memmove(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
+      assert(mem_renkon[dn][idx+unit] == bias[idx_b]);
       idx_b += 1;
     }
 
@@ -41,13 +47,18 @@ void assign_map(layer *l, u32 *weight, u32 *bias)
     for (u32 dn = 0; dn < core; dn++) {
       if (idx_b < n_out) {
         memmove(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
+        for (int i = 0; i < unit; i++)
+          assert(mem_renkon[dn][idx+i] == weight[idx_w+i]);
         idx_w += unit;
 
         memmove(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
+        assert(mem_renkon[dn][idx+unit] == bias[idx_b]);
         idx_b += 1;
       }
       else {
         memset(&mem_renkon[dn][idx], 0, sizeof(u32)*(unit+1));
+        for (int i = 0; i < unit+1; i++)
+          assert(mem_renkon[dn][idx+i] == 0);
       }
     }
 
@@ -70,9 +81,12 @@ void assign_vec(layer *l, u32 *weight, u32 *bias)
   for (u32 n = 0; n < n_out/core; n++) {
     for (u32 dn = 0; dn < core; dn++) {
       memmove(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
+      for (int i = 0; i < n_in; i++)
+        assert(mem_gobou[dn][idx+i] == weight[idx_w+i]);
       idx_w += n_in;
 
       memmove(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
+      assert(mem_gobou[dn][idx+n_in] == bias[idx_b]);
       idx_b += 1;
     }
 
@@ -83,13 +97,18 @@ void assign_vec(layer *l, u32 *weight, u32 *bias)
     for (u32 dn = 0; dn < core; dn++) {
       if (idx_b < n_out) {
         memmove(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
+        for (int i = 0; i < n_in; i++)
+          assert(mem_gobou[dn][idx+i] == weight[idx_w+i]);
         idx_w += n_in;
 
         memmove(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
+        assert(mem_gobou[dn][idx+n_in] == bias[idx_b]);
         idx_b += 1;
       }
       else {
         memset(&mem_gobou[dn][idx], 0, sizeof(u32)*(n_in+1));
+        for (int i = 0; i < n_in+1; i++)
+          assert(mem_gobou[dn][idx+i] == 0);
       }
     }
 
@@ -117,6 +136,8 @@ void exec_core(layer *l)
   // *reg_norm_param = l->norm_param;
   *reg_actv_param   = l->actv_param;
   *reg_pool_param   = l->pool_param;
+
+  // print_port();
 
   *reg_pre_req = 1;
   *reg_pre_req = 0;

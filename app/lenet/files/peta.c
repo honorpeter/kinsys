@@ -70,10 +70,8 @@ int kinpira_init(void)
   sscanf(attr, "%x", &phys_addr);
   close(fd);
 
-  int o_sync = O_SYNC; // disable cache
-  if ((udmabuf0 = open("/dev/udmabuf0", O_RDWR | o_sync)) == -1) {
-  // udmabuf0 = open("/dev/udmabuf0", O_RDWR | O_SYNC);
-  // if (udmabuf0 < 0) {
+  udmabuf0 = open("/dev/udmabuf0", O_RDWR | O_SYNC);
+  if (udmabuf0 < 0) {
     perror("udmabuf open error: ");
     return errno;
   }
@@ -104,8 +102,8 @@ int kinpira_exit(void)
 
   close(udmabuf0);
 
-  system("modprobe -r udmabuf");
-  system("modprobe -r uio_pdrv_genirq");
+  // system("modprobe -r udmabuf");
+  // system("modprobe -r uio_pdrv_genirq");
 
   return 0;
 }
@@ -171,70 +169,4 @@ void undef_vec(vec *r)
 }
 
 
-
-map *define_map_nobody(int map_c, int map_w, int map_h)
-{
-  map *r = malloc(sizeof(map));
-
-  r->shape[0] = map_c;
-  r->shape[1] = map_w;
-  r->shape[2] = map_h;
-
-  r->phys_addr = 0;
-
-  r->body = NULL;
-
-  return r;
-}
-
-
-
-vec *define_vec_nobody(int vec_l)
-{
-  vec *r = malloc(sizeof(vec));
-
-  r->shape = vec_l;
-
-  r->phys_addr = 0;
-
-  r->body = NULL;
-
-  return r;
-}
-
-
-
-void undef_map_nobody(map *r)
-{
-  free(r);
-}
-
-
-
-void undef_vec_nobody(vec *r)
-{
-  free(r);
-}
-
-
-
-void set_input(s16 **in, map *out)
-{
-  *in = out->body;
-}
-
-
-
-void map2vec(map *in, vec *out)
-{
-  out->phys_addr = in->phys_addr;
-  out->body      = in->body;
-}
-
-
-
-void set_output(vec *in, s16 **out)
-{
-  *out = in->body;
-}
 

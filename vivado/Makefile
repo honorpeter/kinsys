@@ -22,14 +22,14 @@ peta:
 	./peta.sh ${BOARD} ${APP_PETA}
 
 run_peta:
-	(cd linux; \
-	  petalinux-boot --jtag --fpga --kernel \
+	(cd linux;                                           \
+	  petalinux-boot --jtag --fpga --kernel              \
 	    --xsdb-conn "connect; target 13; rst; target 16" \
 	)
 
 sw:
 	cp ${BOARD}/${BOARD}.sdk/design_1_wrapper.hdf ~/tmp
-	rm -rf ${BOARD}/${BOARD}.sdk/*
+	rm -rf ${BOARD}/${BOARD}.sdk/${APP_BARE}{,_bsp}
 	rm -rf ${BOARD}/${BOARD}.sdk/.metadata
 	cp ~/tmp/design_1_wrapper.hdf ${BOARD}/${BOARD}.sdk/
 	xsct sw.tcl ${BOARD} ${APP_BARE}

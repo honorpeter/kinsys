@@ -41,7 +41,7 @@ if {[file exists $sdk_ws_dir/$app_name] == 0} {
       -proc [get_processor_name $hw_project_name] \
       -hwproject ${hw_project_name} \
       -os standalone
-    importsources -name $app_name -path $app_dir/$app_name
+    importsources -name $app_name -path $app_dir/$app_name/src
   } else {
     createapp -name $app_name \
       -app {Hello World} \

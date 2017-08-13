@@ -49,6 +49,7 @@ else
 
   cd $PETA_NAME
   cp -r $TOP/app/$APP_NAME/* project-spec/meta-user/recipes-apps/$APP_NAME
+  cp -r $TOP/app/oldLenet/* project-spec/meta-user/recipes-apps/oldLenet
   cp -r $TOP/app/common/* project-spec/meta-user
   petalinux-build
 fi
