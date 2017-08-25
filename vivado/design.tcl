@@ -95,7 +95,6 @@ if {$proj_name == "zcu102"} {
     }
     "kinpira_ddr" {
       set_property -dict [list CONFIG.PCW_USE_S_AXI_HP0 {1}] [get_bd_cells processing_system7_0]
-      # set_property -dict [list CONFIG.PCW_USE_M_AXI_GP1 {1}] [get_bd_cells processing_system7_0]
 
       apply_bd_automation \
         -rule xilinx.com:bd_rule:axi4 \

@@ -29,6 +29,6 @@ make -C $ROOT/rtl dist
 annotate_rtl $ROOT/dist
 
 make -C $ROOT/vivado ip proj build
-make -C $ROOT/vivado peta
+make -C $ROOT/vivado peta APP=lenet
 
 exit
