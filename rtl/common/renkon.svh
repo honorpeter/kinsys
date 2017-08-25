@@ -3,25 +3,37 @@
 
 `include "common.svh"
 `include "ctrl_bus.svh"
-`ifndef DIST
-`include "mem_sp.sv"
-`include "mem_dp.sv"
-`endif
 
+////////////////////////////////////////////////////////////
+// User parameters ( $_ for substitution )
+////////////////////////////////////////////////////////////
+`ifdef DIST
+parameter RENKON_CORE    = _;
+parameter RENKON_CORELOG = _;
+parameter RENKON_NETSIZE = _;
+parameter RENKON_MAXIMG  = _;
+`else
 parameter RENKON_CORE    = 8;
-// parameter integer RENKON_CORELOG = $clog2(RENKON_CORE);
 parameter RENKON_CORELOG = 3;
 parameter RENKON_NETSIZE = 11;
-parameter FACCUM  = 10; // expected max featuremap size (cf. $clog2(24x24))
-parameter OUTSIZE = 10; // expected max output size (cf. $clog2(4x4x32))
+parameter RENKON_MAXIMG  = 32;
+`endif
+
+// expected max featuremap size (cf. $clog2(24x24))
+parameter FACCUM  = $clog2(RENKON_MAXIMG**2);
+parameter OUTSIZE = FACCUM;
 parameter FSIZE   = 5;
-// parameter PAD     = 0;
-parameter PAD     = (FSIZE-1)/2;
+parameter PAD     = 0;
+// parameter PAD     = (FSIZE-1)/2;
 parameter PSIZE   = 2;
 
-// Delay for each module (corresponds to the number of stages)
-parameter D_PIXELBUF = 32; // max size (image height or width)
-parameter D_POOLBUF  = 32; // max size (image height or width)
+////////////////////////////////////////////////////////////
+// Delay of each modules
+////////////////////////////////////////////////////////////
+// max size (image height or width)
+parameter D_PIXELBUF = RENKON_MAXIMG;
+// max size (image height or width)
+parameter D_POOLBUF  = RENKON_MAXIMG;
 parameter D_CONV     = 5;
 parameter D_ACCUM    = 1;
 parameter D_POOL     = 2;

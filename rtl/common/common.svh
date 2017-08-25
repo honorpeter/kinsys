@@ -3,22 +3,33 @@
 
 `default_nettype wire
 `timescale 1 ns / 1 ps
-// `define DIST
+// DIST will be defined when distributed
+`undef DIST
 
 parameter STEP    = 10;
 parameter DWIDTH  = 16;
 parameter LWIDTH  = 16;
-`ifndef DIST
-parameter IMGSIZE = 16;
+
+////////////////////////////////////////////////////////////
+// User parameters
+////////////////////////////////////////////////////////////
+`ifdef DIST
+parameter IMGSIZE = 31; // Number of DWIDTH entry
 `else
 // parameter IMGSIZE = BWIDTH - $clog2(DWIDTH/8);
-parameter IMGSIZE = 31; // Number of DWIDTH entry
+parameter IMGSIZE = 15;
 `endif
 
 
-parameter D_BIAS     = 2;
-parameter D_RELU     = 2;
+////////////////////////////////////////////////////////////
+// Delay of common modules
+////////////////////////////////////////////////////////////
+parameter D_BIAS = 2;
+parameter D_RELU = 2;
 
+////////////////////////////////////////////////////////////
+// utility definitions
+////////////////////////////////////////////////////////////
 function integer clogb2 (input integer bit_depth);
   begin
     for(clogb2=0; bit_depth>0; clogb2=clogb2+1)

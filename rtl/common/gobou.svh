@@ -3,16 +3,23 @@
 
 `include "common.svh"
 `include "ctrl_bus.svh"
-`ifndef DIST
-`include "mem_sp.sv"
-`endif
 
+////////////////////////////////////////////////////////////
+// User parameters ( _ for substitution )
+////////////////////////////////////////////////////////////
+`ifdef DIST
+parameter GOBOU_CORE    = _;
+parameter GOBOU_CORELOG = _;
+parameter GOBOU_NETSIZE = _;
+`else
 parameter GOBOU_CORE    = 16;
-// parameter integer GOBOU_CORELOG = $clog2(GOBOU_CORE);
 parameter GOBOU_CORELOG = 4;
 parameter GOBOU_NETSIZE = 13;
+`endif
 
-// Delay for each module (corresponds to the number of stages)
+////////////////////////////////////////////////////////////
+// Delay of each modules
+////////////////////////////////////////////////////////////
 parameter D_MAC   = 3;
 
 `endif

@@ -24,9 +24,10 @@ vivado/ip
 vivado/zybo
 vivado/zedboard
 vivado/zcu102
-vivado/linux
+vivado/linux-zedboard
+vivado/linux-zcu102
 
 doc/build/*
 doc/!.gitkeep
-doc/__pycache__
+**/__pycache__
 doc/*.pdf
