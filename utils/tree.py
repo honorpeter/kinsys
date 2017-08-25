@@ -5,6 +5,8 @@ Output: the least height binary tree that covers all leaves given
         (corresponds to the tree multiply-add unit.)
 
 Practically, useful for generate verilog description.
+
+Written by Takayuki Ujiie
 """
 
 import sys
