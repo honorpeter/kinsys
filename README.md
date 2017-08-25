@@ -16,8 +16,10 @@ Each modules and scripts are run using the tools listed below.
 * Modelsim >= 10.4c
 * Vivado >= 2016.4
 * Design Compiler >= L-2016.03-SP4
-* gcc >= 4.9.2
+* clang >= 3.5.0
 * ruby >= 2.3.1
+* Python >= 3.6.0
+* bash >= 4.3.30
 
 Documentation
 ==================================================
@@ -36,31 +38,18 @@ TODOs
 ==================================================
 
 * Gobou (1D-Coprocessor)
-  - Bypass relu module for last layer.
-    + usually with identity or softmax
   - Use another mechanism for caching weights.
     + we have just a little BRAM today
 
 * Renkon (2D-Coprocessor)
-  - # Implement the padding option for conv module.
   - Implement the universal filter-size conv module.
     + with 1 MAC for each module
-  - Bypass pool module.
   - Implement the stride option for pool module.
   - Implement the universal filter-size pool module.
 
 * Other parts
   - Provide sufficient documents
     + include in-code comments
-  - Synthesis API with simple syntax like major DL frameworks.
-    + simple module / pe definition DSL.
-    + like MapReduce
-  - Integrate DL frameworks
-    + weight dumping script (utils/kinpira.py (dump))
-    + define API for synthesizable layers
-  - Split library
-    + dumping weights
-    + integrated interface with kinpira
 
 License
 ==================================================
