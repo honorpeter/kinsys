@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # ref:
 #   https://forum.digilentinc.com/topic/2719-how-to-register-my-device-as-uio-on-petalinux/
 
@@ -6,10 +6,19 @@ BOARD=$1
 APP_NAME=$2
 TOP=`git rev-parse --show-toplevel`
 
-# zynqMP | zynq | microblaze
-PETA_ARCH=zynq
-PETA_NAME=linux
+PETA_NAME=linux-$BOARD
 PETA_FPGA=images/linux/design_1_wrapper.bit
+case $BOARD in
+  zedboard | zybo )
+    PETA_ARCH=zynq
+    ;;
+  zcu102 )
+    PETA_ARCH=zynqMP
+    ;;
+  * )
+    PETA_ARCH=microblaze
+    ;;
+esac
 
 if [ ! -e $PETA_NAME ]; then
   ln -s ${BOARD}/${BOARD}.sdk/$PETA_NAME
@@ -26,12 +35,12 @@ if [ ! -e $PETA_NAME ]; then
 
   ### User applications
   petalinux-create --type apps --name $APP_NAME --enable
-  petalinux-create --type modules --name switchdcache --enable
   petalinux-create --type modules --name udmabuf --enable
 
   rm project-spec/meta-user/recipes-apps/$APP_NAME/files/$APP_NAME.c
-  cp -r $TOP/app/$APP_NAME/* project-spec/meta-user/recipes-apps/$APP_NAME
-  cp -r $TOP/app/common/* project-spec/meta-user
+  cp -r $TOP/app/$APP_NAME/*      project-spec/meta-user/recipes-apps/$APP_NAME
+  cp -r $TOP/app/common/$BOARD/*  project-spec/meta-user/recipes-bsp
+  cp -r $TOP/app/common/modules/* project-spec/meta-user/recipes-modules
 
   ### Kernel configuration
   $TOP/utils/confirm.sh "[Device Drivers] -> [Userspace ~] -> uio_pdrv_genirq"
@@ -44,13 +53,10 @@ if [ ! -e $PETA_NAME ]; then
   ### Build
   petalinux-build
 else
-  rm $PETA_NAME
-  ln -s ${BOARD}/${BOARD}.sdk/$PETA_NAME
-
   cd $PETA_NAME
-  cp -r $TOP/app/$APP_NAME/* project-spec/meta-user/recipes-apps/$APP_NAME
-  cp -r $TOP/app/oldLenet/* project-spec/meta-user/recipes-apps/oldLenet
-  cp -r $TOP/app/common/* project-spec/meta-user
+  cp -r $TOP/app/$APP_NAME/*      project-spec/meta-user/recipes-apps/$APP_NAME
+  cp -r $TOP/app/common/$BOARD/*  project-spec/meta-user/recipes-bsp
+  cp -r $TOP/app/common/modules/* project-spec/meta-user/recipes-modules
   petalinux-build
 fi
 
