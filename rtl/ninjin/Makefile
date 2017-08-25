@@ -1,7 +1,7 @@
 VERBOSE   = 0
 SIMULATOR = vsim
 # MODULE    = ninjin_m_axi_image.sv
-MODULE    = kinpira_ddr.sv
+MODULE    = kinpira.sv
 DEPENDS   = \
 	ninjin_s_axi_params.sv \
 	ninjin_s_axi_renkon.sv \

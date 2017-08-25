@@ -91,7 +91,7 @@ set files [list \
   "[file normalize "$origin_dir/../dist/ninjin_s_axi_renkon.sv"]" \
   "[file normalize "$origin_dir/../dist/ninjin_s_axi_gobou.sv"]" \
   "[file normalize "$origin_dir/../dist/gobou_top.sv"]" \
-  "[file normalize "$origin_dir/../dist/kinpira_ddr.sv"]" \
+  "[file normalize "$origin_dir/../dist/kinpira.sv"]" \
 ]
 add_files -norecurse -fileset $obj $files
 
@@ -130,7 +130,7 @@ if {[string equal [get_filesets -quiet sim_1] ""]} {
 set obj [get_filesets sim_1]
 set files [list \
   "[file normalize "$origin_dir/../dist/test_gobou_top.sv"]" \
-  "[file normalize "$origin_dir/../dist/test_kinpira_ddr.sv"]" \
+  "[file normalize "$origin_dir/../dist/test_kinpira.sv"]" \
   "[file normalize "$origin_dir/../dist/test_mem_dp.sv"]" \
   "[file normalize "$origin_dir/../dist/test_mem_sp.sv"]" \
   "[file normalize "$origin_dir/../dist/test_renkon_top.sv"]" \

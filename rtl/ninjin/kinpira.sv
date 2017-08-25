@@ -2,7 +2,7 @@
 `include "renkon.svh"
 `include "gobou.svh"
 
-module kinpira_ddr
+module kinpira
   // Parameters of Axi Slave Bus Interface s_axi_params
  #( parameter C_s_axi_params_DATA_WIDTH = BWIDTH
   , parameter C_s_axi_params_ADDR_WIDTH = REGSIZE + LSB

@@ -10,7 +10,7 @@
 		#size-cells = <1>;
 		compatible = "simple-bus";
 		ranges ;
-		m_axi_image: kinpira_ddr@00000000 {
+		m_axi_image: kinpira@00000000 {
 			xlnx,m-axi-image-addr-width = <0x20>;
 			xlnx,m-axi-image-aruser-width = <0x0>;
 			xlnx,m-axi-image-awuser-width = <0x0>;
@@ -21,13 +21,13 @@
 			xlnx,m-axi-image-ruser-width = <0x0>;
 			xlnx,m-axi-image-wuser-width = <0x0>;
 		};
-		s_axi_params: kinpira_ddr@43c00000 {
+		s_axi_params: kinpira@43c00000 {
 			compatible = "generic-uio";
 			reg = <0x43c00000 0x10000>;
 			xlnx,s-axi-params-addr-width = <0x7>;
 			xlnx,s-axi-params-data-width = <0x20>;
 		};
-		s_axi_renkon: kinpira_ddr@43c10000 {
+		s_axi_renkon: kinpira@43c10000 {
 			compatible = "generic-uio";
 			reg = <0x43c10000 0x10000>;
 			xlnx,s-axi-renkon-addr-width = <0x10>;
@@ -39,7 +39,7 @@
 			xlnx,s-axi-renkon-ruser-width = <0x0>;
 			xlnx,s-axi-renkon-wuser-width = <0x0>;
 		};
-		s_axi_gobou: kinpira_ddr@43c80000 {
+		s_axi_gobou: kinpira@43c80000 {
 			compatible = "generic-uio";
 			reg = <0x43c80000 0x80000>;
 			xlnx,s-axi-gobou-addr-width = <0x13>;

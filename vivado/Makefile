@@ -1,5 +1,5 @@
-BOARD    = zcu102
-IP       = kinpira_ddr
+BOARD    = zedboard
+IP       = kinpira
 APP      = lenet
 APP_BARE = lenet_bare
 

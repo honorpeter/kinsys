@@ -36,7 +36,7 @@ parameter C_s_axi_gobou_WUSER_WIDTH   = 0;
 parameter C_s_axi_gobou_RUSER_WIDTH   = 0;
 parameter C_s_axi_gobou_BUSER_WIDTH   = 0;
 
-module test_kinpira_ddr;
+module test_kinpira;
 
   reg clk;
   reg xrst;
@@ -204,7 +204,7 @@ module test_kinpira_ddr;
   wire                                  s_axi_gobou_rvalid;
   reg                                   s_axi_gobou_rready;
 
-  kinpira_ddr dut(.*);
+  kinpira dut(.*);
 
   // clock
   initial begin

@@ -4,20 +4,19 @@ set_host_options -max_cores 8
 ######################################################################
 # Read Designs
 ######################################################################
-set design gobou
+set design kinpira
 set resultDir results
 set reportDir reports
 file mkdir $resultDir
 file mkdir $reportDir
 
 source setup.tcl
-append search_path ../rtl/common
-read_file -format sverilog [glob ../rtl/$design/*.sv]
+append search_path ../dist
 
 ### use for templated memory
 ### (or "// synopsys template" directive in template design sources)
-# analyze -format sverilog [glob ../rtl/$design/*.sv]
-# elaborate $design
+analyze -format sverilog [exec ls {*}[glob ../dist/*.sv] | grep -v "test_*"]
+elaborate $design
 
 list_designs
 uniquify -force
@@ -55,7 +54,7 @@ write_sdc -nosplit -version 1.9 $resultDir/$design.sdc
 report_qor > $reportDir/$design.mapped.qor.rpt
 report_area -nosplit > $reportDir/$design.mapped.area.rpt
 report_timing -transition_time -nets -attributes -nosplit -group clk \
-   > $reportDir/$design.mapped.timing.rpt
+  > $reportDir/$design.mapped.timing.rpt
 report_power -verbose -analysis_effort high -hierarchy -levels 2 \
   > $reportDir/$design.mapped.power.rpt
 
