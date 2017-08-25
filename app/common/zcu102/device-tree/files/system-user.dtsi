@@ -2,12 +2,13 @@
 
 / {
 	chosen {
-		bootargs = "console=ttyPS0,115200 uio_pdrv_genirq.of_id=generic-uio earlyprintk";
+		bootargs = "uio_pdrv_genirq.of_id=generic-uio earlycon clk_ignore_unused";
+		stdout-path = "serial0:115200n8";
         };
 
-	amba_pl: amba_pl {
-		#address-cells = <1>;
-		#size-cells = <1>;
+	amba_pl: amba_pl@0 {
+		#address-cells = <2>;
+		#size-cells = <2>;
 		compatible = "simple-bus";
 		ranges ;
 		m_axi_image: kinpira_ddr@00000000 {
@@ -21,15 +22,15 @@
 			xlnx,m-axi-image-ruser-width = <0x0>;
 			xlnx,m-axi-image-wuser-width = <0x0>;
 		};
-		s_axi_params: kinpira_ddr@43c00000 {
+		s_axi_params: kinpira_ddr@a0000000 {
 			compatible = "generic-uio";
-			reg = <0x43c00000 0x10000>;
+			reg = <0xa0000000 0x10000>;
 			xlnx,s-axi-params-addr-width = <0x7>;
 			xlnx,s-axi-params-data-width = <0x20>;
 		};
-		s_axi_renkon: kinpira_ddr@43c10000 {
+		s_axi_renkon: kinpira_ddr@a0010000 {
 			compatible = "generic-uio";
-			reg = <0x43c10000 0x10000>;
+			reg = <0xa0010000 0x10000>;
 			xlnx,s-axi-renkon-addr-width = <0x10>;
 			xlnx,s-axi-renkon-aruser-width = <0x0>;
 			xlnx,s-axi-renkon-awuser-width = <0x0>;
@@ -39,9 +40,9 @@
 			xlnx,s-axi-renkon-ruser-width = <0x0>;
 			xlnx,s-axi-renkon-wuser-width = <0x0>;
 		};
-		s_axi_gobou: kinpira_ddr@43c80000 {
+		s_axi_gobou: kinpira_ddr@a0080000 {
 			compatible = "generic-uio";
-			reg = <0x43c80000 0x80000>;
+			reg = <0xa0080000 0x80000>;
 			xlnx,s-axi-gobou-addr-width = <0x13>;
 			xlnx,s-axi-gobou-aruser-width = <0x0>;
 			xlnx,s-axi-gobou-awuser-width = <0x0>;
