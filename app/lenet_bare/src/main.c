@@ -14,18 +14,17 @@
 
 int main(void)
 {
-  // TODO: modify linker script automatically
   s16 label[LABEL];
   s16 *input, *output;
 
   LeNet_init(&input, &output);
 
-  setbuf(stdout, NULL);
-  printf("\033[2J");
+  // setbuf(stdout, NULL);
+  // printf("\033[2J");
 #if defined(zedboard)
   puts("### lenet_bare @ zedboard\n");
 #elif defined(zcu102)
-  puts("### lenet_bare @ zcu102\n");
+  // puts("### lenet_bare @ zcu102\n");
 #endif
 
   memmove(input, image, sizeof(s16)*N_IN*ISIZE*ISIZE);
@@ -34,7 +33,7 @@ int main(void)
 
   print_result(label, LABEL);
   assert_rep(label, full3_tru, LABEL);
-  puts("assert ok");
+  // puts("assert ok");
 
   LeNet_exit();
 

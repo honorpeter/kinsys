@@ -7,7 +7,6 @@
 #include "kinpira.h"
 #include "types.h"
 
-#include <xil_mem.h>
 #include <xil_cache.h>
 
 
@@ -19,13 +18,13 @@ int kinpira_init(void)
   mem_renkon = (u32 (*)[RENKON_WORDS])  0x43c10000U;
   mem_gobou  = (u32 (*)[GOBOU_WORDS])   0x43c80000U;
 #elif defined(zcu102)
-#define memcpy Xil_MemCpy
   port       = (u32 *)                  0xA0000000U;
   mem_renkon = (u32 (*)[RENKON_WORDS])  0xA0010000U;
   mem_gobou  = (u32 (*)[GOBOU_WORDS])   0xA0080000U;
 #endif
 
   Xil_DCacheDisable();
+  Xil_DCacheInvalidate();
 
   return 0;
 }

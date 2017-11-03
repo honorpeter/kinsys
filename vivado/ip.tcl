@@ -15,7 +15,8 @@ switch $proj_name {
   }
   "zcu102" {
     set part_name   xczu9eg-ffvb1156-2-i-es2
-    set board_name  xilinx.com:zcu102:part0:2.2
+    set board_name  xilinx.com:zcu102:part0:2.0
+    # set board_name  xilinx.com:zcu102:part0:2.2
   }
 }
 
@@ -158,12 +159,12 @@ set_property "xelab.unifast" "" $obj
 if {[string equal [get_runs -quiet synth_1] ""]} {
   create_run -name synth_1 \
     -part $part_name \
-    -flow {Vivado Synthesis 2017} \
+    -flow {Vivado Synthesis 2016} \
     -strategy "Vivado Synthesis Defaults" \
     -constrset constrs_1
 } else {
   set_property strategy "Vivado Synthesis Defaults" [get_runs synth_1]
-  set_property flow "Vivado Synthesis 2017" [get_runs synth_1]
+  set_property flow "Vivado Synthesis 2016" [get_runs synth_1]
 }
 set obj [get_runs synth_1]
 
@@ -174,13 +175,13 @@ current_run -synthesis [get_runs synth_1]
 if {[string equal [get_runs -quiet impl_1] ""]} {
   create_run -name impl_1 \
     -part $part_name \
-    -flow {Vivado Implementation 2017} \
+    -flow {Vivado Implementation 2016} \
     -strategy "Vivado Implementation Defaults" \
     -constrset constrs_1 \
     -parent_run synth_1
 } else {
   set_property strategy "Vivado Implementation Defaults" [get_runs impl_1]
-  set_property flow "Vivado Implementation 2017" [get_runs impl_1]
+  set_property flow "Vivado Implementation 2016" [get_runs impl_1]
 }
 set obj [get_runs impl_1]
 set_property "steps.write_bitstream.args.readback_file" "0" $obj

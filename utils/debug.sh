@@ -11,6 +11,6 @@ make clean all
 cd $TOP/app/lenet_bare
 ./param.py $1 $2
 
-# cd $TOP/vivado
-# make bare run_bare
+cd $TOP/vivado
+make run_bare
 

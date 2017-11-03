@@ -9,7 +9,7 @@
     printf("Assertion failed: %s == %s, file %s, line %d\n",        \
             #a, #b, __FILE__, __LINE__);                            \
     printf("\t%s == %lx, %s == %lx\n", #a, (u32)(a), #b, (u32)(b)); \
-    return 1;                                                       \
+    exit(1);                                                        \
   }                                                                 \
 } while (0)
 
@@ -20,7 +20,7 @@
               #a, #b, __FILE__, __LINE__);                      \
       printf("\t%d: %s == %x, %s == %x\n",                      \
               i, #a, *((a)+i), #b, *((b)+i));                   \
-      return 1;                                                 \
+      exit(1);                                                  \
     }                                                           \
   }                                 \
 } while (0)
@@ -29,7 +29,7 @@
   if ((cond)) {                                         \
     printf("Assertion failed: %s, file %s, line %d\n",  \
             (fail_msg), __FILE__, __LINE__);            \
-    return 1;                                           \
+    exit(1);                                            \
   }                                                     \
 } while (0)
 

@@ -31,6 +31,8 @@ SRC_URI = "file://main.c \
            file://data/full2_tru.h \
            file://data/full3_tru.h \
            file://data/image.h \
+           file://data/2_img4.dat \
+           file://data/image.bin \
            file://Makefile \
           "
 
@@ -43,4 +45,6 @@ do_compile() {
 do_install() {
     install -d ${D}${bindir}
     install -m 0755 lenet ${D}${bindir}
+    install -d ${D}${datadir}/lenet
+    cp -r data ${D}${datadir}/lenet
 }

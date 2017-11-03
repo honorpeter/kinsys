@@ -29,7 +29,32 @@ static u32 offset;
 
 int kinpira_init(void)
 {
+  system("modprobe udmabuf udmabuf0=1048576");
   system("modprobe uio_pdrv_genirq");
+  sleep(1);
+
+  // Create udmabuf
+  int fd;
+  char attr[1024];
+
+  fd = open("/sys/class/udmabuf/udmabuf0/phys_addr", O_RDONLY);
+  if (fd < 0) {
+    perror("phys_addr open error");
+    return errno;
+  }
+
+  read(fd, attr, 1024);
+  sscanf(attr, "%x", &phys_addr);
+  close(fd);
+
+  udmabuf0 = open("/dev/udmabuf0", O_RDWR | O_SYNC);
+  if (udmabuf0 < 0) {
+    perror("udmabuf open error");
+    return errno;
+  }
+
+  pagesize = sysconf(_SC_PAGESIZE);
+  offset   = 0;
 
   // Open Kinpira as UIO Driver
   __port       = open("/dev/uio0", O_RDWR);
@@ -37,7 +62,7 @@ int kinpira_init(void)
   __mem_gobou  = open("/dev/uio2", O_RDWR);
 
   if (__port < 0 || __mem_renkon < 0 || __mem_gobou < 0) {
-    perror("uio open: ");
+    perror("uio open");
     return errno;
   }
 
@@ -54,34 +79,6 @@ int kinpira_init(void)
     fprintf(stderr, "mmap failed\n");
     return errno;
   }
-
-  // Create udmabuf
-  int fd;
-  char attr[1024];
-
-  system("modprobe udmabuf udmabuf0=1048576");
-
-  fd = open("/sys/class/udmabuf/udmabuf0/phys_addr", O_RDONLY);
-  if (fd < 0) {
-    perror("phys_addr open error: ");
-    return errno;
-  }
-
-  read(fd, attr, 1024);
-  sscanf(attr, "%x", &phys_addr);
-  close(fd);
-
-  udmabuf0 = open("/dev/udmabuf0", O_RDWR | O_SYNC);
-  if (udmabuf0 < 0) {
-    perror("udmabuf open error: ");
-    return errno;
-  }
-
-  pagesize = sysconf(_SC_PAGESIZE);
-  offset   = 0;
-
-  // TODO: remove switchdcache
-  // system("modprobe switchdcache");
 
   return 0;
 }

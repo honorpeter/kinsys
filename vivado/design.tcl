@@ -5,7 +5,8 @@ set display 1
 create_bd_design "design_1"
 
 if {$proj_name == "zcu102"} {
-  create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.0 zynq_ultra_ps_e_0
+  create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:2.0 zynq_ultra_ps_e_0
+  # create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.0 zynq_ultra_ps_e_0
   create_bd_cell -type ip -vlnv user.org:user:${ip_name}:1.0 ${ip_name}_0
 
   apply_bd_automation -rule xilinx.com:bd_rule:zynq_ultra_ps_e \
@@ -27,6 +28,9 @@ if {$proj_name == "zcu102"} {
   apply_bd_automation -rule xilinx.com:bd_rule:axi4 \
     -config {Master "/kinpira_0/m_axi_image" Clk "Auto" }  \
     [get_bd_intf_pins zynq_ultra_ps_e_0/S_AXI_HPC0_FPD]
+
+  source $origin_dir/hw_config_dp.tcl
+
 } else {
   create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0
   create_bd_cell -type ip -vlnv user.org:user:${ip_name}:1.0 ${ip_name}_0

@@ -20,9 +20,9 @@
 #define RENKON_WORDS    2048
 #define GOBOU_WORDS     8192
 
-uint32_t *port;
-uint32_t (*mem_renkon)[RENKON_WORDS];
-uint32_t (*mem_gobou)[GOBOU_WORDS];
+volatile uint32_t *port;
+volatile uint32_t (*mem_renkon)[RENKON_WORDS];
+volatile uint32_t (*mem_gobou)[GOBOU_WORDS];
 
 // input reg
 #define reg_which       &port[0]

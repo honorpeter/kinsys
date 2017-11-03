@@ -8,7 +8,9 @@ LENGTH = int(sys.argv[1])
 WIDTH = 256
 MASK = 0xffff
 
+from tqdm import tqdm
+
 random.seed(None)
-for i in range(LENGTH):
+for i in tqdm(range(LENGTH)):
     randval = random.randrange(-WIDTH, WIDTH) & MASK
     print("{:04x}".format(randval))

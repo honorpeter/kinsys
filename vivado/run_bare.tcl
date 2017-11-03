@@ -18,21 +18,19 @@ if {[file exists $app_dir/$app_name] != 0} {
 }
 projects -build -type app -name $app_name
 
+connect
 if {$proj_name == "zcu102"} {
-
-  connect
-
-  targets -set -nocase -filter {name =~"PSU"}
+  targets -set -nocase -filter {name =~ "PSU"}
   rst -system
-  targets -set -nocase -filter {name =~"Cortex-A53*0"}
+  targets -set -nocase -filter {name =~ "Cortex-A53*0"}
   rst -processor
 
-  targets -set -nocase -filter {name =~"Cortex-A53*0"}
+  targets -set -nocase -filter {name =~ "Cortex-A53*0"}
   loadhw $sdk_ws_dir/$hw_project_name/system.hdf
   targets -set -nocase -filter {name =~ "PS TAP"}
   fpga $sdk_ws_dir/$hw_project_name/design_1_wrapper.bit
 
-  targets -set -nocase -filter {name =~"PSU"}
+  targets -set -nocase -filter {name =~ "PSU"}
   source $sdk_ws_dir/$hw_project_name/psu_init.tcl
   psu_init
   psu_ps_pl_isolation_removal
@@ -40,14 +38,8 @@ if {$proj_name == "zcu102"} {
   psu_post_config
   catch {psu_protection}
 
-  targets -set -nocase -filter {name =~"Cortex-A53*0"}
-  dow $sdk_ws_dir/$app_name/Debug/$app_name.elf
-  con
-
+  targets -set -nocase -filter {name =~ "Cortex-A53*0"}
 } else {
-
-  connect
-
   targets -set -nocase -filter {name =~ "ARM*#0"}
   rst -system
 
@@ -62,7 +54,6 @@ if {$proj_name == "zcu102"} {
   ps7_post_config
 
   targets -set -nocase -filter {name =~ "ARM*#0"}
-  dow $sdk_ws_dir/$app_name/Debug/$app_name.elf
-  con
-
 }
+dow $sdk_ws_dir/$app_name/Debug/$app_name.elf
+con

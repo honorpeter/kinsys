@@ -30,6 +30,8 @@ def bin_of_hex(path):
     hexfile = np.loadtxt(path, dtype=np.int,
                          converters={0: lambda s: int(s, 16)})
     fixed = hexfile & 0xffff
+    print(path)
+    print(fixed)
     return list(map("  0b{:016b},".format, fixed))
 
 def gen_image(args):

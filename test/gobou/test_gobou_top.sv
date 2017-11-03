@@ -5,10 +5,12 @@
 // `define NINJIN
 `define DIRECT
 
-int N_IN  = 512;
-int N_OUT = 128;
+// int N_IN  = 512;
+// int N_OUT = 128;
+int N_IN  = 512 * 7 * 7;
+int N_OUT = 4096;
 int IMG_OFFSET = 0;
-int OUT_OFFSET = 1000;
+int OUT_OFFSET = N_IN+1;
 int NET_OFFSET = 0;
 
 string wdir  = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_3";
@@ -521,6 +523,11 @@ module test_gobou_top;
           "%d ", mem_img_addr,
           "%d ", mem_img_wdata,
           "%d ", mem_img_rdata,
+          "| ",
+          "%4d ",  dut.mem_net_we,
+          "%4d ",  dut.mem_net_addr,
+          "%4d ",  dut.net_wdata,
+          "%4d ",  dut.net_rdata[0],
           "| ",
           "%1d ", dut.ctrl.ctrl_core.out_ctrl.valid,
           "%1d ", dut.ctrl.ctrl_mac.out_ctrl.valid,

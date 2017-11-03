@@ -8,7 +8,7 @@ inherit module
 SRC_URI = "file://Makefile \
            file://udmabuf.c \
            file://minor_number_allocator.h \
-	   file://COPYING \
+           file://COPYING \
           "
 
 S = "${WORKDIR}"

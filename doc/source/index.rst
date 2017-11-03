@@ -19,6 +19,7 @@ and next you can see necessary sections in any order.
   :maxdepth: 1
   :caption: Contents:
 
+  memo
   howto
   overview
   gobou

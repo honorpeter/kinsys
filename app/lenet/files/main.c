@@ -21,7 +21,7 @@ int main(void)
 
   setbuf(stdout, NULL);
   printf("\033[2J");
-  puts("### newLenet @ 42\n");
+  puts("### lenet\n");
 
   memmove(input, image, sizeof(s16)*N_IN*ISIZE*ISIZE);
   LeNet_eval();

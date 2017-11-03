@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <time.h>
 
 #include "util.h"
 #include "kinpira.h"
@@ -30,13 +31,16 @@ void assign_map(layer *l, u32 *weight, u32 *bias)
 
   for (int n = 0; n < n_out/core; n++) {
     for (int dn = 0; dn < core; dn++) {
-      memmove(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
+      // memmove(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
       for (int i = 0; i < unit; i++)
-        assert(mem_renkon[dn][idx+i] == weight[idx_w+i]);
+        mem_renkon[dn][idx+i] = weight[idx_w+i];
+      // for (int i = 0; i < unit; i++)
+      //   assert(mem_renkon[dn][idx+i] == weight[idx_w+i]);
       idx_w += unit;
 
-      memmove(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
-      assert(mem_renkon[dn][idx+unit] == bias[idx_b]);
+      // memmove(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
+      mem_renkon[dn][idx+unit] = bias[idx_b];
+      // assert(mem_renkon[dn][idx+unit] == bias[idx_b]);
       idx_b += 1;
     }
 
@@ -46,19 +50,24 @@ void assign_map(layer *l, u32 *weight, u32 *bias)
   if (n_out % core != 0) {
     for (int dn = 0; dn < core; dn++) {
       if (idx_b < n_out) {
-        memmove(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
+        // memmove(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
         for (int i = 0; i < unit; i++)
-          assert(mem_renkon[dn][idx+i] == weight[idx_w+i]);
+          mem_renkon[dn][idx+i] = weight[idx_w+i];
+        // for (int i = 0; i < unit; i++)
+        //   assert(mem_renkon[dn][idx+i] == weight[idx_w+i]);
         idx_w += unit;
 
-        memmove(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
-        assert(mem_renkon[dn][idx+unit] == bias[idx_b]);
+        // memmove(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
+        mem_renkon[dn][idx+unit] = bias[idx_b];
+        // assert(mem_renkon[dn][idx+unit] == bias[idx_b]);
         idx_b += 1;
       }
       else {
-        memset(&mem_renkon[dn][idx], 0, sizeof(u32)*(unit+1));
+        // memset(&mem_renkon[dn][idx], 0, sizeof(u32)*(unit+1));
         for (int i = 0; i < unit+1; i++)
-          assert(mem_renkon[dn][idx+i] == 0);
+          mem_renkon[dn][idx+i] = 0;
+        // for (int i = 0; i < unit+1; i++)
+        //   assert(mem_renkon[dn][idx+i] == 0);
       }
     }
 
@@ -80,13 +89,16 @@ void assign_vec(layer *l, u32 *weight, u32 *bias)
 
   for (int n = 0; n < n_out/core; n++) {
     for (int dn = 0; dn < core; dn++) {
-      memmove(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
+      // memmove(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
       for (int i = 0; i < n_in; i++)
-        assert(mem_gobou[dn][idx+i] == weight[idx_w+i]);
+        mem_gobou[dn][idx+i] = weight[idx_w+i];
+      // for (int i = 0; i < n_in; i++)
+      //   assert(mem_gobou[dn][idx+i] == weight[idx_w+i]);
       idx_w += n_in;
 
-      memmove(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
-      assert(mem_gobou[dn][idx+n_in] == bias[idx_b]);
+      // memmove(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
+      mem_gobou[dn][idx+n_in] = bias[idx_b];
+      // assert(mem_gobou[dn][idx+n_in] == bias[idx_b]);
       idx_b += 1;
     }
 
@@ -96,19 +108,24 @@ void assign_vec(layer *l, u32 *weight, u32 *bias)
   if (n_out % core != 0) {
     for (int dn = 0; dn < core; dn++) {
       if (idx_b < n_out) {
-        memmove(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
+        // memmove(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
         for (int i = 0; i < n_in; i++)
-          assert(mem_gobou[dn][idx+i] == weight[idx_w+i]);
+          mem_gobou[dn][idx+i] = weight[idx_w+i];
+        // for (int i = 0; i < n_in; i++)
+        //   assert(mem_gobou[dn][idx+i] == weight[idx_w+i]);
         idx_w += n_in;
 
-        memmove(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
-        assert(mem_gobou[dn][idx+n_in] == bias[idx_b]);
+        // memmove(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
+        mem_gobou[dn][idx+n_in] = bias[idx_b];
+        // assert(mem_gobou[dn][idx+n_in] == bias[idx_b]);
         idx_b += 1;
       }
       else {
-        memset(&mem_gobou[dn][idx], 0, sizeof(u32)*(n_in+1));
+        // memset(&mem_gobou[dn][idx], 0, sizeof(u32)*(n_in+1));
         for (int i = 0; i < n_in+1; i++)
-          assert(mem_gobou[dn][idx+i] == 0);
+          mem_gobou[dn][idx+i] = 0;
+        // for (int i = 0; i < n_in+1; i++)
+        //   assert(mem_gobou[dn][idx+i] == 0);
       }
     }
 
@@ -118,24 +135,38 @@ void assign_vec(layer *l, u32 *weight, u32 *bias)
 
 
 
+#include <sleep.h>
 void exec_core(layer *l)
 {
   *reg_which        = l->which;
+  // usleep(1000);
   *reg_in_offset    = l->in_offset;
+  // usleep(1000);
   *reg_out_offset   = l->out_offset;
+  // usleep(1000);
   *reg_net_offset   = l->net_offset;
+  // usleep(1000);
 
   *reg_pre_base     = l->in_offset;
+  // usleep(1000);
   *reg_read_len     = l->read_len;
+  // usleep(1000);
   *reg_write_len    = l->write_len;
+  // usleep(1000);
 
   *reg_base_param0  = l->base_param[0];
+  // usleep(1000);
   *reg_base_param1  = l->base_param[1];
+  // usleep(1000);
   *reg_conv_param   = l->conv_param;
+  // usleep(1000);
   *reg_bias_param   = l->bias_param;
+  // usleep(1000);
   // *reg_norm_param = l->norm_param;
   *reg_actv_param   = l->actv_param;
+  // usleep(1000);
   *reg_pool_param   = l->pool_param;
+  // usleep(1000);
 
   // print_port();
 
@@ -159,7 +190,7 @@ void print_result(s16 *output, const int length)
   int max     = INT_MIN;
 
   for (int i = 0; i < length; i++) {
-    printf("%d: %d\n", i, output[i]);
+    // printf("%d: %d\n", i, output[i]);
 
     if (max < output[i]) {
       number = i;

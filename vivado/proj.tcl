@@ -15,7 +15,8 @@ switch $proj_name {
   }
   "zcu102" {
     set part_name   xczu9eg-ffvb1156-2-i-es2
-    set board_name  xilinx.com:zcu102:part0:2.2
+    set board_name  xilinx.com:zcu102:part0:2.0
+    # set board_name  xilinx.com:zcu102:part0:2.2
   }
 }
 
@@ -62,30 +63,10 @@ set files [list \
 add_files -norecurse -fileset $obj $files
 
 # Set 'sources_1' fileset file properties for remote files
-set file "$origin_dir/../dist/ctrl_bus.svh"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property "file_type" "SystemVerilog" $file_obj
-
-set file "$origin_dir/../dist/common.svh"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property "file_type" "SystemVerilog" $file_obj
-
-set file "$origin_dir/../dist/ninjin.svh"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property "file_type" "SystemVerilog" $file_obj
-
-set file "$origin_dir/../dist/renkon.svh"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property "file_type" "SystemVerilog" $file_obj
-
-set file "$origin_dir/../dist/gobou.svh"
-set file [file normalize $file]
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property "file_type" "SystemVerilog" $file_obj
+foreach src $files {
+  set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$src"]]
+  set_property "file_type" "SystemVerilog" $file_obj
+}
 
 set file "$origin_dir/$proj_name/$proj_name.srcs/sources_1/bd/design_1/design_1.bd"
 set file [file normalize $file]
@@ -110,7 +91,13 @@ if {[string equal [get_filesets -quiet constrs_1] ""]} {
 # Set 'constrs_1' fileset object
 set obj [get_filesets constrs_1]
 
-# Empty (no sources present)
+# Add/Import constrs file and set constrs file properties
+set file "[file normalize "$origin_dir/constraints_dp.xdc"]"
+set file_added [add_files -norecurse -fileset $obj $file]
+set file "$origin_dir/constraints_dp.xdc"
+set file [file normalize $file]
+set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
+set_property "file_type" "XDC" $file_obj
 
 # Set 'constrs_1' fileset properties
 set obj [get_filesets constrs_1]
@@ -136,12 +123,12 @@ set_property "xelab.unifast" "" $obj
 if {[string equal [get_runs -quiet synth_1] ""]} {
   create_run -name synth_1 \
     -part $part_name \
-    -flow {Vivado Synthesis 2017} \
+    -flow {Vivado Synthesis 2016} \
     -strategy "Vivado Synthesis Defaults" \
     -constrset constrs_1
 } else {
   set_property strategy "Vivado Synthesis Defaults" [get_runs synth_1]
-  set_property flow "Vivado Synthesis 2017" [get_runs synth_1]
+  set_property flow "Vivado Synthesis 2016" [get_runs synth_1]
 }
 set obj [get_runs synth_1]
 
@@ -152,13 +139,13 @@ current_run -synthesis [get_runs synth_1]
 if {[string equal [get_runs -quiet impl_1] ""]} {
   create_run -name impl_1 \
     -part $part_name \
-    -flow {Vivado Implementation 2017} \
+    -flow {Vivado Implementation 2016} \
     -strategy "Vivado Implementation Defaults" \
     -constrset constrs_1 \
     -parent_run synth_1
 } else {
   set_property strategy "Vivado Implementation Defaults" [get_runs impl_1]
-  set_property flow "Vivado Implementation 2017" [get_runs impl_1]
+  set_property flow "Vivado Implementation 2016" [get_runs impl_1]
 }
 set obj [get_runs impl_1]
 set_property "steps.write_bitstream.args.readback_file" "0" $obj

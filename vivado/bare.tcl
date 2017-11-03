@@ -5,8 +5,8 @@ set origin_dir .
 set proj_name [lindex $argv 0]
 set app_name  [lindex $argv 1]
 
-set stack_size 0x20000
-set heap_size  0x20000
+set stack_size 0x2000
+set heap_size  0x2000
 
 set sdk_ws_dir $origin_dir/$proj_name/$proj_name.sdk
 if {[file exists $sdk_ws_dir] == 0} {
@@ -44,6 +44,7 @@ if {[file exists $sdk_ws_dir/$app_name] == 0} {
       -hwproject ${hw_project_name} \
       -os standalone
     importsources -name $app_name -path $app_dir/$app_name/src
+    configapp -app $app_name define-compiler-symbols $proj_name
   } else {
     createapp -name $app_name \
       -app {Hello World} \
@@ -58,6 +59,5 @@ exec sed -i \
   -e "1i _HEAP_SIZE = ${heap_size};" \
   $sdk_ws_dir/$app_name/src/lscript.ld
 
-configapp -app $app_name define-compiler-symbols $proj_name
 projects -build
 

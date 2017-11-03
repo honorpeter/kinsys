@@ -9,27 +9,27 @@
     printf("Assertion failed: %s == %s, file %s, line %d\n",        \
             #a, #b, __FILE__, __LINE__);                            \
     printf("\t%s == %lx, %s == %lx\n", #a, (u32)(a), #b, (u32)(b)); \
-    return 1;                                                       \
+    exit(1);                                                        \
   }                                                                 \
 } while (0)
 
-#define assert_rep(a, b, len) do {  \
-  for (int i = 0; i < (len); i++) { \
+#define assert_rep(a, b, len) do {                              \
+  for (int i = 0; i < (len); i++) {                             \
     if (*((a)+i) != *((b)+i)) {                                 \
       printf("Assertion failed: %s == %s, file %s, line %d\n",  \
               #a, #b, __FILE__, __LINE__);                      \
-      printf("\t%d: %s == %x, %s == %x\n",                      \
+      printf("\t%x: %s == %x, %s == %x\n",                      \
               i, #a, *((a)+i), #b, *((b)+i));                   \
-      return 1;                                                 \
+      exit(1);                                                  \
     }                                                           \
-  }                                 \
+  }                                                             \
 } while (0)
 
 #define assert_not(cond, fail_msg) do {                 \
   if ((cond)) {                                         \
     printf("Assertion failed: %s, file %s, line %d\n",  \
             (fail_msg), __FILE__, __LINE__);            \
-    return 1;                                           \
+    exit(1);                                            \
   }                                                     \
 } while (0)
 

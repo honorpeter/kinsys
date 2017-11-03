@@ -1,27 +1,25 @@
-BOARD    = zedboard
+BOARD    = zcu102
 IP       = kinpira
 APP      = lenet
+# APP      = webcam
 APP_BARE = lenet_bare
 
 .PHONY: run_bare bare build zybo zedboard ip all clean linux
 
 run_bare:
-	xsct run.tcl ${BOARD} ${APP_BARE}
+	xsct run_bare.tcl ${BOARD} ${APP_BARE}
+
+run_peta:
+	bash run_peta.sh ${BOARD}
 
 # avoid friendly fire
 all:
 	@../utils/confirm.sh "Build the project from the beginning?"
-	make clean dist ip proj build bare run
+	make clean dist ip proj build bare run_bare
 
-run_peta:
-	(cd linux-zedboard;                                  \
-	  petalinux-boot --jtag --fpga --kernel              \
-	    --xsdb-conn "connect; target 13; rst; target 16" \
-	)
-	# (cd linux-zcu102;                                  \
-	#   petalinux-boot --jtag --fpga --kernel            \
-	#     --xsdb-conn "connect; targets 5; rst; target 4; rst; target 1" \
-	# )
+screen:
+	# screen /dev/ttyUSB0 115200,cs8,-parentb,-cstopb
+	screen /dev/ttyUSB0 115200
 
 peta:
 	bash peta.sh ${BOARD} ${APP}
@@ -44,6 +42,7 @@ ip:
 
 dist:
 	make -C ../rtl dist
+	(source ../utils/config.sh; annotate_rtl ../dist)
 
 clean:
 	rm -rf ../dist ip ${BOARD} .Xil linux-${BOARD}
