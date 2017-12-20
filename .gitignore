@@ -18,6 +18,9 @@ dist
 app/lenet_bare/src/data
 app/lenet/files/data
 
+synth/reports
+synth/results
+
 vivado/results
 vivado/reports
 vivado/ip
