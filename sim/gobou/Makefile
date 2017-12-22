@@ -9,7 +9,7 @@ LIBS     =
 SOURCES  = $(wildcard *.cpp)
 TARGET   = $(SOURCES:.cpp=.dat)
 DATADIR  = ../../data/$(shell basename `pwd`)
-RAND     = python ../../utils/rand.py
+RAND     = python3 ../../utils/rand.py
 
 .PHONY: data all clean hoge
 

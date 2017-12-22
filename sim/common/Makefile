@@ -9,7 +9,7 @@ LIBS     =
 SOURCES  = $(wildcard *.cpp)
 TARGET   = $(SOURCES:.cpp=.out)
 DATADIR  = ../../data/$(shell basename `pwd`)
-RAND     = ruby ../../utils/rand.rb
+RAND     = python3 ../../utils/rand.py
 
 .PHONY: _debug all clean
 

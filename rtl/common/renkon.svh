@@ -23,8 +23,8 @@ parameter RENKON_MAXIMG  = 32;
 parameter FACCUM  = $clog2(RENKON_MAXIMG**2);
 parameter OUTSIZE = FACCUM;
 parameter FSIZE   = 5;
-parameter PAD     = 0;
-// parameter PAD     = (FSIZE-1)/2;
+// parameter PAD     = 0;
+parameter PAD     = (FSIZE-1)/2;
 parameter PSIZE   = 2;
 
 ////////////////////////////////////////////////////////////
