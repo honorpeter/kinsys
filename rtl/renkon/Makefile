@@ -14,6 +14,7 @@ DEPENDS   = \
 	renkon_ctrl.sv \
 	renkon_linebuf.sv \
 	renkon_linebuf_pad.sv \
+	renkon_conv_tree9.sv \
 	renkon_conv_tree25.sv \
 	renkon_conv_wreg.sv \
 	renkon_accum.sv \

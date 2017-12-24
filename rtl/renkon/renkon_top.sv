@@ -23,6 +23,7 @@ module renkon_top
   , input                       relu_en
   , input                       pool_en
   , input  [LWIDTH-1:0]         pool_size
+  , input  [LWIDTH-1:0]         pool_pad
 
   , output                      ack
   , output                      img_we
@@ -39,17 +40,20 @@ module renkon_top
   wire [$clog2(FSIZE+1):0]        buf_pix_rsel;
   wire                            buf_pix_we;
   wire [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr;
-  wire [LWIDTH-1:0]         w_fea_size;
-  wire                      w_bias_en;
-  wire                      w_relu_en;
-  wire                      w_pool_en;
-  wire [LWIDTH-1:0]         w_pool_size;
+  wire [LWIDTH-1:0]         _fea_size;
+  wire                      _bias_en;
+  wire                      _relu_en;
+  wire                      _pool_en;
+  wire [LWIDTH-1:0]         _pool_size;
+  wire [LWIDTH-1:0]         _pool_pad;
   wire signed [DWIDTH-1:0]  pixel [FSIZE**2-1:0];
   wire                      wreg_we;
   wire                      mem_feat_we;
   wire                      mem_feat_rst;
-  wire [FACCUM-1:0]         mem_feat_raddr;
   wire [FACCUM-1:0]         mem_feat_waddr;
+  wire [FACCUM-1:0]         mem_feat_raddr;
+  wire                            buf_feat_wcol;
+  wire                            buf_feat_rrow [PSIZE-1:0];
   wire [$clog2(PSIZE+1):0]        buf_feat_wsel;
   wire [$clog2(PSIZE+1):0]        buf_feat_rsel;
   wire                            buf_feat_we;

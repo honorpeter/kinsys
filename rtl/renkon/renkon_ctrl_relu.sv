@@ -3,7 +3,7 @@
 module renkon_ctrl_relu
   ( input           clk
   , input           xrst
-  , input           w_relu_en
+  , input           _relu_en
   , ctrl_bus.slave  in_ctrl
   , ctrl_bus.master out_ctrl
   , output          relu_oe
@@ -11,13 +11,16 @@ module renkon_ctrl_relu
 
   ctrl_reg out_ctrl$ [D_RELU-1:0];
 
-  assign out_ctrl.start = w_relu_en
+  assign in_ctrl.ready  = out_ctrl.ready;
+  assign out_ctrl.delay = in_ctrl.delay + D_RELU;
+
+  assign out_ctrl.start = _relu_en
                         ? out_ctrl$[D_RELU-1].start
                         : out_ctrl$[0].start;
-  assign out_ctrl.valid = w_relu_en
+  assign out_ctrl.valid = _relu_en
                         ? out_ctrl$[D_RELU-1].valid
                         : out_ctrl$[0].valid;
-  assign out_ctrl.stop  = w_relu_en
+  assign out_ctrl.stop  = _relu_en
                         ? out_ctrl$[D_RELU-1].stop
                         : out_ctrl$[0].stop;
 

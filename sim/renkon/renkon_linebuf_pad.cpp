@@ -2,9 +2,8 @@
 #include <lib.hpp>
 
 const int isize = 12;
-const int fsize = 5;
+const int fsize = 3;
 const int pad   = (fsize-1)/2;
-// const int pad   = 0;
 
 int main(void)
 {

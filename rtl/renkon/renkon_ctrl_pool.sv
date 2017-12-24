@@ -1,14 +1,18 @@
 `include "renkon.svh"
 
 module renkon_ctrl_pool
-  ( input               clk
-  , input               xrst
-  , input               w_pool_en
-  , ctrl_bus.slave      in_ctrl
-  , input  [LWIDTH-1:0] w_fea_size
-  , input  [LWIDTH-1:0] w_pool_size
-  , ctrl_bus.master     out_ctrl
-  , output              pool_oe
+  ( input                             clk
+  , input                             xrst
+  , input                             _pool_en
+  , ctrl_bus.slave                    in_ctrl
+  , input  [LWIDTH-1:0]               _fea_size
+  , input  [LWIDTH-1:0]               _pool_size
+  , input  [LWIDTH-1:0]               _pool_pad
+  , ctrl_bus.master                   out_ctrl
+  , output                            pool_oe
+  , output                            buf_feat_ready
+  , output                            buf_feat_wcol
+  , output                            buf_feat_rrow [PSIZE-1:0]
   , output [$clog2(PSIZE+1):0]        buf_feat_wsel
   , output [$clog2(PSIZE+1):0]        buf_feat_rsel
   , output                            buf_feat_we
@@ -27,6 +31,7 @@ module renkon_ctrl_pool
   reg              buf_feat_req$;
   reg [LWIDTH-1:0] fea_size$;
   reg [LWIDTH-1:0] pool_size$;
+  reg [LWIDTH-1:0] pool_pad$;
   reg [LWIDTH-1:0] pool_x$;
   reg [LWIDTH-1:0] pool_y$;
   reg [LWIDTH-1:0] pool_exec_x$;
@@ -54,10 +59,12 @@ module renkon_ctrl_pool
     if (!xrst) begin
       fea_size$  <= 0;
       pool_size$ <= 0;
+      pool_pad$  <= 0;
     end
     else if (state$ == S_WAIT && in_ctrl.start) begin
-      fea_size$  <= w_fea_size;
-      pool_size$ <= w_pool_size;
+      fea_size$  <= _fea_size;
+      pool_size$ <= _pool_size;
+      pool_pad$  <= _pool_pad;
     end
 
   always @(posedge clk)
@@ -100,7 +107,7 @@ module renkon_ctrl_pool
 // pool control
 //==========================================================
 
-  assign buf_feat_req = w_pool_en ? in_ctrl.start : 0;
+  assign buf_feat_req = _pool_en ? in_ctrl.start : 0;
   // assign buf_feat_req = buf_feat_req$;
 
   always @(posedge clk)
@@ -109,6 +116,7 @@ module renkon_ctrl_pool
     else
       buf_feat_req$ <= in_ctrl.start;
 
+if (1)
   renkon_ctrl_linebuf #(PSIZE, D_POOLBUF) ctrl_buf_feat(
     .img_size   (fea_size$),
     .fil_size   (pool_size$),
@@ -125,18 +133,41 @@ module renkon_ctrl_pool
     .buf_addr   (buf_feat_addr),
     .*
   );
+else
+  renkon_ctrl_linebuf_pad #(PSIZE, D_POOLBUF, in_ctrl.delay) ctrl_buf_feat(
+    .img_size   (fea_size$),
+    .fil_size   (pool_size$),
+    .pad_size   (pool_pad$),
+
+    .buf_req    (buf_feat_req),
+    .buf_ack    (buf_feat_ack),
+    .buf_start  (buf_feat_start),
+    .buf_valid  (buf_feat_valid),
+    .buf_ready  (buf_feat_ready),
+    .buf_stop   (buf_feat_stop),
+
+    .buf_wcol   (buf_feat_wcol),
+    .buf_rrow   (buf_feat_rrow),
+    .buf_wsel   (buf_feat_wsel),
+    .buf_rsel   (buf_feat_rsel),
+    .buf_we     (buf_feat_we),
+    .buf_addr   (buf_feat_addr),
+    .*
+  );
 
 //==========================================================
 // output control
 //==========================================================
 
-  assign out_ctrl.start = w_pool_en
+  assign out_ctrl.delay = in_ctrl.delay + D_POOL;
+
+  assign out_ctrl.start = _pool_en
                         ? out_ctrl$[D_POOL-1].start
                         : out_ctrl$[0].start;
-  assign out_ctrl.valid = w_pool_en
+  assign out_ctrl.valid = _pool_en
                         ? out_ctrl$[D_POOL-1].valid
                         : out_ctrl$[0].valid;
-  assign out_ctrl.stop  = w_pool_en
+  assign out_ctrl.stop  = _pool_en
                         ? out_ctrl$[D_POOL-1].stop
                         : out_ctrl$[0].stop;
 
@@ -150,7 +181,7 @@ module renkon_ctrl_pool
           out_ctrl$[0].valid <= 0;
           out_ctrl$[0].stop  <= 0;
         end
-        else if (!w_pool_en) begin
+        else if (!_pool_en) begin
           out_ctrl$[0].start <= in_ctrl.start;
           out_ctrl$[0].valid <= in_ctrl.valid;
           out_ctrl$[0].stop  <= in_ctrl.stop;

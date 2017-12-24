@@ -47,7 +47,7 @@ module renkon_conv_tree9
   assign sum1_0 = sum0_0 + sum0_1;
   assign sum1_1 = sum0_2 + sum0_3;
   assign sum2_0 = sum1_0 + sum1_1;
-  assign sum3_0 = sum2_0 + pro_short[8];
+  assign sum3_0 = sum2_0 + pro_short$[8];
 
   assign fmap = fmap$;
 
@@ -88,11 +88,11 @@ module renkon_conv_tree9
 ////////////////////////////////////////////////////////////
 
   function signed [DWIDTH-1:0] round;
-    input [2*DWIDTH-1:0] data;
+    input signed [2*DWIDTH-1:0] data;
     if (data[2*DWIDTH-DWIDTH/2-2] == 1 && data[DWIDTH/2-1:0] == 0)
       round = $signed({
                 data[2*DWIDTH-DWIDTH/2-2],
-                data[2*DWIDTH-DWIDTH/2-2:DWIDTH/2] - 1
+                data[2*DWIDTH-DWIDTH/2-2:DWIDTH/2] - 1'b1
               });
     else
       round = $signed({

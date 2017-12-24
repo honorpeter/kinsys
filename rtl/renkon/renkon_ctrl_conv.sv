@@ -5,14 +5,15 @@ module renkon_ctrl_conv
   , input               xrst
   , ctrl_bus.slave      in_ctrl
   , input  [2-1:0]      core_state
-  , input  [LWIDTH-1:0] w_fea_size
+  , input  [LWIDTH-1:0] _fea_size
   , input               first_input
   , input               last_input
+  , input               buf_feat_ready
   , ctrl_bus.master     out_ctrl
   , output              mem_feat_we
   , output              mem_feat_rst
-  , output [FACCUM-1:0] mem_feat_raddr
   , output [FACCUM-1:0] mem_feat_waddr
+  , output [FACCUM-1:0] mem_feat_raddr
   , output              conv_oe
   );
 
@@ -34,7 +35,7 @@ module renkon_ctrl_conv
   reg [FACCUM-1:0]  feat_addr$ [D_CONV:0];
   reg [LWIDTH-1:0]  conv_x$;
   reg [LWIDTH-1:0]  conv_y$;
-  ctrl_reg          out_ctrl$    [D_CONV+D_ACCUM-1:0];
+  ctrl_reg          out_ctrl$  [D_CONV+D_ACCUM-1:0];
 
 //==========================================================
 // main FSM
@@ -61,10 +62,10 @@ module renkon_ctrl_conv
 
   always @(posedge clk)
     if (!xrst) begin
-      fea_size$   <= 0;
+      fea_size$ <= 0;
     end
     else if (state$ == S_WAIT && in_ctrl.start) begin
-      fea_size$   <= w_fea_size;
+      fea_size$ <= _fea_size;
     end
 
   always @(posedge clk)
@@ -181,6 +182,9 @@ module renkon_ctrl_conv
 //==========================================================
 // output control
 //==========================================================
+
+  assign in_ctrl.ready  = 1'b1;
+  assign out_ctrl.delay = in_ctrl.delay + D_CONV + D_ACCUM;
 
   assign out_ctrl.start = out_ctrl$[D_CONV+D_ACCUM-1].start;
   assign out_ctrl.valid = out_ctrl$[D_CONV+D_ACCUM-1].valid;

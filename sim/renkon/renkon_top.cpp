@@ -10,7 +10,7 @@ const int isize = 12;
 // const int n_out = 16;
 // const int n_in  = 1;
 // const int isize = 28;
-const int fsize = 5;
+const int fsize = 3;
 // const int pad   = 0;
 const int pad   = (fsize-1)/2;
 const int feat  = isize+2*pad-fsize+1;
@@ -105,15 +105,15 @@ int main(void)
   relu(amap, bmap);
   pool(pmap, amap);
 
-  // for range(n, n_out)
-  //   for range(i, osize)
-  //     for range(j, osize)
-  //       printf("%d\n", pmap[n][i][j]);
-
   for range(n, n_out)
-    for range(i, feat)
-      for range(j, feat)
-        printf("%d\n", amap[n][i][j]);
+    for range(i, osize)
+      for range(j, osize)
+        printf("%d\n", pmap[n][i][j]);
+
+  // for range(n, n_out)
+  //   for range(i, feat)
+  //     for range(j, feat)
+  //       printf("%d\n", fmap[n][i][j]);
 
   return 0;
 }

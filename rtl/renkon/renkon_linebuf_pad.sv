@@ -1,7 +1,7 @@
 `include "renkon.svh"
 
 module renkon_linebuf_pad
- #( parameter MAXFIL = 5
+ #( parameter MAXFIL = 3
   , parameter MAXIMG = 32
   )
   ( input                         clk

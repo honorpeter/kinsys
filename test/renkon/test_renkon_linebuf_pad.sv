@@ -1,9 +1,10 @@
 `include "renkon.svh"
 
 parameter IMAGE = 12;
-parameter FILTER = 5;
+parameter FILTER = 3;
 parameter PADDING = (FILTER-1)/2;
 // parameter PADDING = 0;
+parameter DELAY = 5;
 
 module test_renkon_linebuf_pad;
 
@@ -36,7 +37,7 @@ module test_renkon_linebuf_pad;
   reg signed [DWIDTH-1:0] mem_input [IMAGE**2+1-1:0];
 
   renkon_linebuf_pad #(FILTER, IMAGE) dut(.*);
-  renkon_ctrl_linebuf_pad #(FILTER, IMAGE) ctrl(.*);
+  renkon_ctrl_linebuf_pad #(FILTER, IMAGE, DELAY) ctrl(.*);
 
   // clock
   initial begin
@@ -45,18 +46,33 @@ module test_renkon_linebuf_pad;
       #(STEP/2) clk = ~clk;
   end
 
-  //flow
-  reg [LWIDTH-1:0] addr = 0;
-  always@(posedge clk) begin
-    if (!xrst)
-      addr <= 0;
-    else if (buf_ack)
-      addr <= 0;
-    else if (buf_ready)
-      addr <= addr + 1;
-    buf_input <= mem_input[addr];
-  end
+  // memory
+  reg [LWIDTH-1:0] addr [DELAY-1:0];
+  for (genvar i = 0; i < DELAY; i++)
+    if (i == 0) begin
+      always @(posedge clk)
+        if (!xrst)
+          addr[0] <= 0;
+        else if (buf_ack)
+          addr[0] <= 0;
+        else if (buf_ready)
+          addr[0] <= addr[0] + 1;
+    end
+    else begin
+      always @(posedge clk)
+        if (!xrst)
+          addr[i] <= 0;
+        else
+          addr[i] <= addr[i-1];
+    end
 
+  always @(posedge clk)
+    if (!xrst)
+      buf_input <= 0;
+    else
+      buf_input <= mem_input[addr[DELAY-1]];
+
+  //flow
   initial begin
     xrst = 0;
     read_input;
@@ -122,14 +138,12 @@ module test_renkon_linebuf_pad;
         "%4d: ", $time/STEP,
         "%b ", buf_req,
         "%b ", buf_ack,
-        "%d ", ctrl.state$,
+        "*%d ", ctrl.state$,
         "| ",
         "%1d ", buf_wcol,
         "%1b",  buf_rrow[0],
         "%1b",  buf_rrow[1],
-        "%1b",  buf_rrow[2],
-        "%1b",  buf_rrow[3],
-        "%1b ", buf_rrow[4],
+        "%1b ",  buf_rrow[2],
         "%1d ", buf_wsel,
         "%1d ", buf_rsel,
         "%b ",  buf_we,
@@ -142,23 +156,20 @@ module test_renkon_linebuf_pad;
         "%b ", buf_stop,
         ": ",
         "%4d ", dut.buf_output[0],
-        "%4d ", dut.buf_output[5],
-        "%4d ", dut.buf_output[10],
-        "%4d ", dut.buf_output[15],
-        "%4d ", dut.buf_output[20],
+        "%4d ", dut.buf_output[2],
         ": ",
-        "%4d ", dut.buf_output[4],
-        "%4d ", dut.buf_output[9],
-        "%4d ", dut.buf_output[14],
-        "%4d ", dut.buf_output[19],
-        "%4d ", dut.buf_output[24],
+        "%4d ", dut.buf_output[3],
+        "%4d ", dut.buf_output[5],
+        ": ",
+        "%4d ", dut.buf_output[6],
+        "%4d ", dut.buf_output[8],
         "| ",
         "%b ",  buf_ready,
-        "%4d ", addr,
+        "%4d ", addr[0],
         "; ",
-        "%2d ", ctrl.col_count$,
-        "%1d ", ctrl.mem_count$,
-        "%2d ", ctrl.row_count$,
+        "%2d ", ctrl.col_count$[0],
+        "%1d ", ctrl.mem_count$[0],
+        "%2d ", ctrl.row_count$[0],
         // "; ",
         // "%1d ", dut.mem_linebuf_we[0],
         // "%2d ", dut.mem_linebuf_addr,

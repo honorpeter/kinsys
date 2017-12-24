@@ -13,15 +13,17 @@ module renkon_core
   , input                       mem_feat_we
   , input         [FACCUM-1:0]  mem_feat_raddr
   , input         [FACCUM-1:0]  mem_feat_waddr
+  , input                             buf_feat_wcol
+  , input                             buf_feat_rrow [PSIZE-1:0]
   , input  [$clog2(PSIZE+1):0]        buf_feat_wsel
   , input  [$clog2(PSIZE+1):0]        buf_feat_rsel
   , input                             buf_feat_we
   , input  [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
-  , input         [LWIDTH-1:0]  w_fea_size
-  , input                       w_bias_en
-  , input                       w_relu_en
-  , input                       w_pool_en
-  , input         [LWIDTH-1:0]  w_pool_size
+  , input         [LWIDTH-1:0]  _fea_size
+  , input                       _bias_en
+  , input                       _relu_en
+  , input                       _pool_en
+  , input         [LWIDTH-1:0]  _pool_size
   , input  signed [DWIDTH-1:0]  pixel [FSIZE**2-1:0]
   , input  signed [DWIDTH-1:0]  net_rdata
   , output signed [DWIDTH-1:0]  result
@@ -44,7 +46,7 @@ module renkon_core
   );
 
   renkon_bias bias(
-    .enable     (w_bias_en),
+    .enable     (_bias_en),
     .breg_we    (breg_we),
     .out_en     (bias_oe),
     .read_bias  (net_rdata),
@@ -54,7 +56,7 @@ module renkon_core
   );
 
   renkon_relu relu(
-    .enable     (w_relu_en),
+    .enable     (_relu_en),
     .out_en     (relu_oe),
     .pixel_in   (bmap),
     .pixel_out  (amap),
@@ -62,7 +64,7 @@ module renkon_core
   );
 
   renkon_pool pool(
-    .enable     (w_pool_en),
+    .enable     (_pool_en),
     .out_en     (pool_oe),
     .pixel_in   (amap),
     .pixel_out  (pmap),
