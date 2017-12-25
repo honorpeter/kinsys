@@ -5,11 +5,11 @@
 // `define NINJIN
 `define DIRECT
 
-int N_OUT = 32;
-int N_IN  = 16;
+// int N_OUT = 32;
+// int N_IN  = 16;
 int ISIZE = 12;
-// int N_OUT = 16;
-// int N_IN  = 1;
+int N_OUT = 16;
+int N_IN  = 1;
 // int ISIZE = 28;
 int FEAT  = ISIZE + 2*PAD - FSIZE + 1;
 int OSIZE = FEAT / PSIZE;
@@ -17,6 +17,10 @@ int OSIZE = FEAT / PSIZE;
 int IMG_OFFSET = 100;
 int OUT_OFFSET = 5000;
 int NET_OFFSET = 0;
+
+int DO_BIAS = 1;
+int DO_RELU = 1;
+int DO_POOL = 1;
 
 int label = 2;
 int file  = 4;
@@ -208,9 +212,9 @@ module test_renkon_top;
     img_size    = ISIZE;
     conv_size   = FSIZE;
     conv_pad    = PAD;
-    bias_en     = 1;
-    relu_en     = 1;
-    pool_en     = 1;
+    bias_en     = DO_BIAS;
+    relu_en     = DO_RELU;
+    pool_en     = DO_POOL;
     pool_size   = PSIZE;
     pool_pad    = 0;
 
@@ -262,6 +266,7 @@ module test_renkon_top;
     req = 0;
 
     while(!ack) #(STEP);
+    // #(STEP*20000);
 
     #(STEP*10);
 
@@ -631,54 +636,56 @@ module test_renkon_top;
           // "%d ",  req,
           // "%d ",  ack,
           "*%d ", dut.ctrl.ctrl_core.state$,
-          "*%d ", dut.ctrl.ctrl_conv.core_state$,
-          "*%d ", dut.ctrl.ctrl_conv.state$,
+          // "*%d ", dut.ctrl.ctrl_conv.core_state$,
+          // "*%d ", dut.ctrl.ctrl_conv.state$,
           "| ",
-          // "%1b%1b%1b ", dut.ctrl.ctrl_core.out_ctrl.start,
-          //               dut.ctrl.ctrl_core.out_ctrl.valid,
-          //               dut.ctrl.ctrl_core.out_ctrl.stop,
-          "%1b%1b%1b ", dut.ctrl.ctrl_conv.out_ctrl.start,
-                        dut.ctrl.ctrl_conv.out_ctrl.valid,
-                        dut.ctrl.ctrl_conv.out_ctrl.stop,
-          // "%1b%1b%1b ", dut.ctrl.ctrl_bias.out_ctrl.start,
-          //               dut.ctrl.ctrl_bias.out_ctrl.valid,
-          //               dut.ctrl.ctrl_bias.out_ctrl.stop,
-          "%1b%1b%1b ", dut.ctrl.ctrl_relu.out_ctrl.start,
-                        dut.ctrl.ctrl_relu.out_ctrl.valid,
-                        dut.ctrl.ctrl_relu.out_ctrl.stop,
-          "%1b%1b%1b ", dut.ctrl.ctrl_pool.out_ctrl.start,
-                        dut.ctrl.ctrl_pool.out_ctrl.valid,
-                        dut.ctrl.ctrl_pool.out_ctrl.stop,
+          "%1b%1b%1b%1b ", dut.ctrl.ctrl_core.out_ctrl.start,
+                           dut.ctrl.ctrl_core.out_ctrl.valid,
+                           dut.ctrl.ctrl_core.out_ctrl.ready,
+                           dut.ctrl.ctrl_core.out_ctrl.stop,
+          "%1b%1b%1b%1b ", dut.ctrl.ctrl_conv.out_ctrl.start,
+                           dut.ctrl.ctrl_conv.out_ctrl.valid,
+                           dut.ctrl.ctrl_conv.out_ctrl.ready,
+                           dut.ctrl.ctrl_conv.out_ctrl.stop,
+          // "%1b%1b%1b%1b ", dut.ctrl.ctrl_bias.out_ctrl.start,
+          //                  dut.ctrl.ctrl_bias.out_ctrl.valid,
+          //                  dut.ctrl.ctrl_bias.out_ctrl.ready,
+          //                  dut.ctrl.ctrl_bias.out_ctrl.stop,
+          // "%1b%1b%1b%1b ", dut.ctrl.ctrl_relu.out_ctrl.start,
+          //                  dut.ctrl.ctrl_relu.out_ctrl.valid,
+          //                  dut.ctrl.ctrl_relu.out_ctrl.ready,
+          //                  dut.ctrl.ctrl_relu.out_ctrl.stop,
+          "%1b%1b%1b%1b ", dut.ctrl.ctrl_pool.out_ctrl.start,
+                           dut.ctrl.ctrl_pool.out_ctrl.valid,
+                           dut.ctrl.ctrl_pool.out_ctrl.ready,
+                           dut.ctrl.ctrl_pool.out_ctrl.stop,
           "| ",
-          // "%2d ", dut.ctrl.ctrl_core.count_out$,
-          // "%2d ", dut.ctrl.ctrl_core.count_in$,
-          // "%2d ", dut.ctrl.ctrl_core.input_x$,
-          // "%2d ", dut.ctrl.ctrl_core.input_y$,
-          // "%2d ", dut.ctrl.ctrl_core.weight_x$,
-          // "%2d ", dut.ctrl.ctrl_core.weight_y$,
-          // ": ",
+          "%2d ", dut.ctrl.ctrl_core.count_out$,
+          "%2d ", dut.ctrl.ctrl_core.count_in$,
+          "%2d ", dut.ctrl.ctrl_core.input_x$,
+          "%2d ", dut.ctrl.ctrl_core.input_y$,
+          "%2d ", dut.ctrl.ctrl_core.weight_x$,
+          "%2d ", dut.ctrl.ctrl_core.weight_y$,
+          ": ",
           "%2d ", dut.ctrl.ctrl_conv.conv_x$,
           "%2d ", dut.ctrl.ctrl_conv.conv_y$,
-          "%1b ", dut.ctrl.ctrl_core.wreg_we,
-          "%1b ", dut.ctrl.ctrl_core.breg_we,
-          "%2d ", dut.ctrl.ctrl_conv.conv_oe,
           "| ",
           "%1d ", mem_img_we,
           "%4d ", mem_img_addr,
-          "%4d ", mem_img_wdata,
-          "%4d ", mem_img_rdata,
-          "| ",
-          "%1d ", dut.pe[0].mem_net.mem_we,
-          "%4d ", dut.pe[0].mem_net.mem_addr,
-          "%4d ", dut.pe[0].mem_net.mem_wdata,
-          "%4d ", dut.pe[0].mem_net.mem_rdata,
+          "%5d ", mem_img_wdata,
+          "%5d ", mem_img_rdata,
           // "| ",
-          // "%1d ", dut.pe[0].core.conv.mem_feat_rst,
-          // "%1d ", dut.pe[0].core.conv.mem_feat_we,
-          // "%4d ", dut.pe[0].core.conv.mem_feat_waddr,
-          // "%5d ", dut.pe[0].core.conv.mem_feat_wdata,
-          // "%4d ", dut.pe[0].core.conv.mem_feat_raddr,
-          // "%5d ", dut.pe[0].core.conv.mem_feat_rdata,
+          // "%1d ", dut.pe[0].mem_net.mem_we,
+          // "%4d ", dut.pe[0].mem_net.mem_addr,
+          // "%5d ", dut.pe[0].mem_net.mem_wdata,
+          // "%5d ", dut.pe[0].mem_net.mem_rdata,
+          "| ",
+          "%1d ", dut.pe[0].core.conv.mem_feat_rst,
+          "%1d ", dut.pe[0].core.conv.mem_feat_we,
+          "%4d ", dut.pe[0].core.conv.mem_feat_waddr,
+          "%5d ", dut.pe[0].core.conv.mem_feat_wdata,
+          "%4d ", dut.pe[0].core.conv.mem_feat_raddr,
+          "%5d ", dut.pe[0].core.conv.mem_feat_rdata,
           "| ",
           "%1b ", dut.ctrl.ctrl_core.buf_pix_req,
           "%1b ", dut.ctrl.ctrl_core.buf_pix_ack,
@@ -686,34 +693,43 @@ module test_renkon_top;
           "%1b ", dut.ctrl.ctrl_core.buf_pix_valid,
           "%1b ", dut.ctrl.ctrl_core.buf_pix_ready,
           "%1b ", dut.ctrl.ctrl_core.buf_pix_stop,
+          "| ",
+          "%1b ", dut.ctrl.ctrl_pool.buf_feat_req,
+          "%1b ", dut.ctrl.ctrl_pool.buf_feat_ack,
+          "%1b ", dut.ctrl.ctrl_pool.buf_feat_start,
+          "%1b ", dut.ctrl.ctrl_pool.buf_feat_valid,
+          "%1b ", dut.ctrl.ctrl_pool.buf_feat_ready,
+          "%1b ", dut.ctrl.ctrl_pool.buf_feat_stop,
           // "| ",
-          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_req,
-          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_ack,
-          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_start,
-          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_valid,
-          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_ready,
-          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_stop,
+          // "%4d", dut.pe[0].core.pixel[0],
+          // "%4d", dut.pe[0].core.pixel[1],
+          // "%4d", dut.pe[0].core.pixel[2],
+          // "; ",
+          // "%4d", dut.pe[0].core.pixel[3],
+          // "%4d", dut.pe[0].core.pixel[4],
+          // "%4d", dut.pe[0].core.pixel[5],
+          // "; ",
+          // "%4d", dut.pe[0].core.pixel[6],
+          // "%4d", dut.pe[0].core.pixel[7],
+          // "%4d", dut.pe[0].core.pixel[8],
           "| ",
-          "%4d", dut.pe[0].core.pixel[0],
-          "%4d", dut.pe[0].core.pixel[1],
-          "%4d", dut.pe[0].core.pixel[2],
-          "; ",
-          "%4d", dut.pe[0].core.pixel[3],
-          "%4d", dut.pe[0].core.pixel[4],
-          "%4d", dut.pe[0].core.pixel[5],
-          "; ",
-          "%4d", dut.pe[0].core.pixel[6],
-          "%4d", dut.pe[0].core.pixel[7],
-          "%4d", dut.pe[0].core.pixel[8],
-          "| ",
-          "%4d ", dut.pe[0].core.conv.wreg.weight[0],
-          "%4d ", dut.pe[0].core.conv.wreg.weight[8],
-          "| ",
-          "%5d ", dut.pe[0].core.conv.result,
+          // "%1d ", dut.ctrl.bus_core.delay,
+          // "%1d ", dut.ctrl.bus_conv.delay,
+          // "%1d ", dut.ctrl.bus_bias.delay,
+          // "%1d ", dut.ctrl.bus_relu.delay,
+          // "%1d ", dut.ctrl.bus_pool.delay,
+          // ": ",
           "%5d ", dut.pe[0].core.fmap,
-          // "%5d ", dut.pe[0].core.bmap,
-          // "%4d ", dut.pe[0].core.amap,
-          // "%4d ", dut.pe[0].core.pmap,
+          "%5d ", dut.pe[0].core.bmap,
+          "%4d ", dut.pe[0].core.amap,
+          "%4d ", dut.pe[0].core.pmap,
+          ": ",
+          "%4d ", dut.pe[0].core.pool.pixel_feat[0],
+          "%4d ", dut.pe[0].core.pool.pixel_feat[3],
+          // "%1d ", dut.pe[0].core.conv_oe,
+          // "%1d ", dut.pe[0].core.bias_oe,
+          // "%1d ", dut.pe[0].core.relu_oe,
+          // "%1d ", dut.pe[0].core.pool_oe,
           "|"
         );
       end

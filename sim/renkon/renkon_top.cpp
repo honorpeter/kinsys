@@ -4,11 +4,11 @@
 #include <limits>
 #include <lib.hpp>
 
-const int n_out = 32;
-const int n_in  = 16;
+// const int n_out = 32;
+// const int n_in  = 16;
 const int isize = 12;
-// const int n_out = 16;
-// const int n_in  = 1;
+const int n_out = 16;
+const int n_in  = 1;
 // const int isize = 28;
 const int fsize = 3;
 // const int pad   = 0;

@@ -3,7 +3,7 @@
 module renkon_ctrl_linebuf_pad
  #( parameter MAXFIL = 3
   , parameter MAXIMG = 32
-  , parameter DELAY  = 1
+  , parameter MAXDELAY  = 16
 
   , localparam MAXPAD = (MAXFIL-1)/2
   , localparam BUFSIZE = MAXIMG + 1
@@ -17,6 +17,7 @@ module renkon_ctrl_linebuf_pad
   , input  [LWIDTH-1:0]     fil_size
   , input  [LWIDTH-1:0]     pad_size
   , input                   buf_req
+  , input  integer          buf_delay
 
   , output                  buf_ack
   , output                  buf_start
@@ -35,13 +36,16 @@ module renkon_ctrl_linebuf_pad
   wire                      s_charge_end;
   wire                      s_active_end;
   wire [LWIDTH-1:0]         pad_both;
+  wire [LINEWIDTH:0]        mem_count;
+  wire [SIZEWIDTH-1:0]      col_count;
+  wire [SIZEWIDTH-1:0]      row_count;
 
   enum reg [2-1:0] {
     S_WAIT, S_CHARGE, S_ACTIVE
   } state$;
-  reg [LINEWIDTH:0]   mem_count$ [DELAY-1:0];
-  reg [SIZEWIDTH-1:0] col_count$ [DELAY-1:0];
-  reg [SIZEWIDTH-1:0] row_count$ [DELAY-1:0];
+  reg [LINEWIDTH:0]   mem_count$ [MAXDELAY-1:0];
+  reg [SIZEWIDTH-1:0] col_count$ [MAXDELAY-1:0];
+  reg [SIZEWIDTH-1:0] row_count$ [MAXDELAY-1:0];
   reg                 buf_ack$    [3-1:0];
   reg                 buf_start$  [3-1:0];
   reg                 buf_valid$  [3-1:0];
@@ -59,11 +63,11 @@ module renkon_ctrl_linebuf_pad
 
   assign buf_ack = state$ == S_WAIT && buf_ack$[2];
 
-  assign s_charge_end = mem_count$[DELAY-1] == fil_size - pad_size - 1
-                     && col_count$[DELAY-1] == img_size + pad_both - 1;
+  assign s_charge_end = mem_count == fil_size - pad_size - 1
+                     && col_count == img_size + pad_both - 1;
 
-  assign s_active_end = row_count$[DELAY-1] == img_size + pad_size
-                     && col_count$[DELAY-1] == img_size + pad_both - 1;
+  assign s_active_end = row_count == img_size + pad_size
+                     && col_count == img_size + pad_both - 1;
 
   // equals to 2 * pad_size
   assign pad_both = pad_size << 1;
@@ -105,7 +109,10 @@ module renkon_ctrl_linebuf_pad
 //==========================================================
 // address control
 //==========================================================
-  // need delayed
+
+  assign col_count = col_count$[buf_delay-1];
+  assign mem_count = mem_count$[buf_delay-1];
+  assign row_count = row_count$[buf_delay-1];
 
   always @(posedge clk)
     if (!xrst)
@@ -140,7 +147,7 @@ module renkon_ctrl_linebuf_pad
       else
         row_count$[0] <= row_count$[0] + 1;
 
-  for (genvar i = 1; i < DELAY; i++)
+  for (genvar i = 1; i < MAXDELAY; i++)
     always @(posedge clk)
       if (!xrst) begin
         col_count$[i] <= 0;
@@ -169,10 +176,10 @@ module renkon_ctrl_linebuf_pad
     else if (state$ == S_WAIT)
       buf_wcol$ <= 0;
     else
-      buf_wcol$ <= 0 <= row_count$[DELAY-1]
-                && row_count$[DELAY-1] < img_size
-                && pad_size <= col_count$[DELAY-1]
-                && col_count$[DELAY-1] < img_size + pad_size;
+      buf_wcol$ <= 0 <= row_count
+                && row_count < img_size
+                && pad_size <= col_count
+                && col_count < img_size + pad_size;
 
   for (genvar i = 0; i < 2; i++)
     for (genvar j = 0; j < MAXFIL; j++)
@@ -181,8 +188,8 @@ module renkon_ctrl_linebuf_pad
           if (!xrst)
             buf_rrow$[0][j] <= 0;
           else
-            buf_rrow$[0][j] <= fil_size <= row_count$[DELAY-1] + j
-                            && row_count$[DELAY-1] + j < img_size + fil_size;
+            buf_rrow$[0][j] <= fil_size <= row_count + j
+                            && row_count + j < img_size + fil_size;
         end
       else begin
         always @(posedge clk)
@@ -198,7 +205,7 @@ module renkon_ctrl_linebuf_pad
     else if (state$ == S_WAIT)
       buf_wsel$ <= 0;
     else
-      buf_wsel$ <= mem_count$[DELAY-1] + 1;
+      buf_wsel$ <= mem_count + 1;
 
   for (genvar i = 0; i < 2; i++)
     if (i == 0) begin
@@ -208,7 +215,7 @@ module renkon_ctrl_linebuf_pad
           buf_rsel$[0] <= 0;
         else if (state$ == S_WAIT)
           buf_rsel$[0] <= 0;
-        else if (state$ == S_ACTIVE && col_count$[DELAY-1] == 0)
+        else if (state$ == S_ACTIVE && col_count == 0)
           if (buf_rsel$[0] == 0)
             buf_rsel$[0] <= pad_size == 0
                           ? 1
@@ -247,7 +254,7 @@ module renkon_ctrl_linebuf_pad
     else if (state$ == S_WAIT)
       buf_we$ <= 0;
     else
-      buf_we$ <= row_count$[DELAY-1] < img_size + pad_size;
+      buf_we$ <= row_count < img_size + pad_size;
 
   always @(posedge clk)
     if (!xrst)
@@ -255,7 +262,7 @@ module renkon_ctrl_linebuf_pad
     else if (state$ == S_WAIT)
       buf_addr$ <= 0;
     else
-      buf_addr$ <= col_count$[DELAY-1];
+      buf_addr$ <= col_count;
 
   for (genvar i = 0; i < 3; i++)
     if (i == 0) begin
@@ -267,16 +274,16 @@ module renkon_ctrl_linebuf_pad
         end
         else begin
           buf_start$[0] <= state$ == S_ACTIVE
-                        && row_count$[DELAY-1] == fil_size - pad_size
-                        && col_count$[DELAY-1] == fil_size - 2;
+                        && row_count == fil_size - pad_size
+                        && col_count == fil_size - 2;
 
           buf_valid$[0] <= state$ == S_ACTIVE
-                        && fil_size - 1 <= col_count$[DELAY-1]
-                        && col_count$[DELAY-1] < img_size + pad_both;
+                        && fil_size - 1 <= col_count
+                        && col_count < img_size + pad_both;
 
           buf_stop$[0]  <= state$ == S_ACTIVE
-                        && row_count$[DELAY-1] == img_size + pad_size
-                        && col_count$[DELAY-1] == img_size + pad_both - 1;
+                        && row_count == img_size + pad_size
+                        && col_count == img_size + pad_both - 1;
         end
     end
     else begin

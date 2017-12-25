@@ -8,7 +8,6 @@ module renkon_ctrl_conv
   , input  [LWIDTH-1:0] _fea_size
   , input               first_input
   , input               last_input
-  , input               buf_feat_ready
   , ctrl_bus.master     out_ctrl
   , output              mem_feat_we
   , output              mem_feat_rst
@@ -100,7 +99,8 @@ module renkon_ctrl_conv
                 else
                   conv_y$ <= conv_y$ + 1;
               end
-              else
+              // else
+              else if (out_ctrl.ready)
                 conv_x$ <= conv_x$ + 1;
             end
             default: begin
@@ -165,9 +165,9 @@ module renkon_ctrl_conv
         else if (in_ctrl.stop || wait_back$)
           feat_addr$[0] <= 0;
         else if (
-          in_ctrl.valid
-          || (core_state$ == S_CORE_OUTPUT
-              && conv_x$ <= fea_size$ - 1 && conv_y$ <= fea_size$ - 1)
+          (core_state$ == S_CORE_INPUT  && in_ctrl.valid)
+       || (core_state$ == S_CORE_OUTPUT && out_ctrl.ready)
+              // && conv_x$ <= fea_size$ - 1 && conv_y$ <= fea_size$ - 1)
         )
           feat_addr$[0] <= feat_addr$[0] + 1;
     end
@@ -184,7 +184,17 @@ module renkon_ctrl_conv
 //==========================================================
 
   assign in_ctrl.ready  = 1'b1;
-  assign out_ctrl.delay = in_ctrl.delay + D_CONV + D_ACCUM;
+  assign out_ctrl.delay = D_CONV + D_ACCUM;
+
+  reg tmp0, tmp1, tmp2;
+  always @(posedge clk) begin
+    tmp0 <= out_ctrl.ready;
+    tmp1 <= tmp0;
+    tmp2 <= state$ == S_ACTIVE
+         && core_state$ == S_CORE_OUTPUT
+                        && conv_x$ == fea_size$ - 1
+                        && conv_y$ == fea_size$ - 1;
+  end
 
   assign out_ctrl.start = out_ctrl$[D_CONV+D_ACCUM-1].start;
   assign out_ctrl.valid = out_ctrl$[D_CONV+D_ACCUM-1].valid;
@@ -206,11 +216,12 @@ module renkon_ctrl_conv
                              && conv_y$ == fea_size$ - 1
                              && last_input$;
 
-          out_ctrl$[0].valid <= state$ == S_ACTIVE
-                             && core_state$ == S_CORE_OUTPUT
-                             && conv_x$ <= fea_size$ - 1
-                             && conv_y$ <= fea_size$ - 1
-                             && !wait_back$;
+          out_ctrl$[0].valid <= out_ctrl.ready;
+          // out_ctrl$[0].valid <= state$ == S_ACTIVE
+          //                    && core_state$ == S_CORE_OUTPUT
+          //                    && conv_x$ <= fea_size$ - 1
+          //                    && conv_y$ <= fea_size$ - 1
+          //                    && !wait_back$;
 
           out_ctrl$[0].stop  <= state$ == S_ACTIVE
                              && core_state$ == S_CORE_OUTPUT

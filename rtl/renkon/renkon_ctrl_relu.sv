@@ -12,7 +12,7 @@ module renkon_ctrl_relu
   ctrl_reg out_ctrl$ [D_RELU-1:0];
 
   assign in_ctrl.ready  = out_ctrl.ready;
-  assign out_ctrl.delay = in_ctrl.delay + D_RELU;
+  assign out_ctrl.delay = in_ctrl.delay + (_relu_en ? D_RELU : 1);
 
   assign out_ctrl.start = _relu_en
                         ? out_ctrl$[D_RELU-1].start

@@ -186,11 +186,13 @@ module renkon_ctrl_core
       first_input$ <= 0;
       last_input$  <= 0;
     end
+    else if (state$ != S_INPUT) begin
+      first_input$ <= 0;
+      last_input$  <= 0;
+    end
     else begin
-      first_input$ <= state$ == S_INPUT
-                   && count_in$ == 0;
-      last_input$  <= state$ == S_INPUT
-                   && count_in$ == total_in$ - 1;
+      first_input$ <= count_in$ == 0;
+      last_input$  <= count_in$ == total_in$ - 1;
     end
 
 //==========================================================
@@ -544,8 +546,9 @@ module renkon_ctrl_core
     .img_size   (img_size$),
     .fil_size   (conv_size$),
     .pad_size   (conv_pad$),
-
     .buf_req    (buf_pix_req),
+    .buf_delay  (out_ctrl.delay),
+
     .buf_ack    (buf_pix_ack),
     .buf_start  (buf_pix_start),
     .buf_valid  (buf_pix_valid),

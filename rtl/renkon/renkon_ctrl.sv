@@ -65,7 +65,6 @@ module renkon_ctrl
   wire [1:0]  core_state;
   wire        first_input;
   wire        last_input;
-  wire        buf_feat_ready;
 
   ctrl_bus bus_core();
   ctrl_bus bus_conv();

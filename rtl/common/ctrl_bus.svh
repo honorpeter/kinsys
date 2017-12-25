@@ -2,7 +2,7 @@
 `define _CTRL_BUS_SVH_
 
 interface ctrl_bus;
-  int delay;
+  integer delay;
   wire start;
   wire valid;
   wire ready;

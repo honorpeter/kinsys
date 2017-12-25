@@ -10,7 +10,6 @@ module renkon_ctrl_pool
   , input  [LWIDTH-1:0]               _pool_pad
   , ctrl_bus.master                   out_ctrl
   , output                            pool_oe
-  , output                            buf_feat_ready
   , output                            buf_feat_wcol
   , output                            buf_feat_rrow [PSIZE-1:0]
   , output [$clog2(PSIZE+1):0]        buf_feat_wsel
@@ -23,6 +22,7 @@ module renkon_ctrl_pool
   wire buf_feat_ack;
   wire buf_feat_start;
   wire buf_feat_valid;
+  wire buf_feat_ready;
   wire buf_feat_stop;
 
   enum reg {
@@ -116,7 +116,7 @@ module renkon_ctrl_pool
     else
       buf_feat_req$ <= in_ctrl.start;
 
-if (1)
+if (0)
   renkon_ctrl_linebuf #(PSIZE, D_POOLBUF) ctrl_buf_feat(
     .img_size   (fea_size$),
     .fil_size   (pool_size$),
@@ -134,12 +134,14 @@ if (1)
     .*
   );
 else
-  renkon_ctrl_linebuf_pad #(PSIZE, D_POOLBUF, in_ctrl.delay) ctrl_buf_feat(
+  renkon_ctrl_linebuf_pad #(PSIZE, D_POOLBUF) ctrl_buf_feat(
     .img_size   (fea_size$),
     .fil_size   (pool_size$),
     .pad_size   (pool_pad$),
-
     .buf_req    (buf_feat_req),
+    .buf_delay  (in_ctrl.delay),
+    // .buf_delay  (1),
+
     .buf_ack    (buf_feat_ack),
     .buf_start  (buf_feat_start),
     .buf_valid  (buf_feat_valid),
@@ -159,6 +161,7 @@ else
 // output control
 //==========================================================
 
+  assign in_ctrl.ready  = buf_feat_ready;
   assign out_ctrl.delay = in_ctrl.delay + D_POOL;
 
   assign out_ctrl.start = _pool_en

@@ -12,7 +12,7 @@ module renkon_ctrl_bias
   ctrl_reg out_ctrl$ [D_BIAS-1:0];
 
   assign in_ctrl.ready  = out_ctrl.ready;
-  assign out_ctrl.delay = in_ctrl.delay + D_BIAS;
+  assign out_ctrl.delay = in_ctrl.delay + (_bias_en ? D_BIAS : 1);
 
   assign out_ctrl.start = _bias_en
                         ? out_ctrl$[D_BIAS-1].start
