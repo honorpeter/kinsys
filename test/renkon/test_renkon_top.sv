@@ -5,11 +5,11 @@
 // `define NINJIN
 `define DIRECT
 
-// int N_OUT = 32;
-// int N_IN  = 16;
+int N_OUT = 32;
+int N_IN  = 16;
 int ISIZE = 12;
-int N_OUT = 16;
-int N_IN  = 1;
+// int N_OUT = 16;
+// int N_IN  = 1;
 // int ISIZE = 28;
 int FEAT  = ISIZE + 2*PAD - FSIZE + 1;
 int OSIZE = FEAT / PSIZE;
