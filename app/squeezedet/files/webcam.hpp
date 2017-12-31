@@ -33,7 +33,7 @@ public:
   const int sub_gop_size = 12;
 
 private:
-  void preprocess(cv::Mat img);
+  void preprocess(cv::Mat& img);
 
   std::shared_ptr<std::deque<Image>> fifo;
 

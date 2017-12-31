@@ -16,10 +16,11 @@ void Display::post_frame()
   Track objs;
   std::tie(frame, objs) = eat_front(fifo);
 
-  cv::Mat img(frame.height, frame.width, CV_8UC3, frame.data);
+  cv::Mat img(frame.height, frame.width, CV_8UC3, frame.body.data());
 
   // TODO: overlay bounding-boxes, object-class and tracked-ids
   for (auto& obj : objs) {
+    std::make_pair(obj.first, obj.second);
     break;
   }
 

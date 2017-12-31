@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <memory>
+#include <unordered_map>
 
 #include <opencv2/opencv.hpp>
 

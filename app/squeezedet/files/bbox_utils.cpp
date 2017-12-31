@@ -1,14 +1,15 @@
+#include <algorithm>
 #include <numeric>
 
 #include "bbox_utils.hpp"
 #include "arithmetic.hpp"
 
-std::array<float, 2> calc_center(BBox& box)
+std::vector<float> calc_center(BBox& box)
 {
   float center_y = static_cast<float>(box.bot + box.top) / 2.0;
   float center_x = static_cast<float>(box.right + box.left) / 2.0;
 
-  return std::array<float, 2>{{center_x, center_y}};
+  return std::vector<float>{{center_x, center_y}};
 }
 
 float iou_cost(BBox& next_box, BBox& prev_box)

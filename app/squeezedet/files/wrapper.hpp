@@ -2,6 +2,7 @@
 #define _WRAPPER_HPP_
 
 #include <deque>
+#include <memory>
 #include <vector>
 
 #include "types.h"

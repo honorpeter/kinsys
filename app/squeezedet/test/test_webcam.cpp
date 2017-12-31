@@ -7,8 +7,9 @@ bool test_webcam()
   auto fifo = std::make_shared<std::deque<Image>>();
   Webcam cam(fifo);
 
+  cam.get_i_frame();
   for (int i = 0; i < 3; ++i)
-    cam.get_i_frame();
+    cam.get_sub_gop();
 
   // int idx = 0;
   // for (auto x : fifo->front()) {
@@ -16,7 +17,7 @@ bool test_webcam()
   //   ++idx;
   // }
 
-  if (fifo->size() == 3)
+  if (fifo->size() == 37)
     return true;
   else
     return false;

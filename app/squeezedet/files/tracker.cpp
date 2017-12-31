@@ -1,3 +1,5 @@
+#include <unordered_map>
+
 #include "tracker.hpp"
 #include "wrapper.hpp"
 #include "arithmetic.hpp"

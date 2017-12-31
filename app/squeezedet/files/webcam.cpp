@@ -10,7 +10,7 @@ Webcam::Webcam(std::shared_ptr<std::deque<Image>> fifo)
   av_register_all();
   avdevice_register_all();
 
-  const char *filename = "/dev/video0";
+  const char *name = "/dev/video0";
   AVInputFormat *in_format = av_find_input_format("v4l2");
   AVDictionary *format_opts = nullptr;
   av_dict_set(&format_opts, "framerate", "30", 0);
@@ -18,14 +18,14 @@ Webcam::Webcam(std::shared_ptr<std::deque<Image>> fifo)
   av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
   av_dict_set(&format_opts, "input_format", "h264", 0);
 
-  if (avformat_open_input(&format_ctx, filename, in_format, &format_opts) != 0)
+  if (avformat_open_input(&format_ctx, name, in_format, &format_opts) != 0)
     throw "input failed";
 
   if (avformat_find_stream_info(format_ctx, NULL) < 0)
     throw "stream info not found";
 
   video_stream = -1;
-  for (int i = 0; i < format_ctx->nb_streams; ++i) {
+  for (int i = 0; i < (int)format_ctx->nb_streams; ++i) {
     if (format_ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
       video_stream = i;
       break;
@@ -73,7 +73,7 @@ Webcam::~Webcam()
 
 }
 
-void Webcam::preprocess(cv::Mat img)
+void Webcam::preprocess(cv::Mat& img)
 {
   const int in_c = img.channels();
   const int n_row = img.rows;
@@ -83,18 +83,20 @@ void Webcam::preprocess(cv::Mat img)
   Image target;
   target.height = n_row;
   target.width  = n_col;
+  target.body.resize(in_c * n_row * n_col);
 
   cv::Mat frame_f;
   img.convertTo(frame_f, CV_32FC3);
 
+  int idx = 0;
   const float BGR_MEANS[3] = {103.939, 116.779, 123.68};
-  for (int i = 0; i < n_row; ++i) {
-    for (int j = 0; j < n_col; ++j) {
-      for (int k = 0; k < in_c; ++k) {
+  for (int k = 0; k < in_c; ++k) {
+    for (int i = 0; i < n_row; ++i) {
+      for (int j = 0; j < n_col; ++j) {
         float acc = frame_f.at<cv::Vec3f>(i, j)[k] - BGR_MEANS[k];
         acc /= 255.0;
-        target.data[n_row * n_col * k + n_col * i + j] =
-          static_cast<s16>(acc*256.);
+        target.body[idx] = static_cast<s16>(acc*256.);
+        ++idx;
       }
     }
   }
@@ -102,12 +104,14 @@ void Webcam::preprocess(cv::Mat img)
   fifo->push_back(target);
 }
 
+#include <iostream>
 void Webcam::get_i_frame()
 {
   char pict_type;
   do {
     if (av_read_frame(format_ctx, &packet) < 0)
-      throw "read failed";
+      // throw "read failed";
+      continue;
 
     if (packet.stream_index != video_stream)
       continue;
@@ -115,7 +119,8 @@ void Webcam::get_i_frame()
     int got_frame;
     avcodec_decode_video2(codec_ctx, frame, &got_frame, &packet);
     if (!got_frame)
-      throw "frame was not obtained";
+      // throw "frame was not obtained";
+      continue;
 
     pict_type = av_get_picture_type_char(frame->pict_type);
   } while (pict_type != 'I');

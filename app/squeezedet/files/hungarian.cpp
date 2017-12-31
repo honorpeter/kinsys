@@ -1,6 +1,8 @@
 // Reference:
 //  http://csclab.murraystate.edu/~bob.pilgrim/445/munkres.html
 
+#include <limits>
+
 #include "hungarian.hpp"
 
 namespace _internal {

@@ -12,7 +12,7 @@ struct Image {
   Mat3D<int> mvs;
   int height;
   int width;
-  s16 *data;
+  std::vector<s16> body;
 };
 
 struct BBox {
@@ -27,7 +27,7 @@ struct BBox {
 using Mask = std::vector<BBox>;
 using Track = std::vector<std::pair<int, BBox>>;
 
-std::array<float, 2> calc_center(BBox& box);
+std::vector<float> calc_center(BBox& box);
 float iou_cost(BBox& box);
 Mat2D<float> calc_cost(Mask& src_boxes, Mask& dst_boxes);
 
