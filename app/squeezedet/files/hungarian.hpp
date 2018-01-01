@@ -7,7 +7,7 @@ namespace _internal {
 
 class Hungarian {
 public:
-  Hungarian();
+  Hungarian(std::vector<std::vector<float>> cost);
   ~Hungarian();
 
   void step_one();
@@ -17,19 +17,19 @@ public:
   void step_five();
   void step_six();
 
-  void solve(std::vector<std::vector<float>> cost);
+  void solve();
   std::pair<std::vector<int>, std::vector<int>> dump();
 
 private:
-  void find_a_zero(int row, int col);
+  void find_a_zero(int& row, int& col);
   bool star_in_row(int row);
-  void find_star_in_row(int row, int col);
-  void find_star_in_col(int c, int r);
-  void find_prime_in_row(int r, int c);
+  void find_star_in_row(int row, int& col);
+  void find_star_in_col(int c, int& r);
+  void find_prime_in_row(int r, int& c);
   void augment_path();
   void clear_covers();
   void erase_primes();
-  void find_smallest(int minval);
+  void find_smallest(float& minval);
 
   int rows;
   int cols;
@@ -40,7 +40,7 @@ private:
 
   std::vector<int> row_cover;
   std::vector<int> col_cover;
-  std::vector<std::vector<int>> cost;
+  std::vector<std::vector<float>> cost;
   std::vector<std::vector<int>> mask;
   std::vector<std::vector<int>> path;
 };

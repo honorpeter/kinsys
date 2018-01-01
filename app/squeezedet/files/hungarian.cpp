@@ -2,21 +2,36 @@
 //  http://csclab.murraystate.edu/~bob.pilgrim/445/munkres.html
 
 #include <limits>
+#include <iostream>
+#include <iomanip>
 
 #include "hungarian.hpp"
 
 namespace _internal {
 
-Hungarian::Hungarian()
+Hungarian::Hungarian(std::vector<std::vector<float>> cost)
+  : cost(cost)
 {
-  for (int r = 0; r < rows; ++r)
-    row_cover[r] = 0;
-  for (int c = 0; c < cols; ++c)
-    col_cover[c] = 0;
+  rows = cost.size();
+  cols = cost[0].size();
 
-  for (int r = 0; r < rows; ++r)
-    for (int c = 0; c < cols; ++c)
-      mask[r][c] = 0;
+  // for (int r = 0; r < rows; ++r)
+  //   row_cover[r] = 0;
+  // for (int c = 0; c < cols; ++c)
+  //   col_cover[c] = 0;
+  row_cover.resize(rows, 0);
+  col_cover.resize(cols, 0);
+
+  // for (int r = 0; r < rows; ++r)
+  //   for (int c = 0; c < cols; ++c)
+  //     mask[r][c] = 0;
+  mask.resize(rows);
+  for (auto& mask_line : mask)
+    mask_line.resize(cols, 0);
+
+  path.resize(rows+cols+1);
+  for (auto& path_line : path)
+    path_line.resize(2, 0);
 }
 
 Hungarian::~Hungarian()
@@ -28,7 +43,7 @@ Hungarian::~Hungarian()
 void Hungarian::step_one()
 {
   for (int r = 0; r < rows; ++r) {
-    int min_in_row = cost[r][0];
+    float min_in_row = cost[r][0];
     for (int c = 0; c < cols; ++c)
       if (cost[r][c] < min_in_row)
         min_in_row = cost[r][c];
@@ -85,7 +100,7 @@ void Hungarian::step_three()
 }
 
 // methods to support step 4
-void Hungarian::find_a_zero(int row, int col)
+void Hungarian::find_a_zero(int& row, int& col)
 {
   int r = 0;
   int c;
@@ -121,7 +136,7 @@ bool Hungarian::star_in_row(int row)
   return tmp;
 }
 
-void Hungarian::find_star_in_row(int row, int col)
+void Hungarian::find_star_in_row(int row, int& col)
 {
   col = -1;
   for (int c = 0; c < cols; ++c)
@@ -165,7 +180,7 @@ void Hungarian::step_four()
 }
 
 // methods to support step 5
-void Hungarian::find_star_in_col(int c, int r)
+void Hungarian::find_star_in_col(int c, int& r)
 {
   r = -1;
   for (int i = 0; i < rows; ++i)
@@ -173,7 +188,7 @@ void Hungarian::find_star_in_col(int c, int r)
       r = i;
 }
 
-void Hungarian::find_prime_in_row(int r, int c)
+void Hungarian::find_prime_in_row(int r, int& c)
 {
   for (int j = 0; j < cols; ++j)
     if (mask[r][j] == 2)
@@ -245,7 +260,7 @@ void Hungarian::step_five()
 }
 
 // methods to support step 6
-void Hungarian::find_smallest(int minval)
+void Hungarian::find_smallest(float& minval)
 {
   for (int r = 0; r < rows; ++r)
     for (int c = 0; c < cols; ++c)
@@ -259,7 +274,7 @@ void Hungarian::find_smallest(int minval)
 // altering any stars, primes, or covered lines.
 void Hungarian::step_six()
 {
-  int minval = std::numeric_limits<int>::max();
+  float minval = std::numeric_limits<float>::max();
   find_smallest(minval);
   for (int r = 0; r < rows; ++r) {
     for (int c = 0; c < cols; ++c) {
@@ -272,7 +287,7 @@ void Hungarian::step_six()
   step = 4;
 }
 
-void Hungarian::solve(std::vector<std::vector<float>> cost)
+void Hungarian::solve()
 {
   step = 1;
 
@@ -326,7 +341,7 @@ Hungarian::dump()
 std::pair<std::vector<int>, std::vector<int>>
 linear_sum_assignment(std::vector<std::vector<float>> cost)
 {
-  _internal::Hungarian solver;
-  solver.solve(cost);
+  _internal::Hungarian solver(cost);
+  solver.solve();
   return solver.dump();
 }
