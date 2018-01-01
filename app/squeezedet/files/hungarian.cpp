@@ -15,16 +15,9 @@ Hungarian::Hungarian(std::vector<std::vector<float>> cost)
   rows = cost.size();
   cols = cost[0].size();
 
-  // for (int r = 0; r < rows; ++r)
-  //   row_cover[r] = 0;
-  // for (int c = 0; c < cols; ++c)
-  //   col_cover[c] = 0;
   row_cover.resize(rows, 0);
   col_cover.resize(cols, 0);
 
-  // for (int r = 0; r < rows; ++r)
-  //   for (int c = 0; c < cols; ++c)
-  //     mask[r][c] = 0;
   mask.resize(rows);
   for (auto& mask_line : mask)
     mask_line.resize(cols, 0);
