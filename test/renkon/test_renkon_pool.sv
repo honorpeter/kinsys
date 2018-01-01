@@ -10,7 +10,7 @@ module test_renkon_pool;
   reg                     out_en;
   reg                     buf_feat_en;
   reg        [LWIDTH-1:0] w_fea_size;
-  reg        [LWIDTH-1:0] w_pool_size;
+  reg        [LWIDTH-1:0] w_pool_kern;
   reg signed [DWIDTH-1:0] pixel_in;
   reg signed [DWIDTH-1:0] pixel_out;
 
@@ -35,7 +35,7 @@ module test_renkon_pool;
     out_en = 0;
     buf_feat_en = 1;
     w_fea_size = IMAGE;
-    w_pool_size = FILTER;
+    w_pool_kern = FILTER;
     pixel_in = 0;
     #(STEP);
 
@@ -66,7 +66,7 @@ module test_renkon_pool;
         "%d ", out_en,
         "%d ", buf_feat_en,
         "%d ", w_fea_size,
-        "%d ", w_pool_size,
+        "%d ", w_pool_kern,
         "%d ", pixel_in,
         "|o: ",
         "%d ", pixel_out,

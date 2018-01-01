@@ -13,7 +13,8 @@ RAND     = python3 ../../utils/rand.py
 
 .PHONY: data all clean hoge
 
-%.dat: %.out data
+# %.dat: %.out data
+%.dat: %.out
 	./$< > $(DATADIR)/true_$@
 
 %.out: %.o $(LIBS)

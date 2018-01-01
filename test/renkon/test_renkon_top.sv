@@ -5,11 +5,11 @@
 // `define NINJIN
 `define DIRECT
 
-int N_OUT = 32;
-int N_IN  = 16;
+// int N_OUT = 32;
+// int N_IN  = 16;
 int ISIZE = 12;
-// int N_OUT = 16;
-// int N_IN  = 1;
+int N_OUT = 16;
+int N_IN  = 1;
 // int ISIZE = 28;
 int FEAT  = ISIZE + 2*PAD - FSIZE + 1;
 int OSIZE = FEAT / PSIZE;
@@ -43,12 +43,12 @@ module test_renkon_top;
   reg [LWIDTH-1:0]          total_out;
   reg [LWIDTH-1:0]          total_in;
   reg [LWIDTH-1:0]          img_size;
-  reg [LWIDTH-1:0]          conv_size;
+  reg [LWIDTH-1:0]          conv_kern;
   reg [LWIDTH-1:0]          conv_pad;
   reg                       bias_en;
   reg                       relu_en;
   reg                       pool_en;
-  reg [LWIDTH-1:0]          pool_size;
+  reg [LWIDTH-1:0]          pool_kern;
   reg [LWIDTH-1:0]          pool_pad;
 
   wire                      ack;
@@ -210,12 +210,12 @@ module test_renkon_top;
     total_out   = N_OUT;
     total_in    = N_IN;
     img_size    = ISIZE;
-    conv_size   = FSIZE;
+    conv_kern   = FSIZE;
     conv_pad    = PAD;
     bias_en     = DO_BIAS;
     relu_en     = DO_RELU;
     pool_en     = DO_POOL;
-    pool_size   = PSIZE;
+    pool_kern   = PSIZE;
     pool_pad    = 0;
 
     img_we    = 0;
@@ -669,6 +669,9 @@ module test_renkon_top;
           ": ",
           "%2d ", dut.ctrl.ctrl_conv.conv_x$,
           "%2d ", dut.ctrl.ctrl_conv.conv_y$,
+          ": ",
+          "%2d ", dut.ctrl.ctrl_pool.pool_x$,
+          "%2d ", dut.ctrl.ctrl_pool.pool_y$,
           "| ",
           "%1d ", mem_img_we,
           "%4d ", mem_img_addr,
@@ -723,9 +726,9 @@ module test_renkon_top;
           "%5d ", dut.pe[0].core.bmap,
           "%4d ", dut.pe[0].core.amap,
           "%4d ", dut.pe[0].core.pmap,
-          ": ",
-          "%4d ", dut.pe[0].core.pool.pixel_feat[0],
-          "%4d ", dut.pe[0].core.pool.pixel_feat[3],
+          // ": ",
+          // "%4d ", dut.pe[0].core.pool.pixel_feat[0],
+          // "%4d ", dut.pe[0].core.pool.pixel_feat[3],
           // "%1d ", dut.pe[0].core.conv_oe,
           // "%1d ", dut.pe[0].core.bias_oe,
           // "%1d ", dut.pe[0].core.relu_oe,

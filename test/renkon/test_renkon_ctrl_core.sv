@@ -17,7 +17,7 @@ module test_renkon_ctrl_core;
   reg [LWIDTH-1:0]         total_out;
   reg [LWIDTH-1:0]         total_in;
   reg [LWIDTH-1:0]         img_size;
-  reg [LWIDTH-1:0]         conv_size;
+  reg [LWIDTH-1:0]         conv_kern;
 
   ctrl_bus                 out_ctrl();
   ctrl_reg                 out_ctrl$;
@@ -37,7 +37,7 @@ module test_renkon_ctrl_core;
   wire [RENKON_CORELOG:0]   serial_re;
   wire [OUTSIZE-1:0]        serial_addr;
   wire [LWIDTH-1:0]         w_img_size;
-  wire [LWIDTH-1:0]         w_conv_size;
+  wire [LWIDTH-1:0]         w_conv_kern;
 
   assign in_ctrl.start = in_ctrl$.start;
   assign in_ctrl.valid = in_ctrl$.valid;
@@ -79,14 +79,14 @@ module test_renkon_ctrl_core;
     total_out = 0;
     total_in = 0;
     img_size = 0;
-    conv_size = 0;
+    conv_kern = 0;
     #(STEP);
 
     req = 1;
     total_out = 50;
     total_in = 20;
     img_size = 12;
-    conv_size = 5;
+    conv_kern = 5;
     in_offset = 0;
     out_offset = 3000;
     net_offset = 0;
@@ -140,7 +140,7 @@ module test_renkon_ctrl_core;
         "%2d ", total_out,
         "%2d ", total_in,
         "%2d ", img_size,
-        "%2d ", conv_size,
+        "%2d ", conv_kern,
         "|o: ",
         "%d",  out_ctrl$.start,
         "%d",  out_ctrl$.valid,
@@ -161,7 +161,7 @@ module test_renkon_ctrl_core;
         "%d ", serial_re,
         "%d ", serial_addr,
         "%2d ", w_img_size,
-        "%2d ", w_conv_size,
+        "%2d ", w_conv_kern,
         "|r: ",
         "|"
       );

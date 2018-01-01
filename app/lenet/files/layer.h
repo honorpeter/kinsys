@@ -39,11 +39,11 @@ layer *vec_layer(
   u32 *full_param, u32 *norm_param, u32 *actv_param
 );
 
-u32 *convolution_2d(int conv_size, enum conv_mode mode);
+u32 *convolution_2d(int conv_kern, enum conv_mode mode);
 u32 *fully_connected(enum full_mode mode);
 u32 *normalization(enum norm_mode mode);
 u32 *activation(enum actv_mode mode);
-u32 *pooling_2d(int pool_size, enum pool_mode mode);
+u32 *pooling_2d(int pool_kern, enum pool_mode mode);
 
 void set_input(s16 **in, map *out);
 void map2vec(map *in, vec *out);

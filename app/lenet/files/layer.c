@@ -103,21 +103,21 @@ layer *vec_layer(
 
 
 
-u32 *convolution_2d(int conv_size, enum conv_mode mode)
+u32 *convolution_2d(int conv_kern, enum conv_mode mode)
 {
   u32 *param = calloc(2, sizeof(u32));
 
-  param[0] |= conv_size << LWIDTH;
+  param[0] |= conv_kern << LWIDTH;
 
   if (mode & CONV_VALID)
     param[0] |= 0;
   else if (mode & CONV_SAME)
-    param[0] |= (conv_size-1)/2;
+    param[0] |= (conv_kern-1)/2;
 
   if (mode & CONV_BIAS)
     param[1] |= 1U << (BWIDTH-1);
 
-  filter = conv_size;
+  filter = conv_kern;
   bias   = (mode & CONV_BIAS) ? 1 : 0;
 
   return param;
@@ -229,11 +229,11 @@ static void define_actv(layer *l, u32 *param)
 
 
 
-u32 *pooling_2d(int pool_size, enum pool_mode mode)
+u32 *pooling_2d(int pool_kern, enum pool_mode mode)
 {
   u32 *param = calloc(1, sizeof(u32));
 
-  param[0] |= pool_size;
+  param[0] |= pool_kern;
 
   if (mode & POOL_MAX) {
     param[0] |= 1U << (BWIDTH-1);

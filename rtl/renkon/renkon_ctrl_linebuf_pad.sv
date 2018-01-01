@@ -1,9 +1,11 @@
 `include "renkon.svh"
 
 module renkon_ctrl_linebuf_pad
- #( parameter MAXFIL = 3
-  , parameter MAXIMG = 32
-  , parameter MAXDELAY  = 16
+ #( parameter MAXFIL    = 3
+  , parameter MAXIMG    = 32
+  , parameter COVER_ALL = 1'b1
+  // , parameter COVER_ALL = 1'b0
+  , parameter MAXDELAY  = 8
 
   , localparam MAXPAD = (MAXFIL-1)/2
   , localparam BUFSIZE = MAXIMG + 1
@@ -13,9 +15,10 @@ module renkon_ctrl_linebuf_pad
   )
   ( input                   clk
   , input                   xrst
-  , input  [LWIDTH-1:0]     img_size
-  , input  [LWIDTH-1:0]     fil_size
-  , input  [LWIDTH-1:0]     pad_size
+  , input  [LWIDTH-1:0]     size
+  , input  [LWIDTH-1:0]     kern
+  , input  [LWIDTH-1:0]     stride
+  , input  [LWIDTH-1:0]     pad
   , input                   buf_req
   , input  integer          buf_delay
 
@@ -35,10 +38,11 @@ module renkon_ctrl_linebuf_pad
 
   wire                      s_charge_end;
   wire                      s_active_end;
-  wire [LWIDTH-1:0]         pad_both;
   wire [LINEWIDTH:0]        mem_count;
   wire [SIZEWIDTH-1:0]      col_count;
   wire [SIZEWIDTH-1:0]      row_count;
+  wire [SIZEWIDTH-1:0]      str_x_count;
+  wire [SIZEWIDTH-1:0]      str_y_count;
 
   enum reg [2-1:0] {
     S_WAIT, S_CHARGE, S_ACTIVE
@@ -46,6 +50,8 @@ module renkon_ctrl_linebuf_pad
   reg [LINEWIDTH:0]   mem_count$ [MAXDELAY-1:0];
   reg [SIZEWIDTH-1:0] col_count$ [MAXDELAY-1:0];
   reg [SIZEWIDTH-1:0] row_count$ [MAXDELAY-1:0];
+  reg [SIZEWIDTH-1:0] str_x_count$ [MAXDELAY-1:0];
+  reg [SIZEWIDTH-1:0] str_y_count$ [MAXDELAY-1:0];
   reg                 buf_ack$    [3-1:0];
   reg                 buf_start$  [3-1:0];
   reg                 buf_valid$  [3-1:0];
@@ -63,14 +69,12 @@ module renkon_ctrl_linebuf_pad
 
   assign buf_ack = state$ == S_WAIT && buf_ack$[2];
 
-  assign s_charge_end = mem_count == fil_size - pad_size - 1
-                     && col_count == img_size + pad_both - 1;
+  assign s_charge_end = mem_count == kern - pad - 1
+                     && col_count == make_size(size, kern, stride, pad) - 1;
 
-  assign s_active_end = row_count == img_size + pad_size
-                     && col_count == img_size + pad_both - 1;
+  assign s_active_end = row_count == make_size(size, kern, stride, pad) - pad
+                     && col_count == make_size(size, kern, stride, pad) - 1;
 
-  // equals to 2 * pad_size
-  assign pad_both = pad_size << 1;
 
   always @(posedge clk)
     if (!xrst)
@@ -113,6 +117,8 @@ module renkon_ctrl_linebuf_pad
   assign col_count = col_count$[buf_delay-1];
   assign mem_count = mem_count$[buf_delay-1];
   assign row_count = row_count$[buf_delay-1];
+  assign str_x_count = str_x_count$[buf_delay-1];
+  assign str_y_count = str_y_count$[buf_delay-1];
 
   always @(posedge clk)
     if (!xrst)
@@ -120,7 +126,7 @@ module renkon_ctrl_linebuf_pad
     else if (state$ == S_WAIT)
       col_count$[0] <= 0;
     else
-      if (col_count$[0] == img_size + pad_both - 1)
+      if (col_count$[0] == make_size(size, kern, stride, pad) - 1)
         col_count$[0] <= 0;
       else
         col_count$[0] <= col_count$[0] + 1;
@@ -130,7 +136,7 @@ module renkon_ctrl_linebuf_pad
       mem_count$[0] <= 0;
     else if  (state$ == S_WAIT)
       mem_count$[0] <= 0;
-    else if (col_count$[0] == img_size + pad_both - 1)
+    else if (col_count$[0] == make_size(size, kern, stride, pad) - 1)
       if (mem_count$[0] == BUFLINE-1)
         mem_count$[0] <= 0;
       else
@@ -141,11 +147,33 @@ module renkon_ctrl_linebuf_pad
       row_count$[0] <= 0;
     else if  (state$ == S_WAIT)
       row_count$[0] <= 0;
-    else if (col_count$[0] == img_size + pad_both - 1)
-      if (row_count$[0] == img_size + pad_both)
+    else if (col_count$[0] == make_size(size, kern, stride, pad) - 1)
+      if (row_count$[0] == make_size(size, kern, stride, pad))
         row_count$[0] <= 0;
       else
         row_count$[0] <= row_count$[0] + 1;
+
+  always @(posedge clk)
+    if (!xrst)
+      str_x_count$[0] <= 0;
+    else if  (state$ == S_WAIT)
+      str_x_count$[0] <= 0;
+    else
+      if (str_x_count$[0] == stride-1)
+        str_x_count$[0] <= 0;
+      else
+        str_x_count$[0] <= str_x_count$[0] + 1;
+
+  always @(posedge clk)
+    if (!xrst)
+      str_y_count$[0] <= 0;
+    else if  (state$ == S_WAIT)
+      str_y_count$[0] <= 0;
+    else if (col_count$[0] == make_size(size, kern, stride, pad) - 1)
+      if (str_y_count$[0] == stride-1)
+        str_y_count$[0] <= 0;
+      else
+        str_y_count$[0] <= str_y_count$[0] + 1;
 
   for (genvar i = 1; i < MAXDELAY; i++)
     always @(posedge clk)
@@ -153,11 +181,15 @@ module renkon_ctrl_linebuf_pad
         col_count$[i] <= 0;
         mem_count$[i] <= 0;
         row_count$[i] <= 0;
+        str_x_count$[i] <= 0;
+        str_y_count$[i] <= 0;
       end
       else begin
         col_count$[i] <= col_count$[i-1];
         mem_count$[i] <= mem_count$[i-1];
         row_count$[i] <= row_count$[i-1];
+        str_x_count$[i] <= str_x_count$[i-1];
+        str_y_count$[i] <= str_y_count$[i-1];
       end
 
 //==========================================================
@@ -176,10 +208,8 @@ module renkon_ctrl_linebuf_pad
     else if (state$ == S_WAIT)
       buf_wcol$ <= 0;
     else
-      buf_wcol$ <= 0 <= row_count
-                && row_count < img_size
-                && pad_size <= col_count
-                && col_count < img_size + pad_size;
+      buf_wcol$ <= 0   <= row_count && row_count < size
+                && pad <= col_count && col_count < size + pad;
 
   for (genvar i = 0; i < 2; i++)
     for (genvar j = 0; j < MAXFIL; j++)
@@ -188,8 +218,7 @@ module renkon_ctrl_linebuf_pad
           if (!xrst)
             buf_rrow$[0][j] <= 0;
           else
-            buf_rrow$[0][j] <= fil_size <= row_count + j
-                            && row_count + j < img_size + fil_size;
+            buf_rrow$[0][j] <= kern <= row_count+j && row_count+j < size + kern;
         end
       else begin
         always @(posedge clk)
@@ -217,10 +246,10 @@ module renkon_ctrl_linebuf_pad
           buf_rsel$[0] <= 0;
         else if (state$ == S_ACTIVE && col_count == 0)
           if (buf_rsel$[0] == 0)
-            buf_rsel$[0] <= pad_size == 0
+            buf_rsel$[0] <= pad == 0
                           ? 1
-                          : BUFLINE - (pad_size - 1);
-          else if (buf_rsel$[0] == fil_size + 1)
+                          : BUFLINE - (pad - 1);
+          else if (buf_rsel$[0] == kern + 1)
             buf_rsel$[0] <= 1;
           else
             buf_rsel$[0] <= buf_rsel$[0] + 1;
@@ -238,8 +267,8 @@ module renkon_ctrl_linebuf_pad
 //==========================================================
 
   assign buf_ready = state$ != S_WAIT
-            && 0        <= row_count$[0] && row_count$[0] < img_size
-            && pad_size <= col_count$[0] && col_count$[0] < img_size + pad_size;
+                  && 0   <= row_count$[0] && row_count$[0] < size
+                  && pad <= col_count$[0] && col_count$[0] < size + pad;
 
   assign buf_we   = buf_we$;
   assign buf_addr = buf_addr$;
@@ -254,7 +283,7 @@ module renkon_ctrl_linebuf_pad
     else if (state$ == S_WAIT)
       buf_we$ <= 0;
     else
-      buf_we$ <= row_count < img_size + pad_size;
+      buf_we$ <= row_count < size + pad;
 
   always @(posedge clk)
     if (!xrst)
@@ -264,6 +293,13 @@ module renkon_ctrl_linebuf_pad
     else
       buf_addr$ <= col_count;
 
+  // TODO: to doit precisely -> kern % stride - 1
+  wire [LWIDTH-1:0] str_x_start;
+  wire [LWIDTH-1:0] str_y_start;
+  assign str_x_start = stride == 1 ? 0
+                     : (kern-stride) > 0 ? kern-stride-1
+                     : stride-1;
+  assign str_y_start = 0;
   for (genvar i = 0; i < 3; i++)
     if (i == 0) begin
       always @(posedge clk)
@@ -274,16 +310,18 @@ module renkon_ctrl_linebuf_pad
         end
         else begin
           buf_start$[0] <= state$ == S_ACTIVE
-                        && row_count == fil_size - pad_size
-                        && col_count == fil_size - 2;
+                        && row_count == kern - pad
+                        && col_count == kern - 2;
 
           buf_valid$[0] <= state$ == S_ACTIVE
-                        && fil_size - 1 <= col_count
-                        && col_count < img_size + pad_both;
+                        && kern - 1 <= col_count
+                        && col_count < make_size(size, kern, stride, pad)
+                        && str_x_count == str_x_start
+                        && str_y_count == str_y_start;
 
           buf_stop$[0]  <= state$ == S_ACTIVE
-                        && row_count == img_size + pad_size
-                        && col_count == img_size + pad_both - 1;
+                        && row_count == size + pad
+                        && col_count == make_size(size, kern, stride, pad) - 1;
         end
     end
     else begin
@@ -300,4 +338,26 @@ module renkon_ctrl_linebuf_pad
         end
     end
 
+//==========================================================
+//  Function
+//==========================================================
+// {{{
+
+  wire [LWIDTH-1:0] own_size = make_size(size, kern, stride, pad);
+
+  function [LWIDTH-1:0] make_size
+    ( input [LWIDTH-1:0] size
+    , input [LWIDTH-1:0] kern
+    , input [LWIDTH-1:0] stride
+    , input [LWIDTH-1:0] pad
+    );
+
+    // equals to 2 * pad
+    if (COVER_ALL)
+      make_size = size + (pad << 1) + stride - 1;
+    else
+      make_size = size + (pad << 1);
+  endfunction
+
+// }}}
 endmodule

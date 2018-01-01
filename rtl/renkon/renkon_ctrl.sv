@@ -15,12 +15,12 @@ module renkon_ctrl
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         img_size
-  , input  [LWIDTH-1:0]         conv_size
+  , input  [LWIDTH-1:0]         conv_kern
   , input  [LWIDTH-1:0]         conv_pad
   , input                       bias_en
   , input                       relu_en
   , input                       pool_en
-  , input  [LWIDTH-1:0]         pool_size
+  , input  [LWIDTH-1:0]         pool_kern
   , input  [LWIDTH-1:0]         pool_pad
 
   , output                            ack
@@ -54,17 +54,19 @@ module renkon_ctrl
   , output [$clog2(PSIZE+1):0]        buf_feat_rsel
   , output                            buf_feat_we
   , output [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
-  , output [LWIDTH-1:0]               _fea_size
   , output                            _bias_en
   , output                            _relu_en
   , output                            _pool_en
-  , output [LWIDTH-1:0]               _pool_size
-  , output [LWIDTH-1:0]               _pool_pad
   );
 
   wire [1:0]  core_state;
   wire        first_input;
   wire        last_input;
+
+  wire [LWIDTH-1:0] _fea_size;
+  wire [LWIDTH-1:0] _pool_kern;
+  wire [LWIDTH-1:0] _pool_pad;
+  wire [LWIDTH-1:0] _out_size;
 
   ctrl_bus bus_core();
   ctrl_bus bus_conv();

@@ -5,8 +5,6 @@ module renkon_pool
   , input                      xrst
   , input                      enable
   , input                      out_en
-  , input         [LWIDTH-1:0] _fea_size
-  , input         [LWIDTH-1:0] _pool_size
   , input                             buf_feat_wcol
   , input                             buf_feat_rrow [PSIZE-1:0]
   , input  [$clog2(PSIZE+1):0]        buf_feat_wsel

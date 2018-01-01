@@ -5,11 +5,11 @@
 #include <limits>
 #include <lib.hpp>
 
-const int n_out     = 32;
-const int n_in      = 16;
+// const int n_out     = 32;
+// const int n_in      = 16;
 const int img_size  = 12;
-// const int n_out = 16;
-// const int n_in  = 1;
+const int n_out = 16;
+const int n_in  = 1;
 // const int img_size = 28;
 
 int make_size(int size, int kern, int stride, int pad, bool cover_all=false)
@@ -116,8 +116,6 @@ int main(void)
   auto bmap   = zeros<int16_t>(n_out, fea_size, fea_size);
   auto amap   = zeros<int16_t>(n_out, fea_size, fea_size);
   auto pmap   = zeros<int16_t>(n_out, out_size, out_size);
-
-  std::cerr << img_size << " " << fea_size << " " << out_size << std::endl;
 
   auto W = zeros<int16_t>(n_out, n_in, conv_kern, conv_kern);
   auto b = zeros<int16_t>(n_out);

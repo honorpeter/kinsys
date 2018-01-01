@@ -15,12 +15,12 @@ module renkon_ctrl_core
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_size
-  , input  [LWIDTH-1:0]         conv_size
+  , input  [LWIDTH-1:0]         conv_kern
   , input  [LWIDTH-1:0]         conv_pad
   , input                       bias_en
   , input                       relu_en
   , input                       pool_en
-  , input  [LWIDTH-1:0]         pool_size
+  , input  [LWIDTH-1:0]         pool_kern
   , input  [LWIDTH-1:0]         pool_pad
 
   , ctrl_bus.master                   out_ctrl
@@ -42,8 +42,9 @@ module renkon_ctrl_core
   , output                            _bias_en
   , output                            _relu_en
   , output                            _pool_en
-  , output [LWIDTH-1:0]               _pool_size
+  , output [LWIDTH-1:0]               _pool_kern
   , output [LWIDTH-1:0]               _pool_pad
+  , output [LWIDTH-1:0]               _out_size
   , output                            buf_pix_wcol
   , output                            buf_pix_rrow [FSIZE-1:0]
   , output [$clog2(FSIZE+1):0]        buf_pix_wsel
@@ -60,6 +61,7 @@ module renkon_ctrl_core
   wire               req_edge;
   wire               final_iter;
   wire [LWIDTH-1:0]  conv_pad_both;
+  wire [LWIDTH-1:0]  pool_pad_both;
   // wire [IMGSIZE-1:0] _img_addr;
   // wire [IMGSIZE-1:0] _img_offset;
   wire               buf_pix_req;
@@ -84,9 +86,10 @@ module renkon_ctrl_core
   reg [LWIDTH-1:0]  total_out$;
   reg [LWIDTH-1:0]  total_in$;
   reg [LWIDTH-1:0]  img_size$;
-  reg [LWIDTH-1:0]  conv_size$;
+  reg [LWIDTH-1:0]  conv_kern$;
   reg [LWIDTH-1:0]  conv_pad$;
   reg [LWIDTH-1:0]  fea_size$;
+  reg [LWIDTH-1:0]  out_size$;
 
   reg [LWIDTH-1:0]  count_out$;
   reg [LWIDTH-1:0]  count_in$;
@@ -119,7 +122,7 @@ module renkon_ctrl_core
   reg               breg_we$;
   reg               relu_en$;
   reg               pool_en$;
-  reg [LWIDTH-1:0]  pool_size$;
+  reg [LWIDTH-1:0]  pool_kern$;
   reg [LWIDTH-1:0]  pool_pad$;
 
 
@@ -203,14 +206,16 @@ module renkon_ctrl_core
   assign _bias_en    = bias_en$;
   assign _relu_en    = relu_en$;
   assign _pool_en    = pool_en$;
-  assign _pool_size  = pool_size$;
+  assign _pool_kern  = pool_kern$;
   assign _pool_pad   = pool_pad$;
+  assign _out_size   = out_size$;
 
   assign wreg_we = wreg_we$;
   assign breg_we = breg_we$;
 
   // equals to 2 * pad_size
   assign conv_pad_both = conv_pad << 1;
+  assign pool_pad_both = pool_pad << 1;
 
   //wait exec (initialize)
   always @(posedge clk)
@@ -218,27 +223,30 @@ module renkon_ctrl_core
       total_in$   <= 0;
       total_out$  <= 0;
       img_size$   <= 0;
-      conv_size$  <= 0;
+      conv_kern$  <= 0;
       conv_pad$   <= 0;
       fea_size$   <= 0;
       bias_en$    <= 0;
       relu_en$    <= 0;
       pool_en$    <= 0;
-      pool_size$  <= 0;
+      pool_kern$  <= 0;
       pool_pad$   <= 0;
+      out_size$   <= 0;
     end
     else if (state$ == S_WAIT && req_edge) begin
       total_in$   <= total_in;
       total_out$  <= total_out;
       img_size$   <= img_size;
-      conv_size$  <= conv_size;
+      conv_kern$  <= conv_kern;
       conv_pad$   <= conv_pad;
-      fea_size$   <= img_size + conv_pad_both - conv_size + 1;
+      fea_size$   <= img_size + conv_pad_both - conv_kern + 1;
       bias_en$    <= bias_en;
       relu_en$    <= relu_en;
       pool_en$    <= pool_en;
-      pool_size$  <= pool_size;
+      pool_kern$  <= pool_kern;
       pool_pad$   <= pool_pad;
+      out_size$   <= img_size + conv_pad_both - conv_kern + 1
+                              + pool_pad_both - pool_kern + 1;
     end
 
   always @(posedge clk)
@@ -282,8 +290,8 @@ module renkon_ctrl_core
                        : s_w_weight_end;
 
   assign s_w_weight_end = state_weight$ == S_W_WEIGHT
-                       && weight_x$ == conv_size$ - 1
-                       && weight_y$ == conv_size$ - 1;
+                       && weight_x$ == conv_kern$ - 1
+                       && weight_y$ == conv_kern$ - 1;
 
   assign s_w_bias_end   = state_weight$ == S_W_BIAS;
 
@@ -333,9 +341,9 @@ module renkon_ctrl_core
         S_NETWORK:
           case (state_weight$)
             S_W_WEIGHT:
-              if (weight_x$ == conv_size$ - 1) begin
+              if (weight_x$ == conv_kern$ - 1) begin
                 weight_x$ <= 0;
-                if (weight_y$ == conv_size$ - 1)
+                if (weight_y$ == conv_kern$ - 1)
                   weight_y$ <= 0;
                 else
                   weight_y$ <= weight_y$ + 1;
@@ -544,7 +552,7 @@ module renkon_ctrl_core
 
   renkon_ctrl_linebuf_pad #(FSIZE, D_PIXELBUF) ctrl_buf_pix(
     .img_size   (img_size$),
-    .fil_size   (conv_size$),
+    .fil_size   (conv_kern$),
     .pad_size   (conv_pad$),
     .buf_req    (buf_pix_req),
     .buf_delay  (out_ctrl.delay),
