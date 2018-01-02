@@ -22,6 +22,7 @@ DEPENDS   = \
 	renkon_bias.sv \
 	renkon_relu.sv \
 	renkon_pool_max4.sv \
+	renkon_pool_max9.sv \
 	renkon_pool.sv \
 	renkon_core.sv \
 	renkon_serial_mat.sv \
@@ -31,7 +32,7 @@ SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard test/*.sv)
 INCLUDE   = $(shell git rev-parse --show-toplevel)/rtl/common
 DIST      = ../../dist
-VSIM_LIB  = -L ../ninjin/work
+# VSIM_LIB  = -L ../ninjin/work
 
 include ../Makefile
 

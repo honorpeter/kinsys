@@ -3,7 +3,7 @@
 module renkon_ctrl_linebuf_pad
  #( parameter MAXFIL    = 3
   , parameter MAXIMG    = 32
-  , parameter COVER_ALL = 1'b0
+  , parameter COVER_ALL = 1'b1
   // , parameter COVER_ALL = 1'b0
   , parameter MAXDELAY  = 16
 

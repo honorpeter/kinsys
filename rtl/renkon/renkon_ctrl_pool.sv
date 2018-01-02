@@ -12,9 +12,9 @@ module renkon_ctrl_pool
   , ctrl_bus.master                   out_ctrl
   , output                            pool_oe
   , output                            buf_feat_wcol
-  , output                            buf_feat_rrow [PSIZE-1:0]
-  , output [$clog2(PSIZE+1):0]        buf_feat_wsel
-  , output [$clog2(PSIZE+1):0]        buf_feat_rsel
+  , output                            buf_feat_rrow [POOL_KERN-1:0]
+  , output [$clog2(POOL_KERN+1):0]    buf_feat_wsel
+  , output [$clog2(POOL_KERN+1):0]    buf_feat_rsel
   , output                            buf_feat_we
   , output [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
   );
@@ -80,7 +80,7 @@ module renkon_ctrl_pool
     else
       buf_feat_req$ <= in_ctrl.start;
 
-  renkon_ctrl_linebuf_pad #(PSIZE, D_POOLBUF, 1'b1) ctrl_buf_feat(
+  renkon_ctrl_linebuf_pad #(POOL_KERN, D_POOLBUF, 1'b1) ctrl_buf_feat(
     .size       (fea_size$),
     .kern       (pool_kern$),
     .strid      (pool_strid$),

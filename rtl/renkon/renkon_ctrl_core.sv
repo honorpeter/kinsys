@@ -51,9 +51,9 @@ module renkon_ctrl_core
   , output [LWIDTH-1:0]               _pool_strid
   , output [LWIDTH-1:0]               _pool_pad
   , output                            buf_pix_wcol
-  , output                            buf_pix_rrow [FSIZE-1:0]
-  , output [$clog2(FSIZE+1):0]        buf_pix_wsel
-  , output [$clog2(FSIZE+1):0]        buf_pix_rsel
+  , output                            buf_pix_rrow [CONV_KERN-1:0]
+  , output [$clog2(CONV_KERN+1):0]        buf_pix_wsel
+  , output [$clog2(CONV_KERN+1):0]        buf_pix_rsel
   , output                            buf_pix_we
   , output [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr
   );
@@ -568,7 +568,7 @@ module renkon_ctrl_core
       serial_end$ <= serial_re$ == RENKON_CORE
                   && serial_addr$ == serial_cnt$ - 1;
 
-  renkon_ctrl_linebuf_pad #(FSIZE, D_PIXELBUF, 1'b0) ctrl_buf_pix(
+  renkon_ctrl_linebuf_pad #(CONV_KERN, D_PIXELBUF, 1'b0) ctrl_buf_pix(
     .size       (img_size$),
     .kern       (conv_kern$),
     .strid      (conv_strid$),

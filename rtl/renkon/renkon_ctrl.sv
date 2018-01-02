@@ -33,9 +33,9 @@ module renkon_ctrl
   , output                            relu_oe
   , output                            pool_oe
   , output                            buf_pix_wcol
-  , output                            buf_pix_rrow [FSIZE-1:0]
-  , output [$clog2(FSIZE+1):0]        buf_pix_wsel
-  , output [$clog2(FSIZE+1):0]        buf_pix_rsel
+  , output                            buf_pix_rrow [CONV_KERN-1:0]
+  , output [$clog2(CONV_KERN+1):0]    buf_pix_wsel
+  , output [$clog2(CONV_KERN+1):0]    buf_pix_rsel
   , output                            buf_pix_we
   , output [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr
   , output                            serial_we
@@ -51,9 +51,9 @@ module renkon_ctrl
   , output [FACCUM-1:0]               mem_feat_waddr
   , output [FACCUM-1:0]               mem_feat_raddr
   , output                            buf_feat_wcol
-  , output                            buf_feat_rrow [PSIZE-1:0]
-  , output [$clog2(PSIZE+1):0]        buf_feat_wsel
-  , output [$clog2(PSIZE+1):0]        buf_feat_rsel
+  , output                            buf_feat_rrow [POOL_KERN-1:0]
+  , output [$clog2(POOL_KERN+1):0]    buf_feat_wsel
+  , output [$clog2(POOL_KERN+1):0]    buf_feat_rsel
   , output                            buf_feat_we
   , output [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
   , output                            _bias_en

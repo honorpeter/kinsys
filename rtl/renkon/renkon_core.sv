@@ -14,15 +14,15 @@ module renkon_core
   , input         [FACCUM-1:0]  mem_feat_raddr
   , input         [FACCUM-1:0]  mem_feat_waddr
   , input                             buf_feat_wcol
-  , input                             buf_feat_rrow [PSIZE-1:0]
-  , input  [$clog2(PSIZE+1):0]        buf_feat_wsel
-  , input  [$clog2(PSIZE+1):0]        buf_feat_rsel
+  , input                             buf_feat_rrow [POOL_KERN-1:0]
+  , input  [$clog2(POOL_KERN+1):0]    buf_feat_wsel
+  , input  [$clog2(POOL_KERN+1):0]    buf_feat_rsel
   , input                             buf_feat_we
   , input  [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
   , input                       _bias_en
   , input                       _relu_en
   , input                       _pool_en
-  , input  signed [DWIDTH-1:0]  pixel [FSIZE**2-1:0]
+  , input  signed [DWIDTH-1:0]  pixel [CONV_KERN**2-1:0]
   , input  signed [DWIDTH-1:0]  net_rdata
   , output signed [DWIDTH-1:0]  result
   );
