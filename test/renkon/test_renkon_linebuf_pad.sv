@@ -6,12 +6,12 @@
 // 3, 1, 1
 // 2, 2, 0
 // 3, 2, 1
-parameter SIZE    = 12;
-parameter KERN    = 2;
-parameter STRID   = 2;
-parameter PADDING = 0;
+parameter SIZE      = 12;
+parameter KERN      = 2;
+parameter STRID     = 2;
+parameter PAD       = 0;
 parameter COVER_ALL = 1'b0;
-parameter DELAY = 1;
+parameter DELAY     = 1;
 
 module test_renkon_linebuf_pad;
 
@@ -93,7 +93,7 @@ module test_renkon_linebuf_pad;
     size    = SIZE;
     kern    = KERN;
     strid   = STRID;
-    pad     = PADDING;
+    pad     = PAD;
     #(STEP*5);
 
     buf_req = 1;
@@ -123,14 +123,14 @@ module test_renkon_linebuf_pad;
       forever begin
         #(STEP/2-1);
         if (buf_valid) begin
-          $fwrite(fd, "Block %0d:\n", (SIZE+2*PADDING-KERN+1)*i+j);
+          $fwrite(fd, "Block %0d:\n", (SIZE+2*PAD-KERN+1)*i+j);
           for (int di = 0; di < KERN; di++) begin
             for (int dj = 0; dj < KERN; dj++)
               $fwrite(fd, "%5d", buf_output[KERN*di+dj]);
             $fwrite(fd, "\n");
           end
           $fwrite(fd, "\n");
-          if (j == (SIZE+2*PADDING-KERN+1) - 1) begin
+          if (j == (SIZE+2*PAD-KERN+1) - 1) begin
             i++; j=0;
           end
           else j++;

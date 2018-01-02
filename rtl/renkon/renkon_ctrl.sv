@@ -8,8 +8,8 @@ module renkon_ctrl
   , input  [RENKON_CORELOG-1:0] net_sel
   , input                       net_we
   , input  [RENKON_NETSIZE-1:0] net_addr
-  , input  [IMGSIZE-1:0]        in_offset
-  , input  [IMGSIZE-1:0]        out_offset
+  , input  [MEMSIZE-1:0]        in_offset
+  , input  [MEMSIZE-1:0]        out_offset
   , input  [RENKON_NETSIZE-1:0] net_offset
 
   , input  [LWIDTH-1:0]         total_in
@@ -42,7 +42,7 @@ module renkon_ctrl
   , output [RENKON_CORELOG:0]         serial_re
   , output [OUTSIZE-1:0]              serial_addr
   , output                            img_we
-  , output [IMGSIZE-1:0]              img_addr
+  , output [MEMSIZE-1:0]              img_addr
   , output signed [DWIDTH-1:0]        img_wdata
   , output [RENKON_CORE-1:0]          mem_net_we
   , output [RENKON_NETSIZE-1:0]       mem_net_addr

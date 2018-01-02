@@ -23,21 +23,21 @@ module test_ninjin_ddr_buf;
   reg                     clk;
   reg                     xrst;
   reg                     pre_req;
-  reg [MEMSIZE-1:0]       pre_base;
+  reg [WORDSIZE-1:0]      pre_base;
   reg [LWIDTH-1:0]        read_len;
   reg [LWIDTH-1:0]        write_len;
   reg                     mem_we;
-  reg [IMGSIZE-1:0]       mem_addr;
+  reg [MEMSIZE-1:0]       mem_addr;
   reg signed [DWIDTH-1:0] mem_wdata;
   reg                     ddr_we;
-  reg [MEMSIZE-1:0]       ddr_waddr;
+  reg [WORDSIZE-1:0]      ddr_waddr;
   reg [BWIDTH-1:0]        ddr_wdata;
-  reg [MEMSIZE-1:0]       ddr_raddr;
+  reg [WORDSIZE-1:0]      ddr_raddr;
 
   wire                      pre_ack;
   wire                      ddr_req;
   wire                      ddr_mode;
-  wire [MEMSIZE+LSB-1:0]    ddr_base;
+  wire [WORDSIZE+LSB-1:0]   ddr_base;
   wire [LWIDTH-1:0]         ddr_len;
   wire [BWIDTH-1:0]         ddr_rdata;
   wire signed [DWIDTH-1:0]  mem_rdata;
@@ -258,7 +258,7 @@ module test_ninjin_ddr_buf;
   end
 
   // ddr assert
-  reg [IMGSIZE-1:0] ddr_raddr$;
+  reg [MEMSIZE-1:0] ddr_raddr$;
   wire [DWIDTH-1:0]  ddr_offset;
   always @(posedge clk) ddr_raddr$ <= dut.ddr_raddr;
   assign ddr_offset = ddr_raddr$ - (WRITE_OFFSET >> LSB);

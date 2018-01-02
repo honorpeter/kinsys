@@ -8,8 +8,8 @@ module gobou_ctrl_core
   , input  [GOBOU_CORELOG-1:0]  net_sel
   , input                       net_we
   , input  [GOBOU_NETSIZE-1:0]  net_addr
-  , input  [IMGSIZE-1:0]        in_offset
-  , input  [IMGSIZE-1:0]        out_offset
+  , input  [MEMSIZE-1:0]        in_offset
+  , input  [MEMSIZE-1:0]        out_offset
   , input  [GOBOU_NETSIZE-1:0]  net_offset
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
@@ -19,7 +19,7 @@ module gobou_ctrl_core
   , ctrl_bus.master             out_ctrl
   , output                      ack
   , output                      img_we
-  , output [IMGSIZE-1:0]        img_addr
+  , output [MEMSIZE-1:0]        img_addr
   , output signed [DWIDTH-1:0]  img_wdata
   , output [GOBOU_CORE-1:0]     mem_net_we
   , output [GOBOU_NETSIZE-1:0]  mem_net_addr
@@ -37,33 +37,33 @@ module gobou_ctrl_core
   wire                s_output_end;
   wire                req_edge;
   wire                final_iter;
-  wire [IMGSIZE-1:0]  w_img_addr;
-  wire [IMGSIZE-1:0]  w_img_offset;
+  wire [MEMSIZE-1:0]  w_img_addr;
+  wire [MEMSIZE-1:0]  w_img_offset;
 
   enum reg [3-1:0] {
     S_WAIT, S_SETUP, S_INPUT, S_BIAS, S_OUTPUT
   } state$;
-  ctrl_reg          out_ctrl$;
-  reg               req$;
-  reg               ack$;
-  reg [2-1:0]       setup$;
-  reg [LWIDTH-1:0]  total_out$;
-  reg [LWIDTH-1:0]  total_in$;
-  reg [LWIDTH-1:0]  count_out$;
-  reg [LWIDTH-1:0]  count_in$;
-  reg               img_we$;
-  reg [IMGSIZE-1:0] in_offset$;
-  reg [IMGSIZE-1:0] out_offset$;
-  reg [IMGSIZE-1:0] in_addr$;
-  reg [IMGSIZE-1:0] out_addr$;
+  ctrl_reg                out_ctrl$;
+  reg                     req$;
+  reg                     ack$;
+  reg [2-1:0]             setup$;
+  reg [LWIDTH-1:0]        total_out$;
+  reg [LWIDTH-1:0]        total_in$;
+  reg [LWIDTH-1:0]        count_out$;
+  reg [LWIDTH-1:0]        count_in$;
+  reg                     img_we$;
+  reg [MEMSIZE-1:0]       in_offset$;
+  reg [MEMSIZE-1:0]       out_offset$;
+  reg [MEMSIZE-1:0]       in_addr$;
+  reg [MEMSIZE-1:0]       out_addr$;
   reg [GOBOU_CORE-1:0]    net_we$;
   reg [GOBOU_NETSIZE-1:0] net_addr$;
   reg [GOBOU_NETSIZE-1:0] net_offset$;
-  reg               bias_en$;
-  reg               breg_we$;
-  reg               relu_en$;
-  reg               serial_we$;
-  reg [LWIDTH-1:0]  serial_cnt$;
+  reg                     bias_en$;
+  reg                     breg_we$;
+  reg                     relu_en$;
+  reg                     serial_we$;
+  reg [LWIDTH-1:0]        serial_cnt$;
 
 //==========================================================
 // core control
@@ -211,7 +211,7 @@ module gobou_ctrl_core
       out_offset$ <= out_offset;
     end
 
-  reg [IMGSIZE-1:0] img_addr$;
+  reg [MEMSIZE-1:0] img_addr$;
   assign img_addr = img_addr$;
   always @(posedge clk)
     if (!xrst)

@@ -27,7 +27,7 @@ int main(void)
   // puts("### lenet_bare @ zcu102\n");
 #endif
 
-  memmove(input, image, sizeof(s16)*N_IN*ISIZE*ISIZE);
+  memmove(input, image, sizeof(s16)*N_IN*IMG_SIZE*IMG_SIZE);
   LeNet_eval();
   memmove(label, output, sizeof(s16)*LABEL);
 

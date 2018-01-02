@@ -7,8 +7,8 @@ module gobou_ctrl
   , input  [GOBOU_CORELOG-1:0]  net_sel
   , input                       net_we
   , input  [GOBOU_NETSIZE-1:0]  net_addr
-  , input  [IMGSIZE-1:0]        in_offset
-  , input  [IMGSIZE-1:0]        out_offset
+  , input  [MEMSIZE-1:0]        in_offset
+  , input  [MEMSIZE-1:0]        out_offset
   , input  [GOBOU_NETSIZE-1:0]  net_offset
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
@@ -17,7 +17,7 @@ module gobou_ctrl
   , input  signed [DWIDTH-1:0]  out_wdata
   , output                      ack
   , output                      img_we
-  , output [IMGSIZE-1:0]        img_addr
+  , output [MEMSIZE-1:0]        img_addr
   , output signed [DWIDTH-1:0]  img_wdata
   , output [GOBOU_CORE-1:0]     mem_net_we
   , output [GOBOU_NETSIZE-1:0]  mem_net_addr

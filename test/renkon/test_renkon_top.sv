@@ -5,20 +5,20 @@
 // `define NINJIN
 `define DIRECT
 
-// int N_OUT = 32;
-// int N_IN  = 16;
-int ISIZE = 12;
-int N_OUT = 16;
-int N_IN  = 1;
-// int ISIZE = 28;
+int N_OUT = 32;
+int N_IN  = 16;
+int IMG_SIZE = 12;
+// int N_OUT = 16;
+// int N_IN  = 1;
+// int IMG_SIZE = 28;
 
 int CONV_STRID  = 1;
 int CONV_PAD    = 1;
-int FEAT        = (ISIZE+2*CONV_PAD-CONV_KERN)/CONV_STRID + 1;
+int FEA_SIZE    = (IMG_SIZE+2*CONV_PAD-CONV_KERN)/CONV_STRID + 1;
 int POOL_STRID  = 2;
 int POOL_PAD    = 0;
-int OSIZE       = (FEAT+2*POOL_PAD-POOL_KERN+POOL_STRID-1)/POOL_STRID + 1;
-// int OSIZE       = FEAT;
+int OUT_SIZE    = (FEA_SIZE+2*POOL_PAD-POOL_KERN+POOL_STRID-1)/POOL_STRID + 1;
+// int OUT_SIZE    = FEA_SIZE;
 
 int IN_OFFSET   = 100;
 int OUT_OFFSET  = 5000;
@@ -37,8 +37,8 @@ module test_renkon_top;
   reg                       net_we;
   reg [RENKON_NETSIZE-1:0]  net_addr;
   reg signed [DWIDTH-1:0]   net_wdata;
-  reg [IMGSIZE-1:0]         in_offset;
-  reg [IMGSIZE-1:0]         out_offset;
+  reg [MEMSIZE-1:0]         in_offset;
+  reg [MEMSIZE-1:0]         out_offset;
   reg [RENKON_NETSIZE-1:0]  net_offset;
 
   reg [LWIDTH-1:0]          total_out;
@@ -57,20 +57,20 @@ module test_renkon_top;
   wire                      ack;
 
   reg                       img_we;
-  reg [IMGSIZE-1:0]         img_addr;
+  reg [MEMSIZE-1:0]         img_addr;
   reg signed [DWIDTH-1:0]   img_wdata;
 
   wire                      mem_img_we;
-  wire [IMGSIZE-1:0]        mem_img_addr;
+  wire [MEMSIZE-1:0]        mem_img_addr;
   wire signed [DWIDTH-1:0]  mem_img_wdata;
   wire signed [DWIDTH-1:0]  mem_img_rdata;
 
   wire                      renkon_img_we;
-  wire [IMGSIZE-1:0]        renkon_img_addr;
+  wire [MEMSIZE-1:0]        renkon_img_addr;
   wire signed [DWIDTH-1:0]  renkon_img_wdata;
   wire signed [DWIDTH-1:0]  renkon_img_rdata;
 
-  bit signed [DWIDTH-1:0]   mem_i [2**IMGSIZE-1:0];
+  bit signed [DWIDTH-1:0]   mem_i [2**MEMSIZE-1:0];
   bit signed [DWIDTH-1:0]   mem_n [RENKON_CORE-1:0][2**RENKON_NETSIZE-1:0];
 
   int req_time = 2**30;
@@ -85,20 +85,20 @@ module test_renkon_top;
 `ifdef NINJIN
 /// {{{
   reg                     pre_req;
-  reg [MEMSIZE-1:0]       pre_base;
+  reg [WORDSIZE-1:0]      pre_base;
   reg [LWIDTH-1:0]        read_len;
   reg [LWIDTH-1:0]        write_len;
   reg                     ddr_we;
-  reg [MEMSIZE-1:0]       ddr_waddr;
+  reg [WORDSIZE-1:0]      ddr_waddr;
   reg [BWIDTH-1:0]        ddr_wdata;
-  reg [MEMSIZE-1:0]       ddr_raddr;
-  wire                      pre_ack;
-  wire                      ddr_req;
-  wire                      ddr_mode;
-  wire [MEMSIZE+LSB-1:0]    ddr_base;
-  wire [LWIDTH-1:0]         ddr_len;
-  wire [BWIDTH-1:0]         ddr_rdata;
-  wire [2-1:0]              probe_state;
+  reg [WORDSIZE-1:0]      ddr_raddr;
+  wire                    pre_ack;
+  wire                    ddr_req;
+  wire                    ddr_mode;
+  wire [WORDSIZE+LSB-1:0] ddr_base;
+  wire [LWIDTH-1:0]       ddr_len;
+  wire [BWIDTH-1:0]       ddr_rdata;
+  wire [2-1:0]            probe_state;
   integer _ddr_base [1:0];
   integer _ddr_len [1:0];
   ninjin_ddr_buf mem_img(
@@ -148,7 +148,7 @@ module test_renkon_top;
   end
 // }}}
 `else
-  mem_sp #(DWIDTH, IMGSIZE) mem_img(
+  mem_sp #(DWIDTH, MEMSIZE) mem_img(
     .mem_we     (mem_img_we),
     .mem_addr   (mem_img_addr),
     .mem_wdata  (mem_img_wdata),
@@ -168,7 +168,7 @@ module test_renkon_top;
 `ifdef DIRECT
 `ifndef NINJIN
   always @*
-    for (int i = 0; i < 2**IMGSIZE; i++)
+    for (int i = 0; i < 2**MEMSIZE; i++)
       if (i < IN_OFFSET)
         mem_img.mem[i] = 0;
       else
@@ -212,7 +212,7 @@ module test_renkon_top;
     net_offset  = NET_OFFSET;
     total_out   = N_OUT;
     total_in    = N_IN;
-    img_size    = ISIZE;
+    img_size    = IMG_SIZE;
     conv_kern   = CONV_KERN;
     conv_strid  = CONV_STRID;
     conv_pad    = CONV_PAD;
@@ -249,8 +249,8 @@ module test_renkon_top;
 
     pre_req   = 1;
     pre_base  = IN_OFFSET >> RATELOG;
-    read_len  = N_IN * ISIZE * ISIZE;
-    write_len = RENKON_CORE * OSIZE * OSIZE;
+    read_len  = N_IN * IMG_SIZE * IMG_SIZE;
+    write_len = RENKON_CORE * OUT_SIZE * OUT_SIZE;
     #(STEP);
     pre_req = 0;
     #(STEP);
@@ -290,7 +290,7 @@ module test_renkon_top;
 
   task mem_clear;
     begin // {{{
-      for (int i = 0; i < 2**IMGSIZE; i++)
+      for (int i = 0; i < 2**MEMSIZE; i++)
         mem_i[i] = 0;
 
       for (int n = 0; n < RENKON_CORE; n++)
@@ -308,8 +308,8 @@ module test_renkon_top;
       fd = $fopen("../../data/renkon/input_renkon_top.dat", "r");
 
       for (int m = 0; m < N_IN; m++)
-        for (int i = 0; i < ISIZE; i++)
-          for (int j = 0; j < ISIZE; j++) begin
+        for (int i = 0; i < IMG_SIZE; i++)
+          for (int j = 0; j < IMG_SIZE; j++) begin
             r = $fscanf(fd, "%x", mem_i[idx]);
             idx++;
           end
@@ -317,7 +317,7 @@ module test_renkon_top;
       $fclose(fd);
       #(STEP);
 
-      for (int i = 0; i < 2**IMGSIZE; i++) begin
+      for (int i = 0; i < 2**MEMSIZE; i++) begin
         img_we    = 1;
         img_addr  = i + IN_OFFSET;
         img_wdata = mem_i[i];
@@ -340,8 +340,8 @@ module test_renkon_top;
       fd = $fopen("../../data/renkon/input_renkon_top.dat", "r");
 
       for (int m = 0; m < N_IN; m++)
-        for (int i = 0; i < ISIZE; i++)
-          for (int j = 0; j < ISIZE; j++) begin
+        for (int i = 0; i < IMG_SIZE; i++)
+          for (int j = 0; j < IMG_SIZE; j++) begin
             r = $fscanf(fd, "%x", mem_i[idx]);
             idx++;
           end
@@ -492,7 +492,7 @@ module test_renkon_top;
     int out_size;
     begin // {{{
       fd = $fopen("../../data/renkon/output_renkon_top.dat", "w");
-      out_size = N_OUT * OSIZE**2;
+      out_size = N_OUT * OUT_SIZE**2;
 
       for (int i = 0; i < out_size; i++) begin
         img_addr = i + OUT_OFFSET;

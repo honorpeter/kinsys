@@ -66,6 +66,7 @@ module renkon_ctrl_linebuf_pad
 //==========================================================
 // core control
 //==========================================================
+// {{{
 
   assign buf_ack = state$ == S_WAIT && buf_ack$[2];
 
@@ -110,9 +111,11 @@ module renkon_ctrl_linebuf_pad
           buf_ack$[i] <= buf_ack$[i-1];
     end
 
+// }}}
 //==========================================================
 // address control
 //==========================================================
+// {{{
 
   assign col_count = col_count$[buf_delay-1];
   assign mem_count = mem_count$[buf_delay-1];
@@ -192,9 +195,11 @@ module renkon_ctrl_linebuf_pad
         str_y_count$[i] <= str_y_count$[i-1];
       end
 
+// }}}
 //==========================================================
 // select control
 //==========================================================
+// {{{
 
   assign buf_wcol = buf_wcol$;
   assign buf_rrow = buf_rrow$[1];
@@ -262,9 +267,11 @@ module renkon_ctrl_linebuf_pad
           buf_rsel$[i] <= buf_rsel$[i-1];
     end
 
+// }}}
 //==========================================================
 // memory
 //==========================================================
+// {{{
 
   assign buf_ready = state$ != S_WAIT
                   && 0   <= row_count$[0] && row_count$[0] < size
@@ -338,6 +345,7 @@ module renkon_ctrl_linebuf_pad
         end
     end
 
+// }}}
 //==========================================================
 //  Function
 //==========================================================

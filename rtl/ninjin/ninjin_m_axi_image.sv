@@ -11,26 +11,26 @@ module ninjin_m_axi_image
   , parameter RUSER_WIDTH   = 0
   , parameter BUSER_WIDTH   = 0
   )
-  ( input                   clk
-  , input                   xrst
-  , input                   awready
-  , input                   wready
-  , input [ID_WIDTH-1:0]    bid
-  , input [1:0]             bresp
-  , input [BUSER_WIDTH-1:0] buser
-  , input                   bvalid
-  , input                   arready
-  , input [ID_WIDTH-1:0]    rid
-  , input [DATA_WIDTH-1:0]  rdata
-  , input [1:0]             rresp
-  , input                   rlast
-  , input [RUSER_WIDTH-1:0] ruser
-  , input                   rvalid
-  , input                   ddr_req
-  , input                   ddr_mode
-  , input [MEMSIZE+LSB-1:0] ddr_base
-  , input [LWIDTH-1:0]      ddr_len
-  , input [BWIDTH-1:0]      ddr_rdata
+  ( input                     clk
+  , input                     xrst
+  , input                     awready
+  , input                     wready
+  , input [ID_WIDTH-1:0]      bid
+  , input [1:0]               bresp
+  , input [BUSER_WIDTH-1:0]   buser
+  , input                     bvalid
+  , input                     arready
+  , input [ID_WIDTH-1:0]      rid
+  , input [DATA_WIDTH-1:0]    rdata
+  , input [1:0]               rresp
+  , input                     rlast
+  , input [RUSER_WIDTH-1:0]   ruser
+  , input                     rvalid
+  , input                     ddr_req
+  , input                     ddr_mode
+  , input [WORDSIZE+LSB-1:0]  ddr_base
+  , input [LWIDTH-1:0]        ddr_len
+  , input [BWIDTH-1:0]        ddr_rdata
 
   , output [3:0]              err
   , output                    awvalid
@@ -63,9 +63,9 @@ module ninjin_m_axi_image
   , output [ARUSER_WIDTH-1:0] aruser
   , output                    rready
   , output                    ddr_we
-  , output [MEMSIZE-1:0]      ddr_waddr
+  , output [WORDSIZE-1:0]     ddr_waddr
   , output [BWIDTH-1:0]       ddr_wdata
-  , output [MEMSIZE-1:0]      ddr_raddr
+  , output [WORDSIZE-1:0]     ddr_raddr
   );
 
   localparam TXN_NUM = clogb2(BURST_MAX-1);
@@ -121,14 +121,14 @@ module ninjin_m_axi_image
   reg                     write_active$;
   reg                     read_active$;
   reg                     req$;
-  reg [MEMSIZE-1:0]       read_base$;
+  reg [WORDSIZE-1:0]      read_base$;
   reg [LWIDTH-1:0]        read_len$;
-  reg [MEMSIZE-1:0]       write_base$;
+  reg [WORDSIZE-1:0]      write_base$;
   reg [LWIDTH-1:0]        write_len$;
   reg                     ddr_we$;
-  reg [MEMSIZE-1:0]       ddr_waddr$;
+  reg [WORDSIZE-1:0]      ddr_waddr$;
   reg [BWIDTH-1:0]        ddr_wdata$;
-  reg [MEMSIZE-1:0]       ddr_raddr$;
+  reg [WORDSIZE-1:0]      ddr_raddr$;
 
 //==========================================================
 // core control
@@ -490,7 +490,7 @@ module ninjin_m_axi_image
 //==========================================================
 // {{{
 
-  reg [MEMSIZE-1:0]     tmp_addr$;
+  reg [WORDSIZE-1:0]    tmp_addr$;
   reg [DATA_WIDTH-1:0]  tmp_data$;
   reg [DATA_WIDTH-1:0]  tmp_data2$;
 

@@ -14,10 +14,10 @@ parameter LWIDTH  = 16;
 // User parameters
 ////////////////////////////////////////////////////////////
 `ifdef DIST
-parameter IMGSIZE = 31; // Number of DWIDTH entry
+parameter MEMSIZE = 31; // Number of DWIDTH entry
 `else
-// parameter IMGSIZE = BWIDTH - $clog2(DWIDTH/8);
-parameter IMGSIZE = 15;
+// parameter MEMSIZE = BWIDTH - $clog2(DWIDTH/8);
+parameter MEMSIZE = 15;
 `endif
 
 

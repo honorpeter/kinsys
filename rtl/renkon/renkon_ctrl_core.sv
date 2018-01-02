@@ -9,8 +9,8 @@ module renkon_ctrl_core
   , input  [RENKON_CORELOG-1:0] net_sel
   , input                       net_we
   , input  [RENKON_NETSIZE-1:0] net_addr
-  , input  [IMGSIZE-1:0]        in_offset
-  , input  [IMGSIZE-1:0]        out_offset
+  , input  [MEMSIZE-1:0]        in_offset
+  , input  [MEMSIZE-1:0]        out_offset
   , input  [RENKON_NETSIZE-1:0] net_offset
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
@@ -31,7 +31,7 @@ module renkon_ctrl_core
   , output                            ack
   , output [2-1:0]                    core_state
   , output                            img_we
-  , output [IMGSIZE-1:0]              img_addr
+  , output [MEMSIZE-1:0]              img_addr
   , output signed [DWIDTH-1:0]        img_wdata
   , output [RENKON_CORE-1:0]          mem_net_we
   , output [RENKON_NETSIZE-1:0]       mem_net_addr
@@ -67,8 +67,8 @@ module renkon_ctrl_core
   wire               final_iter;
   wire [LWIDTH-1:0]  conv_pad_both;
   wire [LWIDTH-1:0]  pool_pad_both;
-  // wire [IMGSIZE-1:0] _img_addr;
-  // wire [IMGSIZE-1:0] _img_offset;
+  // wire [MEMSIZE-1:0] _img_addr;
+  // wire [MEMSIZE-1:0] _img_offset;
   wire               buf_pix_req;
   wire               buf_pix_ack;
   wire               buf_pix_start;
@@ -106,12 +106,12 @@ module renkon_ctrl_core
   reg               s_output_end$;
   reg               buf_pix_req$;
   reg               img_we$;
-  reg [IMGSIZE-1:0] img_addr$;
+  reg [MEMSIZE-1:0] img_addr$;
   reg               out_we$;
-  reg [IMGSIZE-1:0] in_offset$;
-  reg [IMGSIZE-1:0] out_offset$;
-  // reg [IMGSIZE-1:0] in_addr$;
-  reg [IMGSIZE-1:0] out_addr$;
+  reg [MEMSIZE-1:0] in_offset$;
+  reg [MEMSIZE-1:0] out_offset$;
+  // reg [MEMSIZE-1:0] in_addr$;
+  reg [MEMSIZE-1:0] out_addr$;
   // reg [RENKON_CORE-1:0]    net_we$;
   reg [RENKON_NETSIZE-1:0] net_addr$;
   reg [RENKON_NETSIZE-1:0] net_offset$;
@@ -248,8 +248,8 @@ module renkon_ctrl_core
       conv_kern$  <= conv_kern;
       conv_strid$ <= conv_strid;
       conv_pad$   <= conv_pad;
-      // fea_size$   <= img_size + conv_pad_both - conv_kern + 1;
-      fea_size$   <= ((img_size + conv_pad_both - conv_kern) >> 1) + 1;
+      fea_size$   <= img_size + conv_pad_both - conv_kern + 1;
+      // fea_size$   <= ((img_size + conv_pad_both - conv_kern) >> 1) + 1;
       bias_en$    <= bias_en;
       relu_en$    <= relu_en;
       pool_en$    <= pool_en;

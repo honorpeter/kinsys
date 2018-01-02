@@ -234,17 +234,6 @@ module renkon_ctrl_conv
         end
     end
 
-  // always @(posedge clk)
-  //   if (!xrst)
-  //     wait_back$ <= 0;
-  //   else if (in_ctrl.start)
-  //     wait_back$ <= 0;
-  //   else if (
-  //     state$ == S_ACTIVE && core_state$ == S_CORE_OUTPUT
-  //     && conv_x$ == fea_size$ - 1 && conv_y$ == fea_size$ - 1
-  //   )
-  //     wait_back$ <= 1;
-
   always @(posedge clk)
     if (!xrst)
       wait_back$ <= 0;

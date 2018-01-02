@@ -2,10 +2,10 @@
 #include <cmath>
 #include <lib.hpp>
 
-// const int n_out = 128;
-// const int n_in  = 512;
-const int n_out = 4096;
-const int n_in  = 512 * 7 * 7;
+const int n_out = 128;
+const int n_in  = 512;
+// const int n_out = 4096;
+// const int n_in  = 512 * 7 * 7;
 
 template <typename T>
 T mul(T x, T y)

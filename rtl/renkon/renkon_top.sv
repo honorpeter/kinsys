@@ -9,8 +9,8 @@ module renkon_top
   , input                       net_we
   , input  [RENKON_NETSIZE-1:0] net_addr
   , input  signed [DWIDTH-1:0]  net_wdata
-  , input  [IMGSIZE-1:0]        in_offset
-  , input  [IMGSIZE-1:0]        out_offset
+  , input  [MEMSIZE-1:0]        in_offset
+  , input  [MEMSIZE-1:0]        out_offset
   , input  [RENKON_NETSIZE-1:0] net_offset
 
   // Network parameters
@@ -29,7 +29,7 @@ module renkon_top
 
   , output                      ack
   , output                      img_we
-  , output [IMGSIZE-1:0]        img_addr
+  , output [MEMSIZE-1:0]        img_addr
   , output signed [DWIDTH-1:0]  img_wdata
   );
 

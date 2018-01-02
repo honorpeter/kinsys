@@ -11,7 +11,7 @@ module kinpira
   , parameter C_m_axi_image_BURST_MAX     = BURST_MAX
   , parameter C_m_axi_image_ID_WIDTH      = 1
   , parameter C_m_axi_image_DATA_WIDTH    = BWIDTH
-  , parameter C_m_axi_image_ADDR_WIDTH    = MEMSIZE + LSB
+  , parameter C_m_axi_image_ADDR_WIDTH    = WORDSIZE + LSB
   , parameter C_m_axi_image_AWUSER_WIDTH  = 0
   , parameter C_m_axi_image_ARUSER_WIDTH  = 0
   , parameter C_m_axi_image_WUSER_WIDTH   = 0
@@ -228,8 +228,8 @@ module kinpira
   // For ninjin
   wire                      which;
   wire                      req;
-  wire [IMGSIZE-1:0]        in_offset;
-  wire [IMGSIZE-1:0]        out_offset;
+  wire [MEMSIZE-1:0]        in_offset;
+  wire [MEMSIZE-1:0]        out_offset;
   wire [BWIDTH-1:0]         net_offset;
 
   wire [BWIDTH-1:0]         base_param [1:0];
@@ -251,25 +251,25 @@ module kinpira
   wire                      ack;
   // mem_img ports
   wire                      mem_img_we;
-  wire [IMGSIZE-1:0]        mem_img_addr;
+  wire [MEMSIZE-1:0]        mem_img_addr;
   wire signed [DWIDTH-1:0]  mem_img_wdata;
   wire signed [DWIDTH-1:0]  mem_img_rdata;
   // meta inputs
   wire                      pre_req;
-  wire [MEMSIZE-1:0]        pre_base;
+  wire [WORDSIZE-1:0]        pre_base;
   wire [LWIDTH-1:0]         read_len;
   wire [LWIDTH-1:0]         write_len;
   // m_axi ports (fed back)
   wire                      ddr_we;
-  wire [MEMSIZE-1:0]        ddr_waddr;
+  wire [WORDSIZE-1:0]        ddr_waddr;
   wire [BWIDTH-1:0]         ddr_wdata;
-  wire [MEMSIZE-1:0]        ddr_raddr;
+  wire [WORDSIZE-1:0]        ddr_raddr;
   // meta outputs
   wire                      pre_ack;
   // m_axi signals
   wire                      ddr_req;
   wire                      ddr_mode;
-  wire [MEMSIZE+LSB-1:0]    ddr_base;
+  wire [WORDSIZE+LSB-1:0]    ddr_base;
   wire [LWIDTH-1:0]         ddr_len;
   wire [BWIDTH-1:0]         ddr_rdata;
 
@@ -280,8 +280,8 @@ module kinpira
   wire                      renkon_net_we;
   wire [RENKON_NETSIZE-1:0] renkon_net_addr;
   wire signed [DWIDTH-1:0]  renkon_net_wdata;
-  wire [IMGSIZE-1:0]        renkon_in_offset;
-  wire [IMGSIZE-1:0]        renkon_out_offset;
+  wire [MEMSIZE-1:0]        renkon_in_offset;
+  wire [MEMSIZE-1:0]        renkon_out_offset;
   wire [RENKON_NETSIZE-1:0] renkon_net_offset;
   wire [LWIDTH-1:0]         renkon_total_out;
   wire [LWIDTH-1:0]         renkon_total_in;
@@ -295,7 +295,7 @@ module kinpira
 
   wire                      renkon_ack;
   wire                      renkon_img_we;
-  wire [IMGSIZE-1:0]        renkon_img_addr;
+  wire [MEMSIZE-1:0]        renkon_img_addr;
   wire signed [DWIDTH-1:0]  renkon_img_wdata;
 
   // For gobou
@@ -305,8 +305,8 @@ module kinpira
   wire                      gobou_net_we;
   wire [GOBOU_NETSIZE-1:0]  gobou_net_addr;
   wire signed [DWIDTH-1:0]  gobou_net_wdata;
-  wire [IMGSIZE-1:0]        gobou_in_offset;
-  wire [IMGSIZE-1:0]        gobou_out_offset;
+  wire [MEMSIZE-1:0]        gobou_in_offset;
+  wire [MEMSIZE-1:0]        gobou_out_offset;
   wire [GOBOU_NETSIZE-1:0]  gobou_net_offset;
   wire [LWIDTH-1:0]         gobou_total_out;
   wire [LWIDTH-1:0]         gobou_total_in;
@@ -315,7 +315,7 @@ module kinpira
 
   wire                      gobou_ack;
   wire                      gobou_img_we;
-  wire [IMGSIZE-1:0]        gobou_img_addr;
+  wire [MEMSIZE-1:0]        gobou_img_addr;
   wire signed [DWIDTH-1:0]  gobou_img_wdata;
 
   reg which$;
@@ -332,11 +332,11 @@ module kinpira
   assign xrst       = s_axi_params_aresetn;
   assign which      = in_port[0][0];
   assign req        = in_port[1][0];
-  assign in_offset  = in_port[2][IMGSIZE-1+RATELOG:RATELOG];
-  assign out_offset = in_port[3][IMGSIZE-1+RATELOG:RATELOG];
+  assign in_offset  = in_port[2][MEMSIZE-1+RATELOG:RATELOG];
+  assign out_offset = in_port[3][MEMSIZE-1+RATELOG:RATELOG];
   assign net_offset = in_port[4][BWIDTH-1:0];
   assign pre_req    = in_port[5][0];
-  assign pre_base   = in_port[6][MEMSIZE-1+LSB:LSB];
+  assign pre_base   = in_port[6][WORDSIZE-1+LSB:LSB];
   assign read_len   = in_port[7][LWIDTH-1:0];
   assign write_len  = in_port[8][LWIDTH-1:0];
 
@@ -695,7 +695,7 @@ module kinpira
     // Inputs
     .clk        (clk),
     .mem_we     (mem_img_we),
-    .mem_addr   (mem_img_addr[IMGSIZE-1:0]),
+    .mem_addr   (mem_img_addr[MEMSIZE-1:0]),
     .mem_wdata  (mem_img_wdata[DWIDTH-1:0]),
     .*
   );
@@ -704,7 +704,7 @@ module kinpira
     // Outputs
     .ack        (renkon_ack),
     .img_we     (renkon_img_we),
-    .img_addr   (renkon_img_addr[IMGSIZE-1:0]),
+    .img_addr   (renkon_img_addr[MEMSIZE-1:0]),
     .img_wdata  (renkon_img_wdata[DWIDTH-1:0]),
     // Inputs
     .clk        (clk),
@@ -714,8 +714,8 @@ module kinpira
     .net_we     (renkon_net_we),
     .net_addr   (renkon_net_addr[RENKON_NETSIZE-1:0]),
     .net_wdata  (renkon_net_wdata[DWIDTH-1:0]),
-    .in_offset  (renkon_in_offset[IMGSIZE-1:0]),
-    .out_offset (renkon_out_offset[IMGSIZE-1:0]),
+    .in_offset  (renkon_in_offset[MEMSIZE-1:0]),
+    .out_offset (renkon_out_offset[MEMSIZE-1:0]),
     .net_offset (renkon_net_offset[RENKON_NETSIZE-1:0]),
     .total_out  (renkon_total_out[LWIDTH-1:0]),
     .total_in   (renkon_total_in[LWIDTH-1:0]),
@@ -734,7 +734,7 @@ module kinpira
     // Outputs
     .ack        (gobou_ack),
     .img_we     (gobou_img_we),
-    .img_addr   (gobou_img_addr[IMGSIZE-1:0]),
+    .img_addr   (gobou_img_addr[MEMSIZE-1:0]),
     .img_wdata  (gobou_img_wdata[DWIDTH-1:0]),
     // Inputs
     .clk        (clk),
@@ -744,8 +744,8 @@ module kinpira
     .net_we     (gobou_net_we),
     .net_addr   (gobou_net_addr[GOBOU_NETSIZE-1:0]),
     .net_wdata  (gobou_net_wdata[DWIDTH-1:0]),
-    .in_offset  (gobou_in_offset[IMGSIZE-1:0]),
-    .out_offset (gobou_out_offset[IMGSIZE-1:0]),
+    .in_offset  (gobou_in_offset[MEMSIZE-1:0]),
+    .out_offset (gobou_out_offset[MEMSIZE-1:0]),
     .net_offset (gobou_net_offset[GOBOU_NETSIZE-1:0]),
     .total_out  (gobou_total_out[LWIDTH-1:0]),
     .total_in   (gobou_total_in[LWIDTH-1:0]),

@@ -9,7 +9,7 @@
 #define BWIDTH          32
 #define DWIDTH          16
 #define LWIDTH          16
-#define IMGSIZE         31
+#define MEMSIZE         31
 #define REGSIZE         32
 
 #define RENKON_CORE     8

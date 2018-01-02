@@ -19,10 +19,10 @@ parameter PORT  = 32;
 
 parameter LSB     = 2;
 `ifndef DIST
-parameter MEMSIZE = IMGSIZE - RATELOG;
+parameter WORDSIZE = MEMSIZE - RATELOG;
 `else
-// parameter MEMSIZE = IMGSIZE - RATELOG;
-parameter MEMSIZE = 30;
+// parameter WORDSIZE = MEMSIZE - RATELOG;
+parameter WORDSIZE = 30;
 `endif
 
 parameter BUFSIZE   = 8;

@@ -5,24 +5,24 @@ module ninjin_ddr_buf
   , input                     xrst
   // meta inputs
   , input                     pre_req
-  , input [MEMSIZE-1:0]       pre_base
+  , input [WORDSIZE-1:0]      pre_base
   , input [LWIDTH-1:0]        read_len
   , input [LWIDTH-1:0]        write_len
   // memory ports
   , input                     mem_we
-  , input [IMGSIZE-1:0]       mem_addr
+  , input [MEMSIZE-1:0]       mem_addr
   , input signed [DWIDTH-1:0] mem_wdata
   // m_axi ports (fed back)
   , input                     ddr_we
-  , input [MEMSIZE-1:0]       ddr_waddr
+  , input [WORDSIZE-1:0]      ddr_waddr
   , input [BWIDTH-1:0]        ddr_wdata
-  , input [MEMSIZE-1:0]       ddr_raddr
+  , input [WORDSIZE-1:0]      ddr_raddr
   // meta outputs
   , output                      pre_ack
   // m_axi signals
   , output                      ddr_req
   , output                      ddr_mode
-  , output [MEMSIZE+LSB-1:0]    ddr_base
+  , output [WORDSIZE+LSB-1:0]   ddr_base
   , output [LWIDTH-1:0]         ddr_len
   , output [BWIDTH-1:0]         ddr_rdata
   // memory data
@@ -58,7 +58,7 @@ module ninjin_ddr_buf
   wire                        switch_buf;
   wire                        switch_post_main;
   wire                        switch_post_sub;
-  wire signed [IMGSIZE-1:0]   addr_diff;
+  wire signed [MEMSIZE-1:0]   addr_diff;
   wire [BUFSIZE+RATELOG-1:0]  addr_offset;
   wire [RATELOG-1:0]          word_offset;
   wire signed [DWIDTH-1:0]    alpha [RATE-1:0];
@@ -78,25 +78,25 @@ module ninjin_ddr_buf
   reg [1:0]               mode$;
   reg_which               mem_which$;
   reg                     mem_we$;
-  reg [IMGSIZE-1:0]       mem_addr$;
+  reg [MEMSIZE-1:0]       mem_addr$;
   reg signed [DWIDTH-1:0] mem_wdata$;
   reg_which               ddr_which$;
   reg                     ddr_req$;
   reg                     ddr_mode$;
-  reg [MEMSIZE+LSB-1:0]   ddr_base$;
+  reg [WORDSIZE+LSB-1:0]  ddr_base$;
   reg [LWIDTH-1:0]        ddr_len$;
   reg                     buf_we$;
   reg [BUFSIZE-1:0]       buf_addr$;
   reg [BWIDTH-1:0]        buf_wdata$;
-  reg [MEMSIZE-1:0]       buf_base$ [1:0];
+  reg [WORDSIZE-1:0]      buf_base$ [1:0];
   reg                     pre_req$;
   reg                     pre_ack$;
-  reg [MEMSIZE-1:0]       pre_base$;
-  reg [MEMSIZE-1:0]       post_base$;
+  reg [WORDSIZE-1:0]      pre_base$;
+  reg [WORDSIZE-1:0]      post_base$;
   reg [RATE-1:0]          we_accum$;
-  reg [IMGSIZE-1:0]       read_len$;
-  reg [IMGSIZE-1:0]       write_len$;
-  reg [IMGSIZE-1:0]       count_len$;
+  reg [MEMSIZE-1:0]       read_len$;
+  reg [MEMSIZE-1:0]       write_len$;
+  reg [MEMSIZE-1:0]       count_len$;
   reg [LWIDTH-1:0]        count_buf$;
   reg [LWIDTH-1:0]        count_post$;
   reg                     switch_buf$;
@@ -530,9 +530,9 @@ module ninjin_ddr_buf
   endfunction
 
   function [BUFSIZE-1:0] gen_pre_addr
-    ( input [IMGSIZE-1:0] mem_addr
-    , input [MEMSIZE-1:0] ddr_waddr
-    , input [MEMSIZE-1:0] pre_base$
+    ( input [MEMSIZE-1:0]  mem_addr
+    , input [WORDSIZE-1:0] ddr_waddr
+    , input [WORDSIZE-1:0] pre_base$
     );
 
     case (which$)
@@ -682,11 +682,11 @@ module ninjin_ddr_buf
 
   function [BUFSIZE-1:0] gen_buf_addr
     ( input integer i
-    , input [BUFSIZE-1:0] buf_addr$
-    , input [MEMSIZE-1:0] ddr_waddr
-    , input [MEMSIZE-1:0] ddr_raddr
-    , input [IMGSIZE-1:0] mem_addr
-    , input [MEMSIZE-1:0] buf_base$ [1:0]
+    , input [BUFSIZE-1:0]  buf_addr$
+    , input [WORDSIZE-1:0] ddr_waddr
+    , input [WORDSIZE-1:0] ddr_raddr
+    , input [MEMSIZE-1:0]  mem_addr
+    , input [WORDSIZE-1:0] buf_base$ [1:0]
     );
 
     if (reg_which'(i) == ALPHA)
@@ -851,9 +851,9 @@ module ninjin_ddr_buf
   endfunction
 
   function [BUFSIZE-1:0] gen_post_addr
-    ( input [MEMSIZE-1:0] post_addr$
-    , input [MEMSIZE-1:0] ddr_raddr
-    , input [MEMSIZE-1:0] post_base$
+    ( input [WORDSIZE-1:0] post_addr$
+    , input [WORDSIZE-1:0] ddr_raddr
+    , input [WORDSIZE-1:0] post_base$
     );
 
     case (which$)

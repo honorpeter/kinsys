@@ -23,7 +23,7 @@ int main(void)
   printf("\033[2J");
   puts("### lenet\n");
 
-  memmove(input, image, sizeof(s16)*N_IN*ISIZE*ISIZE);
+  memmove(input, image, sizeof(s16)*N_IN*IMG_SIZE*IMG_SIZE);
   LeNet_eval();
   memmove(label, output, sizeof(s16)*LABEL);
 
