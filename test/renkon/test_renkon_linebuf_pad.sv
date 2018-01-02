@@ -8,7 +8,7 @@
 // 3, 2, 1
 parameter SIZE    = 12;
 parameter KERN    = 2;
-parameter STRIDE  = 2;
+parameter STRID   = 2;
 parameter PADDING = 0;
 parameter COVER_ALL = 1'b0;
 parameter DELAY = 1;
@@ -24,7 +24,7 @@ module test_renkon_linebuf_pad;
   reg                       xrst;
   reg  [LWIDTH-1:0]         size;
   reg  [LWIDTH-1:0]         kern;
-  reg  [LWIDTH-1:0]         stride;
+  reg  [LWIDTH-1:0]         strid;
   reg  [LWIDTH-1:0]         pad;
   reg                       buf_req;
   reg  signed [DWIDTH-1:0]  buf_input;
@@ -92,7 +92,7 @@ module test_renkon_linebuf_pad;
     buf_req = 0;
     size    = SIZE;
     kern    = KERN;
-    stride  = STRIDE;
+    strid   = STRID;
     pad     = PADDING;
     #(STEP*5);
 

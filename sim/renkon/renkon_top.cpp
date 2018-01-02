@@ -5,11 +5,11 @@
 #include <limits>
 #include <lib.hpp>
 
-// const int n_out     = 32;
-// const int n_in      = 16;
+const int n_out     = 32;
+const int n_in      = 16;
 const int img_size  = 12;
-const int n_out = 16;
-const int n_in  = 1;
+// const int n_out = 16;
+// const int n_in  = 1;
 // const int img_size = 28;
 
 int make_size(int size, int kern, int stride, int pad, bool cover_all=false)
@@ -21,12 +21,12 @@ int make_size(int size, int kern, int stride, int pad, bool cover_all=false)
 }
 
 const int conv_kern   = 3;
-const int conv_stride = 1;
-const int conv_pad    = (conv_kern-1)/2;
+const int conv_stride = 2;
+const int conv_pad    = 1;
 const int fea_size    = make_size(img_size, conv_kern, conv_stride, conv_pad);
-const int pool_kern   = 2;
+const int pool_kern   = 3;
 const int pool_stride = 2;
-const int pool_pad    = 0;
+const int pool_pad    = 1;
 const int out_size    = make_size(fea_size, pool_kern, pool_stride, pool_pad,
                                   true);
 
@@ -44,9 +44,9 @@ T mul(T x, T y)
 template <typename T>
 void conv(Mat3D<T> &output, Mat3D<T> &input, Mat4D<T> &weight)
 {
-  // auto padded = zeros<T>(n_in, img_size+2*conv_pad, img_size+2*conv_pad);
-  auto padded = zeros<T>(n_in, img_size+2*conv_pad+conv_stride-1,
-                               img_size+2*conv_pad+conv_stride-1);
+  auto padded = zeros<T>(n_in, img_size+2*conv_pad, img_size+2*conv_pad);
+  // auto padded = zeros<T>(n_in, img_size+2*conv_pad+conv_stride-1,
+  //                              img_size+2*conv_pad+conv_stride-1);
 
   for range(n, n_in)
   for range(i, img_size)
@@ -54,8 +54,8 @@ void conv(Mat3D<T> &output, Mat3D<T> &input, Mat4D<T> &weight)
     padded[n][i+conv_pad][j+conv_pad] = input[n][i][j];
 
   for range(n, n_out)
-  for ranges(i, fea_size, conv_stride)
-  for ranges(j, fea_size, conv_stride) {
+  for ranges(i, img_size+2*conv_pad-conv_kern+1, conv_stride)
+  for ranges(j, img_size+2*conv_pad-conv_kern+1, conv_stride) {
     T acc = 0;
     for range(m, n_in)
     for range(di, conv_kern)
@@ -134,10 +134,17 @@ int main(void)
       for range(j, out_size)
         printf("%d\n", pmap[n][i][j]);
 
-  // for range(n, n_out)
-  //   for range(i, fea_size)
-  //     for range(j, fea_size)
-  //       printf("%d\n", fmap[n][i][j]);
+  // for ranges(i, img_size+2*conv_pad-conv_kern+1, conv_stride)
+  //   fprintf(stderr, "%d\n", i);
+  for range(n, n_out) {
+    for range(i, fea_size) {
+      for range(j, fea_size) {
+        fprintf(stderr, "%d\n", amap[n][i][j]);
+      }
+      fprintf(stderr, "\n");
+    }
+    fprintf(stderr, "\n");
+  }
 
   return 0;
 }

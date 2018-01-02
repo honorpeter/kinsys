@@ -22,17 +22,6 @@ module renkon_pool
 
   assign pixel_out = pixel_out$;
 
-if (1)
-  renkon_linebuf #(PSIZE, D_POOLBUF) buf_feat(
-    .buf_wsel   (buf_feat_wsel),
-    .buf_rsel   (buf_feat_rsel),
-    .buf_we     (buf_feat_we),
-    .buf_addr   (buf_feat_addr),
-    .buf_input  (pixel_in),
-    .buf_output (pixel_feat),
-    .*
-  );
-else
   renkon_linebuf_pad #(PSIZE, D_POOLBUF) buf_feat(
     .buf_wcol   (buf_feat_wcol),
     .buf_rrow   (buf_feat_rrow),

@@ -6,8 +6,8 @@ module renkon_ctrl_pool
   , input                             _pool_en
   , ctrl_bus.slave                    in_ctrl
   , input  [LWIDTH-1:0]               _fea_size
-  , input  [LWIDTH-1:0]               _out_size
   , input  [LWIDTH-1:0]               _pool_kern
+  , input  [LWIDTH-1:0]               _pool_strid
   , input  [LWIDTH-1:0]               _pool_pad
   , ctrl_bus.master                   out_ctrl
   , output                            pool_oe
@@ -31,13 +31,9 @@ module renkon_ctrl_pool
   } state$;
   reg              buf_feat_req$;
   reg [LWIDTH-1:0] fea_size$;
-  reg [LWIDTH-1:0] out_size$;
   reg [LWIDTH-1:0] pool_kern$;
+  reg [LWIDTH-1:0] pool_strid$;
   reg [LWIDTH-1:0] pool_pad$;
-  reg [LWIDTH-1:0] pool_x$;
-  reg [LWIDTH-1:0] pool_y$;
-  reg [LWIDTH-1:0] pool_exec_x$;
-  reg [LWIDTH-1:0] pool_exec_y$;
   ctrl_reg         out_ctrl$   [D_POOL-1:0];
 
 //==========================================================
@@ -59,54 +55,16 @@ module renkon_ctrl_pool
 
   always @(posedge clk)
     if (!xrst) begin
-      fea_size$  <= 0;
-      pool_kern$ <= 0;
-      pool_pad$  <= 0;
-      out_size$  <= 0;
+      fea_size$   <= 0;
+      pool_kern$  <= 0;
+      pool_strid$ <= 0;
+      pool_pad$   <= 0;
     end
     else if (state$ == S_WAIT && in_ctrl.start) begin
-      fea_size$  <= _fea_size;
-      pool_kern$ <= _pool_kern;
-      pool_pad$  <= _pool_pad;
-      out_size$  <= _out_size;
-    end
-
-  always @(posedge clk)
-    if (!xrst) begin
-      pool_x$ <= 0;
-      pool_y$ <= 0;
-      pool_exec_x$ <= 0;
-      pool_exec_y$ <= 0;
-    end
-    else if (buf_feat_ack) begin
-      pool_x$      <= 0;
-      pool_y$      <= 0;
-      pool_exec_x$ <= 0;
-      pool_exec_y$ <= 0;
-    end
-    else begin
-      // if (pool_x$ == fea_size$ - pool_kern$) begin
-      if (pool_x$ == out_size$ - 1) begin
-        pool_x$ <= 0;
-
-        // if (pool_y$ == fea_size$ - pool_kern$)
-        if (pool_y$ == out_size$ - 1)
-          pool_y$ <= 0;
-        else
-          pool_y$ <= pool_y$ + 1;
-
-        if (pool_exec_y$ == pool_kern$ - 1)
-          pool_exec_y$ <= 0;
-        else
-          pool_exec_y$ <= pool_exec_y$ + 1;
-      end
-      else if (buf_feat_valid)
-        pool_x$ <= pool_x$ + 1;
-
-      if (pool_exec_x$ == pool_kern$ - 1)
-        pool_exec_x$ <= 0;
-      else if (buf_feat_valid)
-        pool_exec_x$ <= pool_exec_x$ + 1;
+      fea_size$   <= _fea_size;
+      pool_kern$  <= _pool_kern;
+      pool_strid$ <= _pool_strid;
+      pool_pad$   <= _pool_pad;
     end
 
 //==========================================================
@@ -122,28 +80,11 @@ module renkon_ctrl_pool
     else
       buf_feat_req$ <= in_ctrl.start;
 
-if (0)
-  renkon_ctrl_linebuf #(PSIZE, D_POOLBUF) ctrl_buf_feat(
-    .img_size   (fea_size$),
-    .fil_size   (pool_kern$),
-
-    .buf_req    (buf_feat_req),
-    .buf_ack    (buf_feat_ack),
-    .buf_start  (buf_feat_start),
-    .buf_valid  (buf_feat_valid),
-    .buf_stop   (buf_feat_stop),
-
-    .buf_wsel   (buf_feat_wsel),
-    .buf_rsel   (buf_feat_rsel),
-    .buf_we     (buf_feat_we),
-    .buf_addr   (buf_feat_addr),
-    .*
-  );
-else
-  renkon_ctrl_linebuf_pad #(PSIZE, D_POOLBUF) ctrl_buf_feat(
-    .img_size   (fea_size$),
-    .fil_size   (pool_kern$),
-    .pad_size   (pool_pad$),
+  renkon_ctrl_linebuf_pad #(PSIZE, D_POOLBUF, 1'b1) ctrl_buf_feat(
+    .size       (fea_size$),
+    .kern       (pool_kern$),
+    .strid      (pool_strid$),
+    .pad        (pool_pad$),
     .buf_req    (buf_feat_req),
     .buf_delay  (in_ctrl.delay),
 
@@ -166,8 +107,10 @@ else
 // output control
 //==========================================================
 
-  assign in_ctrl.ready  = buf_feat_ready;
-  assign out_ctrl.delay = in_ctrl.delay + D_POOL;
+  assign in_ctrl.ready  = _pool_en
+                        ? buf_feat_ready
+                        : out_ctrl.ready;
+  assign out_ctrl.delay = in_ctrl.delay + (_pool_en ? D_POOL : 1);
 
   assign out_ctrl.start = _pool_en
                         ? out_ctrl$[D_POOL-1].start
@@ -196,9 +139,7 @@ else
         end
         else begin
           out_ctrl$[0].start <= buf_feat_start;
-          out_ctrl$[0].valid <= buf_feat_valid
-                             && pool_exec_x$ == 0
-                             && pool_exec_y$ == 0;
+          out_ctrl$[0].valid <= buf_feat_valid;
           out_ctrl$[0].stop  <= buf_feat_stop;
         end
     end

@@ -5,14 +5,15 @@
 // `define NINJIN
 `define DIRECT
 
-// int N_OUT = 32;
-// int N_IN  = 16;
+int N_OUT = 32;
+int N_IN  = 16;
 int ISIZE = 12;
-int N_OUT = 16;
-int N_IN  = 1;
+// int N_OUT = 16;
+// int N_IN  = 1;
 // int ISIZE = 28;
+int STRID = 2;
 int FEAT  = ISIZE + 2*PAD - FSIZE + 1;
-int OSIZE = FEAT / PSIZE;
+int OSIZE = (FEAT + 2*1 - 3 + 2) / (STRID*PSIZE);
 // int OSIZE = FEAT;
 int IMG_OFFSET = 100;
 int OUT_OFFSET = 5000;
@@ -44,11 +45,13 @@ module test_renkon_top;
   reg [LWIDTH-1:0]          total_in;
   reg [LWIDTH-1:0]          img_size;
   reg [LWIDTH-1:0]          conv_kern;
+  reg [LWIDTH-1:0]          conv_strid;
   reg [LWIDTH-1:0]          conv_pad;
   reg                       bias_en;
   reg                       relu_en;
   reg                       pool_en;
   reg [LWIDTH-1:0]          pool_kern;
+  reg [LWIDTH-1:0]          pool_strid;
   reg [LWIDTH-1:0]          pool_pad;
 
   wire                      ack;
@@ -210,13 +213,21 @@ module test_renkon_top;
     total_out   = N_OUT;
     total_in    = N_IN;
     img_size    = ISIZE;
-    conv_kern   = FSIZE;
-    conv_pad    = PAD;
+    // conv_kern   = FSIZE;
+    // conv_strid  = STRID;
+    // conv_pad    = PAD;
+    conv_kern   = 3;
+    conv_strid  = 2;
+    conv_pad    = 1;
     bias_en     = DO_BIAS;
     relu_en     = DO_RELU;
     pool_en     = DO_POOL;
-    pool_kern   = PSIZE;
-    pool_pad    = 0;
+    // pool_kern   = PSIZE;
+    // pool_strid  = PSIZE;
+    // pool_pad    = 0;
+    pool_kern   = 3;
+    pool_strid  = 2;
+    pool_pad    = 1;
 
     img_we    = 0;
     img_addr  = 0;
@@ -639,39 +650,14 @@ module test_renkon_top;
           // "*%d ", dut.ctrl.ctrl_conv.core_state$,
           // "*%d ", dut.ctrl.ctrl_conv.state$,
           "| ",
-          "%1b%1b%1b%1b ", dut.ctrl.ctrl_core.out_ctrl.start,
-                           dut.ctrl.ctrl_core.out_ctrl.valid,
-                           dut.ctrl.ctrl_core.out_ctrl.ready,
-                           dut.ctrl.ctrl_core.out_ctrl.stop,
-          "%1b%1b%1b%1b ", dut.ctrl.ctrl_conv.out_ctrl.start,
-                           dut.ctrl.ctrl_conv.out_ctrl.valid,
-                           dut.ctrl.ctrl_conv.out_ctrl.ready,
-                           dut.ctrl.ctrl_conv.out_ctrl.stop,
-          // "%1b%1b%1b%1b ", dut.ctrl.ctrl_bias.out_ctrl.start,
-          //                  dut.ctrl.ctrl_bias.out_ctrl.valid,
-          //                  dut.ctrl.ctrl_bias.out_ctrl.ready,
-          //                  dut.ctrl.ctrl_bias.out_ctrl.stop,
-          // "%1b%1b%1b%1b ", dut.ctrl.ctrl_relu.out_ctrl.start,
-          //                  dut.ctrl.ctrl_relu.out_ctrl.valid,
-          //                  dut.ctrl.ctrl_relu.out_ctrl.ready,
-          //                  dut.ctrl.ctrl_relu.out_ctrl.stop,
-          "%1b%1b%1b%1b ", dut.ctrl.ctrl_pool.out_ctrl.start,
-                           dut.ctrl.ctrl_pool.out_ctrl.valid,
-                           dut.ctrl.ctrl_pool.out_ctrl.ready,
-                           dut.ctrl.ctrl_pool.out_ctrl.stop,
-          "| ",
           "%2d ", dut.ctrl.ctrl_core.count_out$,
           "%2d ", dut.ctrl.ctrl_core.count_in$,
-          "%2d ", dut.ctrl.ctrl_core.input_x$,
-          "%2d ", dut.ctrl.ctrl_core.input_y$,
           "%2d ", dut.ctrl.ctrl_core.weight_x$,
           "%2d ", dut.ctrl.ctrl_core.weight_y$,
           ": ",
+          "%2d ", dut.ctrl.ctrl_conv._conv_strid,
           "%2d ", dut.ctrl.ctrl_conv.conv_x$,
           "%2d ", dut.ctrl.ctrl_conv.conv_y$,
-          ": ",
-          "%2d ", dut.ctrl.ctrl_pool.pool_x$,
-          "%2d ", dut.ctrl.ctrl_pool.pool_y$,
           "| ",
           "%1d ", mem_img_we,
           "%4d ", mem_img_addr,
@@ -682,13 +668,13 @@ module test_renkon_top;
           // "%4d ", dut.pe[0].mem_net.mem_addr,
           // "%5d ", dut.pe[0].mem_net.mem_wdata,
           // "%5d ", dut.pe[0].mem_net.mem_rdata,
-          "| ",
-          "%1d ", dut.pe[0].core.conv.mem_feat_rst,
-          "%1d ", dut.pe[0].core.conv.mem_feat_we,
-          "%4d ", dut.pe[0].core.conv.mem_feat_waddr,
-          "%5d ", dut.pe[0].core.conv.mem_feat_wdata,
-          "%4d ", dut.pe[0].core.conv.mem_feat_raddr,
-          "%5d ", dut.pe[0].core.conv.mem_feat_rdata,
+          // "| ",
+          // "%1d ", dut.pe[0].core.conv.mem_feat_rst,
+          // "%1d ", dut.pe[0].core.conv.mem_feat_we,
+          // "%4d ", dut.pe[0].core.conv.mem_feat_waddr,
+          // "%5d ", dut.pe[0].core.conv.mem_feat_wdata,
+          // "%4d ", dut.pe[0].core.conv.mem_feat_raddr,
+          // "%5d ", dut.pe[0].core.conv.mem_feat_rdata,
           "| ",
           "%1b ", dut.ctrl.ctrl_core.buf_pix_req,
           "%1b ", dut.ctrl.ctrl_core.buf_pix_ack,
@@ -726,13 +712,56 @@ module test_renkon_top;
           "%5d ", dut.pe[0].core.bmap,
           "%4d ", dut.pe[0].core.amap,
           "%4d ", dut.pe[0].core.pmap,
-          // ": ",
+          ": ",
           // "%4d ", dut.pe[0].core.pool.pixel_feat[0],
           // "%4d ", dut.pe[0].core.pool.pixel_feat[3],
-          // "%1d ", dut.pe[0].core.conv_oe,
-          // "%1d ", dut.pe[0].core.bias_oe,
-          // "%1d ", dut.pe[0].core.relu_oe,
-          // "%1d ", dut.pe[0].core.pool_oe,
+          "%1d ", dut.pe[0].core.conv_oe,
+          "%1d ", dut.pe[0].core.bias_oe,
+          "%1d ", dut.pe[0].core.relu_oe,
+          "%1d ", dut.pe[0].core.pool_oe,
+          "| ",
+          "%1b%1b%1b%1b ", dut.ctrl.ctrl_core.out_ctrl.start,
+                           dut.ctrl.ctrl_core.out_ctrl.valid,
+                           dut.ctrl.ctrl_core.out_ctrl.ready,
+                           dut.ctrl.ctrl_core.out_ctrl.stop,
+          "%1b%1b%1b%1b ", dut.ctrl.ctrl_conv.out_ctrl.start,
+                           dut.ctrl.ctrl_conv.out_ctrl.valid,
+                           dut.ctrl.ctrl_conv.out_ctrl.ready,
+                           dut.ctrl.ctrl_conv.out_ctrl.stop,
+          "%1b%1b%1b%1b ", dut.ctrl.ctrl_bias.out_ctrl.start,
+                           dut.ctrl.ctrl_bias.out_ctrl.valid,
+                           dut.ctrl.ctrl_bias.out_ctrl.ready,
+                           dut.ctrl.ctrl_bias.out_ctrl.stop,
+          "%1b%1b%1b%1b ", dut.ctrl.ctrl_relu.out_ctrl.start,
+                           dut.ctrl.ctrl_relu.out_ctrl.valid,
+                           dut.ctrl.ctrl_relu.out_ctrl.ready,
+                           dut.ctrl.ctrl_relu.out_ctrl.stop,
+          "%1b%1b%1b%1b ", dut.ctrl.ctrl_pool.out_ctrl.start,
+                           dut.ctrl.ctrl_pool.out_ctrl.valid,
+                           dut.ctrl.ctrl_pool.out_ctrl.ready,
+                           dut.ctrl.ctrl_pool.out_ctrl.stop,
+          "| ",
+          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.row_count,
+          // "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.mem_count,
+          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.col_count,
+          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.str_x_count,
+          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.str_y_count,
+          "| ",
+          // "%1d ", dut.ctrl.ctrl_core.serial_we$,
+          // "%1d ", dut.ctrl.ctrl_core.serial_re$,
+          // "%3d ", dut.ctrl.ctrl_core.serial_addr$,
+          // "%3d ", dut.ctrl.ctrl_core.serial_cnt$,
+          // "%1d ", dut.ctrl.ctrl_core.serial_end$,
+          // ": ",
+          // "%1d ", dut.ctrl.ctrl_core.in_period$,
+          "%1d ", dut.ctrl.ctrl_conv.wait_back$,
+          // "| ",
+          // "%1d ", dut.serial.serial_we,
+          // "%1d ", dut.serial.serial_re,
+          // "%4d ", dut.serial.serial_addr,
+          // "%4d ", dut.serial.in_data[0],
+          // "%4d ", dut.serial.out_data,
+          "%1d ", dut.ctrl.ctrl_core.fea_size$,
           "|"
         );
       end

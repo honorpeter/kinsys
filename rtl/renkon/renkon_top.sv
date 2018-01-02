@@ -18,11 +18,13 @@ module renkon_top
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_size
   , input  [LWIDTH-1:0]         conv_kern
+  , input  [LWIDTH-1:0]         conv_strid
   , input  [LWIDTH-1:0]         conv_pad
   , input                       bias_en
   , input                       relu_en
   , input                       pool_en
   , input  [LWIDTH-1:0]         pool_kern
+  , input  [LWIDTH-1:0]         pool_strid
   , input  [LWIDTH-1:0]         pool_pad
 
   , output                      ack
