@@ -45,7 +45,8 @@ layer *map_layer(
   l->base_param[0] = out->shape[0] << LWIDTH
                    | in->shape[0];
 
-  l->base_param[1] = in->shape[1];
+  l->base_param[1] = in->shape[1] << LWIDTH
+                   | in->shape[2];
 
   define_conv(l, conv_param);
   define_norm(l, norm_param);

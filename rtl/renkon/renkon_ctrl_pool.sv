@@ -5,7 +5,8 @@ module renkon_ctrl_pool
   , input                             xrst
   , input                             _pool_en
   , ctrl_bus.slave                    in_ctrl
-  , input  [LWIDTH-1:0]               _fea_size
+  , input  [LWIDTH-1:0]               _fea_height
+  , input  [LWIDTH-1:0]               _fea_width
   , input  [LWIDTH-1:0]               _pool_kern
   , input  [LWIDTH-1:0]               _pool_strid
   , input  [LWIDTH-1:0]               _pool_pad
@@ -30,7 +31,8 @@ module renkon_ctrl_pool
     S_WAIT, S_ACTIVE
   } state$;
   reg              buf_feat_req$;
-  reg [LWIDTH-1:0] fea_size$;
+  reg [LWIDTH-1:0] fea_height$;
+  reg [LWIDTH-1:0] fea_width$;
   reg [LWIDTH-1:0] pool_kern$;
   reg [LWIDTH-1:0] pool_strid$;
   reg [LWIDTH-1:0] pool_pad$;
@@ -55,13 +57,15 @@ module renkon_ctrl_pool
 
   always @(posedge clk)
     if (!xrst) begin
-      fea_size$   <= 0;
+      fea_height$ <= 0;
+      fea_width$  <= 0;
       pool_kern$  <= 0;
       pool_strid$ <= 0;
       pool_pad$   <= 0;
     end
     else if (state$ == S_WAIT && in_ctrl.start) begin
-      fea_size$   <= _fea_size;
+      fea_height$ <= _fea_height;
+      fea_width$  <= _fea_width;
       pool_kern$  <= _pool_kern;
       pool_strid$ <= _pool_strid;
       pool_pad$   <= _pool_pad;
@@ -81,7 +85,8 @@ module renkon_ctrl_pool
       buf_feat_req$ <= in_ctrl.start;
 
   renkon_ctrl_linebuf_pad #(POOL_KERN, D_POOLBUF, 1'b1) ctrl_buf_feat(
-    .size       (fea_size$),
+    .height     (fea_height$),
+    .width      (fea_width$),
     .kern       (pool_kern$),
     .strid      (pool_strid$),
     .pad        (pool_pad$),

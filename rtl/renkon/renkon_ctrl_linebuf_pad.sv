@@ -15,7 +15,8 @@ module renkon_ctrl_linebuf_pad
   )
   ( input                   clk
   , input                   xrst
-  , input  [LWIDTH-1:0]     size
+  , input  [LWIDTH-1:0]     height
+  , input  [LWIDTH-1:0]     width
   , input  [LWIDTH-1:0]     kern
   , input  [LWIDTH-1:0]     strid
   , input  [LWIDTH-1:0]     pad
@@ -71,10 +72,10 @@ module renkon_ctrl_linebuf_pad
   assign buf_ack = state$ == S_WAIT && buf_ack$[2];
 
   assign s_charge_end = mem_count == kern - pad - 1
-                     && col_count == make_size(size, kern, strid, pad) - 1;
+                     && col_count == make_size(width, kern, strid, pad) - 1;
 
-  assign s_active_end = row_count == make_size(size, kern, strid, pad) - pad
-                     && col_count == make_size(size, kern, strid, pad) - 1;
+  assign s_active_end = row_count == make_size(height, kern, strid, pad) - pad
+                     && col_count == make_size(width, kern, strid, pad) - 1;
 
 
   always @(posedge clk)
@@ -129,7 +130,7 @@ module renkon_ctrl_linebuf_pad
     else if (state$ == S_WAIT)
       col_count$[0] <= 0;
     else
-      if (col_count$[0] == make_size(size, kern, strid, pad) - 1)
+      if (col_count$[0] == make_size(width, kern, strid, pad) - 1)
         col_count$[0] <= 0;
       else
         col_count$[0] <= col_count$[0] + 1;
@@ -139,7 +140,7 @@ module renkon_ctrl_linebuf_pad
       mem_count$[0] <= 0;
     else if  (state$ == S_WAIT)
       mem_count$[0] <= 0;
-    else if (col_count$[0] == make_size(size, kern, strid, pad) - 1)
+    else if (col_count$[0] == make_size(width, kern, strid, pad) - 1)
       if (mem_count$[0] == BUFLINE-1)
         mem_count$[0] <= 0;
       else
@@ -150,8 +151,8 @@ module renkon_ctrl_linebuf_pad
       row_count$[0] <= 0;
     else if  (state$ == S_WAIT)
       row_count$[0] <= 0;
-    else if (col_count$[0] == make_size(size, kern, strid, pad) - 1)
-      if (row_count$[0] == make_size(size, kern, strid, pad))
+    else if (col_count$[0] == make_size(width, kern, strid, pad) - 1)
+      if (row_count$[0] == make_size(height, kern, strid, pad))
         row_count$[0] <= 0;
       else
         row_count$[0] <= row_count$[0] + 1;
@@ -172,7 +173,7 @@ module renkon_ctrl_linebuf_pad
       str_y_count$[0] <= 0;
     else if  (state$ == S_WAIT)
       str_y_count$[0] <= 0;
-    else if (col_count$[0] == make_size(size, kern, strid, pad) - 1)
+    else if (col_count$[0] == make_size(width, kern, strid, pad) - 1)
       if (str_y_count$[0] == strid-1)
         str_y_count$[0] <= 0;
       else
@@ -213,8 +214,8 @@ module renkon_ctrl_linebuf_pad
     else if (state$ == S_WAIT)
       buf_wcol$ <= 0;
     else
-      buf_wcol$ <= 0   <= row_count && row_count < size
-                && pad <= col_count && col_count < size + pad;
+      buf_wcol$ <= 0   <= row_count && row_count < height
+                && pad <= col_count && col_count < width + pad;
 
   for (genvar i = 0; i < 2; i++)
     for (genvar j = 0; j < MAXFIL; j++)
@@ -223,7 +224,7 @@ module renkon_ctrl_linebuf_pad
           if (!xrst)
             buf_rrow$[0][j] <= 0;
           else
-            buf_rrow$[0][j] <= kern <= row_count+j && row_count+j < size + kern;
+            buf_rrow$[0][j] <= kern <= row_count+j && row_count+j < height + kern;
         end
       else begin
         always @(posedge clk)
@@ -274,8 +275,8 @@ module renkon_ctrl_linebuf_pad
 // {{{
 
   assign buf_ready = state$ != S_WAIT
-                  && 0   <= row_count$[0] && row_count$[0] < size
-                  && pad <= col_count$[0] && col_count$[0] < size + pad;
+                  && 0   <= row_count$[0] && row_count$[0] < height
+                  && pad <= col_count$[0] && col_count$[0] < width + pad;
 
   assign buf_we   = buf_we$;
   assign buf_addr = buf_addr$;
@@ -290,7 +291,7 @@ module renkon_ctrl_linebuf_pad
     else if (state$ == S_WAIT)
       buf_we$ <= 0;
     else
-      buf_we$ <= row_count < size + pad;
+      buf_we$ <= row_count < height + pad;
 
   always @(posedge clk)
     if (!xrst)
@@ -322,13 +323,13 @@ module renkon_ctrl_linebuf_pad
 
           buf_valid$[0] <= state$ == S_ACTIVE
                         && kern - 1 <= col_count
-                        && col_count < make_size(size, kern, strid, pad)
+                        && col_count < make_size(width, kern, strid, pad)
                         && str_x_count == str_x_start
                         && str_y_count == str_y_start;
 
           buf_stop$[0]  <= state$ == S_ACTIVE
-                        && row_count == size + pad
-                        && col_count == make_size(size, kern, strid, pad) - 1;
+                        && row_count == height + pad
+                        && col_count == make_size(width, kern, strid, pad) - 1;
         end
     end
     else begin
@@ -350,8 +351,6 @@ module renkon_ctrl_linebuf_pad
 //  Function
 //==========================================================
 // {{{
-
-  wire [LWIDTH-1:0] own_size = make_size(size, kern, strid, pad);
 
   function [LWIDTH-1:0] make_size
     ( input [LWIDTH-1:0] size

@@ -1,5 +1,6 @@
 `include "renkon.svh"
 
+// !!! DEPRECATED !!!
 module renkon_linebuf
  #( parameter MAXFIL = 5
   , parameter MAXIMG = 32

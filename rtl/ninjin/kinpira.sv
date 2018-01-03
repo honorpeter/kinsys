@@ -240,7 +240,8 @@ module kinpira
 
   wire [LWIDTH-1:0]         total_out;
   wire [LWIDTH-1:0]         total_in;
-  wire [LWIDTH-1:0]         img_size;
+  wire [LWIDTH-1:0]         img_height;
+  wire [LWIDTH-1:0]         img_width;
   wire [LWIDTH-1:0]         conv_kern;
   wire [LWIDTH-1:0]         conv_pad;
   wire                      bias_en;
@@ -285,7 +286,8 @@ module kinpira
   wire [RENKON_NETSIZE-1:0] renkon_net_offset;
   wire [LWIDTH-1:0]         renkon_total_out;
   wire [LWIDTH-1:0]         renkon_total_in;
-  wire [LWIDTH-1:0]         renkon_img_size;
+  wire [LWIDTH-1:0]         renkon_img_height;
+  wire [LWIDTH-1:0]         renkon_img_width;
   wire [LWIDTH-1:0]         renkon_conv_kern;
   wire [LWIDTH-1:0]         renkon_conv_pad;
   wire                      renkon_bias_en;
@@ -350,7 +352,8 @@ module kinpira
   // Network parameters
   assign total_out  = base_param[0][2*LWIDTH-1:LWIDTH];
   assign total_in   = base_param[0][LWIDTH-1:0];
-  assign img_size   = base_param[1][LWIDTH-1:0];
+  assign img_height = base_param[1][2*LWIDTH-1:LWIDTH];
+  assign img_width  = base_param[1][LWIDTH-1:0];
 
   assign conv_kern  = conv_param[2*LWIDTH-1:LWIDTH];
   assign conv_pad   = conv_param[LWIDTH-1:0];
@@ -413,7 +416,8 @@ module kinpira
   assign renkon_net_offset = which == WHICH_RENKON ? net_offset[RENKON_NETSIZE-1:0] : 0;
   assign renkon_total_out  = which == WHICH_RENKON ? total_out : 0;
   assign renkon_total_in   = which == WHICH_RENKON ? total_in : 0;
-  assign renkon_img_size   = which == WHICH_RENKON ? img_size : 0;
+  assign renkon_img_height = which == WHICH_RENKON ? img_height : 0;
+  assign renkon_img_width  = which == WHICH_RENKON ? img_width : 0;
   assign renkon_conv_kern  = which == WHICH_RENKON ? conv_kern : 0;
   assign renkon_conv_pad   = which == WHICH_RENKON ? conv_pad : 0;
   assign renkon_bias_en    = which == WHICH_RENKON ? bias_en : 0;
@@ -719,7 +723,8 @@ module kinpira
     .net_offset (renkon_net_offset[RENKON_NETSIZE-1:0]),
     .total_out  (renkon_total_out[LWIDTH-1:0]),
     .total_in   (renkon_total_in[LWIDTH-1:0]),
-    .img_size   (renkon_img_size[LWIDTH-1:0]),
+    .img_height (renkon_img_height[LWIDTH-1:0]),
+    .img_width  (renkon_img_width[LWIDTH-1:0]),
     .conv_kern  (renkon_conv_kern[LWIDTH-1:0]),
     .conv_pad   (renkon_conv_pad[LWIDTH-1:0]),
     .bias_en    (renkon_bias_en),

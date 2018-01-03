@@ -14,9 +14,8 @@ module renkon_ctrl_core
   , input  [RENKON_NETSIZE-1:0] net_offset
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
-  , input  [LWIDTH-1:0]         img_size
-  // , input  [LWIDTH-1:0]         img_height
-  // , input  [LWIDTH-1:0]         img_width
+  , input  [LWIDTH-1:0]         img_height
+  , input  [LWIDTH-1:0]         img_width
   , input  [LWIDTH-1:0]         conv_kern
   , input  [LWIDTH-1:0]         conv_strid
   , input  [LWIDTH-1:0]         conv_pad
@@ -42,7 +41,8 @@ module renkon_ctrl_core
   , output                            serial_we
   , output [RENKON_CORELOG:0]         serial_re
   , output [OUTSIZE-1:0]              serial_addr
-  , output [LWIDTH-1:0]               _fea_size
+  , output [LWIDTH-1:0]               _fea_height
+  , output [LWIDTH-1:0]               _fea_width
   , output [LWIDTH-1:0]               _conv_strid
   , output                            _bias_en
   , output                            _relu_en
@@ -90,11 +90,13 @@ module renkon_ctrl_core
 
   reg [LWIDTH-1:0]  total_out$;
   reg [LWIDTH-1:0]  total_in$;
-  reg [LWIDTH-1:0]  img_size$;
+  reg [LWIDTH-1:0]  img_height$;
+  reg [LWIDTH-1:0]  img_width$;
   reg [LWIDTH-1:0]  conv_kern$;
   reg [LWIDTH-1:0]  conv_strid$;
   reg [LWIDTH-1:0]  conv_pad$;
-  reg [LWIDTH-1:0]  fea_size$;
+  reg [LWIDTH-1:0]  fea_height$;
+  reg [LWIDTH-1:0]  fea_width$;
 
   reg [LWIDTH-1:0]  count_out$;
   reg [LWIDTH-1:0]  count_in$;
@@ -208,7 +210,8 @@ module renkon_ctrl_core
 // params control
 //==========================================================
 
-  assign _fea_size   = fea_size$;
+  assign _fea_height = fea_height$;
+  assign _fea_width  = fea_width$;
   assign _conv_strid = conv_strid$;
   assign _bias_en    = bias_en$;
   assign _relu_en    = relu_en$;
@@ -229,11 +232,13 @@ module renkon_ctrl_core
     if (!xrst) begin
       total_in$   <= 0;
       total_out$  <= 0;
-      img_size$   <= 0;
+      img_height$ <= 0;
+      img_width$  <= 0;
       conv_kern$  <= 0;
       conv_strid$ <= 0;
       conv_pad$   <= 0;
-      fea_size$   <= 0;
+      fea_height$ <= 0;
+      fea_width$  <= 0;
       bias_en$    <= 0;
       relu_en$    <= 0;
       pool_en$    <= 0;
@@ -244,12 +249,15 @@ module renkon_ctrl_core
     else if (state$ == S_WAIT && req_edge) begin
       total_in$   <= total_in;
       total_out$  <= total_out;
-      img_size$   <= img_size;
+      img_height$ <= img_height;
+      img_width$  <= img_width;
       conv_kern$  <= conv_kern;
       conv_strid$ <= conv_strid;
       conv_pad$   <= conv_pad;
-      fea_size$   <= img_size + conv_pad_both - conv_kern + 1;
-      // fea_size$   <= ((img_size + conv_pad_both - conv_kern) >> 1) + 1;
+      fea_height$ <= img_height + conv_pad_both - conv_kern + 1;
+      fea_width$  <= img_width + conv_pad_both - conv_kern + 1;
+      // fea_height$ <= ((img_height + conv_pad_both - conv_kern) >> 1) + 1;
+      // fea_width$  <= ((img_width + conv_pad_both - conv_kern) >> 1) + 1;
       bias_en$    <= bias_en;
       relu_en$    <= relu_en;
       pool_en$    <= pool_en;
@@ -376,8 +384,8 @@ module renkon_ctrl_core
 
   assign s_input_end = state$ == S_INPUT
                     && buf_pix_stop;
-                    // && input_x$ == fea_size$ - 1
-                    // && input_y$ == fea_size$ - 1;
+                    // && input_y$ == fea_height$ - 1
+                    // && input_x$ == fea_width$ - 1;
 
   assign img_we   = img_we$;
   assign img_addr = img_addr$;
@@ -453,9 +461,9 @@ module renkon_ctrl_core
   //   else
   //     case (state$)
   //       S_INPUT: if (buf_pix_valid) begin
-  //         if (input_x$ == fea_size$ - 1) begin
+  //         if (input_x$ == fea_width$ - 1) begin
   //           input_x$ <= 0;
-  //           if (input_y$ == fea_size$ - 1)
+  //           if (input_y$ == fea_height$ - 1)
   //             input_y$ <= 0;
   //           else
   //             input_y$ <= input_y$ + 1;
@@ -569,7 +577,8 @@ module renkon_ctrl_core
                   && serial_addr$ == serial_cnt$ - 1;
 
   renkon_ctrl_linebuf_pad #(CONV_KERN, D_PIXELBUF, 1'b0) ctrl_buf_pix(
-    .size       (img_size$),
+    .height     (img_height$),
+    .width      (img_width$),
     .kern       (conv_kern$),
     .strid      (conv_strid$),
     .pad        (conv_pad$),

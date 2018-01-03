@@ -5,7 +5,8 @@ module renkon_ctrl_conv
   , input               xrst
   , ctrl_bus.slave      in_ctrl
   , input  [2-1:0]      core_state
-  , input  [LWIDTH-1:0] _fea_size
+  , input  [LWIDTH-1:0] _fea_height
+  , input  [LWIDTH-1:0] _fea_width
   , input  [LWIDTH-1:0] _conv_strid
   , input               first_input
   , input               last_input
@@ -29,7 +30,8 @@ module renkon_ctrl_conv
   reg               wait_back$;
   reg               first_input$;
   reg               last_input$;
-  reg [LWIDTH-1:0]  fea_size$;
+  reg [LWIDTH-1:0]  fea_height$;
+  reg [LWIDTH-1:0]  fea_width$;
   reg               feat_we$   [D_CONV-1:0];
   reg               feat_rst$  [D_CONV-1:0];
   reg [FACCUM-1:0]  feat_addr$ [D_CONV:0];
@@ -62,10 +64,12 @@ module renkon_ctrl_conv
 
   always @(posedge clk)
     if (!xrst) begin
-      fea_size$ <= 0;
+      fea_height$ <= 0;
+      fea_width$  <= 0;
     end
     else if (state$ == S_WAIT && in_ctrl.start) begin
-      fea_size$ <= _fea_size;
+      fea_height$ <= _fea_height;
+      fea_width$  <= _fea_width;
     end
 
   always @(posedge clk)
@@ -82,9 +86,9 @@ module renkon_ctrl_conv
         S_ACTIVE:
           case (core_state$)
             S_CORE_INPUT: if (in_ctrl.valid) begin
-              if (conv_x$ == fea_size$ - 1) begin
+              if (conv_x$ == fea_width$ - 1) begin
                 conv_x$ <= 0;
-                if (conv_y$ == fea_size$ - 1)
+                if (conv_y$ == fea_height$ - 1)
                   conv_y$ <= 0;
                 else
                   conv_y$ <= conv_y$ + 1;
@@ -93,9 +97,9 @@ module renkon_ctrl_conv
                 conv_x$ <= conv_x$ + 1;
             end
             S_CORE_OUTPUT: if (!wait_back$ && out_ctrl.ready) begin
-              if (conv_x$ == fea_size$ - 1) begin
+              if (conv_x$ == fea_width$ - 1) begin
                 conv_x$ <= 0;
-                if (conv_y$ == fea_size$ - 1)
+                if (conv_y$ == fea_height$ - 1)
                   conv_y$ <= 0;
                 else
                   conv_y$ <= conv_y$ + 1;
@@ -202,22 +206,22 @@ module renkon_ctrl_conv
           out_ctrl$[0].start <= state$ == S_ACTIVE
                              && in_ctrl.stop
                              // && core_state$ == S_CORE_INPUT
-                             // && conv_x$ == fea_size$ - 1
-                             // && conv_y$ == fea_size$ - 1
+                             // && conv_y$ == fea_height$ - 1
+                             // && conv_x$ == fea_width$ - 1
                              && last_input$;
 
           out_ctrl$[0].valid <= out_ctrl.ready
                              && !wait_back$;
           // out_ctrl$[0].valid <= state$ == S_ACTIVE
           //                    && core_state$ == S_CORE_OUTPUT
-          //                    && conv_x$ <= fea_size$ - 1
-          //                    && conv_y$ <= fea_size$ - 1
+          //                    && conv_y$ <= fea_height$ - 1
+          //                    && conv_x$ <= fea_width$ - 1
           //                    && !wait_back$;
 
           out_ctrl$[0].stop  <= state$ == S_ACTIVE
                              && core_state$ == S_CORE_OUTPUT
-                             && conv_x$ == fea_size$ - 1
-                             && conv_y$ == fea_size$ - 1;
+                             && conv_y$ == fea_height$ - 1
+                             && conv_x$ == fea_width$ - 1;
         end
     end
     else begin
@@ -241,7 +245,7 @@ module renkon_ctrl_conv
       wait_back$ <= 0;
     else if (
       state$ == S_ACTIVE && core_state$ == S_CORE_OUTPUT
-      && conv_x$ == fea_size$ - 1 && conv_y$ == fea_size$ - 1
+      && conv_y$ == fea_height$ - 1 && conv_x$ == fea_width$ - 1
     )
       wait_back$ <= 1;
 

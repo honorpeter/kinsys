@@ -14,7 +14,8 @@ module renkon_ctrl
 
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         total_out
-  , input  [LWIDTH-1:0]         img_size
+  , input  [LWIDTH-1:0]         img_height
+  , input  [LWIDTH-1:0]         img_width
   , input  [LWIDTH-1:0]         conv_kern
   , input  [LWIDTH-1:0]         conv_strid
   , input  [LWIDTH-1:0]         conv_pad
@@ -65,7 +66,8 @@ module renkon_ctrl
   wire        first_input;
   wire        last_input;
 
-  wire [LWIDTH-1:0] _fea_size;
+  wire [LWIDTH-1:0] _fea_height;
+  wire [LWIDTH-1:0] _fea_width;
   wire [LWIDTH-1:0] _conv_strid;
   wire [LWIDTH-1:0] _pool_kern;
   wire [LWIDTH-1:0] _pool_strid;

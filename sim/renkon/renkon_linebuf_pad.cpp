@@ -1,7 +1,8 @@
 #include <cstdio>
 #include <lib.hpp>
 
-const int size    = 12;
+const int height  = 12;
+const int width   = 12;
 const int kern    = 2;
 const int stride  = 2;
 const int pad     = 0;// (kern-1)/2;
@@ -22,20 +23,19 @@ int make_after(int size, int kern, int stride, int pad, bool cover_all=false)
 
 int main(void)
 {
-  // const int feature = size + 2*pad - kern + 1;
-  int feature = make_size(size, kern, stride, pad, cover_all);
-  auto img = zeros<int16_t>(size, size);
-  // auto img_pad = zeros<int16_t>(size+2*pad+stride-1, size+2*pad+stride-1);
-  auto img_pad = zeros<int16_t>(feature+kern-1, feature+kern-1);
+  int fea_h = make_size(height, kern, stride, pad, cover_all);
+  int fea_w = make_size(width, kern, stride, pad, cover_all);
+  auto img = zeros<int16_t>(height, width);
+  auto img_pad = zeros<int16_t>(fea_h+kern-1, fea_w+kern-1);
 
   load(img, "../../data/renkon/input_renkon_linebuf_pad.dat");
-  for range(i, size)
-  for range(j, size)
+  for range(i, height)
+  for range(j, width)
     img_pad[i+pad][j+pad] = img[i][j];
 
   int idx = 0;
-  for ranges(i, feature, stride)
-  for ranges(j, feature, stride) {
+  for ranges(i, fea_h, stride)
+  for ranges(j, fea_w, stride) {
     printf("Block %d:\n", idx++);
     for range(di, kern) {
       for range(dj, kern) {

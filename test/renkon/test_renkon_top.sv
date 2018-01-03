@@ -7,18 +7,23 @@
 
 // int N_OUT = 32;
 // int N_IN  = 16;
-int IMG_SIZE = 12;
+int IMG_HEIGHT  = 12;
+int IMG_WIDTH   = 12;
 int N_OUT = 16;
 int N_IN  = 1;
-// int IMG_SIZE = 28;
+// int IMG_HEIGHT  = 28;
+// int IMG_WIDTH   = 28;
 
-int CONV_STRID = 1;
-int CONV_PAD   = 1;
-int FEA_SIZE   = (IMG_SIZE+2*CONV_PAD-CONV_KERN)/CONV_STRID + 1;
-int POOL_STRID = 2;
-int POOL_PAD   = 0;
-int OUT_SIZE   = (FEA_SIZE+2*POOL_PAD-POOL_KERN+POOL_STRID-1)/POOL_STRID + 1;
-// int OUT_SIZE   = FEA_SIZE;
+int CONV_STRID  = 1;
+int CONV_PAD    = 1;
+int FEA_HEIGHT  = (IMG_HEIGHT+2*CONV_PAD-CONV_KERN)/CONV_STRID + 1;
+int FEA_WIDTH   = (IMG_WIDTH+2*CONV_PAD-CONV_KERN)/CONV_STRID + 1;
+int POOL_STRID  = 2;
+int POOL_PAD    = 0;
+int OUT_HEIGHT  = (FEA_HEIGHT+2*POOL_PAD-POOL_KERN+POOL_STRID-1)/POOL_STRID + 1;
+int OUT_WIDTH   = (FEA_WIDTH+2*POOL_PAD-POOL_KERN+POOL_STRID-1)/POOL_STRID + 1;
+// int OUT_HEIGHT  = FEA_HEIGHT;
+// int OUT_WIDTH   = FEA_WIDTH;
 
 int IN_OFFSET  = 100;
 int OUT_OFFSET = 5000;
@@ -212,7 +217,8 @@ module test_renkon_top;
     net_offset  = NET_OFFSET;
     total_out   = N_OUT;
     total_in    = N_IN;
-    img_size    = IMG_SIZE;
+    img_height  = IMG_HEIGHT;
+    img_width   = IMG_WIDTH;
     conv_kern   = CONV_KERN;
     conv_strid  = CONV_STRID;
     conv_pad    = CONV_PAD;
@@ -249,8 +255,8 @@ module test_renkon_top;
 
     pre_req   = 1;
     pre_base  = IN_OFFSET >> RATELOG;
-    read_len  = N_IN * IMG_SIZE * IMG_SIZE;
-    write_len = RENKON_CORE * OUT_SIZE * OUT_SIZE;
+    read_len  = N_IN * IMG_HEIGHT * IMG_WIDTH;
+    write_len = RENKON_CORE * OUT_HEIGHT * OUT_WIDTH;
     #(STEP);
     pre_req = 0;
     #(STEP);
@@ -308,8 +314,8 @@ module test_renkon_top;
       fd = $fopen("../../data/renkon/input_renkon_top.dat", "r");
 
       for (int m = 0; m < N_IN; m++)
-        for (int i = 0; i < IMG_SIZE; i++)
-          for (int j = 0; j < IMG_SIZE; j++) begin
+        for (int i = 0; i < IMG_HEIGHT; i++)
+          for (int j = 0; j < IMG_WIDTH; j++) begin
             r = $fscanf(fd, "%x", mem_i[idx]);
             idx++;
           end
@@ -340,8 +346,8 @@ module test_renkon_top;
       fd = $fopen("../../data/renkon/input_renkon_top.dat", "r");
 
       for (int m = 0; m < N_IN; m++)
-        for (int i = 0; i < IMG_SIZE; i++)
-          for (int j = 0; j < IMG_SIZE; j++) begin
+        for (int i = 0; i < IMG_HEIGHT; i++)
+          for (int j = 0; j < IMG_WIDTH; j++) begin
             r = $fscanf(fd, "%x", mem_i[idx]);
             idx++;
           end
@@ -492,7 +498,7 @@ module test_renkon_top;
     int out_size;
     begin // {{{
       fd = $fopen("../../data/renkon/output_renkon_top.dat", "w");
-      out_size = N_OUT * OUT_SIZE**2;
+      out_size = N_OUT * OUT_HEIGHT * OUT_WIDTH;
 
       for (int i = 0; i < out_size; i++) begin
         img_addr = i + OUT_OFFSET;

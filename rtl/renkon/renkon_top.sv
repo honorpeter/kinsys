@@ -16,7 +16,8 @@ module renkon_top
   // Network parameters
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
-  , input  [LWIDTH-1:0]         img_size
+  , input  [LWIDTH-1:0]         img_height
+  , input  [LWIDTH-1:0]         img_width
   , input  [LWIDTH-1:0]         conv_kern
   , input  [LWIDTH-1:0]         conv_strid
   , input  [LWIDTH-1:0]         conv_pad

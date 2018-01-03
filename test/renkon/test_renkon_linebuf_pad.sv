@@ -6,7 +6,8 @@
 // 3, 1, 1
 // 2, 2, 0
 // 3, 2, 1
-parameter SIZE      = 12;
+parameter HEIGHT    = 12;
+parameter WIDTH     = 12;
 parameter KERN      = 2;
 parameter STRID     = 2;
 parameter PAD       = 0;
@@ -15,14 +16,15 @@ parameter DELAY     = 1;
 
 module test_renkon_linebuf_pad;
 
-  localparam BUFSIZE = SIZE + 1;
+  localparam BUFSIZE = WIDTH + 1;
   localparam BUFLINE = KERN + 1;
   localparam SIZEWIDTH = $clog2(BUFSIZE);
   localparam LINEWIDTH = $clog2(BUFLINE);
 
   reg                       clk;
   reg                       xrst;
-  reg  [LWIDTH-1:0]         size;
+  reg  [LWIDTH-1:0]         height;
+  reg  [LWIDTH-1:0]         width;
   reg  [LWIDTH-1:0]         kern;
   reg  [LWIDTH-1:0]         strid;
   reg  [LWIDTH-1:0]         pad;
@@ -90,7 +92,8 @@ module test_renkon_linebuf_pad;
 
     xrst    = 1;
     buf_req = 0;
-    size    = SIZE;
+    height  = HEIGHT;
+    width   = WIDTH;
     kern    = KERN;
     strid   = STRID;
     pad     = PAD;
@@ -185,7 +188,6 @@ module test_renkon_linebuf_pad;
         ": ",
         "%b ",  buf_ready,
         "%4d ", addr[0],
-        "%4d ", ctrl.own_size,
         // "; ",
         // "%1d ", dut.mem_linebuf_we[0],
         // "%2d ", dut.mem_linebuf_addr,
