@@ -14,12 +14,12 @@ int N_IN  = 1;
 // int IMG_HEIGHT  = 28;
 // int IMG_WIDTH   = 28;
 
-int CONV_STRID  = 1;
+int CONV_STRID  = 2;
 int CONV_PAD    = 1;
 int FEA_HEIGHT  = (IMG_HEIGHT+2*CONV_PAD-CONV_KERN)/CONV_STRID + 1;
 int FEA_WIDTH   = (IMG_WIDTH+2*CONV_PAD-CONV_KERN)/CONV_STRID + 1;
 int POOL_STRID  = 2;
-int POOL_PAD    = 0;
+int POOL_PAD    = 1;
 int OUT_HEIGHT  = (FEA_HEIGHT+2*POOL_PAD-POOL_KERN+POOL_STRID-1)/POOL_STRID + 1;
 int OUT_WIDTH   = (FEA_WIDTH+2*POOL_PAD-POOL_KERN+POOL_STRID-1)/POOL_STRID + 1;
 // int OUT_HEIGHT  = FEA_HEIGHT;
@@ -637,15 +637,16 @@ module test_renkon_top;
           // "%1d ", dut.ctrl.ctrl_core.serial_end$,
           // ": ",
           // "%1d ", dut.ctrl.ctrl_core.in_period$,
-          "%1d ", dut.ctrl.ctrl_conv.wait_back$,
+          // "%1d ", dut.ctrl.ctrl_conv.wait_back$,
           // "| ",
           // "%1d ", dut.serial.serial_we,
           // "%1d ", dut.serial.serial_re,
           // "%4d ", dut.serial.serial_addr,
           // "%4d ", dut.serial.in_data[0],
           // "%4d ", dut.serial.out_data,
-          "%1d ", dut.ctrl.ctrl_core.fea_height$,
-          "%1d ", dut.ctrl.ctrl_core.fea_width$,
+          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.own_height,
+          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.own_width,
+          "%1d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.COVER_ALL,
           "|"
         );
       end

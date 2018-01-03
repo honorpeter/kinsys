@@ -3,10 +3,10 @@
 
 const int height  = 12;
 const int width   = 16;
-const int kern    = 2;
+const int kern    = 3;
 const int stride  = 2;
-const int pad     = 0;// (kern-1)/2;
-const bool cover_all = false;
+const int pad     = 1;// (kern-1)/2;
+const bool cover_all = true;
 
 int make_size(int size, int kern, int stride, int pad, bool cover_all=false)
 {

@@ -23,13 +23,13 @@ int make_size(int size, int kern, int strid, int pad, bool cover_all=false)
 }
 
 const int conv_kern   = 3;
-const int conv_strid  = 1;
+const int conv_strid  = 2;
 const int conv_pad    = 1;
 const int fea_height  = make_size(img_height, conv_kern, conv_strid, conv_pad);
 const int fea_width   = make_size(img_width, conv_kern, conv_strid, conv_pad);
-const int pool_kern   = 2;
+const int pool_kern   = 3;
 const int pool_strid  = 2;
-const int pool_pad    = 0;
+const int pool_pad    = 1;
 const int out_height  = make_size(fea_height, pool_kern, pool_strid, pool_pad,
                                   true);
 const int out_width   = make_size(fea_width, pool_kern, pool_strid, pool_pad,

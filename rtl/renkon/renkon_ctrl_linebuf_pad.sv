@@ -304,9 +304,9 @@ module renkon_ctrl_linebuf_pad
   // TODO: to doit precisely -> kern % strid - 1
   wire [LWIDTH-1:0] str_x_start;
   wire [LWIDTH-1:0] str_y_start;
-  assign str_x_start = strid == 1 ? 0
-                     : (kern-strid) > 0 ? kern-strid-1
-                     : strid-1;
+  assign str_x_start = strid == 1   ? 0
+                     : strid < kern ? kern-strid-1
+                     : kern-1;
   assign str_y_start = 0;
   for (genvar i = 0; i < 3; i++)
     if (i == 0) begin
@@ -328,7 +328,7 @@ module renkon_ctrl_linebuf_pad
                         && str_y_count == str_y_start;
 
           buf_stop$[0]  <= state$ == S_ACTIVE
-                        && row_count == height + pad
+                        && row_count == make_size(height, kern, strid, pad) - 1
                         && col_count == make_size(width, kern, strid, pad) - 1;
         end
     end
@@ -352,6 +352,8 @@ module renkon_ctrl_linebuf_pad
 //==========================================================
 // {{{
 
+  wire [LWIDTH-1:0] own_height = make_size(height, kern, strid, pad);
+  wire [LWIDTH-1:0] own_width  = make_size(width,  kern, strid, pad);
   function [LWIDTH-1:0] make_size
     ( input [LWIDTH-1:0] size
     , input [LWIDTH-1:0] kern

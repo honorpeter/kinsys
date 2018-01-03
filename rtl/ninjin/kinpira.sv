@@ -756,14 +756,14 @@ module kinpira
     .img_height (renkon_img_height[LWIDTH-1:0]),
     .img_width  (renkon_img_width[LWIDTH-1:0]),
     .conv_kern  (renkon_conv_kern[LWIDTH-1:0]),
-    .conv_kern  (renkon_conv_strid[LWIDTH-1:0]),
+    .conv_strid (renkon_conv_strid[LWIDTH-1:0]),
     .conv_pad   (renkon_conv_pad[LWIDTH-1:0]),
     .bias_en    (renkon_bias_en),
     .relu_en    (renkon_relu_en),
     .pool_en    (renkon_pool_en),
     .pool_kern  (renkon_pool_kern[LWIDTH-1:0]),
-    .pool_kern  (renkon_pool_strid[LWIDTH-1:0]),
-    .pool_kern  (renkon_pool_pad[LWIDTH-1:0]),
+    .pool_strid (renkon_pool_strid[LWIDTH-1:0]),
+    .pool_pad   (renkon_pool_pad[LWIDTH-1:0]),
     .img_rdata  (renkon_img_rdata[DWIDTH-1:0]),
     .*
   );

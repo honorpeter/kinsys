@@ -254,10 +254,10 @@ module renkon_ctrl_core
       conv_kern$  <= conv_kern;
       conv_strid$ <= conv_strid;
       conv_pad$   <= conv_pad;
-      fea_height$ <= img_height + conv_pad_both - conv_kern + 1;
-      fea_width$  <= img_width + conv_pad_both - conv_kern + 1;
-      // fea_height$ <= ((img_height + conv_pad_both - conv_kern) >> 1) + 1;
-      // fea_width$  <= ((img_width + conv_pad_both - conv_kern) >> 1) + 1;
+      // fea_height$ <= img_height + conv_pad_both - conv_kern + 1;
+      // fea_width$  <= img_width + conv_pad_both - conv_kern + 1;
+      fea_height$ <= ((img_height + conv_pad_both - conv_kern) >> 1) + 1;
+      fea_width$  <= ((img_width + conv_pad_both - conv_kern) >> 1) + 1;
       bias_en$    <= bias_en;
       relu_en$    <= relu_en;
       pool_en$    <= pool_en;

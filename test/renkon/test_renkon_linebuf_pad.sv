@@ -8,10 +8,10 @@
 // 3, 2, 1
 parameter HEIGHT    = 12;
 parameter WIDTH     = 16;
-parameter KERN      = 2;
+parameter KERN      = 3;
 parameter STRID     = 2;
-parameter PAD       = 0;
-parameter COVER_ALL = 1'b0;
+parameter PAD       = 1;
+parameter COVER_ALL = 1'b1;
 parameter DELAY     = 1;
 
 module test_renkon_linebuf_pad;
