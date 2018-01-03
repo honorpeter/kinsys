@@ -5,24 +5,24 @@
 // `define NINJIN
 `define DIRECT
 
-int N_OUT = 32;
-int N_IN  = 16;
+// int N_OUT = 32;
+// int N_IN  = 16;
 int IMG_SIZE = 12;
-// int N_OUT = 16;
-// int N_IN  = 1;
+int N_OUT = 16;
+int N_IN  = 1;
 // int IMG_SIZE = 28;
 
-int CONV_STRID  = 1;
-int CONV_PAD    = 1;
-int FEA_SIZE    = (IMG_SIZE+2*CONV_PAD-CONV_KERN)/CONV_STRID + 1;
-int POOL_STRID  = 2;
-int POOL_PAD    = 0;
-int OUT_SIZE    = (FEA_SIZE+2*POOL_PAD-POOL_KERN+POOL_STRID-1)/POOL_STRID + 1;
-// int OUT_SIZE    = FEA_SIZE;
+int CONV_STRID = 1;
+int CONV_PAD   = 1;
+int FEA_SIZE   = (IMG_SIZE+2*CONV_PAD-CONV_KERN)/CONV_STRID + 1;
+int POOL_STRID = 2;
+int POOL_PAD   = 1;
+int OUT_SIZE   = (FEA_SIZE+2*POOL_PAD-POOL_KERN+POOL_STRID-1)/POOL_STRID + 1;
+// int OUT_SIZE   = FEA_SIZE;
 
-int IN_OFFSET   = 100;
-int OUT_OFFSET  = 5000;
-int NET_OFFSET  = 0;
+int IN_OFFSET  = 100;
+int OUT_OFFSET = 5000;
+int NET_OFFSET = 0;
 
 int DO_BIAS = 1;
 int DO_RELU = 1;

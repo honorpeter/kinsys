@@ -5,11 +5,11 @@
 #include <limits>
 #include <lib.hpp>
 
-const int n_out     = 32;
-const int n_in      = 16;
+// const int n_out     = 32;
+// const int n_in      = 16;
 const int img_size  = 12;
-// const int n_out     = 16;
-// const int n_in      = 1;
+const int n_out     = 16;
+const int n_in      = 1;
 // const int img_size  = 28;
 
 int make_size(int size, int kern, int stride, int pad, bool cover_all=false)
@@ -24,9 +24,9 @@ const int conv_kern   = 3;
 const int conv_stride = 1;
 const int conv_pad    = 1;
 const int fea_size    = make_size(img_size, conv_kern, conv_stride, conv_pad);
-const int pool_kern   = 2;
+const int pool_kern   = 3;
 const int pool_stride = 2;
-const int pool_pad    = 0;
+const int pool_pad    = 1;
 const int out_size    = make_size(fea_size, pool_kern, pool_stride, pool_pad,
                                   true);
 
@@ -98,8 +98,10 @@ void pool(Mat3D<T> &output, Mat3D<T> &input)
     padded[n][i+pool_pad][j+pool_pad] = input[n][i][j];
 
   for range(n, n_out)
-  for ranges(i, fea_size, pool_stride)
-  for ranges(j, fea_size, pool_stride) {
+  // for ranges(i, fea_size, pool_stride)
+  // for ranges(j, fea_size, pool_stride) {
+  for ranges(i, fea_size+2*pool_pad+pool_stride-pool_kern, pool_stride)
+  for ranges(j, fea_size+2*pool_pad+pool_stride-pool_kern, pool_stride) {
     T tmp = std::numeric_limits<T>::min();
     for range(di, pool_kern)
     for range(dj, pool_kern)
@@ -129,25 +131,17 @@ int main(void)
   relu(amap, bmap);
   pool(pmap, amap);
 
+#if 1
   for range(n, n_out)
     for range(i, out_size)
       for range(j, out_size)
         printf("%d\n", pmap[n][i][j]);
-
-  // for range(n, n_out) {
-  //   for range(i, fea_size) {
-  //     for range(j, fea_size) {
-  //       fprintf(stderr, "%d\n", amap[n][i][j]);
-  //     }
-  //     fprintf(stderr, "\n");
-  //   }
-  //   fprintf(stderr, "\n");
-  // }
-
-  // for range(n, n_out)
-  //   for range(i, fea_size)
-  //     for range(j, fea_size)
-  //       printf("%d\n", amap[n][i][j]);
+#else
+  for range(n, n_out)
+    for range(i, fea_size)
+      for range(j, fea_size)
+        printf("%d\n", fmap[n][i][j]);
+#endif
 
   return 0;
 }
