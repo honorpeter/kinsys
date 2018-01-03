@@ -8,7 +8,7 @@
 // int N_OUT = 32;
 // int N_IN  = 16;
 int IMG_HEIGHT  = 12;
-int IMG_WIDTH   = 12;
+int IMG_WIDTH   = 16;
 int N_OUT = 16;
 int N_IN  = 1;
 // int IMG_HEIGHT  = 28;
@@ -48,7 +48,8 @@ module test_renkon_top;
 
   reg [LWIDTH-1:0]          total_out;
   reg [LWIDTH-1:0]          total_in;
-  reg [LWIDTH-1:0]          img_size;
+  reg [LWIDTH-1:0]          img_height;
+  reg [LWIDTH-1:0]          img_width;
   reg [LWIDTH-1:0]          conv_kern;
   reg [LWIDTH-1:0]          conv_strid;
   reg [LWIDTH-1:0]          conv_pad;
@@ -643,7 +644,8 @@ module test_renkon_top;
           // "%4d ", dut.serial.serial_addr,
           // "%4d ", dut.serial.in_data[0],
           // "%4d ", dut.serial.out_data,
-          "%1d ", dut.ctrl.ctrl_core.fea_size$,
+          "%1d ", dut.ctrl.ctrl_core.fea_height$,
+          "%1d ", dut.ctrl.ctrl_core.fea_width$,
           "|"
         );
       end

@@ -8,7 +8,7 @@
 // const int n_out     = 32;
 // const int n_in      = 16;
 const int img_height  = 12;
-const int img_width   = 12;
+const int img_width   = 16;
 const int n_out       = 16;
 const int n_in        = 1;
 // const int img_height  = 28;

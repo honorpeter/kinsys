@@ -2,7 +2,7 @@
 #include <lib.hpp>
 
 const int height  = 12;
-const int width   = 12;
+const int width   = 16;
 const int kern    = 2;
 const int stride  = 2;
 const int pad     = 0;// (kern-1)/2;

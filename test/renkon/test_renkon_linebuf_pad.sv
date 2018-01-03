@@ -7,7 +7,7 @@
 // 2, 2, 0
 // 3, 2, 1
 parameter HEIGHT    = 12;
-parameter WIDTH     = 12;
+parameter WIDTH     = 16;
 parameter KERN      = 2;
 parameter STRID     = 2;
 parameter PAD       = 0;
@@ -46,10 +46,10 @@ module test_renkon_linebuf_pad;
   wire [SIZEWIDTH-1:0]      buf_addr;
   wire signed [DWIDTH-1:0]  buf_output [KERN**2-1:0];
 
-  reg signed [DWIDTH-1:0] mem_input [SIZE**2+1-1:0];
+  reg signed [DWIDTH-1:0] mem_input [HEIGHT*WIDTH+1-1:0];
 
-  renkon_linebuf_pad #(KERN, SIZE) dut(.*);
-  renkon_ctrl_linebuf_pad #(KERN, SIZE, COVER_ALL) ctrl(.*);
+  renkon_linebuf_pad #(KERN, WIDTH) dut(.*);
+  renkon_ctrl_linebuf_pad #(KERN, WIDTH, COVER_ALL) ctrl(.*);
 
   // clock
   initial begin
@@ -112,31 +112,34 @@ module test_renkon_linebuf_pad;
 
   task read_input;
     $readmemh("../../data/renkon/input_renkon_linebuf_pad.dat", mem_input);
-    mem_input[SIZE**2] = 0;
+    mem_input[HEIGHT*WIDTH] = 0;
   endtask
 
   //display
   initial write_output;
-  int i, j;
   task write_output;
+    int i, j;
+    int idx;
     int fd;
     begin // {{{
       fd = $fopen("../../data/renkon/output_renkon_linebuf_pad.dat", "w");
       i = 0; j = 0;
+      idx = 0;
       forever begin
         #(STEP/2-1);
         if (buf_valid) begin
-          $fwrite(fd, "Block %0d:\n", (SIZE+2*PAD-KERN+1)*i+j);
+          $fwrite(fd, "Block %0d:\n", idx);
           for (int di = 0; di < KERN; di++) begin
             for (int dj = 0; dj < KERN; dj++)
               $fwrite(fd, "%5d", buf_output[KERN*di+dj]);
             $fwrite(fd, "\n");
           end
           $fwrite(fd, "\n");
-          if (j == (SIZE+2*PAD-KERN+1) - 1) begin
+          if (j == (WIDTH+2*PAD-KERN+1) - 1) begin
             i++; j=0;
           end
           else j++;
+          idx++;
         end
         #(STEP/2+1);
       end
