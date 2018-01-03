@@ -233,21 +233,24 @@ module kinpira
   wire [BWIDTH-1:0]         net_offset;
 
   wire [BWIDTH-1:0]         base_param [1:0];
-  wire [BWIDTH-1:0]         conv_param;
+  wire [BWIDTH-1:0]         conv_param [1:0];
   wire [BWIDTH-1:0]         bias_param;
   wire [BWIDTH-1:0]         actv_param;
-  wire [BWIDTH-1:0]         pool_param;
+  wire [BWIDTH-1:0]         pool_param [1:0];
 
   wire [LWIDTH-1:0]         total_out;
   wire [LWIDTH-1:0]         total_in;
   wire [LWIDTH-1:0]         img_height;
   wire [LWIDTH-1:0]         img_width;
   wire [LWIDTH-1:0]         conv_kern;
+  wire [LWIDTH-1:0]         conv_strid;
   wire [LWIDTH-1:0]         conv_pad;
   wire                      bias_en;
   wire                      relu_en;
   wire                      pool_en;
   wire [LWIDTH-1:0]         pool_kern;
+  wire [LWIDTH-1:0]         pool_strid;
+  wire [LWIDTH-1:0]         pool_pad;
 
   wire                      ack;
   // mem_img ports
@@ -257,20 +260,20 @@ module kinpira
   wire signed [DWIDTH-1:0]  mem_img_rdata;
   // meta inputs
   wire                      pre_req;
-  wire [WORDSIZE-1:0]        pre_base;
+  wire [WORDSIZE-1:0]       pre_base;
   wire [LWIDTH-1:0]         read_len;
   wire [LWIDTH-1:0]         write_len;
   // m_axi ports (fed back)
   wire                      ddr_we;
-  wire [WORDSIZE-1:0]        ddr_waddr;
+  wire [WORDSIZE-1:0]       ddr_waddr;
   wire [BWIDTH-1:0]         ddr_wdata;
-  wire [WORDSIZE-1:0]        ddr_raddr;
+  wire [WORDSIZE-1:0]       ddr_raddr;
   // meta outputs
   wire                      pre_ack;
   // m_axi signals
   wire                      ddr_req;
   wire                      ddr_mode;
-  wire [WORDSIZE+LSB-1:0]    ddr_base;
+  wire [WORDSIZE+LSB-1:0]   ddr_base;
   wire [LWIDTH-1:0]         ddr_len;
   wire [BWIDTH-1:0]         ddr_rdata;
 
@@ -289,11 +292,14 @@ module kinpira
   wire [LWIDTH-1:0]         renkon_img_height;
   wire [LWIDTH-1:0]         renkon_img_width;
   wire [LWIDTH-1:0]         renkon_conv_kern;
+  wire [LWIDTH-1:0]         renkon_conv_strid;
   wire [LWIDTH-1:0]         renkon_conv_pad;
   wire                      renkon_bias_en;
   wire                      renkon_relu_en;
   wire                      renkon_pool_en;
   wire [LWIDTH-1:0]         renkon_pool_kern;
+  wire [LWIDTH-1:0]         renkon_pool_strid;
+  wire [LWIDTH-1:0]         renkon_pool_pad;
 
   wire                      renkon_ack;
   wire                      renkon_img_we;
@@ -344,10 +350,12 @@ module kinpira
 
   assign base_param[0] = in_port[9][BWIDTH-1:0];
   assign base_param[1] = in_port[10][BWIDTH-1:0];
-  assign conv_param    = in_port[11][BWIDTH-1:0];
-  assign bias_param    = in_port[12][BWIDTH-1:0];
-  assign actv_param    = in_port[13][BWIDTH-1:0];
-  assign pool_param    = in_port[14][BWIDTH-1:0];
+  assign conv_param[0] = in_port[11][BWIDTH-1:0];
+  assign conv_param[1] = in_port[12][BWIDTH-1:0];
+  assign bias_param    = in_port[13][BWIDTH-1:0];
+  assign actv_param    = in_port[14][BWIDTH-1:0];
+  assign pool_param[0] = in_port[15][BWIDTH-1:0];
+  assign pool_param[1] = in_port[16][BWIDTH-1:0];
 
   // Network parameters
   assign total_out  = base_param[0][2*LWIDTH-1:LWIDTH];
@@ -355,34 +363,53 @@ module kinpira
   assign img_height = base_param[1][2*LWIDTH-1:LWIDTH];
   assign img_width  = base_param[1][LWIDTH-1:0];
 
-  assign conv_kern  = conv_param[2*LWIDTH-1:LWIDTH];
-  assign conv_pad   = conv_param[LWIDTH-1:0];
+  assign conv_kern  = conv_param[0][LWIDTH-1:0];
+  assign conv_strid = conv_param[1][2*LWIDTH-1:LWIDTH];
+  assign conv_pad   = conv_param[1][LWIDTH-1:0];
 
   assign bias_en    = bias_param[BWIDTH-1];
 
   assign relu_en    = actv_param[BWIDTH-1];
 
-  assign pool_en    = pool_param[BWIDTH-1];
-  assign pool_kern  = pool_param[LWIDTH-1:0];
+  assign pool_en    = pool_param[0][BWIDTH-1];
+  assign pool_kern  = pool_param[0][LWIDTH-1:0];
+  assign pool_strid = pool_param[1][2*LWIDTH-1:LWIDTH];
+  assign pool_pad   = pool_param[1][LWIDTH-1:0];
 
 
 
-  assign out_port[31] = {31'b0, which$};
-  assign out_port[30] = {31'b0, ack};
-  assign out_port[29] = {31'd0, pre_ack};
-  assign out_port[28] = {28'd0, err};
-  assign out_port[27] = 32'd0;
-  assign out_port[26] = 32'b0;
-  assign out_port[25] = 32'd0;
-  assign out_port[24] = 32'd0;
-  assign out_port[23] = 32'd0;
-  assign out_port[22] = 32'd0;
-  assign out_port[21] = 32'd0;
-  assign out_port[20] = 32'd0;
-  assign out_port[19] = 32'd0;
-  assign out_port[18] = 32'd0;
-  assign out_port[17] = 32'd0;
-  assign out_port[16] = 32'd0;
+  assign out_port[63] = {31'b0, which$};
+  assign out_port[62] = {31'b0, ack};
+  assign out_port[61] = {31'd0, pre_ack};
+  assign out_port[60] = {28'd0, err};
+  assign out_port[59] = 32'd0;
+  assign out_port[58] = 32'b0;
+  assign out_port[57] = 32'd0;
+  assign out_port[56] = 32'd0;
+  assign out_port[55] = 32'd0;
+  assign out_port[54] = 32'd0;
+  assign out_port[53] = 32'd0;
+  assign out_port[52] = 32'd0;
+  assign out_port[51] = 32'd0;
+  assign out_port[50] = 32'd0;
+  assign out_port[49] = 32'd0;
+  assign out_port[48] = 32'd0;
+  assign out_port[47] = 32'd0;
+  assign out_port[46] = 32'd0;
+  assign out_port[45] = 32'd0;
+  assign out_port[44] = 32'd0;
+  assign out_port[43] = 32'd0;
+  assign out_port[42] = 32'b0;
+  assign out_port[41] = 32'd0;
+  assign out_port[40] = 32'd0;
+  assign out_port[39] = 32'd0;
+  assign out_port[38] = 32'd0;
+  assign out_port[37] = 32'd0;
+  assign out_port[36] = 32'd0;
+  assign out_port[35] = 32'd0;
+  assign out_port[34] = 32'd0;
+  assign out_port[33] = 32'd0;
+  assign out_port[32] = 32'd0;
 
 
 
@@ -419,11 +446,14 @@ module kinpira
   assign renkon_img_height = which == WHICH_RENKON ? img_height : 0;
   assign renkon_img_width  = which == WHICH_RENKON ? img_width : 0;
   assign renkon_conv_kern  = which == WHICH_RENKON ? conv_kern : 0;
+  assign renkon_conv_strid = which == WHICH_RENKON ? conv_strid : 0;
   assign renkon_conv_pad   = which == WHICH_RENKON ? conv_pad : 0;
   assign renkon_bias_en    = which == WHICH_RENKON ? bias_en : 0;
   assign renkon_relu_en    = which == WHICH_RENKON ? relu_en : 0;
   assign renkon_pool_en    = which == WHICH_RENKON ? pool_en : 0;
   assign renkon_pool_kern  = which == WHICH_RENKON ? pool_kern : 0;
+  assign renkon_pool_strid = which == WHICH_RENKON ? pool_strid : 0;
+  assign renkon_pool_pad   = which == WHICH_RENKON ? pool_pad : 0;
 
 
 
@@ -726,11 +756,14 @@ module kinpira
     .img_height (renkon_img_height[LWIDTH-1:0]),
     .img_width  (renkon_img_width[LWIDTH-1:0]),
     .conv_kern  (renkon_conv_kern[LWIDTH-1:0]),
+    .conv_kern  (renkon_conv_strid[LWIDTH-1:0]),
     .conv_pad   (renkon_conv_pad[LWIDTH-1:0]),
     .bias_en    (renkon_bias_en),
     .relu_en    (renkon_relu_en),
     .pool_en    (renkon_pool_en),
     .pool_kern  (renkon_pool_kern[LWIDTH-1:0]),
+    .pool_kern  (renkon_pool_strid[LWIDTH-1:0]),
+    .pool_kern  (renkon_pool_pad[LWIDTH-1:0]),
     .img_rdata  (renkon_img_rdata[DWIDTH-1:0]),
     .*
   );

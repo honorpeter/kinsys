@@ -13,9 +13,9 @@ parameter BWIDTH  = 32;
 parameter RATE    = BWIDTH / DWIDTH;
 parameter RATELOG = $clog2(RATE);
 
-parameter REGSIZE = 5;
+parameter REGSIZE = 6;
 // parameter PORT  = 2 ** REGSIZE;
-parameter PORT  = 32;
+parameter PORT  = 64;
 
 parameter LSB     = 2;
 `ifndef DIST
