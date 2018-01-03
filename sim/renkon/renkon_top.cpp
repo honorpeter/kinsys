@@ -24,9 +24,9 @@ const int conv_kern   = 3;
 const int conv_stride = 1;
 const int conv_pad    = 1;
 const int fea_size    = make_size(img_size, conv_kern, conv_stride, conv_pad);
-const int pool_kern   = 3;
+const int pool_kern   = 2;
 const int pool_stride = 2;
-const int pool_pad    = 1;
+const int pool_pad    = 0;
 const int out_size    = make_size(fea_size, pool_kern, pool_stride, pool_pad,
                                   true);
 
