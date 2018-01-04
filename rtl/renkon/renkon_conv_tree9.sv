@@ -113,8 +113,7 @@ module renkon_conv_tree9
     if (data[hoge] == 1 && data[QBITS-1:0] == 0)
       round = $signed({
                 data[hoge],
-                // data[DWIDTH+QBITS-1-1:QBITS]
-                (data >> QBITS)[DWIDTH-2:0]
+                data[DWIDTH+QBITS-1-1:QBITS]
               }) - 1'b1;
     else
       round = $signed({
