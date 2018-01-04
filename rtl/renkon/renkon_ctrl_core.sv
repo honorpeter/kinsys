@@ -69,8 +69,6 @@ module renkon_ctrl_core
   wire               final_iter;
   wire [LWIDTH-1:0]  conv_pad_both;
   wire [LWIDTH-1:0]  pool_pad_both;
-  // wire [MEMSIZE-1:0] _img_addr;
-  // wire [MEMSIZE-1:0] _img_offset;
   wire               buf_pix_req;
   wire               buf_pix_ack;
   wire               buf_pix_start;
@@ -115,9 +113,7 @@ module renkon_ctrl_core
   reg               out_we$;
   reg [MEMSIZE-1:0] in_offset$;
   reg [MEMSIZE-1:0] out_offset$;
-  // reg [MEMSIZE-1:0] in_addr$;
   reg [MEMSIZE-1:0] out_addr$;
-  // reg [RENKON_CORE-1:0]    net_we$;
   reg [RENKON_NETSIZE-1:0] net_addr$;
   reg [RENKON_NETSIZE-1:0] net_offset$;
   reg               serial_we$;
@@ -299,8 +295,6 @@ module renkon_ctrl_core
 // network control
 //==========================================================
 
-  // assign mem_net_we   = net_we$;
-  // assign mem_net_addr = net_addr$ + net_offset$;
   for (genvar i = 0; i < RENKON_CORE; i++)
     assign mem_net_we[i] = net_we & net_sel == i;
 
@@ -390,25 +384,10 @@ module renkon_ctrl_core
 
   assign s_input_end = state$ == S_INPUT
                     && buf_pix_stop;
-                    // && input_y$ == fea_height$ - 1
-                    // && input_x$ == fea_width$ - 1;
 
-  assign img_we   = img_we$;
-  assign img_addr = img_addr$;
-  // assign img_addr = _img_addr + _img_offset;
-
+  assign img_we    = img_we$;
+  assign img_addr  = img_addr$;
   assign img_wdata = out_wdata;
-  // assign img_wdata = state$ == S_OUTPUT
-  //                  ? out_wdata
-  //                  : 0;
-
-  // assign _img_addr = state$ == S_OUTPUT
-  //                   ? out_addr$
-  //                   : in_addr$;
-
-  // assign _img_offset = state$ == S_OUTPUT
-  //                     ? out_offset$
-  //                     : in_offset$;
 
   always @(posedge clk)
     if (!xrst)
@@ -421,14 +400,6 @@ module renkon_ctrl_core
           img_we$ <= 0;
       endcase
 
-  // always @(posedge clk)
-  //   if (!xrst)
-  //     in_addr$ <= 0;
-  //   else if (state$ == S_OUTPUT)
-  //     in_addr$ <= 0;
-  //   else if (state$ == S_INPUT)
-  //     in_addr$ <= in_addr$ + 1;
-  //
   always @(posedge clk)
     if (!xrst)
       out_addr$ <= 0;
@@ -458,30 +429,6 @@ module renkon_ctrl_core
       img_addr$ <= out_addr$ + out_offset$;
     else if (buf_pix_ready || img_we$)
       img_addr$ <= img_addr$ + 1;
-
-  // always @(posedge clk)
-  //   if (!xrst) begin
-  //     input_x$ <= 0;
-  //     input_y$ <= 0;
-  //   end
-  //   else
-  //     case (state$)
-  //       S_INPUT: if (buf_pix_valid) begin
-  //         if (input_x$ == fea_width$ - 1) begin
-  //           input_x$ <= 0;
-  //           if (input_y$ == fea_height$ - 1)
-  //             input_y$ <= 0;
-  //           else
-  //             input_y$ <= input_y$ + 1;
-  //         end
-  //         else
-  //           input_x$ <= input_x$ + 1;
-  //       end
-  //       default: begin
-  //         input_x$ <= 0;
-  //         input_y$ <= 0;
-  //       end
-  //     endcase
 
 //==========================================================
 // output control
