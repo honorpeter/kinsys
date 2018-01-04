@@ -287,6 +287,7 @@ module kinpira
   wire [MEMSIZE-1:0]        renkon_in_offset;
   wire [MEMSIZE-1:0]        renkon_out_offset;
   wire [RENKON_NETSIZE-1:0] renkon_net_offset;
+  wire [LWIDTH-1:0]         renkon_qbits;
   wire [LWIDTH-1:0]         renkon_total_out;
   wire [LWIDTH-1:0]         renkon_total_in;
   wire [LWIDTH-1:0]         renkon_img_height;
@@ -358,6 +359,7 @@ module kinpira
   assign pool_param[1] = in_port[16][BWIDTH-1:0];
 
   // Network parameters
+  assign qbits      = 8;
   assign total_out  = base_param[0][2*LWIDTH-1:LWIDTH];
   assign total_in   = base_param[0][LWIDTH-1:0];
   assign img_height = base_param[1][2*LWIDTH-1:LWIDTH];
@@ -441,6 +443,7 @@ module kinpira
   assign renkon_in_offset  = which == WHICH_RENKON ? in_offset : 0;
   assign renkon_out_offset = which == WHICH_RENKON ? out_offset : 0;
   assign renkon_net_offset = which == WHICH_RENKON ? net_offset[RENKON_NETSIZE-1:0] : 0;
+  assign renkon_qbits      = which == WHICH_RENKON ? qbits : 0;
   assign renkon_total_out  = which == WHICH_RENKON ? total_out : 0;
   assign renkon_total_in   = which == WHICH_RENKON ? total_in : 0;
   assign renkon_img_height = which == WHICH_RENKON ? img_height : 0;

@@ -51,9 +51,11 @@ set files [list \
   "[file normalize "$origin_dir/../dist/common.svh"]" \
   "[file normalize "$origin_dir/../dist/renkon.svh"]" \
   "[file normalize "$origin_dir/../dist/renkon_pool_max4.sv"]" \
+  "[file normalize "$origin_dir/../dist/renkon_pool_max9.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_linebuf.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_linebuf_pad.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_conv_wreg.sv"]" \
+  "[file normalize "$origin_dir/../dist/renkon_conv_tree9.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_conv_tree25.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_accum.sv"]" \
   "[file normalize "$origin_dir/../dist/mem_dp.sv"]" \
