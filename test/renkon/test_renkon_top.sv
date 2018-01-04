@@ -28,7 +28,7 @@ int OUT_WIDTH   = (FEA_WIDTH+2*POOL_PAD-POOL_KERN+POOL_STRID-1)/POOL_STRID + 1;
 int IN_OFFSET  = 100;
 int OUT_OFFSET = 5000;
 int NET_OFFSET = 0;
-int QBITS      = 4'd8;
+int QBITS      = 8;
 
 int DO_BIAS = 1;
 int DO_RELU = 1;
@@ -650,9 +650,9 @@ module test_renkon_top;
           // "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.own_height,
           // "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.own_width,
           // "%1d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.COVER_ALL,
-          "%1d ", dut.pe[0].core.conv.tree._qbits,
           "%1d ", dut.pe[0].core.conv.tree.QBITS,
-          "%2d ", dut.pe[0].core.conv.tree.hoge,
+          "%1d ", dut.pe[0].core.conv.tree._qbits,
+          "%1d ", dut.pe[0].core.conv.tree.qbits$,
           "|"
         );
       end

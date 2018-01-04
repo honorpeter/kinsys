@@ -13,6 +13,7 @@ const int n_out       = 16;
 const int n_in        = 1;
 // const int img_height  = 28;
 // const int img_width   = 28;
+const int qbits = 8;
 
 int make_size(int size, int kern, int strid, int pad, bool cover_all=false)
 {
@@ -41,9 +42,11 @@ T mul(T x, T y)
   int prod = x * y;
 
   if (prod >= 0)
-    return prod / static_cast<T>(pow(2, 8));
+    // return prod / static_cast<T>(pow(2, 8));
+    return (prod >> qbits);
   else
-    return prod / static_cast<T>(pow(2, 8)) - 1;
+    // return prod / static_cast<T>(pow(2, 8)) - 1;
+    return (prod >> qbits) - 1;
 }
 
 template <typename T>

@@ -88,14 +88,13 @@ module renkon_conv_tree9
 //  Function
 //==========================================================
 
-  parameter QBITS=DWIDTH/2;
-  // wire [$clog2(2*DWIDTH)-1:0] hoge = DWIDTH+_qbits-1-1;
-  reg [$clog2(2*DWIDTH)-1:0] hoge;
+  reg [LWIDTH-1:0] qbits$;
   always @(posedge clk)
     if (!xrst)
-      hoge <= 0;
+      qbits$ <= 0;
     else
-      hoge <= DWIDTH+_qbits-1-1;
+      qbits$ <= _qbits;
+  parameter QBITS=DWIDTH/2;
   function signed [DWIDTH-1:0] round;
     input signed [2*DWIDTH-1:0] data;
     `ifdef NODEF
@@ -110,16 +109,10 @@ module renkon_conv_tree9
                 data[DWIDTH+QBITS-1-1:QBITS]
               });
     `else
-    if (data[hoge] == 1 && data[QBITS-1:0] == 0)
-      round = $signed({
-                data[hoge],
-                data[DWIDTH+QBITS-1-1:QBITS]
-              }) - 1'b1;
+    if (data[2*DWIDTH-1] == 1)
+      round = $signed(data >> qbits$) - 1;
     else
-      round = $signed({
-                data[hoge],
-                data[DWIDTH+QBITS-1-1:QBITS]
-              });
+      round = $signed(data >> qbits$);
     `endif
   endfunction
 
