@@ -14,6 +14,7 @@ module renkon_top
   , input  [RENKON_NETSIZE-1:0] net_offset
 
   // Network parameters
+  , input  [LWIDTH-1:0]         qbits
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_height
@@ -43,6 +44,7 @@ module renkon_top
   wire [$clog2(CONV_KERN+1):0]    buf_pix_rsel;
   wire                            buf_pix_we;
   wire [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr;
+  wire [LWIDTH-1:0]               _qbits;
   wire                            _bias_en;
   wire                            _relu_en;
   wire                            _pool_en;

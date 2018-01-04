@@ -12,6 +12,7 @@ module renkon_ctrl_core
   , input  [MEMSIZE-1:0]        in_offset
   , input  [MEMSIZE-1:0]        out_offset
   , input  [RENKON_NETSIZE-1:0] net_offset
+  , input  [LWIDTH-1:0]         qbits
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_height
@@ -41,6 +42,7 @@ module renkon_ctrl_core
   , output                            serial_we
   , output [RENKON_CORELOG:0]         serial_re
   , output [OUTSIZE-1:0]              serial_addr
+  , output [LWIDTH-1:0]               _qbits
   , output [LWIDTH-1:0]               _fea_height
   , output [LWIDTH-1:0]               _fea_width
   , output [LWIDTH-1:0]               _conv_strid
@@ -88,6 +90,7 @@ module renkon_ctrl_core
   reg               req$;
   reg               ack$;
 
+  reg [LWIDTH-1:0]  qbits$;
   reg [LWIDTH-1:0]  total_out$;
   reg [LWIDTH-1:0]  total_in$;
   reg [LWIDTH-1:0]  img_height$;
@@ -210,6 +213,7 @@ module renkon_ctrl_core
 // params control
 //==========================================================
 
+  assign _qbits      = qbits$;
   assign _fea_height = fea_height$;
   assign _fea_width  = fea_width$;
   assign _conv_strid = conv_strid$;
@@ -230,6 +234,7 @@ module renkon_ctrl_core
   //wait exec (initialize)
   always @(posedge clk)
     if (!xrst) begin
+      qbits$      <= 0;
       total_in$   <= 0;
       total_out$  <= 0;
       img_height$ <= 0;
@@ -247,6 +252,7 @@ module renkon_ctrl_core
       pool_pad$   <= 0;
     end
     else if (state$ == S_WAIT && req_edge) begin
+      qbits$      <= qbits;
       total_in$   <= total_in;
       total_out$  <= total_out;
       img_height$ <= img_height;

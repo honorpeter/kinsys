@@ -12,6 +12,7 @@ module renkon_ctrl
   , input  [MEMSIZE-1:0]        out_offset
   , input  [RENKON_NETSIZE-1:0] net_offset
 
+  , input  [LWIDTH-1:0]         qbits
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         img_height
@@ -57,6 +58,7 @@ module renkon_ctrl
   , output [$clog2(POOL_KERN+1):0]    buf_feat_rsel
   , output                            buf_feat_we
   , output [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
+  , output [LWIDTH-1:0]               _qbits
   , output                            _bias_en
   , output                            _relu_en
   , output                            _pool_en

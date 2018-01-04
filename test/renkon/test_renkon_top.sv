@@ -28,6 +28,7 @@ int OUT_WIDTH   = (FEA_WIDTH+2*POOL_PAD-POOL_KERN+POOL_STRID-1)/POOL_STRID + 1;
 int IN_OFFSET  = 100;
 int OUT_OFFSET = 5000;
 int NET_OFFSET = 0;
+int QBITS      = 4'd8;
 
 int DO_BIAS = 1;
 int DO_RELU = 1;
@@ -46,6 +47,7 @@ module test_renkon_top;
   reg [MEMSIZE-1:0]         out_offset;
   reg [RENKON_NETSIZE-1:0]  net_offset;
 
+  reg [LWIDTH-1:0]          qbits;
   reg [LWIDTH-1:0]          total_out;
   reg [LWIDTH-1:0]          total_in;
   reg [LWIDTH-1:0]          img_height;
@@ -216,6 +218,7 @@ module test_renkon_top;
     in_offset   = IN_OFFSET;
     out_offset  = OUT_OFFSET;
     net_offset  = NET_OFFSET;
+    qbits       = QBITS;
     total_out   = N_OUT;
     total_in    = N_IN;
     img_height  = IMG_HEIGHT;
@@ -644,9 +647,12 @@ module test_renkon_top;
           // "%4d ", dut.serial.serial_addr,
           // "%4d ", dut.serial.in_data[0],
           // "%4d ", dut.serial.out_data,
-          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.own_height,
-          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.own_width,
-          "%1d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.COVER_ALL,
+          // "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.own_height,
+          // "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.own_width,
+          // "%1d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.COVER_ALL,
+          "%1d ", dut.pe[0].core.conv.tree._qbits,
+          "%1d ", dut.pe[0].core.conv.tree.QBITS,
+          "%2d ", dut.pe[0].core.conv.tree.hoge,
           "|"
         );
       end

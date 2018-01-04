@@ -4,6 +4,7 @@
 module renkon_conv_tree9
   ( input                      clk
   , input                      xrst
+  , input  [LWIDTH-1:0]        _qbits
   , input  signed [DWIDTH-1:0] pixel  [9-1:0]
   , input  signed [DWIDTH-1:0] weight [9-1:0]
   , output signed [DWIDTH-1:0] fmap
@@ -83,22 +84,44 @@ module renkon_conv_tree9
     else
       fmap$ <= sum3_0;
 
-////////////////////////////////////////////////////////////
+//==========================================================
 //  Function
-////////////////////////////////////////////////////////////
+//==========================================================
 
+  parameter QBITS=DWIDTH/2;
+  // wire [$clog2(2*DWIDTH)-1:0] hoge = DWIDTH+_qbits-1-1;
+  reg [$clog2(2*DWIDTH)-1:0] hoge;
+  always @(posedge clk)
+    if (!xrst)
+      hoge <= 0;
+    else
+      hoge <= DWIDTH+_qbits-1-1;
   function signed [DWIDTH-1:0] round;
     input signed [2*DWIDTH-1:0] data;
-    if (data[2*DWIDTH-DWIDTH/2-2] == 1 && data[DWIDTH/2-1:0] == 0)
+    `ifdef NODEF
+    if (data[DWIDTH+QBITS-1-1] == 1 && data[QBITS-1:0] == 0)
       round = $signed({
-                data[2*DWIDTH-DWIDTH/2-2],
-                data[2*DWIDTH-DWIDTH/2-2:DWIDTH/2] - 1'b1
-              });
+                data[DWIDTH+QBITS-1-1],
+                data[DWIDTH+QBITS-1-1:QBITS]
+              }) - 1'b1;
     else
       round = $signed({
-                data[2*DWIDTH-DWIDTH/2-2],
-                data[2*DWIDTH-DWIDTH/2-2:DWIDTH/2]
+                data[DWIDTH+QBITS-1-1],
+                data[DWIDTH+QBITS-1-1:QBITS]
               });
+    `else
+    if (data[hoge] == 1 && data[QBITS-1:0] == 0)
+      round = $signed({
+                data[hoge],
+                // data[DWIDTH+QBITS-1-1:QBITS]
+                (data >> QBITS)[DWIDTH-2:0]
+              }) - 1'b1;
+    else
+      round = $signed({
+                data[hoge],
+                data[DWIDTH+QBITS-1-1:QBITS]
+              });
+    `endif
   endfunction
 
 endmodule

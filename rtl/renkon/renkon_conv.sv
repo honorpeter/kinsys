@@ -3,6 +3,7 @@
 module renkon_conv
   ( input                       clk
   , input                       xrst
+  , input  [LWIDTH-1:0]         _qbits
   , input                       out_en
   , input                       wreg_we
   , input                       mem_feat_we
@@ -21,18 +22,18 @@ module renkon_conv
 
   renkon_conv_wreg wreg(.*);
 
-  if (CONV_KERN == 3)
+  // if (CONV_KERN == 3)
     renkon_conv_tree9 tree(
       .pixel  (pixel_in),
       .fmap   (result),
       .*
     );
-  else if (CONV_KERN == 5)
-    renkon_conv_tree25 tree(
-      .pixel  (pixel_in),
-      .fmap   (result),
-      .*
-    );
+  // else if (CONV_KERN == 5)
+  //   renkon_conv_tree25 tree(
+  //     .pixel  (pixel_in),
+  //     .fmap   (result),
+  //     .*
+  //   );
 
   renkon_accum feat_accum(
     .pixel_in (result),
