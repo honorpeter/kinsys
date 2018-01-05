@@ -14,6 +14,7 @@ module gobou_top
   , input [GOBOU_NETSIZE-1:0] net_offset
 
   // Network parameters
+  , input [LWIDTH-1:0]        qbits
   , input [LWIDTH-1:0]        total_out
   , input [LWIDTH-1:0]        total_in
   , input                     bias_en
@@ -35,9 +36,10 @@ module gobou_top
   wire                      mac_oe;
   wire                      accum_we;
   wire                      accum_rst;
-  wire                      w_bias_en;
+  wire [LWIDTH-1:0]         _qbits;
+  wire                      _bias_en;
   wire                      bias_oe;
-  wire                      w_relu_en;
+  wire                      _relu_en;
   wire                      relu_oe;
 
   gobou_ctrl ctrl(.*);

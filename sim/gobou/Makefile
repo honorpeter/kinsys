@@ -29,9 +29,9 @@ clean:
 
 data:
 	mkdir -p $(DATADIR)
-	# $(RAND) 512   > $(DATADIR)/input_gobou_top.dat
-	# $(RAND) 65536 > $(DATADIR)/weight_gobou_top.dat
-	# $(RAND) 128   > $(DATADIR)/bias_gobou_top.dat
-	$(RAND) 25088     > $(DATADIR)/input_gobou_top.dat
-	$(RAND) 102760448 > $(DATADIR)/weight_gobou_top.dat
-	$(RAND) 4096      > $(DATADIR)/bias_gobou_top.dat
+	$(RAND) 512   > $(DATADIR)/input_gobou_top.dat
+	$(RAND) 65536 > $(DATADIR)/weight_gobou_top.dat
+	$(RAND) 128   > $(DATADIR)/bias_gobou_top.dat
+	# $(RAND) 25088     > $(DATADIR)/input_gobou_top.dat
+	# $(RAND) 102760448 > $(DATADIR)/weight_gobou_top.dat
+	# $(RAND) 4096      > $(DATADIR)/bias_gobou_top.dat

@@ -317,6 +317,7 @@ module kinpira
   wire [MEMSIZE-1:0]        gobou_in_offset;
   wire [MEMSIZE-1:0]        gobou_out_offset;
   wire [GOBOU_NETSIZE-1:0]  gobou_net_offset;
+  wire [LWIDTH-1:0]         gobou_qbits;
   wire [LWIDTH-1:0]         gobou_total_out;
   wire [LWIDTH-1:0]         gobou_total_in;
   wire                      gobou_bias_en;
@@ -472,6 +473,7 @@ module kinpira
   assign gobou_in_offset   = which == WHICH_GOBOU ? in_offset : 0;
   assign gobou_out_offset  = which == WHICH_GOBOU ? out_offset : 0;
   assign gobou_net_offset  = which == WHICH_GOBOU ? net_offset[GOBOU_NETSIZE-1:0] : 0;
+  assign gobou_qbits       = which == WHICH_GOBOU ? qbits : 0;
   assign gobou_total_out   = which == WHICH_GOBOU ? total_out : 0;
   assign gobou_total_in    = which == WHICH_GOBOU ? total_in : 0;
   assign gobou_bias_en     = which == WHICH_GOBOU ? bias_en : 0;
@@ -754,6 +756,7 @@ module kinpira
     .in_offset  (renkon_in_offset[MEMSIZE-1:0]),
     .out_offset (renkon_out_offset[MEMSIZE-1:0]),
     .net_offset (renkon_net_offset[RENKON_NETSIZE-1:0]),
+    .qbits      (renkon_qbits[LWIDTH-1:0]),
     .total_out  (renkon_total_out[LWIDTH-1:0]),
     .total_in   (renkon_total_in[LWIDTH-1:0]),
     .img_height (renkon_img_height[LWIDTH-1:0]),
@@ -788,6 +791,7 @@ module kinpira
     .in_offset  (gobou_in_offset[MEMSIZE-1:0]),
     .out_offset (gobou_out_offset[MEMSIZE-1:0]),
     .net_offset (gobou_net_offset[GOBOU_NETSIZE-1:0]),
+    .qbits      (gobou_qbits[LWIDTH-1:0]),
     .total_out  (gobou_total_out[LWIDTH-1:0]),
     .total_in   (gobou_total_in[LWIDTH-1:0]),
     .bias_en    (gobou_bias_en),

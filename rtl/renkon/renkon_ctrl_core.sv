@@ -54,8 +54,8 @@ module renkon_ctrl_core
   , output [LWIDTH-1:0]               _pool_pad
   , output                            buf_pix_wcol
   , output                            buf_pix_rrow [CONV_KERN-1:0]
-  , output [$clog2(CONV_KERN+1):0]        buf_pix_wsel
-  , output [$clog2(CONV_KERN+1):0]        buf_pix_rsel
+  , output [$clog2(CONV_KERN+1):0]    buf_pix_wsel
+  , output [$clog2(CONV_KERN+1):0]    buf_pix_rsel
   , output                            buf_pix_we
   , output [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr
   );
@@ -231,8 +231,8 @@ module renkon_ctrl_core
   always @(posedge clk)
     if (!xrst) begin
       qbits$      <= 0;
-      total_in$   <= 0;
       total_out$  <= 0;
+      total_in$   <= 0;
       img_height$ <= 0;
       img_width$  <= 0;
       conv_kern$  <= 0;
@@ -249,8 +249,8 @@ module renkon_ctrl_core
     end
     else if (state$ == S_WAIT && req_edge) begin
       qbits$      <= qbits;
-      total_in$   <= total_in;
       total_out$  <= total_out;
+      total_in$   <= total_in;
       img_height$ <= img_height;
       img_width$  <= img_width;
       conv_kern$  <= conv_kern;

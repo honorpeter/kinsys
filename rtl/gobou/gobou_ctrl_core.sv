@@ -11,6 +11,7 @@ module gobou_ctrl_core
   , input  [MEMSIZE-1:0]        in_offset
   , input  [MEMSIZE-1:0]        out_offset
   , input  [GOBOU_NETSIZE-1:0]  net_offset
+  , input  [LWIDTH-1:0]         qbits
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
   , input                       bias_en
@@ -23,9 +24,10 @@ module gobou_ctrl_core
   , output signed [DWIDTH-1:0]  img_wdata
   , output [GOBOU_CORE-1:0]     mem_net_we
   , output [GOBOU_NETSIZE-1:0]  mem_net_addr
-  , output                      w_bias_en
+  , output [LWIDTH-1:0]         _qbits
+  , output                      _bias_en
   , output                      breg_we
-  , output                      w_relu_en
+  , output                      _relu_en
   , output                      serial_we
   );
 
@@ -37,8 +39,8 @@ module gobou_ctrl_core
   wire                s_output_end;
   wire                req_edge;
   wire                final_iter;
-  wire [MEMSIZE-1:0]  w_img_addr;
-  wire [MEMSIZE-1:0]  w_img_offset;
+  wire [MEMSIZE-1:0]  _img_addr;
+  wire [MEMSIZE-1:0]  _img_offset;
 
   enum reg [3-1:0] {
     S_WAIT, S_SETUP, S_INPUT, S_BIAS, S_OUTPUT
@@ -47,6 +49,7 @@ module gobou_ctrl_core
   reg                     req$;
   reg                     ack$;
   reg [2-1:0]             setup$;
+  reg [LWIDTH-1:0]        qbits$;
   reg [LWIDTH-1:0]        total_out$;
   reg [LWIDTH-1:0]        total_in$;
   reg [LWIDTH-1:0]        count_out$;
@@ -134,17 +137,20 @@ module gobou_ctrl_core
 // params control
 //==========================================================
 
-  assign w_bias_en = bias_en$;
-  assign w_relu_en = relu_en$;
+  assign _qbits   = qbits$;
+  assign _bias_en = bias_en$;
+  assign _relu_en = relu_en$;
 
   always @(posedge clk)
     if (!xrst) begin
-      total_in$   <= 0;
+      qbits$      <= 0;
       total_out$  <= 0;
+      total_in$   <= 0;
       bias_en$    <= 0;
       relu_en$    <= 0;
     end
     else if (state$ == S_WAIT && req_edge) begin
+      qbits$      <= qbits;
       total_in$   <= total_in;
       total_out$  <= total_out;
       bias_en$    <= bias_en;
@@ -171,19 +177,20 @@ module gobou_ctrl_core
           img_we$ <= 0;
       endcase
 
-  // assign img_addr = w_img_addr + w_img_offset;
+  // assign img_addr = _img_addr + _img_offset;
 
-  assign img_wdata = state$ == S_OUTPUT
-                   ? out_wdata
-                   : 0;
+  assign img_wdata = out_wdata;
+  // assign img_wdata = state$ == S_OUTPUT
+  //                  ? out_wdata
+  //                  : 0;
 
-  assign w_img_addr = state$ == S_OUTPUT
-                    ? out_addr$
-                    : in_addr$;
-
-  assign w_img_offset = state$ == S_OUTPUT
-                      ? out_offset$
-                      : in_offset$;
+  // assign _img_addr = state$ == S_OUTPUT
+  //                   ? out_addr$
+  //                   : in_addr$;
+  //
+  // assign _img_offset = state$ == S_OUTPUT
+  //                     ? out_offset$
+  //                     : in_offset$;
 
   always @(posedge clk)
     if (!xrst)

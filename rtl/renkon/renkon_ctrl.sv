@@ -13,8 +13,8 @@ module renkon_ctrl
   , input  [RENKON_NETSIZE-1:0] net_offset
 
   , input  [LWIDTH-1:0]         qbits
-  , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         total_out
+  , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_height
   , input  [LWIDTH-1:0]         img_width
   , input  [LWIDTH-1:0]         conv_kern

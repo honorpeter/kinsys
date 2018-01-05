@@ -94,6 +94,7 @@ module renkon_conv_tree9
       qbits$ <= 0;
     else
       qbits$ <= _qbits;
+
   parameter QBITS=DWIDTH/2;
   function signed [DWIDTH-1:0] round;
     input signed [2*DWIDTH-1:0] data;
