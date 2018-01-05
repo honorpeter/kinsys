@@ -75,19 +75,8 @@ module gobou_mac
     else
       qbits$ <= _qbits;
 
-  parameter QBITS=DWIDTH/2;
   function signed [DWIDTH-1:0] round;
     input signed [2*DWIDTH-1:0] data;
-    // if (data[DWIDTH+QBITS-1-1] == 1 && data[QBITS-1:0] == 0)
-    //   round = $signed({
-    //             data[DWIDTH+QBITS-1-1],
-    //             data[DWIDTH+QBITS-1-1:QBITS]
-    //           }) - 1'b1;
-    // else
-    //   round = $signed({
-    //             data[DWIDTH+QBITS-1-1],
-    //             data[DWIDTH+QBITS-1-1:QBITS]
-    //           });
     if (data[2*DWIDTH-1] == 1)
       round = $signed(data >> qbits$) - 1;
     else

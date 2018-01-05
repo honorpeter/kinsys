@@ -151,19 +151,30 @@ module renkon_conv_tree25
 //  Function
 //==========================================================
 
-  parameter QBITS=DWIDTH/2;
+  reg [LWIDTH-1:0] qbits$;
+  always @(posedge clk)
+    if (!xrst)
+      qbits$ <= 0;
+    else
+      qbits$ <= _qbits;
+
+  // parameter QBITS=DWIDTH/2;
   function signed [DWIDTH-1:0] round;
     input signed [2*DWIDTH-1:0] data;
-    if (data[DWIDTH+QBITS-1-1] == 1 && data[QBITS-1:0] == 0)
-      round = $signed({
-                data[DWIDTH+QBITS-1-1],
-                data[DWIDTH+QBITS-1-1:QBITS] - 1'b1
-              });
+    // if (data[DWIDTH+QBITS-1-1] == 1 && data[QBITS-1:0] == 0)
+    //   round = $signed({
+    //             data[DWIDTH+QBITS-1-1],
+    //             data[DWIDTH+QBITS-1-1:QBITS] - 1'b1
+    //           });
+    // else
+    //   round = $signed({
+    //             data[DWIDTH+QBITS-1-1],
+    //             data[DWIDTH+QBITS-1-1:QBITS]
+    //           });
+    if (data[2*DWIDTH-1] == 1)
+      round = $signed(data >> qbits$) - 1;
     else
-      round = $signed({
-                data[DWIDTH+QBITS-1-1],
-                data[DWIDTH+QBITS-1-1:QBITS]
-              });
+      round = $signed(data >> qbits$);
   endfunction
 
 endmodule
