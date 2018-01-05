@@ -11,8 +11,8 @@ parameter WIDTH     = 16;
 parameter KERN      = 3;
 parameter STRID     = 2;
 parameter PAD       = 1;
-parameter COVER_ALL = 1'b1;
-parameter DELAY     = 1;
+parameter COVER_ALL = 1'b0;
+parameter DELAY     = 5;
 
 module test_renkon_linebuf_pad;
 
@@ -207,7 +207,6 @@ module test_renkon_linebuf_pad;
         "%4d ", dut.buf_output[6],
         "%4d ", dut.buf_output[7],
         "%4d ", dut.buf_output[8],
-        "%4d ", dut.buf_output[24],
         "|"
       );
       #(STEP/2+1);

@@ -145,7 +145,7 @@ module test_ninjin_ddr_buf;
     , input integer wlen
     );
 
-    pre_req    = 1;
+    pre_req   = 1;
     pre_base  = base;
     read_len  = rlen;
     write_len = wlen;
