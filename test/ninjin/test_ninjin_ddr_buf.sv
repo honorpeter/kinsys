@@ -242,12 +242,17 @@ module test_ninjin_ddr_buf;
               $error("read assert failed (odd) @ mem_rdata: %h, target: %h",
                 mem_rdata, 'h0def);
           else
-            assert (mem_rdata == 'h000c + (dut.mem_addr$ - (READ_OFFSET >> RATELOG))/2)
+            assert (
+              mem_rdata == 'h000c + (dut.mem_addr$ - (READ_OFFSET >> RATELOG))/2
+            )
             else
               $error("read assert failed (even) @ mem_rdata: %h, target: %h",
-                mem_rdata, 'h000c + (dut.mem_addr$ - (READ_OFFSET >> RATELOG))/2);
+                mem_rdata,
+                'h000c + (dut.mem_addr$ - (READ_OFFSET >> RATELOG))/2);
         3:
-          assert (mem_rdata == 'h0005 + dut.mem_addr$ - (WRITE_OFFSET >> RATELOG))
+          assert (
+            mem_rdata == 'h0005 + dut.mem_addr$ - (WRITE_OFFSET >> RATELOG)
+          )
           else
             $error("write assert failed @ mem_rdata: %h, target: %h",
               mem_rdata, 'h0005 + dut.mem_addr$ - (WRITE_OFFSET >> RATELOG));
@@ -293,14 +298,14 @@ module test_ninjin_ddr_buf;
       $display(
         "%4x: ", $time/STEP,
         // "%d ", xrst,
-        "&%d ", dut.state$[0],
+        "*%-7p ", dut.state$[0],
         "%d ", dut.mode,
         "%d ", dut.mode$,
-        // "%d ", dut.count_len$,
+        "%d ", dut.count_len$,
         // "%d ", dut.read_len,
         // "%d ", $signed(dut.rest_len),
         // "%d ", dut.burst_len,
-        // "%d ", dut.count_buf$,
+        "%d ", dut.count_buf$,
         // "%3d ", ddr_read_count,
         // "%3d ", ddr_write_count,
         // "| ",
@@ -334,9 +339,9 @@ module test_ninjin_ddr_buf;
         // "%4x ",  dut.pre_base$ << LSB,
         // "%4x ",  dut.post_base$ << LSB,
         "| ",
-        "*%d ", dut.which$,
-        "*%d ", dut.mem_which$,
-        "*%d ", dut.ddr_which$,
+        "&%d ", dut.which$,
+        "&%d ", dut.mem_which$,
+        "&%d ", dut.ddr_which$,
         "%d ",  dut.switch_buf,
         ": ",
         "%x ",  dut.buf_addr$,

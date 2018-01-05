@@ -228,7 +228,9 @@ module ninjin_ddr_buf
 //==========================================================
 // {{{
 
-  assign burst_len = count_len$ > RATE*BURST_MAX ? BURST_MAX : count_len$ >> RATELOG;
+  assign burst_len = count_len$ > RATE*BURST_MAX
+                   ? BURST_MAX
+                   : count_len$ >> RATELOG;
 
   always @(posedge clk)
     if (!xrst) begin
@@ -567,7 +569,8 @@ module ninjin_ddr_buf
 //==========================================================
 // {{{
 
-  assign switch_buf = mode == M_INCR && count_len$ > RATE*BURST_MAX
+  assign switch_buf = mode == M_INCR
+                   && count_len$ > RATE*BURST_MAX
                    && count_buf$ == RATE * BURST_MAX - 1;
 
   always @(posedge clk)
@@ -786,7 +789,8 @@ module ninjin_ddr_buf
   assign switch_post_main = state$[0] == S_WRITE
                           && ((
                             write_len$ > RATE*BURST_MAX
-                            && RATE*BURST_MAX < count_len$ && count_len$ <= 2*RATE*BURST_MAX
+                            && RATE*BURST_MAX < count_len$
+                            && count_len$ <= 2*RATE*BURST_MAX
                             && count_buf$ == RATE * BURST_MAX - 1
                           ) || (
                             write_len$ <= RATE*BURST_MAX
@@ -795,7 +799,7 @@ module ninjin_ddr_buf
 
 
   assign switch_post_sub  = write_len$ > RATE*BURST_MAX
-                          && count_post$ == RATE * BURST_MAX - 1;
+                         && count_post$ == RATE * BURST_MAX - 1;
 
   always @(posedge clk)
     if (!xrst)
