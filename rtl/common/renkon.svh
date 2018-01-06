@@ -22,8 +22,8 @@ parameter RENKON_MAXIMG  = 32;
 // expected max featuremap size (cf. $clog2(24x24))
 parameter FACCUM  = $clog2(RENKON_MAXIMG**2);
 parameter OUTSIZE = FACCUM;
-parameter CONV_KERN   = 3;
-// parameter CONV_KERN   = 5;
+// parameter CONV_MAX   = 3;
+parameter CONV_MAX   = 5;
 // parameter POOL_KERN   = 2;
 parameter POOL_KERN   = 3;
 
@@ -34,9 +34,9 @@ parameter POOL_KERN   = 3;
 parameter D_PIXELBUF = RENKON_MAXIMG;
 // max size (image height or width)
 parameter D_POOLBUF  = RENKON_MAXIMG;
-// CONV_KERN = 5
+// CONV_MAX = 5
 // parameter D_CONV     = 5;
-// CONV_KERN = 3
+// CONV_MAX = 3
 parameter D_CONV     = 4;
 parameter D_ACCUM    = 1;
 parameter D_POOL     = 2;

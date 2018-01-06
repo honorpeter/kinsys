@@ -1,34 +1,34 @@
 `include "renkon.svh"
 
 module renkon_conv
-  ( input                           clk
-  , input                           xrst
-  , input  [LWIDTH-1:0]             _qbits
-  , input                           out_en
-  , input  [$clog2(CONV_KERN+1):0]  wreg_we
-  , input                           mem_feat_we
-  , input                           mem_feat_rst
-  , input  [FACCUM-1:0]             mem_feat_waddr
-  , input  [FACCUM-1:0]             mem_feat_raddr
-  , input  signed [DWIDTH-1:0]      pixel_in [CONV_KERN**2-1:0]
-  , input  signed [DWIDTH-1:0]      read_weight
-  , output signed [DWIDTH-1:0]      pixel_out
+  ( input                       clk
+  , input                       xrst
+  , input  [LWIDTH-1:0]         _qbits
+  , input                       out_en
+  , input  [CONV_MAX-1:0]       wreg_we
+  , input                       mem_feat_we
+  , input                       mem_feat_rst
+  , input  [FACCUM-1:0]         mem_feat_waddr
+  , input  [FACCUM-1:0]         mem_feat_raddr
+  , input  signed [DWIDTH-1:0]  pixel_in [CONV_MAX**2-1:0]
+  , input  signed [DWIDTH-1:0]  read_weight
+  , output signed [DWIDTH-1:0]  pixel_out
   );
 
-  wire signed [DWIDTH-1:0] weight [CONV_KERN**2-1:0];
+  wire signed [DWIDTH-1:0] weight [CONV_MAX**2-1:0];
   wire signed [DWIDTH-1:0] mem_feat_rdata;
   wire signed [DWIDTH-1:0] mem_feat_wdata;
   wire signed [DWIDTH-1:0] result;
 
   renkon_conv_wreg wreg(.*);
 
-  if (CONV_KERN == 3)
+  if (CONV_MAX == 3)
     renkon_conv_tree9 tree(
       .pixel  (pixel_in),
       .fmap   (result),
       .*
     );
-  else if (CONV_KERN == 5)
+  else if (CONV_MAX == 5)
     renkon_conv_tree25 tree(
       .pixel  (pixel_in),
       .fmap   (result),

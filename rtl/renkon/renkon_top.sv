@@ -40,19 +40,19 @@ module renkon_top
   wire [RENKON_CORE-1:0]          mem_net_we;
   wire [RENKON_NETSIZE-1:0]       mem_net_addr;
   wire signed [DWIDTH-1:0]        net_rdata [RENKON_CORE-1:0];
-  wire                            buf_pix_mask [CONV_KERN-1:0];
+  wire                            buf_pix_mask [CONV_MAX-1:0];
   wire                            buf_pix_wcol;
-  wire                            buf_pix_rrow [CONV_KERN-1:0];
-  wire [$clog2(CONV_KERN+1):0]    buf_pix_wsel;
-  wire [$clog2(CONV_KERN+1):0]    buf_pix_rsel;
+  wire                            buf_pix_rrow [CONV_MAX-1:0];
+  wire [$clog2(CONV_MAX+1):0]     buf_pix_wsel;
+  wire [$clog2(CONV_MAX+1):0]     buf_pix_rsel;
   wire                            buf_pix_we;
   wire [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr;
   wire [LWIDTH-1:0]               _qbits;
   wire                            _bias_en;
   wire                            _relu_en;
   wire                            _pool_en;
-  wire signed [DWIDTH-1:0]        pixel [CONV_KERN**2-1:0];
-  wire [$clog2(CONV_KERN+1):0]    wreg_we;
+  wire signed [DWIDTH-1:0]        pixel [CONV_MAX**2-1:0];
+  wire [CONV_MAX-1:0]             wreg_we;
   wire                            mem_feat_we;
   wire                            mem_feat_rst;
   wire [FACCUM-1:0]               mem_feat_waddr;
@@ -77,7 +77,7 @@ module renkon_top
 
   renkon_ctrl ctrl(.*);
 
-  renkon_linebuf_pad #(CONV_KERN, D_PIXELBUF) buf_pix(
+  renkon_linebuf_pad #(CONV_MAX, D_PIXELBUF) buf_pix(
     .buf_mask   (buf_pix_mask),
     .buf_wcol   (buf_pix_wcol),
     .buf_rrow   (buf_pix_rrow),

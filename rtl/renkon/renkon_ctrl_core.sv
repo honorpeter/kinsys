@@ -39,7 +39,7 @@ module renkon_ctrl_core
   , output [RENKON_NETSIZE-1:0]       mem_net_addr
   , output                            first_input
   , output                            last_input
-  , output [$clog2(CONV_KERN+1):0]    wreg_we
+  , output [CONV_MAX-1:0]             wreg_we
   , output                            breg_we
   , output                            serial_we
   , output [RENKON_CORELOG:0]         serial_re
@@ -54,11 +54,11 @@ module renkon_ctrl_core
   , output [LWIDTH-1:0]               _pool_kern
   , output [LWIDTH-1:0]               _pool_strid
   , output [LWIDTH-1:0]               _pool_pad
-  , output                            buf_pix_mask [CONV_KERN-1:0]
+  , output                            buf_pix_mask [CONV_MAX-1:0]
   , output                            buf_pix_wcol
-  , output                            buf_pix_rrow [CONV_KERN-1:0]
-  , output [$clog2(CONV_KERN+1):0]    buf_pix_wsel
-  , output [$clog2(CONV_KERN+1):0]    buf_pix_rsel
+  , output                            buf_pix_rrow [CONV_MAX-1:0]
+  , output [$clog2(CONV_MAX+1):0]     buf_pix_wsel
+  , output [$clog2(CONV_MAX+1):0]     buf_pix_rsel
   , output                            buf_pix_we
   , output [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr
   );
@@ -109,31 +109,31 @@ module renkon_ctrl_core
   reg [LWIDTH-1:0]  weight_x$;
   reg [LWIDTH-1:0]  weight_y$;
 
-  reg                         s_output_end$;
-  reg                         buf_pix_req$;
-  reg                         img_we$;
-  reg [MEMSIZE-1:0]           img_addr$;
-  reg                         out_we$;
-  reg [MEMSIZE-1:0]           in_offset$;
-  reg [MEMSIZE-1:0]           out_offset$;
-  reg [MEMSIZE-1:0]           out_addr$;
-  reg [RENKON_NETSIZE-1:0]    net_addr$;
-  reg [RENKON_NETSIZE-1:0]    net_offset$;
-  reg                         serial_we$;
-  reg [RENKON_CORELOG:0]      serial_re$;
-  reg [LWIDTH-1:0]            serial_cnt$;
-  reg [OUTSIZE-1:0]           serial_addr$;
-  reg                         serial_end$;
-  reg                         first_input$;
-  reg                         last_input$;
-  reg [$clog2(CONV_KERN+1):0] wreg_we$;
-  reg                         bias_en$;
-  reg                         breg_we$;
-  reg                         relu_en$;
-  reg                         pool_en$;
-  reg [LWIDTH-1:0]            pool_kern$;
-  reg [LWIDTH-1:0]            pool_strid$;
-  reg [LWIDTH-1:0]            pool_pad$;
+  reg                       s_output_end$;
+  reg                       buf_pix_req$;
+  reg                       img_we$;
+  reg [MEMSIZE-1:0]         img_addr$;
+  reg                       out_we$;
+  reg [MEMSIZE-1:0]         in_offset$;
+  reg [MEMSIZE-1:0]         out_offset$;
+  reg [MEMSIZE-1:0]         out_addr$;
+  reg [RENKON_NETSIZE-1:0]  net_addr$;
+  reg [RENKON_NETSIZE-1:0]  net_offset$;
+  reg                       serial_we$;
+  reg [RENKON_CORELOG:0]    serial_re$;
+  reg [LWIDTH-1:0]          serial_cnt$;
+  reg [OUTSIZE-1:0]         serial_addr$;
+  reg                       serial_end$;
+  reg                       first_input$;
+  reg                       last_input$;
+  reg [CONV_MAX-1:0]        wreg_we$;
+  reg                       bias_en$;
+  reg                       breg_we$;
+  reg                       relu_en$;
+  reg                       pool_en$;
+  reg [LWIDTH-1:0]          pool_kern$;
+  reg [LWIDTH-1:0]          pool_strid$;
+  reg [LWIDTH-1:0]          pool_pad$;
 
 
 
@@ -281,7 +281,7 @@ module renkon_ctrl_core
     else
       case (state_weight$)
         S_W_WEIGHT: begin
-          wreg_we$ <= 1 << weight_y$;
+          wreg_we$ <= 1 << weight_y$ + (CONV_MAX-conv_kern$);
           breg_we$ <= 0;
         end
         S_W_BIAS: begin
@@ -541,7 +541,7 @@ module renkon_ctrl_core
       serial_end$ <= serial_re$ == RENKON_CORE
                   && serial_addr$ == serial_cnt$ - 1;
 
-  renkon_ctrl_linebuf_pad #(CONV_KERN, D_PIXELBUF, 1'b0) ctrl_buf_pix(
+  renkon_ctrl_linebuf_pad #(CONV_MAX, D_PIXELBUF, 1'b0) ctrl_buf_pix(
     .height     (img_height$),
     .width      (img_width$),
     .kern       (conv_kern$),

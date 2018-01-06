@@ -7,7 +7,7 @@ module renkon_core
   , input                             breg_we
   , input                             conv_oe
   , input                             relu_oe
-  , input  [$clog2(CONV_KERN+1):0]    wreg_we
+  , input  [CONV_MAX-1:0]             wreg_we
   , input                             pool_oe
   , input                             mem_feat_rst
   , input                             mem_feat_we
@@ -24,7 +24,7 @@ module renkon_core
   , input                             _bias_en
   , input                             _relu_en
   , input                             _pool_en
-  , input  signed [DWIDTH-1:0]        pixel [CONV_KERN**2-1:0]
+  , input  signed [DWIDTH-1:0]        pixel [CONV_MAX**2-1:0]
   , input  signed [DWIDTH-1:0]        net_rdata
   , output signed [DWIDTH-1:0]        result
   );

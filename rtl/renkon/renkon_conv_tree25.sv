@@ -95,8 +95,8 @@ module renkon_conv_tree25
   assign sum2_0 = sum1_0 + sum1_1;
   assign sum2_1 = sum1_2 + sum1_3;
   assign sum2_2 = sum1_4 + sum1_5;
-  assign sum3_0 = sum2_0$ + sum2_1$;
-  assign sum3_1 = sum2_2$ + pro_short24_d1$;
+  assign sum3_0 = sum2_0 + sum2_1;
+  assign sum3_1 = sum2_2 + pro_short$[24];
   assign sum4_0 = sum3_0 + sum3_1;
 
   assign fmap = fmap$;
@@ -158,19 +158,8 @@ module renkon_conv_tree25
     else
       qbits$ <= _qbits;
 
-  // parameter QBITS=DWIDTH/2;
   function signed [DWIDTH-1:0] round;
     input signed [2*DWIDTH-1:0] data;
-    // if (data[DWIDTH+QBITS-1-1] == 1 && data[QBITS-1:0] == 0)
-    //   round = $signed({
-    //             data[DWIDTH+QBITS-1-1],
-    //             data[DWIDTH+QBITS-1-1:QBITS] - 1'b1
-    //           });
-    // else
-    //   round = $signed({
-    //             data[DWIDTH+QBITS-1-1],
-    //             data[DWIDTH+QBITS-1-1:QBITS]
-    //           });
     if (data[2*DWIDTH-1] == 1)
       round = $signed(data >> qbits$) - 1;
     else

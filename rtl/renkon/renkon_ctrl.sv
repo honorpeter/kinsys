@@ -30,17 +30,17 @@ module renkon_ctrl
   , input  [LWIDTH-1:0]         pool_pad
 
   , output                            ack
-  , output [$clog2(CONV_KERN+1):0]    wreg_we
+  , output [CONV_MAX-1:0]             wreg_we
   , output                            conv_oe
   , output                            breg_we
   , output                            bias_oe
   , output                            relu_oe
   , output                            pool_oe
-  , output                            buf_pix_mask [CONV_KERN-1:0]
+  , output                            buf_pix_mask [CONV_MAX-1:0]
   , output                            buf_pix_wcol
-  , output                            buf_pix_rrow [CONV_KERN-1:0]
-  , output [$clog2(CONV_KERN+1):0]    buf_pix_wsel
-  , output [$clog2(CONV_KERN+1):0]    buf_pix_rsel
+  , output                            buf_pix_rrow [CONV_MAX-1:0]
+  , output [$clog2(CONV_MAX+1):0]     buf_pix_wsel
+  , output [$clog2(CONV_MAX+1):0]     buf_pix_rsel
   , output                            buf_pix_we
   , output [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr
   , output                            serial_we
