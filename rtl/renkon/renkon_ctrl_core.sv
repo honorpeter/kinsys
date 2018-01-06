@@ -318,11 +318,11 @@ module renkon_ctrl_core
                        ? s_w_bias_end
                        : s_w_weight_end;
 
-  assign s_w_weight_end = state_weight$ == S_W_WEIGHT
+  assign s_w_weight_end = state$ == S_NETWORK && state_weight$ == S_W_WEIGHT
                        && weight_x$ == conv_kern$ - 1
                        && weight_y$ == conv_kern$ - 1;
 
-  assign s_w_bias_end   = state_weight$ == S_W_BIAS;
+  assign s_w_bias_end   = state$ == S_NETWORK && state_weight$ == S_W_BIAS;
 
   always @(posedge clk)
     if (!xrst)

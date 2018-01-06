@@ -23,9 +23,9 @@ int make_size(int size, int kern, int strid, int pad, bool cover_all=false)
     return (size + pad * 2 - kern) / strid + 1;
 }
 
-const int conv_kern   = 3;
+const int conv_kern   = 1;
 const int conv_strid  = 1;
-const int conv_pad    = 1;
+const int conv_pad    = 0;
 const int fea_height  = make_size(img_height, conv_kern, conv_strid, conv_pad);
 const int fea_width   = make_size(img_width, conv_kern, conv_strid, conv_pad);
 const int pool_kern   = 2;

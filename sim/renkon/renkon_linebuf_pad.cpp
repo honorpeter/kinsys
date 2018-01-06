@@ -3,7 +3,7 @@
 
 const int height  = 12;
 const int width   = 16;
-const int kern    = 2;
+const int kern    = 3;
 const int stride  = 1;
 const int pad     = 0;
 const bool cover_all = false;
@@ -37,13 +37,17 @@ int main(void)
   for ranges(i, fea_h, stride)
   for ranges(j, fea_w, stride) {
     printf("Block %d:\n", idx++);
-    printf("%5d", 0);
-    for range(dj, kern) {
-      printf("%5d", 0);
+    for range(di, 3-kern) {
+      for range(dj, 3-kern)
+        printf("%5d", 0);
+      for range(dj, kern) {
+        printf("%5d", 0);
+      }
+      printf("\n");
     }
-    printf("\n");
     for range(di, kern) {
-      printf("%5d", 0);
+      for range(dj, 3-kern)
+        printf("%5d", 0);
       for range(dj, kern) {
         printf("%5d", img_pad[i+di][j+dj]);
       }

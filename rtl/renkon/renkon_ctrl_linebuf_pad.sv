@@ -323,9 +323,12 @@ module renkon_ctrl_linebuf_pad
           buf_stop$[0]  <= 0;
         end
         else begin
-          buf_start$[0] <= state$ == S_ACTIVE
-                        && row_count == kern - pad
-                        && col_count == kern - 2;
+          // buf_start$[0] <= state$ == S_ACTIVE
+          //               && row_count == kern - pad
+          //               && col_count == kern - 2;
+          buf_start$[0] <= state$ == S_CHARGE
+                        && row_count == kern - pad - 1
+                        && col_count == make_size(width,  kern, strid, pad)-1;
 
           buf_valid$[0] <= state$ == S_ACTIVE
                         && kern - 1 <= col_count
@@ -334,8 +337,8 @@ module renkon_ctrl_linebuf_pad
                         && str_y_count == str_y_start;
 
           buf_stop$[0]  <= state$ == S_ACTIVE
-                        && row_count == make_size(height, kern, strid, pad) - 1
-                        && col_count == make_size(width,  kern, strid, pad) - 1;
+                        && row_count == make_size(height, kern, strid, pad)-pad
+                        && col_count == make_size(width,  kern, strid, pad)-1;
         end
     end
     else begin
