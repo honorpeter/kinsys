@@ -232,7 +232,7 @@ module kinpira
   wire [MEMSIZE-1:0]        out_offset;
   wire [BWIDTH-1:0]         net_offset;
 
-  wire [BWIDTH-1:0]         base_param [1:0];
+  wire [BWIDTH-1:0]         base_param [2:0];
   wire [BWIDTH-1:0]         conv_param [1:0];
   wire [BWIDTH-1:0]         bias_param;
   wire [BWIDTH-1:0]         actv_param;
@@ -342,29 +342,32 @@ module kinpira
   assign xrst       = s_axi_params_aresetn;
   assign which      = in_port[0][0];
   assign req        = in_port[1][0];
-  assign in_offset  = in_port[2][MEMSIZE-1+RATELOG:RATELOG];
-  assign out_offset = in_port[3][MEMSIZE-1+RATELOG:RATELOG];
-  assign net_offset = in_port[4][BWIDTH-1:0];
-  assign pre_req    = in_port[5][0];
-  assign pre_base   = in_port[6][WORDSIZE-1+LSB:LSB];
-  assign read_len   = in_port[7][LWIDTH-1:0];
-  assign write_len  = in_port[8][LWIDTH-1:0];
+  assign qbits      = in_port[2][LWIDTH-1:0];
+  assign in_offset  = in_port[3][MEMSIZE-1+RATELOG:RATELOG];
+  assign out_offset = in_port[4][MEMSIZE-1+RATELOG:RATELOG];
+  assign net_offset = in_port[5][BWIDTH-1:0];
+  assign pre_req    = in_port[6][0];
+  assign pre_base   = in_port[7][WORDSIZE-1+LSB:LSB];
+  assign read_len   = in_port[8][LWIDTH-1:0];
+  assign write_len  = in_port[9][LWIDTH-1:0];
 
-  assign base_param[0] = in_port[9][BWIDTH-1:0];
-  assign base_param[1] = in_port[10][BWIDTH-1:0];
-  assign conv_param[0] = in_port[11][BWIDTH-1:0];
-  assign conv_param[1] = in_port[12][BWIDTH-1:0];
-  assign bias_param    = in_port[13][BWIDTH-1:0];
-  assign actv_param    = in_port[14][BWIDTH-1:0];
-  assign pool_param[0] = in_port[15][BWIDTH-1:0];
-  assign pool_param[1] = in_port[16][BWIDTH-1:0];
+  assign base_param[0] = in_port[10][BWIDTH-1:0];
+  assign base_param[1] = in_port[11][BWIDTH-1:0];
+  assign base_param[2] = in_port[12][BWIDTH-1:0];
+  assign conv_param[0] = in_port[13][BWIDTH-1:0];
+  assign conv_param[1] = in_port[14][BWIDTH-1:0];
+  assign bias_param    = in_port[15][BWIDTH-1:0];
+  assign actv_param    = in_port[16][BWIDTH-1:0];
+  assign pool_param[0] = in_port[17][BWIDTH-1:0];
+  assign pool_param[1] = in_port[18][BWIDTH-1:0];
 
   // Network parameters
-  assign qbits      = 8;
   assign total_out  = base_param[0][2*LWIDTH-1:LWIDTH];
   assign total_in   = base_param[0][LWIDTH-1:0];
   assign img_height = base_param[1][2*LWIDTH-1:LWIDTH];
   assign img_width  = base_param[1][LWIDTH-1:0];
+  assign fea_height = base_param[2][2*LWIDTH-1:LWIDTH];
+  assign fea_width  = base_param[2][LWIDTH-1:0];
 
   assign conv_kern  = conv_param[0][LWIDTH-1:0];
   assign conv_strid = conv_param[1][2*LWIDTH-1:LWIDTH];

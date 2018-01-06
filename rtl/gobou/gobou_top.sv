@@ -4,6 +4,7 @@ module gobou_top
   ( input                     clk
   , input                     xrst
   , input                     req
+  , input [LWIDTH-1:0]        qbits
   , input signed [DWIDTH-1:0] img_rdata
   , input [GOBOU_CORELOG-1:0] net_sel
   , input                     net_we
@@ -14,7 +15,6 @@ module gobou_top
   , input [GOBOU_NETSIZE-1:0] net_offset
 
   // Network parameters
-  , input [LWIDTH-1:0]        qbits
   , input [LWIDTH-1:0]        total_out
   , input [LWIDTH-1:0]        total_in
   , input                     bias_en

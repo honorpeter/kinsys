@@ -3,7 +3,6 @@
 
 `include "common.svh"
 `include "ctrl_bus.svh"
-
 ////////////////////////////////////////////////////////////
 // User parameters ( $_ for substitution )
 ////////////////////////////////////////////////////////////
@@ -22,8 +21,8 @@ parameter RENKON_MAXIMG  = 32;
 // expected max featuremap size (cf. $clog2(24x24))
 parameter FACCUM  = $clog2(RENKON_MAXIMG**2);
 parameter OUTSIZE = FACCUM;
-// parameter CONV_MAX   = 3;
-parameter CONV_MAX   = 5;
+parameter CONV_MAX   = 3;
+// parameter CONV_MAX   = 5;
 // parameter POOL_MAX   = 2;
 parameter POOL_MAX   = 3;
 
