@@ -9,8 +9,8 @@
 parameter HEIGHT    = 12;
 parameter WIDTH     = 16;
 parameter KERN      = 3;
-parameter STRID     = 2;
-parameter PAD       = 1;
+parameter STRID     = 1;
+parameter PAD       = 0;
 parameter COVER_ALL = 1'b0;
 parameter DELAY     = 5;
 
@@ -38,6 +38,7 @@ module test_renkon_linebuf_pad;
   wire                      buf_valid;
   wire                      buf_stop;
   wire                      buf_ready;
+  wire                      buf_mask [KERN-1:0];
   wire                      buf_wcol;
   wire                      buf_rrow [KERN-1:0];
   wire [LINEWIDTH:0]        buf_wsel;
@@ -46,7 +47,7 @@ module test_renkon_linebuf_pad;
   wire [SIZEWIDTH-1:0]      buf_addr;
   wire signed [DWIDTH-1:0]  buf_output [KERN**2-1:0];
 
-  reg signed [DWIDTH-1:0] mem_input [HEIGHT*WIDTH+1-1:0];
+  reg signed [DWIDTH-1:0] mem_input [HEIGHT*WIDTH+DELAY-1:0];
 
   renkon_linebuf_pad #(KERN, WIDTH) dut(.*);
   renkon_ctrl_linebuf_pad #(KERN, WIDTH, COVER_ALL) ctrl(.*);
@@ -94,7 +95,8 @@ module test_renkon_linebuf_pad;
     buf_req = 0;
     height  = HEIGHT;
     width   = WIDTH;
-    kern    = KERN;
+    // kern    = KERN;
+    kern    = 2;
     strid   = STRID;
     pad     = PAD;
     #(STEP*5);
@@ -112,7 +114,8 @@ module test_renkon_linebuf_pad;
 
   task read_input;
     $readmemh("../../data/renkon/input_renkon_linebuf_pad.dat", mem_input);
-    mem_input[HEIGHT*WIDTH] = 0;
+    for (int i = 0; i < DELAY; i++)
+      mem_input[HEIGHT*WIDTH + i] = 0;
   endtask
 
   //display
@@ -156,19 +159,43 @@ module test_renkon_linebuf_pad;
         "%b ", buf_req,
         "%b ", buf_ack,
         "*%d ", ctrl.state$,
-        ": ",
-        "%b ", ctrl.s_charge_end,
-        "%b ", ctrl.s_active_end,
         "| ",
+        "%1b%1b%1b ", buf_mask[0],
+                      buf_mask[1],
+                      buf_mask[2],
         "%1d ", buf_wcol,
-        "%1b",  buf_rrow[0],
-        "%1b",  buf_rrow[1],
-        "%1b ",  buf_rrow[2],
+        "%1b%1b%1b ", buf_rrow[0],
+                      buf_rrow[1],
+                      buf_rrow[2],
         "%1d ", buf_wsel,
         "%1d ", buf_rsel,
         "%b ",  buf_we,
         "%2d ", buf_addr,
         "%4d ", buf_input,
+        "| ",
+        "%b ", buf_start,
+        "%b ", buf_valid,
+        "%b ", buf_ready,
+        "%b ", buf_stop,
+        ": ",
+        "%b ",  buf_ready,
+        "%4d ", addr[DELAY-1],
+        "| ",
+        "%1d ", dut.mem_linebuf_we[0],
+        "%2d ", dut.mem_linebuf_addr,
+        "%4d ", dut.mem_linebuf_wdata,
+        ": ",
+        "%4d ", dut.mem_linebuf_rdata[0],
+        "| ",
+        "%4d ", dut.buf_output[0],
+        "%4d ", dut.buf_output[1],
+        "%4d ", dut.buf_output[2],
+        "%4d ", dut.buf_output[3],
+        "%4d ", dut.buf_output[4],
+        "%4d ", dut.buf_output[5],
+        "%4d ", dut.buf_output[6],
+        "%4d ", dut.buf_output[7],
+        "%4d ", dut.buf_output[8],
         "| ",
         "%1d ", ctrl.mem_count,
         ": ",
@@ -184,29 +211,8 @@ module test_renkon_linebuf_pad;
         // "%b ", ctrl.buf_ready$[0],
         "%b ", ctrl.buf_stop$[0],
         ": ",
-        "%b ", buf_start,
-        "%b ", buf_valid,
-        "%b ", buf_ready,
-        "%b ", buf_stop,
-        ": ",
-        "%b ",  buf_ready,
-        "%4d ", addr[0],
-        // "; ",
-        // "%1d ", dut.mem_linebuf_we[0],
-        // "%2d ", dut.mem_linebuf_addr,
-        // "%4d ", dut.mem_linebuf_wdata,
-        "| ",
-        "%4d ", dut.mem_linebuf_rdata[0],
-        ": ",
-        "%4d ", dut.buf_output[0],
-        "%4d ", dut.buf_output[1],
-        "%4d ", dut.buf_output[2],
-        "%4d ", dut.buf_output[3],
-        "%4d ", dut.buf_output[4],
-        "%4d ", dut.buf_output[5],
-        "%4d ", dut.buf_output[6],
-        "%4d ", dut.buf_output[7],
-        "%4d ", dut.buf_output[8],
+        "%b ", ctrl.s_charge_end,
+        "%b ", ctrl.s_active_end,
         "|"
       );
       #(STEP/2+1);

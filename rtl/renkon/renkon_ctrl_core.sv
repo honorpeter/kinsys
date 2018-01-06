@@ -17,6 +17,8 @@ module renkon_ctrl_core
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_height
   , input  [LWIDTH-1:0]         img_width
+  , input  [LWIDTH-1:0]         fea_height
+  , input  [LWIDTH-1:0]         fea_width
   , input  [LWIDTH-1:0]         conv_kern
   , input  [LWIDTH-1:0]         conv_strid
   , input  [LWIDTH-1:0]         conv_pad
@@ -37,7 +39,7 @@ module renkon_ctrl_core
   , output [RENKON_NETSIZE-1:0]       mem_net_addr
   , output                            first_input
   , output                            last_input
-  , output                            wreg_we
+  , output [$clog2(CONV_KERN+1):0]    wreg_we
   , output                            breg_we
   , output                            serial_we
   , output [RENKON_CORELOG:0]         serial_re
@@ -52,6 +54,7 @@ module renkon_ctrl_core
   , output [LWIDTH-1:0]               _pool_kern
   , output [LWIDTH-1:0]               _pool_strid
   , output [LWIDTH-1:0]               _pool_pad
+  , output                            buf_pix_mask [CONV_KERN-1:0]
   , output                            buf_pix_wcol
   , output                            buf_pix_rrow [CONV_KERN-1:0]
   , output [$clog2(CONV_KERN+1):0]    buf_pix_wsel
@@ -106,31 +109,31 @@ module renkon_ctrl_core
   reg [LWIDTH-1:0]  weight_x$;
   reg [LWIDTH-1:0]  weight_y$;
 
-  reg               s_output_end$;
-  reg               buf_pix_req$;
-  reg               img_we$;
-  reg [MEMSIZE-1:0] img_addr$;
-  reg               out_we$;
-  reg [MEMSIZE-1:0] in_offset$;
-  reg [MEMSIZE-1:0] out_offset$;
-  reg [MEMSIZE-1:0] out_addr$;
-  reg [RENKON_NETSIZE-1:0] net_addr$;
-  reg [RENKON_NETSIZE-1:0] net_offset$;
-  reg               serial_we$;
-  reg [RENKON_CORELOG:0]   serial_re$;
-  reg [LWIDTH-1:0]  serial_cnt$;
-  reg [OUTSIZE-1:0] serial_addr$;
-  reg               serial_end$;
-  reg               first_input$;
-  reg               last_input$;
-  reg               wreg_we$;
-  reg               bias_en$;
-  reg               breg_we$;
-  reg               relu_en$;
-  reg               pool_en$;
-  reg [LWIDTH-1:0]  pool_kern$;
-  reg [LWIDTH-1:0]  pool_strid$;
-  reg [LWIDTH-1:0]  pool_pad$;
+  reg                         s_output_end$;
+  reg                         buf_pix_req$;
+  reg                         img_we$;
+  reg [MEMSIZE-1:0]           img_addr$;
+  reg                         out_we$;
+  reg [MEMSIZE-1:0]           in_offset$;
+  reg [MEMSIZE-1:0]           out_offset$;
+  reg [MEMSIZE-1:0]           out_addr$;
+  reg [RENKON_NETSIZE-1:0]    net_addr$;
+  reg [RENKON_NETSIZE-1:0]    net_offset$;
+  reg                         serial_we$;
+  reg [RENKON_CORELOG:0]      serial_re$;
+  reg [LWIDTH-1:0]            serial_cnt$;
+  reg [OUTSIZE-1:0]           serial_addr$;
+  reg                         serial_end$;
+  reg                         first_input$;
+  reg                         last_input$;
+  reg [$clog2(CONV_KERN+1):0] wreg_we$;
+  reg                         bias_en$;
+  reg                         breg_we$;
+  reg                         relu_en$;
+  reg                         pool_en$;
+  reg [LWIDTH-1:0]            pool_kern$;
+  reg [LWIDTH-1:0]            pool_strid$;
+  reg [LWIDTH-1:0]            pool_pad$;
 
 
 
@@ -256,10 +259,8 @@ module renkon_ctrl_core
       conv_kern$  <= conv_kern;
       conv_strid$ <= conv_strid;
       conv_pad$   <= conv_pad;
-      // fea_height$ <= img_height + conv_pad_both - conv_kern + 1;
-      // fea_width$  <= img_width + conv_pad_both - conv_kern + 1;
-      fea_height$ <= ((img_height + conv_pad_both - conv_kern) >> 1) + 1;
-      fea_width$  <= ((img_width + conv_pad_both - conv_kern) >> 1) + 1;
+      fea_height$ <= fea_height;
+      fea_width$  <= fea_width;
       bias_en$    <= bias_en;
       relu_en$    <= relu_en;
       pool_en$    <= pool_en;
@@ -277,10 +278,21 @@ module renkon_ctrl_core
       wreg_we$ <= 0;
       breg_we$ <= 0;
     end
-    else begin
-      wreg_we$ <= state_weight$ == S_W_WEIGHT;
-      breg_we$ <= state_weight$ == S_W_BIAS;
-    end
+    else
+      case (state_weight$)
+        S_W_WEIGHT: begin
+          wreg_we$ <= 1 << weight_y$;
+          breg_we$ <= 0;
+        end
+        S_W_BIAS: begin
+          wreg_we$ <= 0;
+          breg_we$ <= 1;
+        end
+        default: begin
+          wreg_we$ <= 0;
+          breg_we$ <= 0;
+        end
+      endcase
 
   // assign buf_pix_req = buf_pix_req$;
   assign buf_pix_req = s_network_end;
@@ -544,6 +556,7 @@ module renkon_ctrl_core
     .buf_ready  (buf_pix_ready),
     .buf_stop   (buf_pix_stop),
 
+    .buf_mask   (buf_pix_mask),
     .buf_wcol   (buf_pix_wcol),
     .buf_rrow   (buf_pix_rrow),
     .buf_wsel   (buf_pix_wsel),

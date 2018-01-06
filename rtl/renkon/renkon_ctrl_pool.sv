@@ -12,6 +12,7 @@ module renkon_ctrl_pool
   , input  [LWIDTH-1:0]               _pool_pad
   , ctrl_bus.master                   out_ctrl
   , output                            pool_oe
+  , output                            buf_feat_mask [POOL_KERN-1:0]
   , output                            buf_feat_wcol
   , output                            buf_feat_rrow [POOL_KERN-1:0]
   , output [$clog2(POOL_KERN+1):0]    buf_feat_wsel
@@ -99,6 +100,7 @@ module renkon_ctrl_pool
     .buf_ready  (buf_feat_ready),
     .buf_stop   (buf_feat_stop),
 
+    .buf_mask   (buf_feat_mask),
     .buf_wcol   (buf_feat_wcol),
     .buf_rrow   (buf_feat_rrow),
     .buf_wsel   (buf_feat_wsel),

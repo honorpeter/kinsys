@@ -52,6 +52,8 @@ module test_renkon_top;
   reg [LWIDTH-1:0]          total_in;
   reg [LWIDTH-1:0]          img_height;
   reg [LWIDTH-1:0]          img_width;
+  reg [LWIDTH-1:0]          fea_height;
+  reg [LWIDTH-1:0]          fea_width;
   reg [LWIDTH-1:0]          conv_kern;
   reg [LWIDTH-1:0]          conv_strid;
   reg [LWIDTH-1:0]          conv_pad;
@@ -223,7 +225,10 @@ module test_renkon_top;
     total_in    = N_IN;
     img_height  = IMG_HEIGHT;
     img_width   = IMG_WIDTH;
-    conv_kern   = CONV_KERN;
+    fea_height  = FEA_HEIGHT;
+    fea_width   = FEA_WIDTH;
+    // conv_kern   = CONV_KERN;
+    conv_kern   = 3;
     conv_strid  = CONV_STRID;
     conv_pad    = CONV_PAD;
     bias_en     = DO_BIAS;
@@ -541,9 +546,12 @@ module test_renkon_top;
           "%2d ", dut.ctrl.ctrl_core.weight_x$,
           "%2d ", dut.ctrl.ctrl_core.weight_y$,
           ": ",
-          "%2d ", dut.ctrl.ctrl_conv._conv_strid,
+          // "%2d ", dut.ctrl.ctrl_conv._conv_strid,
           "%2d ", dut.ctrl.ctrl_conv.conv_x$,
           "%2d ", dut.ctrl.ctrl_conv.conv_y$,
+          ": ",
+          "%3b ", dut.wreg_we,
+          "%1b ", dut.breg_we,
           "| ",
           "%1d ", mem_img_we,
           "%4d ", mem_img_addr,
@@ -628,11 +636,11 @@ module test_renkon_top;
                            dut.ctrl.ctrl_pool.out_ctrl.stop,
           "| ",
           "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.row_count,
-          // "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.mem_count,
+          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.mem_count,
           "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.col_count,
           "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.str_x_count,
           "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.str_y_count,
-          "| ",
+          // "| ",
           // "%1d ", dut.ctrl.ctrl_core.serial_we$,
           // "%1d ", dut.ctrl.ctrl_core.serial_re$,
           // "%3d ", dut.ctrl.ctrl_core.serial_addr$,

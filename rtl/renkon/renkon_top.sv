@@ -19,6 +19,8 @@ module renkon_top
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_height
   , input  [LWIDTH-1:0]         img_width
+  , input  [LWIDTH-1:0]         fea_height
+  , input  [LWIDTH-1:0]         fea_width
   , input  [LWIDTH-1:0]         conv_kern
   , input  [LWIDTH-1:0]         conv_strid
   , input  [LWIDTH-1:0]         conv_pad
@@ -38,6 +40,7 @@ module renkon_top
   wire [RENKON_CORE-1:0]          mem_net_we;
   wire [RENKON_NETSIZE-1:0]       mem_net_addr;
   wire signed [DWIDTH-1:0]        net_rdata [RENKON_CORE-1:0];
+  wire                            buf_pix_mask [CONV_KERN-1:0];
   wire                            buf_pix_wcol;
   wire                            buf_pix_rrow [CONV_KERN-1:0];
   wire [$clog2(CONV_KERN+1):0]    buf_pix_wsel;
@@ -49,11 +52,12 @@ module renkon_top
   wire                            _relu_en;
   wire                            _pool_en;
   wire signed [DWIDTH-1:0]        pixel [CONV_KERN**2-1:0];
-  wire                            wreg_we;
+  wire [$clog2(CONV_KERN+1):0]    wreg_we;
   wire                            mem_feat_we;
   wire                            mem_feat_rst;
   wire [FACCUM-1:0]               mem_feat_waddr;
   wire [FACCUM-1:0]               mem_feat_raddr;
+  wire                            buf_feat_mask [POOL_KERN-1:0];
   wire                            buf_feat_wcol;
   wire                            buf_feat_rrow [POOL_KERN-1:0];
   wire [$clog2(POOL_KERN+1):0]    buf_feat_wsel;
@@ -74,6 +78,7 @@ module renkon_top
   renkon_ctrl ctrl(.*);
 
   renkon_linebuf_pad #(CONV_KERN, D_PIXELBUF) buf_pix(
+    .buf_mask   (buf_pix_mask),
     .buf_wcol   (buf_pix_wcol),
     .buf_rrow   (buf_pix_rrow),
     .buf_wsel   (buf_pix_wsel),

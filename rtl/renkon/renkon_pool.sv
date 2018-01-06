@@ -5,6 +5,7 @@ module renkon_pool
   , input                             xrst
   , input                             enable
   , input                             out_en
+  , input                             buf_feat_mask [POOL_KERN-1:0]
   , input                             buf_feat_wcol
   , input                             buf_feat_rrow [POOL_KERN-1:0]
   , input  [$clog2(POOL_KERN+1):0]    buf_feat_wsel
@@ -23,6 +24,7 @@ module renkon_pool
   assign pixel_out = pixel_out$;
 
   renkon_linebuf_pad #(POOL_KERN, D_POOLBUF) buf_feat(
+    .buf_mask   (buf_feat_mask),
     .buf_wcol   (buf_feat_wcol),
     .buf_rrow   (buf_feat_rrow),
     .buf_wsel   (buf_feat_wsel),

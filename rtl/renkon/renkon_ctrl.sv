@@ -17,6 +17,8 @@ module renkon_ctrl
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_height
   , input  [LWIDTH-1:0]         img_width
+  , input  [LWIDTH-1:0]         fea_height
+  , input  [LWIDTH-1:0]         fea_width
   , input  [LWIDTH-1:0]         conv_kern
   , input  [LWIDTH-1:0]         conv_strid
   , input  [LWIDTH-1:0]         conv_pad
@@ -28,12 +30,13 @@ module renkon_ctrl
   , input  [LWIDTH-1:0]         pool_pad
 
   , output                            ack
-  , output                            wreg_we
+  , output [$clog2(CONV_KERN+1):0]    wreg_we
   , output                            conv_oe
   , output                            breg_we
   , output                            bias_oe
   , output                            relu_oe
   , output                            pool_oe
+  , output                            buf_pix_mask [CONV_KERN-1:0]
   , output                            buf_pix_wcol
   , output                            buf_pix_rrow [CONV_KERN-1:0]
   , output [$clog2(CONV_KERN+1):0]    buf_pix_wsel
@@ -52,6 +55,7 @@ module renkon_ctrl
   , output                            mem_feat_rst
   , output [FACCUM-1:0]               mem_feat_waddr
   , output [FACCUM-1:0]               mem_feat_raddr
+  , output                            buf_feat_mask [POOL_KERN-1:0]
   , output                            buf_feat_wcol
   , output                            buf_feat_rrow [POOL_KERN-1:0]
   , output [$clog2(POOL_KERN+1):0]    buf_feat_wsel

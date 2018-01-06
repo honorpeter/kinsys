@@ -28,6 +28,7 @@ module renkon_ctrl_linebuf_pad
   , output                  buf_ready
   , output                  buf_stop
 
+  , output                  buf_mask [MAXFIL-1:0]
   , output                  buf_wcol
   , output                  buf_rrow [MAXFIL-1:0]
   , output [LINEWIDTH:0]    buf_wsel
@@ -56,6 +57,7 @@ module renkon_ctrl_linebuf_pad
   reg                 buf_start$  [3-1:0];
   reg                 buf_valid$  [3-1:0];
   reg                 buf_stop$   [3-1:0];
+  reg                 buf_mask$   [MAXFIL-1:0];
   reg                 buf_wcol$;
   reg                 buf_rrow$   [2-1:0][MAXFIL-1:0];
   reg [LINEWIDTH:0]   buf_wsel$;
@@ -74,7 +76,7 @@ module renkon_ctrl_linebuf_pad
                      && col_count == make_size(width, kern, strid, pad) - 1;
 
   assign s_active_end = row_count == make_size(height, kern, strid, pad) - pad
-                     && col_count == make_size(width, kern, strid, pad) - 1;
+                     && col_count == make_size(width,  kern, strid, pad) - 1;
 
 
   always @(posedge clk)
@@ -201,11 +203,21 @@ module renkon_ctrl_linebuf_pad
 //==========================================================
 // {{{
 
+  assign buf_mask = buf_mask$;
   assign buf_wcol = buf_wcol$;
   assign buf_rrow = buf_rrow$[1];
 
   assign buf_wsel = buf_wsel$;
   assign buf_rsel = buf_rsel$[1];
+
+  for (genvar i = 0; i < MAXFIL; i++)
+    always @(posedge clk)
+      if (!xrst)
+        buf_mask$[i] <= 0;
+      else if (i < MAXFIL-kern)
+        buf_mask$[i] <= 1;
+      else
+        buf_mask$[i] <= 0;
 
   always @(posedge clk)
     if (!xrst)
@@ -223,8 +235,11 @@ module renkon_ctrl_linebuf_pad
           if (!xrst)
             buf_rrow$[0][j] <= 0;
           else
-            buf_rrow$[0][j] <= kern <= row_count+j && row_count+j < height + kern;
-        end
+            // buf_rrow$[0][j] <= kern <= row_count + j
+            //                 && row_count + j < height + kern;
+            buf_rrow$[0][j] <= MAXFIL <= row_count + j
+                            && row_count + j < height + MAXFIL;
+      end
       else begin
         always @(posedge clk)
           if (!xrst)
@@ -243,21 +258,13 @@ module renkon_ctrl_linebuf_pad
 
   for (genvar i = 0; i < 2; i++)
     if (i == 0) begin
-      // TODO: need refactoring
       always @(posedge clk)
         if (!xrst)
           buf_rsel$[0] <= 0;
         else if (state$ == S_WAIT)
           buf_rsel$[0] <= 0;
-        else if (state$ == S_ACTIVE && col_count == 0)
-          if (buf_rsel$[0] == 0)
-            buf_rsel$[0] <= pad == 0
-                          ? 1
-                          : BUFLINE - (pad - 1);
-          else if (buf_rsel$[0] == kern + 1)
-            buf_rsel$[0] <= 1;
-          else
-            buf_rsel$[0] <= buf_rsel$[0] + 1;
+        else
+          buf_rsel$[0] <= mem_count;
     end
     else begin
       always @(posedge clk)
@@ -328,7 +335,7 @@ module renkon_ctrl_linebuf_pad
 
           buf_stop$[0]  <= state$ == S_ACTIVE
                         && row_count == make_size(height, kern, strid, pad) - 1
-                        && col_count == make_size(width, kern, strid, pad) - 1;
+                        && col_count == make_size(width,  kern, strid, pad) - 1;
         end
     end
     else begin
