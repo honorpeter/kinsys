@@ -24,8 +24,8 @@ parameter FACCUM  = $clog2(RENKON_MAXIMG**2);
 parameter OUTSIZE = FACCUM;
 // parameter CONV_MAX   = 3;
 parameter CONV_MAX   = 5;
-// parameter POOL_KERN   = 2;
-parameter POOL_KERN   = 3;
+// parameter POOL_MAX   = 2;
+parameter POOL_MAX   = 3;
 
 ////////////////////////////////////////////////////////////
 // Delay of each modules

@@ -13,11 +13,11 @@ module renkon_core
   , input                             mem_feat_we
   , input  [FACCUM-1:0]               mem_feat_raddr
   , input  [FACCUM-1:0]               mem_feat_waddr
-  , input                             buf_feat_mask [POOL_KERN-1:0]
+  , input                             buf_feat_mask [POOL_MAX-1:0]
   , input                             buf_feat_wcol
-  , input                             buf_feat_rrow [POOL_KERN-1:0]
-  , input  [$clog2(POOL_KERN+1):0]    buf_feat_wsel
-  , input  [$clog2(POOL_KERN+1):0]    buf_feat_rsel
+  , input                             buf_feat_rrow [POOL_MAX-1:0]
+  , input  [$clog2(POOL_MAX+1):0]     buf_feat_wsel
+  , input  [$clog2(POOL_MAX+1):0]     buf_feat_rsel
   , input                             buf_feat_we
   , input  [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
   , input  [LWIDTH-1:0]               _qbits

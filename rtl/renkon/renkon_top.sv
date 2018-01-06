@@ -57,11 +57,11 @@ module renkon_top
   wire                            mem_feat_rst;
   wire [FACCUM-1:0]               mem_feat_waddr;
   wire [FACCUM-1:0]               mem_feat_raddr;
-  wire                            buf_feat_mask [POOL_KERN-1:0];
+  wire                            buf_feat_mask [POOL_MAX-1:0];
   wire                            buf_feat_wcol;
-  wire                            buf_feat_rrow [POOL_KERN-1:0];
-  wire [$clog2(POOL_KERN+1):0]    buf_feat_wsel;
-  wire [$clog2(POOL_KERN+1):0]    buf_feat_rsel;
+  wire                            buf_feat_rrow [POOL_MAX-1:0];
+  wire [$clog2(POOL_MAX+1):0]     buf_feat_wsel;
+  wire [$clog2(POOL_MAX+1):0]     buf_feat_rsel;
   wire                            buf_feat_we;
   wire [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr;
   wire                            conv_oe;

@@ -55,11 +55,11 @@ module renkon_ctrl
   , output                            mem_feat_rst
   , output [FACCUM-1:0]               mem_feat_waddr
   , output [FACCUM-1:0]               mem_feat_raddr
-  , output                            buf_feat_mask [POOL_KERN-1:0]
+  , output                            buf_feat_mask [POOL_MAX-1:0]
   , output                            buf_feat_wcol
-  , output                            buf_feat_rrow [POOL_KERN-1:0]
-  , output [$clog2(POOL_KERN+1):0]    buf_feat_wsel
-  , output [$clog2(POOL_KERN+1):0]    buf_feat_rsel
+  , output                            buf_feat_rrow [POOL_MAX-1:0]
+  , output [$clog2(POOL_MAX+1):0]     buf_feat_wsel
+  , output [$clog2(POOL_MAX+1):0]     buf_feat_rsel
   , output                            buf_feat_we
   , output [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
   , output [LWIDTH-1:0]               _qbits

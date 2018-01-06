@@ -3,6 +3,7 @@
 module renkon_linebuf_pad
  #( parameter MAXFIL = 3
   , parameter MAXIMG = 32
+  , parameter NOT_VALID = 0
   )
   ( input                         clk
   , input                         xrst
@@ -49,7 +50,7 @@ module renkon_linebuf_pad
           if (!xrst)
             pixel$[MAXFIL * i + j] <= 0;
           else if (buf_mask[i] || buf_mask[j])
-            pixel$[MAXFIL * i + j] <= 0;
+            pixel$[MAXFIL * i + j] <= NOT_VALID;
           else if (buf_rrow[i])
             pixel$[MAXFIL * i + j] <= mux[i][buf_rsel];
           else
@@ -60,7 +61,7 @@ module renkon_linebuf_pad
           if (!xrst)
             pixel$[MAXFIL * i + j] <= 0;
           else if (buf_mask[i] || buf_mask[j])
-            pixel$[MAXFIL * i + j] <= 0;
+            pixel$[MAXFIL * i + j] <= NOT_VALID;
           else
             pixel$[MAXFIL * i + j] <= pixel$[MAXFIL * i + (j+1)];
       end
