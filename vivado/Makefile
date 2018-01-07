@@ -1,6 +1,6 @@
 BOARD    = zcu102
 IP       = kinpira
-APP      = lenet
+APP      = squeezedet
 # APP      = webcam
 APP_BARE = lenet_bare
 

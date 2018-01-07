@@ -7,6 +7,7 @@
 BOARD=$1
 APP_NAME=$2
 TOP=`git rev-parse --show-toplevel`
+export TMPDIR=/ldisk/takau/tmp
 
 PETA_NAME=linux-$BOARD
 PETA_FPGA=design_1_wrapper.bit
@@ -121,13 +122,16 @@ else
   petalinux-build
 fi
 
-### Package images
-TMPDIR=~/tmp petalinux-package --boot --u-boot --fpga images/linux/$PETA_FPGA --force
-(TMPDIR=~/tmp petalinux-package --prebuilt --fpga images/linux/$PETA_FPGA --force;
-  mv pre-built/linux/implementation/{$PETA_FPGA,download.bit}
-)
+STATUS=$?
+if [ $STATUS -eq 0 ]; then
+  ### Package images
+  TMPDIR=~/tmp petalinux-package --boot --u-boot --fpga images/linux/$PETA_FPGA --force
+  (TMPDIR=~/tmp petalinux-package --prebuilt --fpga images/linux/$PETA_FPGA --force;
+    mv pre-built/linux/implementation/{$PETA_FPGA,download.bit}
+  )
 
-### Boot
-# petalinux-boot --qemu --prebuilt 3
-# petalinux-boot --jtag --prebuilt 3
+  ### Boot
+  # petalinux-boot --qemu --prebuilt 3
+  # petalinux-boot --jtag --prebuilt 3
+fi
 

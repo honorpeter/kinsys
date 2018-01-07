@@ -20,7 +20,7 @@ typedef uint64_t  u64;
 typedef intptr_t  INTPTR;
 typedef uintptr_t UINTPTR;
 
-struct Layer {
+typedef struct {
   u32 which;
   u32 in_offset;
   u32 out_offset;
@@ -33,7 +33,7 @@ struct Layer {
   u32 norm_param;
   u32 actv_param;
   u32 pool_param;
-};
+} Layer;
 
 typedef struct {
   int shape[3];

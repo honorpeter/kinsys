@@ -29,7 +29,7 @@ Layer *map_layer(
   u32 *conv_param, u32 *norm_param, u32 *actv_param, u32 *pool_param
 )
 {
-  Layer *l = malloc(sizeof(Layer));
+  Layer *l = (Layer *)malloc(sizeof(Layer));
 
   l->which      = WHICH_RENKON;
   l->in_offset  = in->phys_addr;
@@ -69,7 +69,7 @@ Layer *vec_layer(
   u32 *full_param, u32 *norm_param, u32 *actv_param
 )
 {
-  Layer *l = malloc(sizeof(Layer));
+  Layer *l = (Layer *)malloc(sizeof(Layer));
 
   l->which      = WHICH_GOBOU;
   l->in_offset  = in->phys_addr;
@@ -103,9 +103,9 @@ Layer *vec_layer(
 
 
 
-u32 *convolution_2d(int conv_size, enum conv_mode mode)
+u32 *convolution_2d(int conv_size, int mode)
 {
-  u32 *param = calloc(2, sizeof(u32));
+  u32 *param = (u32 *)calloc(2, sizeof(u32));
 
   param[0] |= conv_size << LWIDTH;
 
@@ -141,9 +141,9 @@ static void define_conv(Layer *l, u32 *param)
 
 
 
-u32 *fully_connected(enum full_mode mode)
+u32 *fully_connected(int mode)
 {
-  u32 *param = calloc(2, sizeof(u32));
+  u32 *param = (u32 *)calloc(2, sizeof(u32));
 
   if (mode & FULL_BIAS)
     param[1] |= 1U << (BWIDTH-1);
@@ -171,9 +171,9 @@ static void define_full(Layer *l, u32 *param)
 
 
 
-u32 *normalization(enum norm_mode mode)
+u32 *normalization(int mode)
 {
-  u32 *param = calloc(1, sizeof(u32));
+  u32 *param = (u32 *)calloc(1, sizeof(u32));
 
   if (mode & NORM_NIL)
     param[0] = 0;
@@ -198,9 +198,9 @@ static void define_norm(Layer *l, u32 *param)
 
 
 
-u32 *activation(enum actv_mode mode)
+u32 *activation(int mode)
 {
-  u32 *param = calloc(1, sizeof(u32));
+  u32 *param = (u32 *)calloc(1, sizeof(u32));
 
   if (mode & ACTV_RELU) {
     param[0] |= 1U << (BWIDTH-1);
@@ -229,9 +229,9 @@ static void define_actv(Layer *l, u32 *param)
 
 
 
-u32 *pooling_2d(int pool_size, enum pool_mode mode)
+u32 *pooling_2d(int pool_size, int mode)
 {
-  u32 *param = calloc(1, sizeof(u32));
+  u32 *param = (u32 *)calloc(1, sizeof(u32));
 
   param[0] |= pool_size;
 
