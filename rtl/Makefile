@@ -41,7 +41,7 @@ $(TARGET:.sv=.log): $(DEPENDS:.sv=.com) $(MODULE:.sv=.com)
 
 ci:
 	@watchmedo shell-command -W -R \
-	  -p "*.sv" -c "$(MAKE) test diff" {../,../../test}
+	  -p "*.sv;*.svh" -c "$(MAKE) test diff" {../,../../test}
 
 log:
 	@nvim $(TARGET:.sv=.log)
@@ -52,9 +52,12 @@ com:
 edit:
 	@nvim -O $(TARGET) $(MODULE)
 
-DIFF=diff -qs#nvim -d
+DIFF=diff -qs
 diff:
 	@$(DIFF) ../../data/$(notdir $(PWD))/output_$(MODULE:.sv=.dat) \
+		 ../../data/$(notdir $(PWD))/true_$(MODULE:.sv=.dat)
+ediff:
+	@nvim -d ../../data/$(notdir $(PWD))/output_$(MODULE:.sv=.dat) \
 		 ../../data/$(notdir $(PWD))/true_$(MODULE:.sv=.dat)
 
 clean:

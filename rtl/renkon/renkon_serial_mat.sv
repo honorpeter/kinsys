@@ -16,7 +16,7 @@ module renkon_serial_mat
   reg [RENKON_CORELOG:0] serial_re$;
 
   for (genvar i = 0; i < RENKON_CORE; i++) begin
-    assign mem_addr[i] = serial_re == 0 ? serial_addr
+    assign mem_addr[i] = serial_re == 0   ? serial_addr
                        : serial_re == i+1 ? serial_addr
                        : 0;
 

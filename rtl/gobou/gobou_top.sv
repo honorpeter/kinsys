@@ -4,13 +4,14 @@ module gobou_top
   ( input                     clk
   , input                     xrst
   , input                     req
+  , input [LWIDTH-1:0]        qbits
   , input signed [DWIDTH-1:0] img_rdata
   , input [GOBOU_CORELOG-1:0] net_sel
   , input                     net_we
   , input [GOBOU_NETSIZE-1:0] net_addr
   , input signed [DWIDTH-1:0] net_wdata
-  , input [IMGSIZE-1:0]       in_offset
-  , input [IMGSIZE-1:0]       out_offset
+  , input [MEMSIZE-1:0]       in_offset
+  , input [MEMSIZE-1:0]       out_offset
   , input [GOBOU_NETSIZE-1:0] net_offset
 
   // Network parameters
@@ -21,7 +22,7 @@ module gobou_top
 
   , output                      ack
   , output                      img_we
-  , output [IMGSIZE-1:0]        img_addr
+  , output [MEMSIZE-1:0]        img_addr
   , output signed [DWIDTH-1:0]  img_wdata
   );
 
@@ -35,9 +36,10 @@ module gobou_top
   wire                      mac_oe;
   wire                      accum_we;
   wire                      accum_rst;
-  wire                      w_bias_en;
+  wire [LWIDTH-1:0]         _qbits;
+  wire                      _bias_en;
   wire                      bias_oe;
-  wire                      w_relu_en;
+  wire                      _relu_en;
   wire                      relu_oe;
 
   gobou_ctrl ctrl(.*);

@@ -2,20 +2,23 @@
 #include <cmath>
 #include <lib.hpp>
 
-// const int n_out = 128;
-// const int n_in  = 512;
-const int n_out = 4096;
-const int n_in  = 512 * 7 * 7;
+const int n_out = 128;
+const int n_in  = 512;
+// const int n_out = 4096;
+// const int n_in  = 512 * 7 * 7;
+const int qbits = 8;
 
 template <typename T>
 T mul(T x, T y)
 {
   int prod = x * y;
 
-  if (prod >= 0)
-    return prod / static_cast<T>(pow(2, 8));
+  if (prod < 0)
+    // return prod / static_cast<T>(pow(2, 8)) - 1;
+    return (prod >> qbits) - 1;
   else
-    return prod / static_cast<T>(pow(2, 8)) - 1;
+    // return prod / static_cast<T>(pow(2, 8));
+    return (prod >> qbits);
 }
 
 template <typename T>

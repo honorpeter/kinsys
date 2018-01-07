@@ -3,6 +3,7 @@
 module gobou_mac
   ( input                      clk
   , input                      xrst
+  , input  [LWIDTH-1:0]        _qbits
   , input                      out_en
   , input                      accum_we
   , input                      reset
@@ -67,18 +68,19 @@ module gobou_mac
 //  Function
 ////////////////////////////////////////////////////////////
 
+  reg [LWIDTH-1:0] qbits$;
+  always @(posedge clk)
+    if (!xrst)
+      qbits$ <= 0;
+    else
+      qbits$ <= _qbits;
+
   function signed [DWIDTH-1:0] round;
     input signed [2*DWIDTH-1:0] data;
-    if (data[2*DWIDTH-DWIDTH/2-2] == 1 && data[DWIDTH/2-1:0] == 0)
-      round = $signed({
-                data[2*DWIDTH-DWIDTH/2-2],
-                data[2*DWIDTH-DWIDTH/2-2:DWIDTH/2] - 1'b1
-              });
+    if (data[2*DWIDTH-1] == 1)
+      round = $signed(data >> qbits$) - 1;
     else
-      round = $signed({
-                data[2*DWIDTH-DWIDTH/2-2],
-                data[2*DWIDTH-DWIDTH/2-2:DWIDTH/2]
-              });
+      round = $signed(data >> qbits$);
   endfunction
 
 endmodule

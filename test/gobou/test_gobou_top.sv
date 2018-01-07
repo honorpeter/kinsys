@@ -5,15 +5,18 @@
 // `define NINJIN
 `define DIRECT
 
-// int N_IN  = 512;
-// int N_OUT = 128;
-int N_IN  = 512 * 7 * 7;
-int N_OUT = 4096;
+int N_IN  = 512;
+int N_OUT = 128;
+// int N_IN  = 512 * 7 * 7;
+// int N_OUT = 4096;
+int QBITS = 8;
+
 int IMG_OFFSET = 0;
 int OUT_OFFSET = N_IN+1;
 int NET_OFFSET = 0;
 
-string wdir  = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_3";
+int DO_BIAS = 1;
+int DO_RELU = 1;
 
 module test_gobou_top;
 
@@ -24,9 +27,10 @@ module test_gobou_top;
   reg                     net_we;
   reg [GOBOU_NETSIZE-1:0] net_addr;
   reg signed [DWIDTH-1:0] net_wdata;
-  reg [IMGSIZE-1:0]       in_offset;
-  reg [IMGSIZE-1:0]       out_offset;
+  reg [MEMSIZE-1:0]       in_offset;
+  reg [MEMSIZE-1:0]       out_offset;
   reg [GOBOU_NETSIZE-1:0] net_offset;
+  reg [LWIDTH-1:0]        qbits;
   reg [LWIDTH-1:0]        total_out;
   reg [LWIDTH-1:0]        total_in;
   reg                     bias_en;
@@ -35,20 +39,20 @@ module test_gobou_top;
   wire                    ack;
 
   reg                      img_we;
-  reg [IMGSIZE-1:0]        img_addr;
+  reg [MEMSIZE-1:0]        img_addr;
   reg signed [DWIDTH-1:0]  img_wdata;
 
   wire                      mem_img_we;
-  wire [IMGSIZE-1:0]        mem_img_addr;
+  wire [MEMSIZE-1:0]        mem_img_addr;
   wire signed [DWIDTH-1:0]  mem_img_wdata;
   wire signed [DWIDTH-1:0]  mem_img_rdata;
 
   wire                      gobou_img_we;
-  wire [IMGSIZE-1:0]        gobou_img_addr;
+  wire [MEMSIZE-1:0]        gobou_img_addr;
   wire signed [DWIDTH-1:0]  gobou_img_wdata;
   wire signed [DWIDTH-1:0]  gobou_img_rdata;
 
-  bit signed [DWIDTH-1:0] mem_i [2**IMGSIZE-1:0];
+  bit signed [DWIDTH-1:0] mem_i [2**MEMSIZE-1:0];
   bit signed [DWIDTH-1:0] mem_n [GOBOU_CORE-1:0][2**GOBOU_NETSIZE-1:0];
 
   int req_time = 2**30;
@@ -61,21 +65,22 @@ module test_gobou_top;
   assign gobou_img_rdata = mem_img_rdata;
 
 `ifdef NINJIN
+/// {{{
   reg                     pre_req;
-  reg [MEMSIZE-1:0]       pre_base;
+  reg [WORDSIZE-1:0]      pre_base;
   reg [LWIDTH-1:0]        read_len;
   reg [LWIDTH-1:0]        write_len;
   reg                     ddr_we;
-  reg [MEMSIZE-1:0]       ddr_waddr;
+  reg [WORDSIZE-1:0]      ddr_waddr;
   reg [BWIDTH-1:0]        ddr_wdata;
-  reg [MEMSIZE-1:0]       ddr_raddr;
-  wire                      pre_ack;
-  wire                      ddr_req;
-  wire                      ddr_mode;
-  wire [MEMSIZE+LSB-1:0]    ddr_base;
-  wire [LWIDTH-1:0]         ddr_len;
-  wire [BWIDTH-1:0]         ddr_rdata;
-  wire [2-1:0]              probe_state;
+  reg [WORDSIZE-1:0]      ddr_raddr;
+  wire                    pre_ack;
+  wire                    ddr_req;
+  wire                    ddr_mode;
+  wire [WORDSIZE+LSB-1:0] ddr_base;
+  wire [LWIDTH-1:0]       ddr_len;
+  wire [BWIDTH-1:0]       ddr_rdata;
+  wire [2-1:0]            probe_state;
   integer _ddr_base [1:0];
   integer _ddr_len [1:0];
   ninjin_ddr_buf mem_img(
@@ -123,8 +128,9 @@ module test_gobou_top;
     end
     #(STEP/2+1);
   end
+// }}}
 `else
-  mem_sp #(DWIDTH, IMGSIZE) mem_img(
+  mem_sp #(DWIDTH, MEMSIZE) mem_img(
     .mem_we     (mem_img_we),
     .mem_addr   (mem_img_addr),
     .mem_wdata  (mem_img_wdata),
@@ -144,7 +150,7 @@ module test_gobou_top;
 `ifdef DIRECT
 `ifndef NINJIN
   always @*
-    for (int i = 0; i < 2**IMGSIZE; i++)
+    for (int i = 0; i < 2**MEMSIZE; i++)
       if (i < IMG_OFFSET)
         mem_img.mem[i] = 0;
       else
@@ -186,10 +192,11 @@ module test_gobou_top;
     in_offset   = IMG_OFFSET;
     out_offset  = OUT_OFFSET;
     net_offset  = NET_OFFSET;
+    qbits       = QBITS;
     total_out   = N_OUT;
     total_in    = N_IN;
-    bias_en     = 1;
-    relu_en     = 1;
+    bias_en     = DO_BIAS;
+    relu_en     = DO_RELU;
 
     img_we    = 0;
     img_addr  = 0;
@@ -203,7 +210,6 @@ module test_gobou_top;
     read_input;
     read_params;
 `endif
-    // read_network(wdir);
 
 `ifdef NINJIN
     pre_req   = 0;
@@ -258,7 +264,7 @@ module test_gobou_top;
 
   task mem_clear;
     begin // {{{
-      for (int i = 0; i < 2**IMGSIZE; i++)
+      for (int i = 0; i < 2**MEMSIZE; i++)
         mem_i[i] = 0;
 
       for (int n = 0; n < GOBOU_CORE; n++)
@@ -283,7 +289,7 @@ module test_gobou_top;
       $fclose(fd);
       #(STEP);
 
-      for (int i = 0; i < 2**IMGSIZE; i++) begin
+      for (int i = 0; i < 2**MEMSIZE; i++) begin
         img_we    = 1;
         img_addr  = i;
         img_wdata = mem_i[i];
@@ -425,61 +431,6 @@ module test_gobou_top;
 
       $fclose(wd);
       $fclose(bd);
-    end // }}}
-  endtask
-
-  task read_network;
-    input string wdir;
-    begin // {{{
-      // reading iterations for normal weight sets
-      for (int i = 0; i < N_OUT/GOBOU_CORE; i++)
-        for (int j = 0; j < GOBOU_CORE; j++)
-          $readmemb(
-            $sformatf("%s/data%0d.bin", wdir, GOBOU_CORE*i+j),
-            mem_n[j],
-            (N_IN+1)*(i) + NET_OFFSET,
-            (N_IN+1)*(i+1)- + NET_OFFSET
-          );
-
-      // reading iteration for a boundary weight set (if exists)
-      if (N_OUT % GOBOU_CORE != 0)
-        for (int j = 0; j < GOBOU_CORE; j++)
-
-          // put remainder weights to cores
-          if ((GOBOU_CORE * (N_OUT/GOBOU_CORE) + j) < N_OUT)
-            $readmemb(
-              $sformatf("%s/data%0d.bin", wdir, GOBOU_CORE*(N_OUT/GOBOU_CORE)+j),
-              mem_n[j],
-              (N_IN+1)*(N_OUT/GOBOU_CORE),
-              (N_IN+1)*(N_OUT/GOBOU_CORE+1)-1
-            );
-          else
-            $readmemb(
-              $sformatf("%s/null_net.bin", wdir),
-              mem_n[j],
-              (N_IN+1)*(N_OUT/GOBOU_CORE) + NET_OFFSET,
-              (N_IN+1)*(N_OUT/GOBOU_CORE+1)-1 + NET_OFFSET
-            );
-
-      for (int n = 0; n < GOBOU_CORE; n++) begin
-        net_sel = n;
-        net_we  = 1;
-        #(STEP);
-
-        for (int i = 0; i < 2**GOBOU_NETSIZE; i++) begin
-          net_addr = i;
-          #(STEP);
-
-          net_wdata = mem_n[n][i];
-          #(STEP);
-        end
-
-        net_sel   = 0;
-        net_we    = 0;
-        net_addr  = 0;
-        net_wdata = 0;
-        #(STEP);
-      end
     end // }}}
   endtask
 

@@ -5,23 +5,36 @@
 // `define NINJIN
 `define DIRECT
 
-int N_OUT = 32;
-int N_IN  = 16;
-int ISIZE = 12;
-// int N_OUT = 16;
-// int N_IN  = 1;
-// int ISIZE = 28;
-int FEAT  = ISIZE + 2*PAD - FSIZE + 1;
-// int OSIZE = FEAT / PSIZE;
-int OSIZE = FEAT;
-int IMG_OFFSET = 100;
+// int N_OUT = 32;
+// int N_IN  = 16;
+int IMG_HEIGHT  = 12;
+int IMG_WIDTH   = 16;
+int N_OUT = 16;
+int N_IN  = 1;
+// int IMG_HEIGHT  = 28;
+// int IMG_WIDTH   = 28;
+int QBITS = 8;
+
+int CONV_KERN   = 1;
+int CONV_STRID  = 1;
+int CONV_PAD    = 0;
+int FEA_HEIGHT  = (IMG_HEIGHT+2*CONV_PAD-CONV_KERN)/CONV_STRID + 1;
+int FEA_WIDTH   = (IMG_WIDTH+2*CONV_PAD-CONV_KERN)/CONV_STRID + 1;
+int POOL_KERN   = 3;
+int POOL_STRID  = 2;
+int POOL_PAD    = 1;
+int OUT_HEIGHT  = (FEA_HEIGHT+2*POOL_PAD-POOL_KERN+POOL_STRID-1)/POOL_STRID + 1;
+int OUT_WIDTH   = (FEA_WIDTH+2*POOL_PAD-POOL_KERN+POOL_STRID-1)/POOL_STRID + 1;
+// int OUT_HEIGHT  = FEA_HEIGHT;
+// int OUT_WIDTH   = FEA_WIDTH;
+
+int IN_OFFSET  = 100;
 int OUT_OFFSET = 5000;
 int NET_OFFSET = 0;
 
-int label = 2;
-int file  = 4;
-string indir = "/home/work/takau/1.hw/bhewtek/data/mnist/bpmap1";
-string wdir  = "/home/work/takau/1.hw/bhewtek/data/mnist/lenet/bwb_2";
+int DO_BIAS = 1;
+int DO_RELU = 1;
+int DO_POOL = 1;
 
 module test_renkon_top;
 
@@ -32,37 +45,44 @@ module test_renkon_top;
   reg                       net_we;
   reg [RENKON_NETSIZE-1:0]  net_addr;
   reg signed [DWIDTH-1:0]   net_wdata;
-  reg [IMGSIZE-1:0]         in_offset;
-  reg [IMGSIZE-1:0]         out_offset;
+  reg [MEMSIZE-1:0]         in_offset;
+  reg [MEMSIZE-1:0]         out_offset;
   reg [RENKON_NETSIZE-1:0]  net_offset;
 
+  reg [LWIDTH-1:0]          qbits;
   reg [LWIDTH-1:0]          total_out;
   reg [LWIDTH-1:0]          total_in;
-  reg [LWIDTH-1:0]          img_size;
-  reg [LWIDTH-1:0]          conv_size;
+  reg [LWIDTH-1:0]          img_height;
+  reg [LWIDTH-1:0]          img_width;
+  reg [LWIDTH-1:0]          fea_height;
+  reg [LWIDTH-1:0]          fea_width;
+  reg [LWIDTH-1:0]          conv_kern;
+  reg [LWIDTH-1:0]          conv_strid;
   reg [LWIDTH-1:0]          conv_pad;
   reg                       bias_en;
   reg                       relu_en;
   reg                       pool_en;
-  reg [LWIDTH-1:0]          pool_size;
+  reg [LWIDTH-1:0]          pool_kern;
+  reg [LWIDTH-1:0]          pool_strid;
+  reg [LWIDTH-1:0]          pool_pad;
 
   wire                      ack;
 
   reg                       img_we;
-  reg [IMGSIZE-1:0]         img_addr;
+  reg [MEMSIZE-1:0]         img_addr;
   reg signed [DWIDTH-1:0]   img_wdata;
 
   wire                      mem_img_we;
-  wire [IMGSIZE-1:0]        mem_img_addr;
+  wire [MEMSIZE-1:0]        mem_img_addr;
   wire signed [DWIDTH-1:0]  mem_img_wdata;
   wire signed [DWIDTH-1:0]  mem_img_rdata;
 
   wire                      renkon_img_we;
-  wire [IMGSIZE-1:0]        renkon_img_addr;
+  wire [MEMSIZE-1:0]        renkon_img_addr;
   wire signed [DWIDTH-1:0]  renkon_img_wdata;
   wire signed [DWIDTH-1:0]  renkon_img_rdata;
 
-  bit signed [DWIDTH-1:0]   mem_i [2**IMGSIZE-1:0];
+  bit signed [DWIDTH-1:0]   mem_i [2**MEMSIZE-1:0];
   bit signed [DWIDTH-1:0]   mem_n [RENKON_CORE-1:0][2**RENKON_NETSIZE-1:0];
 
   int req_time = 2**30;
@@ -77,20 +97,20 @@ module test_renkon_top;
 `ifdef NINJIN
 /// {{{
   reg                     pre_req;
-  reg [MEMSIZE-1:0]       pre_base;
+  reg [WORDSIZE-1:0]      pre_base;
   reg [LWIDTH-1:0]        read_len;
   reg [LWIDTH-1:0]        write_len;
   reg                     ddr_we;
-  reg [MEMSIZE-1:0]       ddr_waddr;
+  reg [WORDSIZE-1:0]      ddr_waddr;
   reg [BWIDTH-1:0]        ddr_wdata;
-  reg [MEMSIZE-1:0]       ddr_raddr;
-  wire                      pre_ack;
-  wire                      ddr_req;
-  wire                      ddr_mode;
-  wire [MEMSIZE+LSB-1:0]    ddr_base;
-  wire [LWIDTH-1:0]         ddr_len;
-  wire [BWIDTH-1:0]         ddr_rdata;
-  wire [2-1:0]              probe_state;
+  reg [WORDSIZE-1:0]      ddr_raddr;
+  wire                    pre_ack;
+  wire                    ddr_req;
+  wire                    ddr_mode;
+  wire [WORDSIZE+LSB-1:0] ddr_base;
+  wire [LWIDTH-1:0]       ddr_len;
+  wire [BWIDTH-1:0]       ddr_rdata;
+  wire [2-1:0]            probe_state;
   integer _ddr_base [1:0];
   integer _ddr_len [1:0];
   ninjin_ddr_buf mem_img(
@@ -110,8 +130,8 @@ module test_renkon_top;
         ddr_we    = 1;
         ddr_waddr = i + (_ddr_base[DDR_READ] >> LSB);
         ddr_wdata = {
-          mem_i[2*(ddr_waddr-(IMG_OFFSET >> RATELOG))+1],
-          mem_i[2*(ddr_waddr-(IMG_OFFSET >> RATELOG))]
+          mem_i[2*(ddr_waddr-(IN_OFFSET >> RATELOG))+1],
+          mem_i[2*(ddr_waddr-(IN_OFFSET >> RATELOG))]
         };
         #(STEP);
       end
@@ -140,7 +160,7 @@ module test_renkon_top;
   end
 // }}}
 `else
-  mem_sp #(DWIDTH, IMGSIZE) mem_img(
+  mem_sp #(DWIDTH, MEMSIZE) mem_img(
     .mem_we     (mem_img_we),
     .mem_addr   (mem_img_addr),
     .mem_wdata  (mem_img_wdata),
@@ -160,11 +180,11 @@ module test_renkon_top;
 `ifdef DIRECT
 `ifndef NINJIN
   always @*
-    for (int i = 0; i < 2**IMGSIZE; i++)
-      if (i < IMG_OFFSET)
+    for (int i = 0; i < 2**MEMSIZE; i++)
+      if (i < IN_OFFSET)
         mem_img.mem[i] = 0;
       else
-        mem_img.mem[i] = mem_i[i-IMG_OFFSET];
+        mem_img.mem[i] = mem_i[i-IN_OFFSET];
 `endif
 
   // This statement is for direct assignment for generated modules
@@ -199,18 +219,25 @@ module test_renkon_top;
     net_we      = 0;
     net_addr    = 0;
     net_wdata   = 0;
-    in_offset   = IMG_OFFSET;
+    in_offset   = IN_OFFSET;
     out_offset  = OUT_OFFSET;
     net_offset  = NET_OFFSET;
+    qbits       = QBITS;
     total_out   = N_OUT;
     total_in    = N_IN;
-    img_size    = ISIZE;
-    conv_size   = FSIZE;
-    conv_pad    = PAD;
-    bias_en     = 1;
-    relu_en     = 1;
-    pool_en     = 0;
-    pool_size   = PSIZE;
+    img_height  = IMG_HEIGHT;
+    img_width   = IMG_WIDTH;
+    fea_height  = FEA_HEIGHT;
+    fea_width   = FEA_WIDTH;
+    conv_kern   = CONV_KERN;
+    conv_strid  = CONV_STRID;
+    conv_pad    = CONV_PAD;
+    bias_en     = DO_BIAS;
+    relu_en     = DO_RELU;
+    pool_en     = DO_POOL;
+    pool_kern   = POOL_KERN;
+    pool_strid  = POOL_STRID;
+    pool_pad    = POOL_PAD;
 
     img_we    = 0;
     img_addr  = 0;
@@ -224,8 +251,6 @@ module test_renkon_top;
     read_input;
     read_params;
 `endif
-    // read_network(wdir);
-    // read_image(indir, label, file);
 
 `ifdef NINJIN
     pre_req   = 0;
@@ -239,16 +264,16 @@ module test_renkon_top;
     #(STEP);
 
     pre_req   = 1;
-    pre_base  = IMG_OFFSET >> RATELOG;
-    read_len  = N_IN * ISIZE * ISIZE;
-    write_len = RENKON_CORE * (FEAT/PSIZE) * (FEAT/PSIZE);
+    pre_base  = IN_OFFSET >> RATELOG;
+    read_len  = N_IN * IMG_HEIGHT * IMG_WIDTH;
+    write_len = RENKON_CORE * OUT_HEIGHT * OUT_WIDTH;
     #(STEP);
     pre_req = 0;
     #(STEP);
 
     while (!pre_ack) #(STEP);
     #(STEP);
-  `endif
+`endif
 `ifdef SAIF
     $toggle_start();
 `endif
@@ -259,7 +284,8 @@ module test_renkon_top;
     #(STEP);
     req = 0;
 
-    while(!ack) #(STEP);
+    // while(!ack) #(STEP);
+    #(STEP*20000);
 
     #(STEP*10);
 
@@ -268,7 +294,7 @@ module test_renkon_top;
 `ifdef SAIF
     $toggle_stop();
     $toggle_report(
-      $sformatf("renkon%d_%d.saif", label, file),
+      "renkon_top.saif",
       1.0e-9,
       "test_renkon_top.dut"
     );
@@ -280,7 +306,7 @@ module test_renkon_top;
 
   task mem_clear;
     begin // {{{
-      for (int i = 0; i < 2**IMGSIZE; i++)
+      for (int i = 0; i < 2**MEMSIZE; i++)
         mem_i[i] = 0;
 
       for (int n = 0; n < RENKON_CORE; n++)
@@ -298,8 +324,8 @@ module test_renkon_top;
       fd = $fopen("../../data/renkon/input_renkon_top.dat", "r");
 
       for (int m = 0; m < N_IN; m++)
-        for (int i = 0; i < ISIZE; i++)
-          for (int j = 0; j < ISIZE; j++) begin
+        for (int i = 0; i < IMG_HEIGHT; i++)
+          for (int j = 0; j < IMG_WIDTH; j++) begin
             r = $fscanf(fd, "%x", mem_i[idx]);
             idx++;
           end
@@ -307,9 +333,9 @@ module test_renkon_top;
       $fclose(fd);
       #(STEP);
 
-      for (int i = 0; i < 2**IMGSIZE; i++) begin
+      for (int i = 0; i < 2**MEMSIZE; i++) begin
         img_we    = 1;
-        img_addr  = i + IMG_OFFSET;
+        img_addr  = i + IN_OFFSET;
         img_wdata = mem_i[i];
         #(STEP);
       end
@@ -330,43 +356,13 @@ module test_renkon_top;
       fd = $fopen("../../data/renkon/input_renkon_top.dat", "r");
 
       for (int m = 0; m < N_IN; m++)
-        for (int i = 0; i < ISIZE; i++)
-          for (int j = 0; j < ISIZE; j++) begin
+        for (int i = 0; i < IMG_HEIGHT; i++)
+          for (int j = 0; j < IMG_WIDTH; j++) begin
             r = $fscanf(fd, "%x", mem_i[idx]);
             idx++;
           end
 
       $fclose(fd);
-    end // }}}
-  endtask
-
-  task read_image;
-    input string indir;
-    input int label;
-    input int file;
-    begin // {{{
-      for (int i = 0; i < N_IN; i++)
-        $readmemb(
-          $sformatf("%s/%0d/data%0d_%0d.bin", indir, label, file, i),
-          mem_i,
-          (ISIZE**2)*(i),
-          (ISIZE**2)*(i+1) - 1
-        );
-      #(STEP);
-
-      img_we = 1;
-      for (int i = 0; i < 2**IMGSIZE; i++) begin
-        img_addr = i;
-        #(STEP);
-
-        img_wdata = mem_i[i];
-        #(STEP);
-      end
-
-      img_we = 0;
-      img_addr = 0;
-      img_wdata = 0;
-      #(STEP);
     end // }}}
   endtask
 
@@ -384,8 +380,8 @@ module test_renkon_top;
       for (int n = 0; n < N_OUT/RENKON_CORE; n++)
         for (int dn = 0; dn < RENKON_CORE; dn++) begin
           for (int m = 0; m < N_IN; m++) begin
-            for (int i = 0; i < FSIZE; i++)
-              for (int j = 0; j < FSIZE; j++) begin
+            for (int i = 0; i < CONV_KERN; i++)
+              for (int j = 0; j < CONV_KERN; j++) begin
                 r = $fscanf(wd, "%x", mem_n[dn][idx[dn]]);
                 idx[dn]++;
               end
@@ -400,8 +396,8 @@ module test_renkon_top;
           // put remainder weights to cores
           if ((RENKON_CORE * (N_OUT/RENKON_CORE) + dn) < N_OUT) begin
             for (int m = 0; m < N_IN; m++) begin
-              for (int i = 0; i < FSIZE; i++)
-                for (int j = 0; j < FSIZE; j++) begin
+              for (int i = 0; i < CONV_KERN; i++)
+                for (int j = 0; j < CONV_KERN; j++) begin
                   r = $fscanf(wd, "%x", mem_n[dn][idx[dn]]);
                   idx[dn]++;
                 end
@@ -412,8 +408,8 @@ module test_renkon_top;
           // put null (zero) values to unused cores
           else begin
             for (int m = 0; m < N_IN; m++) begin
-              for (int i = 0; i < FSIZE; i++)
-                for (int j = 0; j < FSIZE; j++) begin
+              for (int i = 0; i < CONV_KERN; i++)
+                for (int j = 0; j < CONV_KERN; j++) begin
                   mem_n[dn][idx[dn]] = 0;
                   idx[dn]++;
                 end
@@ -463,8 +459,8 @@ module test_renkon_top;
       for (int n = 0; n < N_OUT/RENKON_CORE; n++)
         for (int dn = 0; dn < RENKON_CORE; dn++) begin
           for (int m = 0; m < N_IN; m++) begin
-            for (int i = 0; i < FSIZE; i++)
-              for (int j = 0; j < FSIZE; j++) begin
+            for (int i = 0; i < CONV_KERN; i++)
+              for (int j = 0; j < CONV_KERN; j++) begin
                 r = $fscanf(wd, "%x", mem_n[dn][idx[dn]]);
                 idx[dn]++;
               end
@@ -479,8 +475,8 @@ module test_renkon_top;
           // put remainder weights to cores
           if ((RENKON_CORE * (N_OUT/RENKON_CORE) + dn) < N_OUT) begin
             for (int m = 0; m < N_IN; m++) begin
-              for (int i = 0; i < FSIZE; i++)
-                for (int j = 0; j < FSIZE; j++) begin
+              for (int i = 0; i < CONV_KERN; i++)
+                for (int j = 0; j < CONV_KERN; j++) begin
                   r = $fscanf(wd, "%x", mem_n[dn][idx[dn]]);
                   idx[dn]++;
                 end
@@ -491,8 +487,8 @@ module test_renkon_top;
           // put null (zero) values to unused cores
           else begin
             for (int m = 0; m < N_IN; m++) begin
-              for (int i = 0; i < FSIZE; i++)
-                for (int j = 0; j < FSIZE; j++) begin
+              for (int i = 0; i < CONV_KERN; i++)
+                for (int j = 0; j < CONV_KERN; j++) begin
                   mem_n[dn][idx[dn]] = 0;
                   idx[dn]++;
                 end
@@ -507,98 +503,12 @@ module test_renkon_top;
     end // }}}
   endtask
 
-  task read_network;
-    input string wdir;
-    begin // {{{
-      // reading iterations for normal weight sets
-      for (int i = 0; i < N_OUT/RENKON_CORE; i++) begin
-        for (int j = 0; j < RENKON_CORE; j++) begin
-          for (int k = 0; k < N_IN; k++) begin
-            $readmemb(
-              $sformatf("%s/data%0d_%0d.bin", wdir, RENKON_CORE*i+j, k),
-              mem_n[j],
-              (FSIZE**2) * (N_IN*i+k) + (i) + NET_OFFSET,
-              (FSIZE**2) * (N_IN*i+k+1) + (i-1) + NET_OFFSET
-            );
-          end
-          $readmemb(
-            $sformatf("%s/data%0d.bin", wdir, RENKON_CORE*i+j),
-            mem_n[j],
-            (FSIZE**2) * (N_IN*(i+1)) + (i) + NET_OFFSET,
-            (FSIZE**2) * (N_IN*(i+1)) + (i) + NET_OFFSET
-          );
-        end
-      end
-
-      // reading iteration for a boundary weight set (if exists)
-      if (N_OUT % RENKON_CORE != 0) begin
-        for (int j = 0; j < RENKON_CORE; j++) begin
-
-          // put remainder weights to cores
-          if ((RENKON_CORE * (N_OUT/RENKON_CORE) + j) < N_OUT) begin
-            for (int k = 0; k < N_IN; k++) begin
-              $readmemb(
-                $sformatf("%s/data%0d_%0d.bin", wdir, RENKON_CORE*(N_OUT/RENKON_CORE)+j, k),
-                mem_n[j],
-                (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k) + (N_OUT/RENKON_CORE) + NET_OFFSET,
-                (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k+1) + (N_OUT/RENKON_CORE-1) + NET_OFFSET
-              );
-            end
-            $readmemb(
-              $sformatf("%s/data%0d.bin", wdir, RENKON_CORE*(N_OUT/RENKON_CORE)+j),
-              mem_n[j],
-              (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET,
-              (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET
-            );
-          end
-          // put null (zero) values to unused cores
-          else begin
-            for (int k = 0; k < N_IN; k++) begin
-              $readmemb(
-                $sformatf("%s/null_w.bin", wdir),
-                mem_n[j],
-                (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k) + (N_OUT/RENKON_CORE) + NET_OFFSET,
-                (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE)+k+1) + (N_OUT/RENKON_CORE-1) + NET_OFFSET
-              );
-            end
-            $readmemb(
-              $sformatf("%s/null_b.bin", wdir),
-              mem_n[j],
-              (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET,
-              (FSIZE**2) * (N_IN*(N_OUT/RENKON_CORE+1)) + (N_OUT/RENKON_CORE) + NET_OFFSET
-            );
-          end
-        end
-      end
-
-      for (int n = 0; n < RENKON_CORE; n++) begin
-        net_sel = n;
-        net_we  = 1;
-        #(STEP);
-
-        for (int i = 0; i < 2**RENKON_NETSIZE; i++) begin
-          net_addr = i;
-          #(STEP);
-
-          net_wdata = mem_n[n][i];
-          #(STEP);
-        end
-
-        net_sel   = 0;
-        net_we    = 0;
-        net_addr  = 0;
-        net_wdata = 0;
-        #(STEP);
-      end
-    end // }}}
-  endtask
-
   task write_output;
     int fd;
     int out_size;
     begin // {{{
       fd = $fopen("../../data/renkon/output_renkon_top.dat", "w");
-      out_size = N_OUT * OSIZE**2;
+      out_size = N_OUT * OUT_HEIGHT * OUT_WIDTH;
 
       for (int i = 0; i < out_size; i++) begin
         img_addr = i + OUT_OFFSET;
@@ -625,115 +535,129 @@ module test_renkon_top;
       if (now_time >= req_time)
       begin
         $display(
-          "%5d: ", now_time - req_time,
+          // "%5d: ", now_time - req_time,
           // "%d ",  req,
           // "%d ",  ack,
           "*%d ", dut.ctrl.ctrl_core.state$,
+          // "*%d ", dut.ctrl.ctrl_conv.core_state$,
+          "*%d ", dut.ctrl.ctrl_conv.state$,
+          // "%d ", dut.ctrl.ctrl_conv.wait_back$,
+          "%d ", dut.ctrl.ctrl_conv.first_input$,
+          "%d ", dut.ctrl.ctrl_conv.last_input$,
+          "| ",
+          "%2d ", dut.ctrl.ctrl_core.count_out$,
+          "%2d ", dut.ctrl.ctrl_core.count_in$,
+          "%2d ", dut.ctrl.ctrl_core.weight_x$,
+          "%2d ", dut.ctrl.ctrl_core.weight_y$,
+          ": ",
+          // "%2d ", dut.ctrl.ctrl_conv._conv_strid,
+          "%2d ", dut.ctrl.ctrl_conv.conv_x$,
+          "%2d ", dut.ctrl.ctrl_conv.conv_y$,
+          ": ",
+          "%5b ", dut.wreg_we,
+          "%1b ", dut.breg_we,
           "| ",
           "%1d ", mem_img_we,
           "%4d ", mem_img_addr,
           "%4d ", mem_img_wdata,
           "%4d ", mem_img_rdata,
           // "| ",
-          // "%3d ", dut.mem_net_addr,
-          // "%4d ", dut.net_rdata[0],
-          // "%3d ", dut.pe[0].core.bias.bias$,
+          // "%1d ", dut.pe[0].mem_net.mem_we,
+          // "%4d ", dut.pe[0].mem_net.mem_addr,
+          // "%4d ", dut.pe[0].mem_net.mem_wdata,
+          // "%4d ", dut.pe[0].mem_net.mem_rdata,
+          // "| ",
+          // "%1d ", dut.pe[0].core.conv.mem_feat_rst,
+          // "%1d ", dut.pe[0].core.conv.mem_feat_we,
+          // "%4d ", dut.pe[0].core.conv.mem_feat_waddr,
+          // "%5d ", dut.pe[0].core.conv.mem_feat_wdata,
+          // "%4d ", dut.pe[0].core.conv.mem_feat_raddr,
+          // "%5d ", dut.pe[0].core.conv.mem_feat_rdata,
           "| ",
-          "%2d ", dut.ctrl.ctrl_core.count_out$,
-          "%2d ", dut.ctrl.ctrl_core.count_in$,
-          "%2d ", dut.ctrl.ctrl_core.input_x$,
-          "%2d ", dut.ctrl.ctrl_core.input_y$,
-          "%2d ", dut.ctrl.ctrl_core.weight_x$,
-          "%2d ", dut.ctrl.ctrl_core.weight_y$,
+          // "%1b%1b%1b%1b%1b ", dut.ctrl.ctrl_core.buf_pix_mask[0],
+          //                     dut.ctrl.ctrl_core.buf_pix_mask[1],
+          //                     dut.ctrl.ctrl_core.buf_pix_mask[2],
+          //                     dut.ctrl.ctrl_core.buf_pix_mask[3],
+          //                     dut.ctrl.ctrl_core.buf_pix_mask[4],
+          "%2d ", dut.ctrl.ctrl_core.ctrl_buf_pix.mem_count,
+          "%2d ", dut.ctrl.ctrl_core.ctrl_buf_pix.row_count,
+          "%2d ", dut.ctrl.ctrl_core.ctrl_buf_pix.col_count,
           ": ",
-          "%2d ", dut.ctrl.ctrl_conv.conv_x$,
-          "%2d ", dut.ctrl.ctrl_conv.conv_y$,
-          // ": ",
-          // "%2d ", dut.ctrl.ctrl_pool.temp_x$,
-          // "%2d ", dut.ctrl.ctrl_pool.temp_y$,
+          "*%d ", dut.ctrl.ctrl_core.ctrl_buf_pix.state$,
+          "%2d ", dut.ctrl.ctrl_core.ctrl_buf_pix.own_width,
+          "%2d ", dut.ctrl.ctrl_core.ctrl_buf_pix.kern,
+          "%2d ", dut.ctrl.ctrl_core.ctrl_buf_pix.pad,
           "| ",
-          // "%4d ", dut.pe[0].core.conv.pixel_in[0],
-          // "%4d ", dut.pe[0].core.conv.pixel_in[5],
-          // "%4d ", dut.pe[0].core.conv.pixel_in[10],
-          // "%4d ", dut.pe[0].core.conv.pixel_in[15],
-          // "%4d ", dut.pe[0].core.conv.pixel_in[20],
-          ": ",
-          "%4d ", dut.pe[0].core.conv.result,
-          "%5d ", dut.pe[0].core.fmap,
+          "%1b ", dut.ctrl.ctrl_core.buf_pix_req,
+          "%1b ", dut.ctrl.ctrl_core.buf_pix_ack,
+          "%1b ", dut.ctrl.ctrl_core.buf_pix_start,
+          "%1b ", dut.ctrl.ctrl_core.buf_pix_valid,
+          "%1b ", dut.ctrl.ctrl_core.buf_pix_ready,
+          "%1b ", dut.ctrl.ctrl_core.buf_pix_stop,
+          "| ",
+          "%1b ", dut.ctrl.ctrl_pool.buf_feat_req,
+          "%1b ", dut.ctrl.ctrl_pool.buf_feat_ack,
+          "%1b ", dut.ctrl.ctrl_pool.buf_feat_start,
+          "%1b ", dut.ctrl.ctrl_pool.buf_feat_valid,
+          "%1b ", dut.ctrl.ctrl_pool.buf_feat_ready,
+          "%1b ", dut.ctrl.ctrl_pool.buf_feat_stop,
+          // "| ",
+          // "%4d",  dut.pe[0].core.conv.wreg.weight$[2][2],
+          // "%4d",  dut.pe[0].core.conv.wreg.weight$[2][3],
+          // "%4d",  dut.pe[0].core.conv.wreg.weight$[2][4],
+          // "%4d",  dut.pe[0].core.conv.wreg.weight$[3][2],
+          // "%4d",  dut.pe[0].core.conv.wreg.weight$[3][3],
+          // "%4d",  dut.pe[0].core.conv.wreg.weight$[3][4],
+          // "%4d",  dut.pe[0].core.conv.wreg.weight$[4][2],
+          // "%4d",  dut.pe[0].core.conv.wreg.weight$[4][3],
+          // "%4d ", dut.pe[0].core.conv.wreg.weight$[4][4],
+          // "| ",
+          // "%4d", dut.pe[0].core.pixel[0],
+          // "%4d", dut.pe[0].core.pixel[1],
+          // "%4d", dut.pe[0].core.pixel[2],
+          // "%4d", dut.pe[0].core.pixel[3],
+          // "%4d", dut.pe[0].core.pixel[4],
+          // "%4d", dut.pe[0].core.pixel[5],
+          // "%4d", dut.pe[0].core.pixel[6],
+          // "%4d", dut.pe[0].core.pixel[7],
+          // "%4d ", dut.pe[0].core.pixel[8],
+          // "| ",
+          // "%5d ", dut.pe[0].core.fmap,
           // "%5d ", dut.pe[0].core.bmap,
           // "%4d ", dut.pe[0].core.amap,
           // "%4d ", dut.pe[0].core.pmap,
-          "| ",
-          "%1b%1b%1b ", dut.ctrl.ctrl_core.out_ctrl.start,
-                        dut.ctrl.ctrl_core.out_ctrl.valid,
-                        dut.ctrl.ctrl_core.out_ctrl.stop,
-          "%1b%1b%1b ", dut.ctrl.ctrl_conv.out_ctrl.start,
-                        dut.ctrl.ctrl_conv.out_ctrl.valid,
-                        dut.ctrl.ctrl_conv.out_ctrl.stop,
-          "%1b%1b%1b ", dut.ctrl.ctrl_bias.out_ctrl.start,
-                        dut.ctrl.ctrl_bias.out_ctrl.valid,
-                        dut.ctrl.ctrl_bias.out_ctrl.stop,
-          "%1b%1b%1b ", dut.ctrl.ctrl_relu.out_ctrl.start,
-                        dut.ctrl.ctrl_relu.out_ctrl.valid,
-                        dut.ctrl.ctrl_relu.out_ctrl.stop,
-          "%1b%1b%1b ", dut.ctrl.ctrl_pool.out_ctrl.start,
-                        dut.ctrl.ctrl_pool.out_ctrl.valid,
-                        dut.ctrl.ctrl_pool.out_ctrl.stop,
-          "| ",
-          // "%1b ", dut.ctrl.ctrl_core.buf_pix_req,
-          // "%1b ", dut.ctrl.ctrl_core.buf_pix_ack,
-          // "%1b ", dut.ctrl.ctrl_core.buf_pix_start,
-          // "%1b ", dut.ctrl.ctrl_core.buf_pix_valid,
-          // "%1b ", dut.ctrl.ctrl_core.buf_pix_ready,
-          // "%1b ", dut.ctrl.ctrl_core.buf_pix_stop,
           // ": ",
-          // "%2d ", dut.ctrl.ctrl_core.ctrl_buf_pix.row_count$,
-          // "%2d ", dut.ctrl.ctrl_core.ctrl_buf_pix.col_count$,
-          // "%1b ", dut.ctrl.ctrl_core.ctrl_buf_pix.buf_valid$[0],
-          // ": ",
-          "%1b ", dut.ctrl.ctrl_core.buf_pix_wcol,
-          "%1b",  dut.ctrl.ctrl_core.buf_pix_rrow[0],
-          "%1b",  dut.ctrl.ctrl_core.buf_pix_rrow[1],
-          "%1b",  dut.ctrl.ctrl_core.buf_pix_rrow[2],
-          "%1b",  dut.ctrl.ctrl_core.buf_pix_rrow[3],
-          "%1b ", dut.ctrl.ctrl_core.buf_pix_rrow[4],
-          // "%1d ", dut.ctrl.ctrl_core.buf_pix_wsel,
-          // "%1d ", dut.ctrl.ctrl_core.buf_pix_rsel,
-          // "%1d ", dut.ctrl.ctrl_core.buf_pix_we,
-          // "%2d ", dut.ctrl.ctrl_core.buf_pix_addr,
-          // "| ",
-          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_req,
-          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_ack,
-          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_start,
-          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_valid,
-          // "%1b ", dut.ctrl.ctrl_pool.buf_feat_stop,
-          // ": ",
-          // "%1d ", dut.ctrl.ctrl_pool.buf_feat_wsel,
-          // "%1d ", dut.ctrl.ctrl_pool.buf_feat_rsel,
-          // "%1d ", dut.ctrl.ctrl_pool.buf_feat_we,
-          // "%2d ", dut.ctrl.ctrl_pool.buf_feat_addr,
-          // "| ",
-          // "*%1d ", dut.ctrl.ctrl_conv.state$,
-          // "%1b ", dut.ctrl.ctrl_conv.first_input$,
-          // "%1b ", dut.ctrl.ctrl_conv.last_input$,
-          // "*%1d ", dut.ctrl.ctrl_conv.core_state$,
-          // "%1b ", dut.ctrl.ctrl_conv.wait_back$,
+          // "%1d ", dut.pe[0].core.conv_oe,
+          // "%1d ", dut.pe[0].core.bias_oe,
+          // "%1d ", dut.pe[0].core.relu_oe,
+          // "%1d ", dut.pe[0].core.pool_oe,
           "| ",
-          "%1d ", dut.pe[0].core.conv.mem_feat_rst,
-          "%1d ", dut.pe[0].core.conv.mem_feat_we,
-          "%4d ", dut.pe[0].core.conv.mem_feat_waddr,
-          "%5d ", dut.pe[0].core.conv.mem_feat_wdata,
-          "%4d ", dut.pe[0].core.conv.mem_feat_raddr,
-          "%5d ", dut.pe[0].core.conv.mem_feat_rdata,
-          // "| ",
-          // "%4d ", dut.pe[0].core.pool.pixel_feat[0],
-          // "%4d ", dut.pe[0].core.pool.pixel_feat[1],
-          // "%4d ", dut.pe[0].core.pool.pixel_feat[2],
-          // "%4d ", dut.pe[0].core.pool.pixel_feat[3],
+          "%1b%1b%1b%1b ", dut.ctrl.ctrl_core.out_ctrl.start,
+                           dut.ctrl.ctrl_core.out_ctrl.valid,
+                           dut.ctrl.ctrl_core.out_ctrl.ready,
+                           dut.ctrl.ctrl_core.out_ctrl.stop,
+          "%1b%1b%1b%1b ", dut.ctrl.ctrl_conv.out_ctrl.start,
+                           dut.ctrl.ctrl_conv.out_ctrl.valid,
+                           dut.ctrl.ctrl_conv.out_ctrl.ready,
+                           dut.ctrl.ctrl_conv.out_ctrl.stop,
+          "%1b%1b%1b%1b ", dut.ctrl.ctrl_bias.out_ctrl.start,
+                           dut.ctrl.ctrl_bias.out_ctrl.valid,
+                           dut.ctrl.ctrl_bias.out_ctrl.ready,
+                           dut.ctrl.ctrl_bias.out_ctrl.stop,
+          "%1b%1b%1b%1b ", dut.ctrl.ctrl_relu.out_ctrl.start,
+                           dut.ctrl.ctrl_relu.out_ctrl.valid,
+                           dut.ctrl.ctrl_relu.out_ctrl.ready,
+                           dut.ctrl.ctrl_relu.out_ctrl.stop,
+          "%1b%1b%1b%1b ", dut.ctrl.ctrl_pool.out_ctrl.start,
+                           dut.ctrl.ctrl_pool.out_ctrl.valid,
+                           dut.ctrl.ctrl_pool.out_ctrl.ready,
+                           dut.ctrl.ctrl_pool.out_ctrl.stop,
           "| ",
-          "%1b ", dut.w_bias_en,
-          "%1b ", dut.w_relu_en,
-          "%1b ", dut.w_pool_en,
+          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.row_count,
+          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.mem_count,
+          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.col_count,
+          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.str_x_count,
+          "%2d ", dut.ctrl.ctrl_pool.ctrl_buf_feat.str_y_count,
           "|"
         );
       end

@@ -9,48 +9,59 @@ module renkon_ctrl_core
   , input  [RENKON_CORELOG-1:0] net_sel
   , input                       net_we
   , input  [RENKON_NETSIZE-1:0] net_addr
-  , input  [IMGSIZE-1:0]        in_offset
-  , input  [IMGSIZE-1:0]        out_offset
+  , input  [MEMSIZE-1:0]        in_offset
+  , input  [MEMSIZE-1:0]        out_offset
   , input  [RENKON_NETSIZE-1:0] net_offset
+  , input  [LWIDTH-1:0]         qbits
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
-  , input  [LWIDTH-1:0]         img_size
-  , input  [LWIDTH-1:0]         conv_size
+  , input  [LWIDTH-1:0]         img_height
+  , input  [LWIDTH-1:0]         img_width
+  , input  [LWIDTH-1:0]         fea_height
+  , input  [LWIDTH-1:0]         fea_width
+  , input  [LWIDTH-1:0]         conv_kern
+  , input  [LWIDTH-1:0]         conv_strid
   , input  [LWIDTH-1:0]         conv_pad
   , input                       bias_en
   , input                       relu_en
   , input                       pool_en
-  , input  [LWIDTH-1:0]         pool_size
+  , input  [LWIDTH-1:0]         pool_kern
+  , input  [LWIDTH-1:0]         pool_strid
+  , input  [LWIDTH-1:0]         pool_pad
 
-  , ctrl_bus.master             out_ctrl
-  , output                      ack
-  , output [2-1:0]              core_state
-  , output                      img_we
-  , output [IMGSIZE-1:0]        img_addr
-  , output signed [DWIDTH-1:0]  img_wdata
-  , output [RENKON_CORE-1:0]    mem_net_we
-  , output [RENKON_NETSIZE-1:0] mem_net_addr
-  , output                      first_input
-  , output                      last_input
-  , output                      wreg_we
-  , output                      breg_we
-  , output                      serial_we
-  , output [RENKON_CORELOG:0]   serial_re
-  , output [OUTSIZE-1:0]        serial_addr
-  , output [LWIDTH-1:0]         w_fea_size
-  , output                      w_bias_en
-  , output                      w_relu_en
-  , output                      w_pool_en
-  , output [LWIDTH-1:0]         w_pool_size
+  , ctrl_bus.master                   out_ctrl
+  , output                            ack
+  , output [2-1:0]                    core_state
+  , output                            img_we
+  , output [MEMSIZE-1:0]              img_addr
+  , output signed [DWIDTH-1:0]        img_wdata
+  , output [RENKON_CORE-1:0]          mem_net_we
+  , output [RENKON_NETSIZE-1:0]       mem_net_addr
+  , output                            first_input
+  , output                            last_input
+  , output [CONV_MAX-1:0]             wreg_we
+  , output                            breg_we
+  , output                            serial_we
+  , output [RENKON_CORELOG:0]         serial_re
+  , output [OUTSIZE-1:0]              serial_addr
+  , output [LWIDTH-1:0]               _qbits
+  , output [LWIDTH-1:0]               _fea_height
+  , output [LWIDTH-1:0]               _fea_width
+  , output [LWIDTH-1:0]               _conv_strid
+  , output                            _bias_en
+  , output                            _relu_en
+  , output                            _pool_en
+  , output [LWIDTH-1:0]               _pool_kern
+  , output [LWIDTH-1:0]               _pool_strid
+  , output [LWIDTH-1:0]               _pool_pad
+  , output                            buf_pix_mask [CONV_MAX-1:0]
   , output                            buf_pix_wcol
-  , output                            buf_pix_rrow [FSIZE-1:0]
-  , output [$clog2(FSIZE+1):0]        buf_pix_wsel
-  , output [$clog2(FSIZE+1):0]        buf_pix_rsel
+  , output                            buf_pix_rrow [CONV_MAX-1:0]
+  , output [$clog2(CONV_MAX+1):0]     buf_pix_wsel
+  , output [$clog2(CONV_MAX+1):0]     buf_pix_rsel
   , output                            buf_pix_we
   , output [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr
   );
-
-
 
   wire               s_network_end;
   wire               s_input_end;
@@ -60,8 +71,7 @@ module renkon_ctrl_core
   wire               req_edge;
   wire               final_iter;
   wire [LWIDTH-1:0]  conv_pad_both;
-  // wire [IMGSIZE-1:0] w_img_addr;
-  // wire [IMGSIZE-1:0] w_img_offset;
+  wire [LWIDTH-1:0]  pool_pad_both;
   wire               buf_pix_req;
   wire               buf_pix_ack;
   wire               buf_pix_start;
@@ -81,12 +91,16 @@ module renkon_ctrl_core
   reg               req$;
   reg               ack$;
 
+  reg [LWIDTH-1:0]  qbits$;
   reg [LWIDTH-1:0]  total_out$;
   reg [LWIDTH-1:0]  total_in$;
-  reg [LWIDTH-1:0]  img_size$;
-  reg [LWIDTH-1:0]  conv_size$;
+  reg [LWIDTH-1:0]  img_height$;
+  reg [LWIDTH-1:0]  img_width$;
+  reg [LWIDTH-1:0]  conv_kern$;
+  reg [LWIDTH-1:0]  conv_strid$;
   reg [LWIDTH-1:0]  conv_pad$;
-  reg [LWIDTH-1:0]  fea_size$;
+  reg [LWIDTH-1:0]  fea_height$;
+  reg [LWIDTH-1:0]  fea_width$;
 
   reg [LWIDTH-1:0]  count_out$;
   reg [LWIDTH-1:0]  count_in$;
@@ -95,31 +109,31 @@ module renkon_ctrl_core
   reg [LWIDTH-1:0]  weight_x$;
   reg [LWIDTH-1:0]  weight_y$;
 
-  reg               s_output_end$;
-  reg               buf_pix_req$;
-  reg               img_we$;
-  reg [IMGSIZE-1:0] img_addr$;
-  reg               out_we$;
-  reg [IMGSIZE-1:0] in_offset$;
-  reg [IMGSIZE-1:0] out_offset$;
-  // reg [IMGSIZE-1:0] in_addr$;
-  reg [IMGSIZE-1:0] out_addr$;
-  // reg [RENKON_CORE-1:0]    net_we$;
-  reg [RENKON_NETSIZE-1:0] net_addr$;
-  reg [RENKON_NETSIZE-1:0] net_offset$;
-  reg               serial_we$;
-  reg [RENKON_CORELOG:0]   serial_re$;
-  reg [LWIDTH-1:0]  serial_cnt$;
-  reg [OUTSIZE-1:0] serial_addr$;
-  reg               serial_end$;
-  reg               first_input$;
-  reg               last_input$;
-  reg               wreg_we$;
-  reg               bias_en$;
-  reg               breg_we$;
-  reg               relu_en$;
-  reg               pool_en$;
-  reg [LWIDTH-1:0]  pool_size$;
+  reg                       s_output_end$;
+  reg                       buf_pix_req$;
+  reg                       img_we$;
+  reg [MEMSIZE-1:0]         img_addr$;
+  reg                       out_we$;
+  reg [MEMSIZE-1:0]         in_offset$;
+  reg [MEMSIZE-1:0]         out_offset$;
+  reg [MEMSIZE-1:0]         out_addr$;
+  reg [RENKON_NETSIZE-1:0]  net_addr$;
+  reg [RENKON_NETSIZE-1:0]  net_offset$;
+  reg                       serial_we$;
+  reg [RENKON_CORELOG:0]    serial_re$;
+  reg [LWIDTH-1:0]          serial_cnt$;
+  reg [OUTSIZE-1:0]         serial_addr$;
+  reg                       serial_end$;
+  reg                       first_input$;
+  reg                       last_input$;
+  reg [CONV_MAX-1:0]        wreg_we$;
+  reg                       bias_en$;
+  reg                       breg_we$;
+  reg                       relu_en$;
+  reg                       pool_en$;
+  reg [LWIDTH-1:0]          pool_kern$;
+  reg [LWIDTH-1:0]          pool_strid$;
+  reg [LWIDTH-1:0]          pool_pad$;
 
 
 
@@ -185,54 +199,74 @@ module renkon_ctrl_core
       first_input$ <= 0;
       last_input$  <= 0;
     end
+    else if (state$ != S_INPUT) begin
+      first_input$ <= 0;
+      last_input$  <= 0;
+    end
     else begin
-      first_input$ <= state$ == S_INPUT
-                   && count_in$ == 0;
-      last_input$  <= state$ == S_INPUT
-                   && count_in$ == total_in$ - 1;
+      first_input$ <= count_in$ == 0;
+      last_input$  <= count_in$ == total_in$ - 1;
     end
 
 //==========================================================
 // params control
 //==========================================================
 
-  assign w_fea_size   = fea_size$;
-  assign w_bias_en    = bias_en$;
-  assign w_relu_en    = relu_en$;
-  assign w_pool_en    = pool_en$;
-  assign w_pool_size  = pool_size$;
+  assign _qbits      = qbits$;
+  assign _fea_height = fea_height$;
+  assign _fea_width  = fea_width$;
+  assign _conv_strid = conv_strid$;
+  assign _bias_en    = bias_en$;
+  assign _relu_en    = relu_en$;
+  assign _pool_en    = pool_en$;
+  assign _pool_kern  = pool_kern$;
+  assign _pool_strid = pool_strid$;
+  assign _pool_pad   = pool_pad$;
 
   assign wreg_we = wreg_we$;
   assign breg_we = breg_we$;
 
   // equals to 2 * pad_size
   assign conv_pad_both = conv_pad << 1;
+  assign pool_pad_both = pool_pad << 1;
 
   //wait exec (initialize)
   always @(posedge clk)
     if (!xrst) begin
-      total_in$   <= 0;
+      qbits$      <= 0;
       total_out$  <= 0;
-      img_size$   <= 0;
-      conv_size$  <= 0;
+      total_in$   <= 0;
+      img_height$ <= 0;
+      img_width$  <= 0;
+      conv_kern$  <= 0;
+      conv_strid$ <= 0;
       conv_pad$   <= 0;
-      fea_size$   <= 0;
+      fea_height$ <= 0;
+      fea_width$  <= 0;
       bias_en$    <= 0;
       relu_en$    <= 0;
       pool_en$    <= 0;
-      pool_size$  <= 0;
+      pool_kern$  <= 0;
+      pool_strid$ <= 0;
+      pool_pad$   <= 0;
     end
     else if (state$ == S_WAIT && req_edge) begin
-      total_in$   <= total_in;
+      qbits$      <= qbits;
       total_out$  <= total_out;
-      img_size$   <= img_size;
-      conv_size$  <= conv_size;
+      total_in$   <= total_in;
+      img_height$ <= img_height;
+      img_width$  <= img_width;
+      conv_kern$  <= conv_kern;
+      conv_strid$ <= conv_strid;
       conv_pad$   <= conv_pad;
-      fea_size$   <= img_size + conv_pad_both - conv_size + 1;
+      fea_height$ <= fea_height;
+      fea_width$  <= fea_width;
       bias_en$    <= bias_en;
       relu_en$    <= relu_en;
       pool_en$    <= pool_en;
-      pool_size$  <= pool_size;
+      pool_kern$  <= pool_kern;
+      pool_strid$ <= pool_strid;
+      pool_pad$   <= pool_pad;
     end
 
   always @(posedge clk)
@@ -244,10 +278,21 @@ module renkon_ctrl_core
       wreg_we$ <= 0;
       breg_we$ <= 0;
     end
-    else begin
-      wreg_we$ <= state_weight$ == S_W_WEIGHT;
-      breg_we$ <= state_weight$ == S_W_BIAS;
-    end
+    else
+      case (state_weight$)
+        S_W_WEIGHT: begin
+          wreg_we$ <= 1 << weight_y$ + (CONV_MAX-conv_kern$);
+          breg_we$ <= 0;
+        end
+        S_W_BIAS: begin
+          wreg_we$ <= 0;
+          breg_we$ <= 1;
+        end
+        default: begin
+          wreg_we$ <= 0;
+          breg_we$ <= 0;
+        end
+      endcase
 
   // assign buf_pix_req = buf_pix_req$;
   assign buf_pix_req = s_network_end;
@@ -262,8 +307,6 @@ module renkon_ctrl_core
 // network control
 //==========================================================
 
-  // assign mem_net_we   = net_we$;
-  // assign mem_net_addr = net_addr$ + net_offset$;
   for (genvar i = 0; i < RENKON_CORE; i++)
     assign mem_net_we[i] = net_we & net_sel == i;
 
@@ -275,11 +318,11 @@ module renkon_ctrl_core
                        ? s_w_bias_end
                        : s_w_weight_end;
 
-  assign s_w_weight_end = state_weight$ == S_W_WEIGHT
-                       && weight_x$ == conv_size$ - 1
-                       && weight_y$ == conv_size$ - 1;
+  assign s_w_weight_end = state$ == S_NETWORK && state_weight$ == S_W_WEIGHT
+                       && weight_x$ == conv_kern$ - 1
+                       && weight_y$ == conv_kern$ - 1;
 
-  assign s_w_bias_end   = state_weight$ == S_W_BIAS;
+  assign s_w_bias_end   = state$ == S_NETWORK && state_weight$ == S_W_BIAS;
 
   always @(posedge clk)
     if (!xrst)
@@ -327,9 +370,9 @@ module renkon_ctrl_core
         S_NETWORK:
           case (state_weight$)
             S_W_WEIGHT:
-              if (weight_x$ == conv_size$ - 1) begin
+              if (weight_x$ == conv_kern$ - 1) begin
                 weight_x$ <= 0;
-                if (weight_y$ == conv_size$ - 1)
+                if (weight_y$ == conv_kern$ - 1)
                   weight_y$ <= 0;
                 else
                   weight_y$ <= weight_y$ + 1;
@@ -352,25 +395,11 @@ module renkon_ctrl_core
 //==========================================================
 
   assign s_input_end = state$ == S_INPUT
-                    && input_x$ == fea_size$ - 1
-                    && input_y$ == fea_size$ - 1;
+                    && buf_pix_stop;
 
-  assign img_we   = img_we$;
-  assign img_addr = img_addr$;
-  // assign img_addr = w_img_addr + w_img_offset;
-
+  assign img_we    = img_we$;
+  assign img_addr  = img_addr$;
   assign img_wdata = out_wdata;
-  // assign img_wdata = state$ == S_OUTPUT
-  //                  ? out_wdata
-  //                  : 0;
-
-  // assign w_img_addr = state$ == S_OUTPUT
-  //                   ? out_addr$
-  //                   : in_addr$;
-
-  // assign w_img_offset = state$ == S_OUTPUT
-  //                     ? out_offset$
-  //                     : in_offset$;
 
   always @(posedge clk)
     if (!xrst)
@@ -383,14 +412,6 @@ module renkon_ctrl_core
           img_we$ <= 0;
       endcase
 
-  // always @(posedge clk)
-  //   if (!xrst)
-  //     in_addr$ <= 0;
-  //   else if (state$ == S_OUTPUT)
-  //     in_addr$ <= 0;
-  //   else if (state$ == S_INPUT)
-  //     in_addr$ <= in_addr$ + 1;
-  //
   always @(posedge clk)
     if (!xrst)
       out_addr$ <= 0;
@@ -421,30 +442,6 @@ module renkon_ctrl_core
     else if (buf_pix_ready || img_we$)
       img_addr$ <= img_addr$ + 1;
 
-  always @(posedge clk)
-    if (!xrst) begin
-      input_x$ <= 0;
-      input_y$ <= 0;
-    end
-    else
-      case (state$)
-        S_INPUT: if (buf_pix_valid) begin
-          if (input_x$ == fea_size$ - 1) begin
-            input_x$ <= 0;
-            if (input_y$ == fea_size$ - 1)
-              input_y$ <= 0;
-            else
-              input_y$ <= input_y$ + 1;
-          end
-          else
-            input_x$ <= input_x$ + 1;
-        end
-        default: begin
-          input_x$ <= 0;
-          input_y$ <= 0;
-        end
-      endcase
-
 //==========================================================
 // output control
 //==========================================================
@@ -456,6 +453,17 @@ module renkon_ctrl_core
   assign serial_we   = serial_we$;
   assign serial_re   = serial_re$;
   assign serial_addr = serial_addr$;
+
+  reg in_period$;
+  always @(posedge clk)
+    if (!xrst)
+      in_period$ <= 0;
+    else if (in_ctrl.start)
+      in_period$ <= 1;
+    else if (in_ctrl.stop)
+      in_period$ <= 0;
+  assign in_ctrl.ready  = in_period$;
+  assign out_ctrl.delay = 1;
 
   assign out_ctrl.start = buf_pix_start;
   assign out_ctrl.valid = buf_pix_valid;
@@ -507,10 +515,10 @@ module renkon_ctrl_core
       serial_addr$ <= 0;
     else if (s_output_end)
       serial_addr$ <= 0;
-    else if (state$ == S_OUTPUT && in_ctrl.valid)
+    else if (state$ == S_OUTPUT)
       if (in_ctrl.stop)
         serial_addr$ <= 0;
-      else
+      else if (in_ctrl.valid)
         serial_addr$ <= serial_addr$ + 1;
     else if (serial_re$ > 0)
       if (serial_addr$ == serial_cnt$ - 1)
@@ -533,18 +541,22 @@ module renkon_ctrl_core
       serial_end$ <= serial_re$ == RENKON_CORE
                   && serial_addr$ == serial_cnt$ - 1;
 
-  renkon_ctrl_linebuf_pad #(FSIZE, D_PIXELBUF) ctrl_buf_pix(
-    .img_size   (img_size$),
-    .fil_size   (conv_size$),
-    .pad_size   (conv_pad$),
-
+  renkon_ctrl_linebuf_pad #(CONV_MAX, D_PIXELBUF, 1'b0) ctrl_buf_pix(
+    .height     (img_height$),
+    .width      (img_width$),
+    .kern       (conv_kern$),
+    .strid      (conv_strid$),
+    .pad        (conv_pad$),
     .buf_req    (buf_pix_req),
+    .buf_delay  (out_ctrl.delay),
+
     .buf_ack    (buf_pix_ack),
     .buf_start  (buf_pix_start),
     .buf_valid  (buf_pix_valid),
     .buf_ready  (buf_pix_ready),
     .buf_stop   (buf_pix_stop),
 
+    .buf_mask   (buf_pix_mask),
     .buf_wcol   (buf_pix_wcol),
     .buf_rrow   (buf_pix_rrow),
     .buf_wsel   (buf_pix_wsel),

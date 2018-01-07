@@ -3,7 +3,7 @@
 module renkon_ctrl_bias
   ( input           clk
   , input           xrst
-  , input           w_bias_en
+  , input           _bias_en
   , ctrl_bus.slave  in_ctrl
   , ctrl_bus.master out_ctrl
   , output          bias_oe
@@ -11,13 +11,16 @@ module renkon_ctrl_bias
 
   ctrl_reg out_ctrl$ [D_BIAS-1:0];
 
-  assign out_ctrl.start = w_bias_en
+  assign in_ctrl.ready  = out_ctrl.ready;
+  assign out_ctrl.delay = in_ctrl.delay + (_bias_en ? D_BIAS : 1);
+
+  assign out_ctrl.start = _bias_en
                         ? out_ctrl$[D_BIAS-1].start
                         : out_ctrl$[0].start;
-  assign out_ctrl.valid = w_bias_en
+  assign out_ctrl.valid = _bias_en
                         ? out_ctrl$[D_BIAS-1].valid
                         : out_ctrl$[0].valid;
-  assign out_ctrl.stop  = w_bias_en
+  assign out_ctrl.stop  = _bias_en
                         ? out_ctrl$[D_BIAS-1].stop
                         : out_ctrl$[0].stop;
 

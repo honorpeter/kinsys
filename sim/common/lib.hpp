@@ -8,6 +8,7 @@
 
 #define len(a, b) (int (a)=0; (a) < static_cast<int>((b).size()); ++(a))
 #define range(a, b) (int (a)=0; (a) < (b); ++(a))
+#define ranges(a, b, c) (int (a)=0; (a) < (b); (a)+=(c))
 
 template <typename T>
 using Mat1D = std::vector<T>;

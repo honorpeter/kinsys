@@ -14,6 +14,7 @@ DEPENDS   = \
 	renkon_ctrl.sv \
 	renkon_linebuf.sv \
 	renkon_linebuf_pad.sv \
+	renkon_conv_tree9.sv \
 	renkon_conv_tree25.sv \
 	renkon_conv_wreg.sv \
 	renkon_accum.sv \
@@ -21,6 +22,7 @@ DEPENDS   = \
 	renkon_bias.sv \
 	renkon_relu.sv \
 	renkon_pool_max4.sv \
+	renkon_pool_max9.sv \
 	renkon_pool.sv \
 	renkon_core.sv \
 	renkon_serial_mat.sv \

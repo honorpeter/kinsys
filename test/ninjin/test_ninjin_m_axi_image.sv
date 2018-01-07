@@ -11,26 +11,26 @@ parameter BUSER_WIDTH   = 0;
 
 module test_ninjin_m_axi_image;
 
-  reg                   clk;
-  reg                   xrst;
-  reg                   awready;
-  reg                   wready;
-  reg [ID_WIDTH-1:0]    bid;
-  reg [1:0]             bresp;
-  reg [BUSER_WIDTH-1:0] buser;
-  reg                   bvalid;
-  reg                   arready;
-  reg [ID_WIDTH-1:0]    rid;
-  reg [BWIDTH-1:0]      rdata;
-  reg [1:0]             rresp;
-  reg                   rlast;
-  reg [RUSER_WIDTH-1:0] ruser;
-  reg                   rvalid;
-  reg                   ddr_req;
-  reg                   ddr_mode;
-  reg [MEMSIZE+LSB-1:0] ddr_base;
-  reg [LWIDTH-1:0]      ddr_len;
-  reg [BWIDTH-1:0]      ddr_rdata;
+  reg                     clk;
+  reg                     xrst;
+  reg                     awready;
+  reg                     wready;
+  reg [ID_WIDTH-1:0]      bid;
+  reg [1:0]               bresp;
+  reg [BUSER_WIDTH-1:0]   buser;
+  reg                     bvalid;
+  reg                     arready;
+  reg [ID_WIDTH-1:0]      rid;
+  reg [BWIDTH-1:0]        rdata;
+  reg [1:0]               rresp;
+  reg                     rlast;
+  reg [RUSER_WIDTH-1:0]   ruser;
+  reg                     rvalid;
+  reg                     ddr_req;
+  reg                     ddr_mode;
+  reg [WORDSIZE+LSB-1:0]  ddr_base;
+  reg [LWIDTH-1:0]        ddr_len;
+  reg [BWIDTH-1:0]        ddr_rdata;
 
   wire [3:0]              err;
   wire                    awvalid;
@@ -63,13 +63,13 @@ module test_ninjin_m_axi_image;
   wire [ARUSER_WIDTH-1:0] aruser;
   wire                    rready;
   wire                    ddr_we;
-  wire [MEMSIZE-1:0]      ddr_waddr;
+  wire [WORDSIZE-1:0]     ddr_waddr;
   wire [BWIDTH-1:0]       ddr_wdata;
-  wire [MEMSIZE-1:0]      ddr_raddr;
+  wire [WORDSIZE-1:0]     ddr_raddr;
 
   ninjin_m_axi_image dut(.*);
 
-  mem_dp #(BWIDTH, MEMSIZE) mem_ddr(
+  mem_dp #(BWIDTH, WORDSIZE) mem_ddr(
     .mem_we1    (ddr_we),
     .mem_addr1  (ddr_waddr),
     .mem_wdata1 (ddr_wdata),
@@ -137,13 +137,13 @@ module test_ninjin_m_axi_image;
 // {{{
 
   task ddr_init;
-    for (int i = 0; i < 2**MEMSIZE; i++)
+    for (int i = 0; i < 2**WORDSIZE; i++)
       mem_ddr.mem[i] = i + 'h42;
   endtask
 
   task ddr_write_txn
-    ( input [MEMSIZE-1:0] base
-    , input [MEMSIZE-1:0] len
+    ( input [WORDSIZE-1:0] base
+    , input [WORDSIZE-1:0] len
     );
 
     ddr_req   = 1;
@@ -156,8 +156,8 @@ module test_ninjin_m_axi_image;
   endtask
 
   task ddr_read_txn
-    ( input [MEMSIZE-1:0] base
-    , input [MEMSIZE-1:0] len
+    ( input [WORDSIZE-1:0] base
+    , input [WORDSIZE-1:0] len
     );
 
     ddr_req   = 1;

@@ -8,59 +8,76 @@ module renkon_ctrl
   , input  [RENKON_CORELOG-1:0] net_sel
   , input                       net_we
   , input  [RENKON_NETSIZE-1:0] net_addr
-  , input  [IMGSIZE-1:0]        in_offset
-  , input  [IMGSIZE-1:0]        out_offset
+  , input  [MEMSIZE-1:0]        in_offset
+  , input  [MEMSIZE-1:0]        out_offset
   , input  [RENKON_NETSIZE-1:0] net_offset
 
-  , input  [LWIDTH-1:0]         total_in
+  , input  [LWIDTH-1:0]         qbits
   , input  [LWIDTH-1:0]         total_out
-  , input  [LWIDTH-1:0]         img_size
-  , input  [LWIDTH-1:0]         conv_size
+  , input  [LWIDTH-1:0]         total_in
+  , input  [LWIDTH-1:0]         img_height
+  , input  [LWIDTH-1:0]         img_width
+  , input  [LWIDTH-1:0]         fea_height
+  , input  [LWIDTH-1:0]         fea_width
+  , input  [LWIDTH-1:0]         conv_kern
+  , input  [LWIDTH-1:0]         conv_strid
   , input  [LWIDTH-1:0]         conv_pad
   , input                       bias_en
   , input                       relu_en
   , input                       pool_en
-  , input  [LWIDTH-1:0]         pool_size
+  , input  [LWIDTH-1:0]         pool_kern
+  , input  [LWIDTH-1:0]         pool_strid
+  , input  [LWIDTH-1:0]         pool_pad
 
-  , output                      ack
-  , output                      wreg_we
-  , output                      conv_oe
-  , output                      breg_we
-  , output                      bias_oe
-  , output                      relu_oe
-  , output                      pool_oe
+  , output                            ack
+  , output [CONV_MAX-1:0]             wreg_we
+  , output                            conv_oe
+  , output                            breg_we
+  , output                            bias_oe
+  , output                            relu_oe
+  , output                            pool_oe
+  , output                            buf_pix_mask [CONV_MAX-1:0]
   , output                            buf_pix_wcol
-  , output                            buf_pix_rrow [FSIZE-1:0]
-  , output [$clog2(FSIZE+1):0]        buf_pix_wsel
-  , output [$clog2(FSIZE+1):0]        buf_pix_rsel
+  , output                            buf_pix_rrow [CONV_MAX-1:0]
+  , output [$clog2(CONV_MAX+1):0]     buf_pix_wsel
+  , output [$clog2(CONV_MAX+1):0]     buf_pix_rsel
   , output                            buf_pix_we
   , output [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr
-  , output                      serial_we
-  , output [RENKON_CORELOG:0]   serial_re
-  , output [OUTSIZE-1:0]        serial_addr
-  , output                      img_we
-  , output [IMGSIZE-1:0]        img_addr
-  , output signed [DWIDTH-1:0]  img_wdata
-  , output [RENKON_CORE-1:0]    mem_net_we
-  , output [RENKON_NETSIZE-1:0] mem_net_addr
-  , output                      mem_feat_we
-  , output                      mem_feat_rst
-  , output [FACCUM-1:0]         mem_feat_raddr
-  , output [FACCUM-1:0]         mem_feat_waddr
-  , output [$clog2(PSIZE+1):0]        buf_feat_wsel
-  , output [$clog2(PSIZE+1):0]        buf_feat_rsel
+  , output                            serial_we
+  , output [RENKON_CORELOG:0]         serial_re
+  , output [OUTSIZE-1:0]              serial_addr
+  , output                            img_we
+  , output [MEMSIZE-1:0]              img_addr
+  , output signed [DWIDTH-1:0]        img_wdata
+  , output [RENKON_CORE-1:0]          mem_net_we
+  , output [RENKON_NETSIZE-1:0]       mem_net_addr
+  , output                            mem_feat_we
+  , output                            mem_feat_rst
+  , output [FACCUM-1:0]               mem_feat_waddr
+  , output [FACCUM-1:0]               mem_feat_raddr
+  , output                            buf_feat_mask [POOL_MAX-1:0]
+  , output                            buf_feat_wcol
+  , output                            buf_feat_rrow [POOL_MAX-1:0]
+  , output [$clog2(POOL_MAX+1):0]     buf_feat_wsel
+  , output [$clog2(POOL_MAX+1):0]     buf_feat_rsel
   , output                            buf_feat_we
   , output [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
-  , output [LWIDTH-1:0]         w_fea_size
-  , output                      w_bias_en
-  , output                      w_relu_en
-  , output                      w_pool_en
-  , output [LWIDTH-1:0]         w_pool_size
+  , output [LWIDTH-1:0]               _qbits
+  , output                            _bias_en
+  , output                            _relu_en
+  , output                            _pool_en
   );
 
-  wire [1:0] core_state;
-  wire       first_input;
-  wire       last_input;
+  wire [1:0]  core_state;
+  wire        first_input;
+  wire        last_input;
+
+  wire [LWIDTH-1:0] _fea_height;
+  wire [LWIDTH-1:0] _fea_width;
+  wire [LWIDTH-1:0] _conv_strid;
+  wire [LWIDTH-1:0] _pool_kern;
+  wire [LWIDTH-1:0] _pool_strid;
+  wire [LWIDTH-1:0] _pool_pad;
 
   ctrl_bus bus_core();
   ctrl_bus bus_conv();

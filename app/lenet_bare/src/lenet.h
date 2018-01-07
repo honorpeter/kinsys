@@ -10,14 +10,14 @@
 #define N_F3    10
 #define LABEL   N_F3
 
-#define ISIZE   28
-#define FSIZE   5
-#define PSIZE   2
+#define IMG_SIZE   28
+#define CONV_KERN   5
+#define POOL_KERN   2
 
-#define FM0SIZE (ISIZE-FSIZE+1)
-#define PM0SIZE (FM0SIZE/PSIZE)
-#define FM1SIZE (PM0SIZE-FSIZE+1)
-#define PM1SIZE (FM1SIZE/PSIZE)
+#define FM0SIZE (IMG_SIZE-CONV_KERN+1)
+#define PM0SIZE (FM0SIZE/POOL_KERN)
+#define FM1SIZE (PM0SIZE-CONV_KERN+1)
+#define PM1SIZE (FM1SIZE/POOL_KERN)
 
 void LeNet_init(s16 **input, s16 **output);
 void LeNet_eval(void);

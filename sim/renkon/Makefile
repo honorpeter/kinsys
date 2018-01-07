@@ -29,11 +29,11 @@ clean:
 
 data:
 	mkdir -p $(DATADIR)
-	$(RAND) 2304  > $(DATADIR)/input_renkon_top.dat
+	$(RAND) 3072  > $(DATADIR)/input_renkon_top.dat
 	$(RAND) 12800 > $(DATADIR)/weight_renkon_top.dat
 	$(RAND) 32    > $(DATADIR)/bias_renkon_top.dat
 	$(RAND) 1024  > $(DATADIR)/input_renkon_linebuf.dat
-	$(RAND) 1024  > $(DATADIR)/input_renkon_linebuf_pad.dat
+	$(RAND) 192   > $(DATADIR)/input_renkon_linebuf_pad.dat
 	$(RAND) 25000 > $(DATADIR)/input_renkon_conv_tree25.dat
 	$(RAND) 25000 > $(DATADIR)/filter_renkon_conv_tree25.dat
 

@@ -11,4 +11,6 @@ MASK = 0xffff
 random.seed(None)
 for i in range(LENGTH):
     randval = random.randrange(-WIDTH, WIDTH) & MASK
+    # randval = random.randrange(-WIDTH, WIDTH)
     print("{:04x}".format(randval))
+    # print("{}".format(randval))

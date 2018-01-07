@@ -34,7 +34,7 @@ void LeNet_init(s16 **input, s16 **output)
 {
   kinpira_init();
 
-  image_ptr = define_map(N_IN, ISIZE, ISIZE);
+  image_ptr = define_map(N_IN, IMG_SIZE, IMG_SIZE);
   pmap0 = define_map(N_C0, PM0SIZE, PM0SIZE);
   pmap1 = define_map(N_C1, PM1SIZE, PM1SIZE);
   pvec1 = malloc(sizeof(vec));
@@ -44,17 +44,17 @@ void LeNet_init(s16 **input, s16 **output)
   set_input(input, image_ptr);
 
   conv0 = map_layer(image_ptr, pmap0,
-    convolution_2d(FSIZE, CONV_BIAS | CONV_VALID),
+    convolution_2d(CONV_KERN, CONV_BIAS | CONV_VALID),
     NULL,
     activation(ACTV_RELU),
-    pooling_2d(PSIZE, POOL_MAX)
+    pooling_2d(POOL_KERN, POOL_MAX)
   );
 
   conv1 = map_layer(pmap0, pmap1,
-    convolution_2d(FSIZE, CONV_BIAS | CONV_VALID),
+    convolution_2d(CONV_KERN, CONV_BIAS | CONV_VALID),
     NULL,
     activation(ACTV_RELU),
-    pooling_2d(PSIZE, POOL_MAX)
+    pooling_2d(POOL_KERN, POOL_MAX)
   );
 
   map2vec(pmap1, pvec1);
@@ -91,7 +91,7 @@ void LeNet_eval(void)
   // printf("\033[2J");
   // puts("### lenet_bare");
 
-  // assert_rep(image_ptr->body, image, N_IN*ISIZE*ISIZE);
+  // assert_rep(image_ptr->body, image, N_IN*IMG_SIZE*IMG_SIZE);
   // assert_rep(pmap0->body, conv0_tru, N_C0*PM0SIZE*PM0SIZE);
   // assert_rep(pmap1->body, conv1_tru, N_C1*PM1SIZE*PM1SIZE);
   // assert_rep(fvec2->body, full2_tru, N_F2);

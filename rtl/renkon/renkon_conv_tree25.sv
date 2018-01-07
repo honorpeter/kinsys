@@ -2,11 +2,12 @@
 
 // semi-auto generation by tree.rb
 module renkon_conv_tree25
-  ( input                      clk
-  , input                      xrst
-  , input  signed [DWIDTH-1:0] pixel  [25-1:0]
-  , input  signed [DWIDTH-1:0] weight [25-1:0]
-  , output signed [DWIDTH-1:0] fmap
+  ( input                       clk
+  , input                       xrst
+  , input  [LWIDTH-1:0]         _qbits
+  , input  signed [DWIDTH-1:0]  pixel  [25-1:0]
+  , input  signed [DWIDTH-1:0]  weight [25-1:0]
+  , output signed [DWIDTH-1:0]  fmap
   );
 
   wire signed [2*DWIDTH-1:0] pro       [25-1:0];
@@ -94,8 +95,8 @@ module renkon_conv_tree25
   assign sum2_0 = sum1_0 + sum1_1;
   assign sum2_1 = sum1_2 + sum1_3;
   assign sum2_2 = sum1_4 + sum1_5;
-  assign sum3_0 = sum2_0$ + sum2_1$;
-  assign sum3_1 = sum2_2$ + pro_short24_d1$;
+  assign sum3_0 = sum2_0 + sum2_1;
+  assign sum3_1 = sum2_2 + pro_short$[24];
   assign sum4_0 = sum3_0 + sum3_1;
 
   assign fmap = fmap$;
@@ -146,22 +147,23 @@ module renkon_conv_tree25
     else
       fmap$ <= sum4_0;
 
-////////////////////////////////////////////////////////////
+//==========================================================
 //  Function
-////////////////////////////////////////////////////////////
+//==========================================================
+
+  reg [LWIDTH-1:0] qbits$;
+  always @(posedge clk)
+    if (!xrst)
+      qbits$ <= 0;
+    else
+      qbits$ <= _qbits;
 
   function signed [DWIDTH-1:0] round;
     input signed [2*DWIDTH-1:0] data;
-    if (data[2*DWIDTH-DWIDTH/2-2] == 1 && data[DWIDTH/2-1:0] == 0)
-      round = $signed({
-                data[2*DWIDTH-DWIDTH/2-2],
-                data[2*DWIDTH-DWIDTH/2-2:DWIDTH/2] - 1'b1
-              });
+    if (data[2*DWIDTH-1] == 1)
+      round = $signed(data >> qbits$) - 1;
     else
-      round = $signed({
-                data[2*DWIDTH-DWIDTH/2-2],
-                data[2*DWIDTH-DWIDTH/2-2:DWIDTH/2]
-              });
+      round = $signed(data >> qbits$);
   endfunction
 
 endmodule

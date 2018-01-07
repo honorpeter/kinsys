@@ -23,21 +23,21 @@ module test_ninjin_ddr_buf;
   reg                     clk;
   reg                     xrst;
   reg                     pre_req;
-  reg [MEMSIZE-1:0]       pre_base;
+  reg [WORDSIZE-1:0]      pre_base;
   reg [LWIDTH-1:0]        read_len;
   reg [LWIDTH-1:0]        write_len;
   reg                     mem_we;
-  reg [IMGSIZE-1:0]       mem_addr;
+  reg [MEMSIZE-1:0]       mem_addr;
   reg signed [DWIDTH-1:0] mem_wdata;
   reg                     ddr_we;
-  reg [MEMSIZE-1:0]       ddr_waddr;
+  reg [WORDSIZE-1:0]      ddr_waddr;
   reg [BWIDTH-1:0]        ddr_wdata;
-  reg [MEMSIZE-1:0]       ddr_raddr;
+  reg [WORDSIZE-1:0]      ddr_raddr;
 
   wire                      pre_ack;
   wire                      ddr_req;
   wire                      ddr_mode;
-  wire [MEMSIZE+LSB-1:0]    ddr_base;
+  wire [WORDSIZE+LSB-1:0]   ddr_base;
   wire [LWIDTH-1:0]         ddr_len;
   wire [BWIDTH-1:0]         ddr_rdata;
   wire signed [DWIDTH-1:0]  mem_rdata;
@@ -145,7 +145,7 @@ module test_ninjin_ddr_buf;
     , input integer wlen
     );
 
-    pre_req    = 1;
+    pre_req   = 1;
     pre_base  = base;
     read_len  = rlen;
     write_len = wlen;
@@ -242,12 +242,17 @@ module test_ninjin_ddr_buf;
               $error("read assert failed (odd) @ mem_rdata: %h, target: %h",
                 mem_rdata, 'h0def);
           else
-            assert (mem_rdata == 'h000c + (dut.mem_addr$ - (READ_OFFSET >> RATELOG))/2)
+            assert (
+              mem_rdata == 'h000c + (dut.mem_addr$ - (READ_OFFSET >> RATELOG))/2
+            )
             else
               $error("read assert failed (even) @ mem_rdata: %h, target: %h",
-                mem_rdata, 'h000c + (dut.mem_addr$ - (READ_OFFSET >> RATELOG))/2);
+                mem_rdata,
+                'h000c + (dut.mem_addr$ - (READ_OFFSET >> RATELOG))/2);
         3:
-          assert (mem_rdata == 'h0005 + dut.mem_addr$ - (WRITE_OFFSET >> RATELOG))
+          assert (
+            mem_rdata == 'h0005 + dut.mem_addr$ - (WRITE_OFFSET >> RATELOG)
+          )
           else
             $error("write assert failed @ mem_rdata: %h, target: %h",
               mem_rdata, 'h0005 + dut.mem_addr$ - (WRITE_OFFSET >> RATELOG));
@@ -258,7 +263,7 @@ module test_ninjin_ddr_buf;
   end
 
   // ddr assert
-  reg [IMGSIZE-1:0] ddr_raddr$;
+  reg [MEMSIZE-1:0] ddr_raddr$;
   wire [DWIDTH-1:0]  ddr_offset;
   always @(posedge clk) ddr_raddr$ <= dut.ddr_raddr;
   assign ddr_offset = ddr_raddr$ - (WRITE_OFFSET >> LSB);
@@ -293,14 +298,14 @@ module test_ninjin_ddr_buf;
       $display(
         "%4x: ", $time/STEP,
         // "%d ", xrst,
-        "&%d ", dut.state$[0],
+        "*%-7p ", dut.state$[0],
         "%d ", dut.mode,
         "%d ", dut.mode$,
-        // "%d ", dut.count_len$,
+        "%d ", dut.count_len$,
         // "%d ", dut.read_len,
         // "%d ", $signed(dut.rest_len),
         // "%d ", dut.burst_len,
-        // "%d ", dut.count_buf$,
+        "%d ", dut.count_buf$,
         // "%3d ", ddr_read_count,
         // "%3d ", ddr_write_count,
         // "| ",
@@ -334,9 +339,9 @@ module test_ninjin_ddr_buf;
         // "%4x ",  dut.pre_base$ << LSB,
         // "%4x ",  dut.post_base$ << LSB,
         "| ",
-        "*%d ", dut.which$,
-        "*%d ", dut.mem_which$,
-        "*%d ", dut.ddr_which$,
+        "&%d ", dut.which$,
+        "&%d ", dut.mem_which$,
+        "&%d ", dut.ddr_which$,
         "%d ",  dut.switch_buf,
         ": ",
         "%x ",  dut.buf_addr$,
