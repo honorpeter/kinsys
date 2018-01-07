@@ -40,15 +40,15 @@ int kinpira_exit(void)
 
 
 
-map *define_map(int map_c, int map_w, int map_h)
+Map *define_map(int map_c, int map_w, int map_h)
 {
-  map *r = malloc(sizeof(map));
+  Map *r = (Map *)malloc(sizeof(Map));
 
   r->shape[0] = map_c;
   r->shape[1] = map_w;
   r->shape[2] = map_h;
 
-  r->body = calloc(map_c*map_w*map_h, sizeof(u16));
+  r->body = (s16 *)calloc(map_c*map_w*map_h, sizeof(s16));
 
   r->phys_addr = (u32)(UINTPTR)r->body;
 
@@ -57,13 +57,13 @@ map *define_map(int map_c, int map_w, int map_h)
 
 
 
-vec *define_vec(int vec_l)
+Vec *define_vec(int vec_l)
 {
-  vec *r = malloc(sizeof(vec));
+  Vec *r = (Vec *)malloc(sizeof(Vec));
 
   r->shape = vec_l;
 
-  r->body = calloc(vec_l, sizeof(u16));
+  r->body = (s16 *)calloc(vec_l, sizeof(s16));
 
   r->phys_addr = (u32)(UINTPTR)r->body;
 
@@ -72,7 +72,7 @@ vec *define_vec(int vec_l)
 
 
 
-void undef_map(map *r)
+void undef_map(Map *r)
 {
   free(r->body);
   free(r);
@@ -80,7 +80,7 @@ void undef_map(map *r)
 
 
 
-void undef_vec(vec *r)
+void undef_vec(Vec *r)
 {
   free(r->body);
   free(r);

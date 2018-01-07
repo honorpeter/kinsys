@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-#include <time.h>
 
 #include "util.h"
 #include "kinpira.h"
@@ -17,7 +16,7 @@ static u32 bit(u32 value, int high, int low)
 
 
 
-void assign_map(layer *l, u32 *weight, u32 *bias)
+void assign_map(Layer *l, u32 *weight, u32 *bias)
 {
   const int core  = RENKON_CORE;
   const int n_out = bit(l->base_param[0], 2*LWIDTH-1, LWIDTH);
@@ -77,7 +76,7 @@ void assign_map(layer *l, u32 *weight, u32 *bias)
 
 
 
-void assign_vec(layer *l, u32 *weight, u32 *bias)
+void assign_vec(Layer *l, u32 *weight, u32 *bias)
 {
   const int core  = GOBOU_CORE;
   const int n_out = bit(l->base_param[0], 2*LWIDTH-1, LWIDTH);
@@ -135,8 +134,9 @@ void assign_vec(layer *l, u32 *weight, u32 *bias)
 
 
 
+#include <time.h>
 #include <sleep.h>
-void exec_core(layer *l)
+void exec_core(Layer *l)
 {
   *reg_which        = l->which;
   // usleep(1000);
@@ -190,7 +190,7 @@ void print_result(s16 *output, const int length)
   int max     = INT_MIN;
 
   for (int i = 0; i < length; i++) {
-    // printf("%d: %d\n", i, output[i]);
+    printf("%d: %d\n", i, output[i]);
 
     if (max < output[i]) {
       number = i;

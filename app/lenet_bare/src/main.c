@@ -19,8 +19,8 @@ int main(void)
 
   LeNet_init(&input, &output);
 
-  // setbuf(stdout, NULL);
-  // printf("\033[2J");
+  setbuf(stdout, NULL);
+  printf("\033[2J");
 #if defined(zedboard)
   puts("### lenet_bare @ zedboard\n");
 #elif defined(zcu102)
@@ -33,7 +33,7 @@ int main(void)
 
   print_result(label, LABEL);
   assert_rep(label, full3_tru, LABEL);
-  // puts("assert ok");
+  puts("assert ok");
 
   LeNet_exit();
 

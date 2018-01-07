@@ -33,19 +33,19 @@ typedef struct {
   u32 norm_param;
   u32 actv_param;
   u32 pool_param;
-} layer;
+} Layer;
 
 typedef struct {
   int shape[3];
   u32 phys_addr;
   s16 *body;
-} map;
+} Map;
 
 typedef struct {
   int shape;
   u32 phys_addr;
   s16 *body;
-} vec;
+} Vec;
 
 #ifdef __cplusplus
 }

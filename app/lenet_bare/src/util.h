@@ -1,6 +1,10 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "types.h"
 
 // #include <assert.h>
@@ -18,7 +22,7 @@
     if (*((a)+i) != *((b)+i)) {                                 \
       printf("Assertion failed: %s == %s, file %s, line %d\n",  \
               #a, #b, __FILE__, __LINE__);                      \
-      printf("\t%x: %s == %x, %s == %x\n",                      \
+      printf("\t%d: %s == %x, %s == %x\n",                      \
               i, #a, *((a)+i), #b, *((b)+i));                   \
       exit(1);                                                  \
     }                                                           \
@@ -33,13 +37,16 @@
   }                                                     \
 } while (0)
 
-void assign_map(layer *l, u32 *weight, u32 *bias);
-void assign_vec(layer *l, u32 *weight, u32 *bias);
+void assign_map(Layer *l, u32 *weight, u32 *bias);
+void assign_vec(Layer *l, u32 *weight, u32 *bias);
 
-void exec_core(layer *l);
+void exec_core(Layer *l);
 
 void print_result(s16 *output, const int length);
 void print_port();
 
+#ifdef __cplusplus
+}
 #endif
 
+#endif

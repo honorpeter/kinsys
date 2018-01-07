@@ -17,20 +17,20 @@ static int filter = 0;
 static int bias = 0;
 
 
-static void define_conv(layer *l, u32 *param);
-static void define_full(layer *l, u32 *param);
-static void define_norm(layer *l, u32 *param);
-static void define_actv(layer *l, u32 *param);
-static void define_pool(layer *l, u32 *param);
+static void define_conv(Layer *l, u32 *param);
+static void define_full(Layer *l, u32 *param);
+static void define_norm(Layer *l, u32 *param);
+static void define_actv(Layer *l, u32 *param);
+static void define_pool(Layer *l, u32 *param);
 
 
 
-layer *map_layer(
-  map *in, map *out,
+Layer *map_layer(
+  Map *in, Map *out,
   u32 *conv_param, u32 *norm_param, u32 *actv_param, u32 *pool_param
 )
 {
-  layer *l = malloc(sizeof(layer));
+  Layer *l = (Layer *)malloc(sizeof(Layer));
 
   l->which      = WHICH_RENKON;
   l->in_offset  = in->phys_addr;
@@ -66,12 +66,12 @@ layer *map_layer(
 
 
 
-layer *vec_layer(
-  vec *in, vec *out,
+Layer *vec_layer(
+  Vec *in, Vec *out,
   u32 *full_param, u32 *norm_param, u32 *actv_param
 )
 {
-  layer *l = malloc(sizeof(layer));
+  Layer *l = (Layer *)malloc(sizeof(Layer));
 
   l->which      = WHICH_GOBOU;
   l->in_offset  = in->phys_addr;
@@ -105,9 +105,9 @@ layer *vec_layer(
 
 
 
-u32 *convolution_2d(int conv_kern, enum conv_mode mode)
+u32 *convolution_2d(int conv_kern, int mode)
 {
-  u32 *param = calloc(2, sizeof(u32));
+  u32 *param = (u32 *)calloc(2, sizeof(u32));
 
   param[0] |= conv_kern << LWIDTH;
 
@@ -127,7 +127,7 @@ u32 *convolution_2d(int conv_kern, enum conv_mode mode)
 
 
 
-static void define_conv(layer *l, u32 *param)
+static void define_conv(Layer *l, u32 *param)
 {
   if (param == NULL) {
     fprintf(stderr, "map_layer must have convolution_2d attr.\n");
@@ -143,9 +143,9 @@ static void define_conv(layer *l, u32 *param)
 
 
 
-u32 *fully_connected(enum full_mode mode)
+u32 *fully_connected(int mode)
 {
-  u32 *param = calloc(2, sizeof(u32));
+  u32 *param = (u32 *)calloc(2, sizeof(u32));
 
   if (mode & FULL_BIAS)
     param[1] |= 1U << (BWIDTH-1);
@@ -158,7 +158,7 @@ u32 *fully_connected(enum full_mode mode)
 
 
 
-static void define_full(layer *l, u32 *param)
+static void define_full(Layer *l, u32 *param)
 {
   if (param == NULL) {
     fprintf(stderr, "vec_layer must have fully_connected attr.\n");
@@ -173,9 +173,9 @@ static void define_full(layer *l, u32 *param)
 
 
 
-u32 *normalization(enum norm_mode mode)
+u32 *normalization(int mode)
 {
-  u32 *param = calloc(1, sizeof(u32));
+  u32 *param = (u32 *)calloc(1, sizeof(u32));
 
   if (mode & NORM_NIL)
     param[0] = 0;
@@ -185,7 +185,7 @@ u32 *normalization(enum norm_mode mode)
 
 
 
-static void define_norm(layer *l, u32 *param)
+static void define_norm(Layer *l, u32 *param)
 {
   if (param == NULL) {
     l->norm_param = 0;
@@ -200,9 +200,9 @@ static void define_norm(layer *l, u32 *param)
 
 
 
-u32 *activation(enum actv_mode mode)
+u32 *activation(int mode)
 {
-  u32 *param = calloc(1, sizeof(u32));
+  u32 *param = (u32 *)calloc(1, sizeof(u32));
 
   if (mode & ACTV_RELU) {
     param[0] |= 1U << (BWIDTH-1);
@@ -217,7 +217,7 @@ u32 *activation(enum actv_mode mode)
 
 
 
-static void define_actv(layer *l, u32 *param)
+static void define_actv(Layer *l, u32 *param)
 {
   if (param == NULL) {
     l->actv_param = 0;
@@ -231,9 +231,9 @@ static void define_actv(layer *l, u32 *param)
 
 
 
-u32 *pooling_2d(int pool_kern, enum pool_mode mode)
+u32 *pooling_2d(int pool_kern, int mode)
 {
-  u32 *param = calloc(1, sizeof(u32));
+  u32 *param = (u32 *)calloc(1, sizeof(u32));
 
   param[0] |= pool_kern;
 
@@ -250,7 +250,7 @@ u32 *pooling_2d(int pool_kern, enum pool_mode mode)
 
 
 
-static void define_pool(layer *l, u32 *param)
+static void define_pool(Layer *l, u32 *param)
 {
   if (param == NULL) {
     l->pool_param = 0;
@@ -264,14 +264,14 @@ static void define_pool(layer *l, u32 *param)
 
 
 
-void set_input(s16 **in, map *out)
+void set_input(s16 **in, Map *out)
 {
   *in = out->body;
 }
 
 
 
-void map2vec(map *in, vec *out)
+void map2vec(Map *in, Vec *out)
 {
   out->shape     = in->shape[0] * in->shape[1] * in->shape[2];
   out->phys_addr = in->phys_addr;
@@ -280,14 +280,14 @@ void map2vec(map *in, vec *out)
 
 
 
-void set_output(vec *in, s16 **out)
+void set_output(Vec *in, s16 **out)
 {
   *out = in->body;
 }
 
 
 
-void undef_layer(layer *r)
+void undef_layer(Layer *r)
 {
   free(r);
 }

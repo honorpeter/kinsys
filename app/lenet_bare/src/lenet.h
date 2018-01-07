@@ -14,10 +14,10 @@
 #define CONV_KERN   5
 #define POOL_KERN   2
 
-#define FM0SIZE (IMG_SIZE-CONV_KERN+1)
-#define PM0SIZE (FM0SIZE/POOL_KERN)
-#define FM1SIZE (PM0SIZE-CONV_KERN+1)
-#define PM1SIZE (FM1SIZE/POOL_KERN)
+#define FM0_SIZE (IMG_SIZE-CONV_KERN+1)
+#define PM0_SIZE (FM0_SIZE/POOL_KERN)
+#define FM1_SIZE (PM0_SIZE-CONV_KERN+1)
+#define PM1_SIZE (FM1_SIZE/POOL_KERN)
 
 void LeNet_init(s16 **input, s16 **output);
 void LeNet_eval(void);

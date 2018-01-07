@@ -17,8 +17,8 @@ extern "C" {
   }                                                                 \
 } while (0)
 
-#define assert_rep(a, b, len) do {  \
-  for (int i = 0; i < (len); i++) { \
+#define assert_rep(a, b, len) do {                              \
+  for (int i = 0; i < (len); i++) {                             \
     if (*((a)+i) != *((b)+i)) {                                 \
       printf("Assertion failed: %s == %s, file %s, line %d\n",  \
               #a, #b, __FILE__, __LINE__);                      \
@@ -26,7 +26,7 @@ extern "C" {
               i, #a, *((a)+i), #b, *((b)+i));                   \
       exit(1);                                                  \
     }                                                           \
-  }                                 \
+  }                                                             \
 } while (0)
 
 #define assert_not(cond, fail_msg) do {                 \

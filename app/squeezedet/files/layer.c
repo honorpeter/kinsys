@@ -5,6 +5,7 @@
 #include "layer.h"
 #include "kinpira.h"
 #include "types.h"
+
 #define CEIL_DIV(a, b) ((a) % (b) == 0 ? (a) / (b) : (a) / (b) + 1)
 
 
@@ -44,7 +45,8 @@ Layer *map_layer(
   l->base_param[0] = out->shape[0] << LWIDTH
                    | in->shape[0];
 
-  l->base_param[1] = in->shape[1];
+  l->base_param[1] = in->shape[1] << LWIDTH
+                   | in->shape[2];
 
   define_conv(l, conv_param);
   define_norm(l, norm_param);
@@ -103,21 +105,21 @@ Layer *vec_layer(
 
 
 
-u32 *convolution_2d(int conv_size, int mode)
+u32 *convolution_2d(int conv_kern, int mode)
 {
   u32 *param = (u32 *)calloc(2, sizeof(u32));
 
-  param[0] |= conv_size << LWIDTH;
+  param[0] |= conv_kern << LWIDTH;
 
   if (mode & CONV_VALID)
     param[0] |= 0;
   else if (mode & CONV_SAME)
-    param[0] |= (conv_size-1)/2;
+    param[0] |= (conv_kern-1)/2;
 
   if (mode & CONV_BIAS)
     param[1] |= 1U << (BWIDTH-1);
 
-  filter = conv_size;
+  filter = conv_kern;
   bias   = (mode & CONV_BIAS) ? 1 : 0;
 
   return param;
@@ -229,11 +231,11 @@ static void define_actv(Layer *l, u32 *param)
 
 
 
-u32 *pooling_2d(int pool_size, int mode)
+u32 *pooling_2d(int pool_kern, int mode)
 {
   u32 *param = (u32 *)calloc(1, sizeof(u32));
 
-  param[0] |= pool_size;
+  param[0] |= pool_kern;
 
   if (mode & POOL_MAX) {
     param[0] |= 1U << (BWIDTH-1);
