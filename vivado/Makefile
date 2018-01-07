@@ -25,10 +25,10 @@ peta:
 	bash peta.sh ${BOARD} ${APP}
 
 bare:
-	cp ${BOARD}/${BOARD}.sdk/design_1_wrapper.hdf ~/tmp
-	rm -rf ${BOARD}/${BOARD}.sdk/${APP_BARE}{,_bsp}
-	rm -rf ${BOARD}/${BOARD}.sdk/{.metadata,design_1_wrapper_hw_platform_0}
-	cp ~/tmp/design_1_wrapper.hdf ${BOARD}/${BOARD}.sdk/
+	# cp ${BOARD}/${BOARD}.sdk/design_1_wrapper.hdf ~/tmp
+	# rm -rf ${BOARD}/${BOARD}.sdk/${APP_BARE}{,_bsp}
+	# rm -rf ${BOARD}/${BOARD}.sdk/{.metadata,design_1_wrapper_hw_platform_0}
+	# cp ~/tmp/design_1_wrapper.hdf ${BOARD}/${BOARD}.sdk/
 	xsct bare.tcl ${BOARD} ${APP_BARE}
 
 build:
