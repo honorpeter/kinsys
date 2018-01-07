@@ -38,17 +38,17 @@ Yocto Settings ---> TMPDIR Location ---> ( /tmp/... to /ldisk/\$USER/... )
 "
   petalinux-config --get-hw-description=..
 
-  ### User applications
-  petalinux-create --type apps --name $APP_NAME --enable
-  petalinux-create --type modules --name udmabuf --enable
-
-  # Assert 2016.4
-  rm -rf project-spec/meta-user/recipes-apps/$APP_NAME/$APP_NAME
-  rm -rf project-spec/meta-user/recipes-modules/udmabuf/udmabuf
-
-  cp -r $TOP/app/$APP_NAME/*      project-spec/meta-user/recipes-apps/$APP_NAME
-  cp -r $TOP/app/common/modules/* project-spec/meta-user/recipes-modules
-  cp -r $TOP/app/common/$BOARD/*  project-spec/meta-user
+  # ### User applications
+  # petalinux-create --type apps --name $APP_NAME --enable
+  # petalinux-create --type modules --name udmabuf --enable
+  #
+  # # Assert 2016.4
+  # rm -rf project-spec/meta-user/recipes-apps/$APP_NAME/$APP_NAME
+  # rm -rf project-spec/meta-user/recipes-modules/udmabuf/udmabuf
+  #
+  # cp -r $TOP/app/$APP_NAME/*      project-spec/meta-user/recipes-apps/$APP_NAME
+  # cp -r $TOP/app/common/modules/* project-spec/meta-user/recipes-modules
+  # cp -r $TOP/app/common/$BOARD/*  project-spec/meta-user
 
   ### Kernel configuration
   $TOP/utils/confirm.sh "
@@ -92,8 +92,8 @@ Filesystem Packages --->
   * x11 ---> base ---> libdrm ---> libdrm-tests
   * x11 ---> base ---> xcursor-transparent-theme
   * x11 ---> base ---> xserver-xorg ---> xserver-xorg
-  * x11 ---> base ---> xserver-xorg ---> xserver-xorg-extension-dri
   * x11 ---> base ---> xserver-xorg ---> xserver-xorg-module-exa
+  * x11 ---> base ---> xserver-xorg ---> xserver-xorg-extension-dri
   * x11 ---> base ---> xserver-xorg ---> xserver-xorg-extension-glx
   * x11 ---> base ---> xserver-xorg ---> xserver-xorg-extension-dri2
   * x11 ---> base ---> xtscal
@@ -113,6 +113,20 @@ Filesystem Packages --->
   petalinux-config --component rootfs
 
   ### Build
+  petalinux-build
+
+  ### User applications
+  petalinux-create --type apps --name $APP_NAME --enable
+  petalinux-create --type modules --name udmabuf --enable
+
+  # Assert 2016.4
+  rm -rf project-spec/meta-user/recipes-apps/$APP_NAME/$APP_NAME
+  rm -rf project-spec/meta-user/recipes-modules/udmabuf/udmabuf
+
+  cp -r $TOP/app/$APP_NAME/*      project-spec/meta-user/recipes-apps/$APP_NAME
+  cp -r $TOP/app/common/modules/* project-spec/meta-user/recipes-modules
+  cp -r $TOP/app/common/$BOARD/*  project-spec/meta-user
+
   petalinux-build
 else
   cd $PETA_NAME
