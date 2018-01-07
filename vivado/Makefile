@@ -15,7 +15,7 @@ run_peta:
 # avoid friendly fire
 all:
 	@../utils/confirm.sh "Build the project from the beginning?"
-	make clean dist ip proj build bare run_bare
+	make clean dist ip proj build bare
 
 screen:
 	# screen /dev/ttyUSB0 115200,cs8,-parentb,-cstopb
