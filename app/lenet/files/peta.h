@@ -27,11 +27,11 @@ extern "C" {
 int kinpira_init(void);
 int kinpira_exit(void);
 
-map *define_map(int map_c, int map_w, int map_h);
-vec *define_vec(int vec_l);
+Map *define_map(int map_c, int map_w, int map_h);
+Vec *define_vec(int vec_l);
 
-void undef_map(map *r);
-void undef_vec(vec *r);
+void undef_map(Map *r);
+void undef_vec(Vec *r);
 
 #ifdef __cplusplus
 }

@@ -66,14 +66,19 @@ int kinpira_init(void)
     return errno;
   }
 
-  port       = mmap(NULL, sizeof(u32)*REGSIZE,
-                    PROT_READ | PROT_WRITE, MAP_SHARED, __port, 0);
+  port = (u32 *)mmap(NULL, sizeof(u32)*REGSIZE,
+                     PROT_READ | PROT_WRITE, MAP_SHARED,
+                     __port, 0);
 
-  mem_renkon = mmap(NULL, sizeof(u32)*RENKON_CORE*RENKON_WORDS,
-                    PROT_READ | PROT_WRITE, MAP_SHARED, __mem_renkon, 0);
+  mem_renkon =
+    (u32 (*)[RENKON_WORDS])mmap(NULL, sizeof(u32)*RENKON_CORE*RENKON_WORDS,
+                                PROT_READ | PROT_WRITE, MAP_SHARED,
+                                __mem_renkon, 0);
 
-  mem_gobou  = mmap(NULL, sizeof(u32)*GOBOU_CORE*GOBOU_WORDS,
-                    PROT_READ | PROT_WRITE, MAP_SHARED, __mem_gobou, 0);
+  mem_gobou =
+    (u32 (*)[GOBOU_WORDS])mmap(NULL, sizeof(u32)*GOBOU_CORE*GOBOU_WORDS,
+                               PROT_READ | PROT_WRITE, MAP_SHARED,
+                               __mem_gobou, 0);
 
   if (!port || !mem_renkon || !mem_gobou) {
     fprintf(stderr, "mmap failed\n");
@@ -108,9 +113,9 @@ int kinpira_exit(void)
 
 
 
-map *define_map(int map_c, int map_w, int map_h)
+Map *define_map(int map_c, int map_w, int map_h)
 {
-  map *r = malloc(sizeof(map));
+  Map *r = (Map *)malloc(sizeof(Map));
 
   r->shape[0] = map_c;
   r->shape[1] = map_w;
@@ -118,9 +123,9 @@ map *define_map(int map_c, int map_w, int map_h)
 
   int map_size = sizeof(s16)*map_c*map_w*map_h;
 
-  r->body = mmap(NULL, map_size,
-                 PROT_READ | PROT_WRITE, MAP_SHARED,
-                 udmabuf0, offset);
+  r->body = (s16 *)mmap(NULL, map_size,
+                        PROT_READ | PROT_WRITE, MAP_SHARED,
+                        udmabuf0, offset);
 
   r->phys_addr = phys_addr + offset;
 
@@ -131,17 +136,17 @@ map *define_map(int map_c, int map_w, int map_h)
 
 
 
-vec *define_vec(int vec_l)
+Vec *define_vec(int vec_l)
 {
-  vec *r = malloc(sizeof(vec));
+  Vec *r = (Vec *)malloc(sizeof(Vec));
 
   r->shape = vec_l;
 
   int vec_size = sizeof(s16)*vec_l;
 
-  r->body = mmap(NULL, vec_size,
-                 PROT_READ | PROT_WRITE, MAP_SHARED,
-                 udmabuf0, offset);
+  r->body = (s16 *)mmap(NULL, vec_size,
+                        PROT_READ | PROT_WRITE, MAP_SHARED,
+                        udmabuf0, offset);
 
   r->phys_addr = phys_addr + offset;
 
@@ -152,7 +157,7 @@ vec *define_vec(int vec_l)
 
 
 
-void undef_map(map *r)
+void undef_map(Map *r)
 {
   munmap(r->body, sizeof(s16)*r->shape[0]*r->shape[1]*r->shape[2]);
   free(r);
@@ -160,7 +165,7 @@ void undef_map(map *r)
 
 
 
-void undef_vec(vec *r)
+void undef_vec(Vec *r)
 {
   munmap(r->body, sizeof(s16)*r->shape);
   free(r);

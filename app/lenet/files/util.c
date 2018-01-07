@@ -16,7 +16,7 @@ static u32 bit(u32 value, int high, int low)
 
 
 
-void assign_map(layer *l, u32 *weight, u32 *bias)
+void assign_map(Layer *l, u32 *weight, u32 *bias)
 {
   const int core  = RENKON_CORE;
   const int n_out = bit(l->base_param[0], 2*LWIDTH-1, LWIDTH);
@@ -76,7 +76,7 @@ void assign_map(layer *l, u32 *weight, u32 *bias)
 
 
 
-void assign_vec(layer *l, u32 *weight, u32 *bias)
+void assign_vec(Layer *l, u32 *weight, u32 *bias)
 {
   const int core  = GOBOU_CORE;
   const int n_out = bit(l->base_param[0], 2*LWIDTH-1, LWIDTH);
@@ -134,7 +134,7 @@ void assign_vec(layer *l, u32 *weight, u32 *bias)
 
 
 
-void exec_core(layer *l)
+void exec_core(Layer *l)
 {
   // TODO: sequential axi access may hang up the program
 

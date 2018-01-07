@@ -29,27 +29,27 @@ enum actv_mode {
   ACTV_RELU = 1U << 0,
 };
 
-layer *map_layer(
-  map *in, map *out,
+Layer *map_layer(
+  Map *in, Map *out,
   u32 *conv_param, u32 *norm_param, u32 *actv_param, u32 *pool_param
 );
 
-layer *vec_layer(
-  vec *in, vec *out,
+Layer *vec_layer(
+  Vec *in, Vec *out,
   u32 *full_param, u32 *norm_param, u32 *actv_param
 );
 
-u32 *convolution_2d(int conv_kern, enum conv_mode mode);
-u32 *fully_connected(enum full_mode mode);
-u32 *normalization(enum norm_mode mode);
-u32 *activation(enum actv_mode mode);
-u32 *pooling_2d(int pool_kern, enum pool_mode mode);
+u32 *convolution_2d(int conv_size, int mode);
+u32 *fully_connected(int mode);
+u32 *normalization(int mode);
+u32 *activation(int mode);
+u32 *pooling_2d(int pool_size, int mode);
 
-void set_input(s16 **in, map *out);
-void map2vec(map *in, vec *out);
-void set_output(vec *in, s16 **out);
+void set_input(s16 **in, Map *out);
+void map2vec(Map *in, Vec *out);
+void set_output(Vec *in, s16 **out);
 
-void undef_layer(layer *r);
+void undef_layer(Layer *r);
 
 #ifdef __cplusplus
 }
