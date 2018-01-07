@@ -10,6 +10,7 @@
 
 #include "types.h"
 #include "peta.h"
+#include "util.h"
 #include "layer.h"
 
 #define CONV(input, output, pool)               \
