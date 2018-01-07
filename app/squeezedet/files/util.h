@@ -1,6 +1,10 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "types.h"
 
 // #include <assert.h>
@@ -40,5 +44,9 @@ void exec_core(Layer *l);
 
 void print_result(s16 *output, const int length);
 void print_port();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

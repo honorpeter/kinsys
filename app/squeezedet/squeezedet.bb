@@ -8,37 +8,37 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 SRC_URI = "\
+  file://Makefile \
   file://kinpira.h \
   file://types.h \
-  file://layer.h \
   file://peta.h \
   file://util.h \
-  file://layer.c \
+  file://layer.h \
   file://peta.c \
   file://util.c \
-  file://activation.cpp \
-  file://activation.hpp \
-  file://arithmetic.cpp \
-  file://arithmetic.hpp \
-  file://bbox_utils.cpp \
-  file://bbox_utils.hpp \
-  file://display.cpp \
-  file://display.hpp \
-  file://hungarian.cpp \
-  file://hungarian.hpp \
+  file://layer.c \
   file://matrix.hpp \
-  file://squeezedet.cpp \
+  file://activation.hpp \
+  file://activation.cpp \
+  file://arithmetic.hpp \
+  file://arithmetic.cpp \
+  file://bbox_utils.hpp \
+  file://bbox_utils.cpp \
+  file://display.hpp \
+  file://display.cpp \
+  file://hungarian.hpp \
+  file://hungarian.cpp \
   file://squeezedet.hpp \
-  file://tracker.cpp \
+  file://squeezedet.cpp \
   file://tracker.hpp \
-  file://transform.cpp \
+  file://tracker.cpp \
   file://transform.hpp \
-  file://webcam.cpp \
+  file://transform.cpp \
   file://webcam.hpp \
-  file://wrapper.cpp \
+  file://webcam.cpp \
   file://wrapper.hpp \
+  file://wrapper.cpp \
   file://main.cpp \
-  file://Makefile \
 "
 
 S = "${WORKDIR}"
