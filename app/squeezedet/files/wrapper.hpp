@@ -6,9 +6,6 @@
 #include <vector>
 
 #include "types.h"
-#include "peta.h"
-#include "util.h"
-#include "layer.h"
 
 void exec_cores(std::vector<Layer *> ls);
 
