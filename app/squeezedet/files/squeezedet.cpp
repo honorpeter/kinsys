@@ -435,3 +435,7 @@ void SqueezeDet::evaluate()
   interpret(preds);
   filter();
 }
+
+void SqueezeDet::sync()
+{
+}

@@ -165,3 +165,7 @@ void Webcam::get_sub_gop()
     preprocess(img);
   }
 }
+
+void Webcam::sync()
+{
+}

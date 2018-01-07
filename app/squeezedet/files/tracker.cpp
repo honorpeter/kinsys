@@ -181,3 +181,6 @@ void MVTracker::interpolate()
   tracking(frame, boxes);
 }
 
+void MVTracker::sync()
+{
+}

@@ -27,3 +27,7 @@ void Display::post_frame()
   cv::imshow("display", img);
   cv::waitKey(1);
 }
+
+void Display::sync()
+{
+}
