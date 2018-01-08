@@ -21,7 +21,7 @@ void assign_map(Layer *l, u32 *weight, u32 *bias)
   const int core  = RENKON_CORE;
   const int n_out = bit(l->base_param[0], 2*LWIDTH-1, LWIDTH);
   const int n_in  = bit(l->base_param[0], LWIDTH-1, 0);
-  const int fsize = bit(l->conv_param, 2*LWIDTH-1, LWIDTH);
+  const int fsize = bit(l->conv_param[0], LWIDTH-1, 0);
   const int unit  = n_in * fsize * fsize;
 
   int idx_w = 0;
