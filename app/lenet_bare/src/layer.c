@@ -42,8 +42,8 @@ Layer *map_layer(
 
   l->read_len   = in->shape[0] * in->shape[1] * in->shape[2];
   l->write_len  = out->shape[0] < RENKON_CORE
-                ? out->shape[0] * out->shape[1] * out->shape[2]
-                : RENKON_CORE   * out->shape[1] * out->shape[2];
+                ? (out->shape[0] * out->shape[1] * out->shape[2])
+                : (RENKON_CORE   * out->shape[1] * out->shape[2]);
 
   l->base_param[0] = out->shape[0] << LWIDTH
                    | in->shape[0];

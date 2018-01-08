@@ -139,42 +139,43 @@ void assign_vec(Layer *l, u32 *weight, u32 *bias)
 void exec_core(Layer *l)
 {
   *reg_which        = l->which;
-  // usleep(1000);
+  usleep(1000);
   *reg_qbits        = l->qbits;
-  // usleep(1000);
+  usleep(1000);
   *reg_in_offset    = l->in_offset;
-  // usleep(1000);
+  usleep(1000);
   *reg_out_offset   = l->out_offset;
-  // usleep(1000);
+  usleep(1000);
   *reg_net_offset   = l->net_offset;
-  // usleep(1000);
+  usleep(1000);
 
   *reg_pre_base     = l->in_offset;
-  // usleep(1000);
+  usleep(1000);
   *reg_read_len     = l->read_len;
-  // usleep(1000);
+  usleep(1000);
   *reg_write_len    = l->write_len;
-  // usleep(1000);
+  usleep(1000);
 
   *reg_base_param0  = l->base_param[0];
-  // usleep(1000);
+  usleep(1000);
   *reg_base_param1  = l->base_param[1];
-  // usleep(1000);
+  usleep(1000);
   *reg_base_param2  = l->base_param[2];
-  // usleep(1000);
+  usleep(1000);
   *reg_conv_param0  = l->conv_param[0];
-  // usleep(1000);
+  usleep(1000);
   *reg_conv_param1  = l->conv_param[1];
-  // usleep(1000);
+  usleep(1000);
   *reg_bias_param   = l->bias_param;
-  // usleep(1000);
+  usleep(1000);
   // *reg_norm_param = l->norm_param;
+  usleep(1000);
   *reg_actv_param   = l->actv_param;
-  // usleep(1000);
+  usleep(1000);
   *reg_pool_param0  = l->pool_param[0];
-  // usleep(1000);
+  usleep(1000);
   *reg_pool_param1  = l->pool_param[1];
-  // usleep(1000);
+  usleep(1000);
 
   // print_port();
 
