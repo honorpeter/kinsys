@@ -15,7 +15,7 @@ parameter RATELOG = $clog2(RATE);
 
 parameter REGSIZE = 6;
 // parameter PORT  = 2 ** REGSIZE;
-parameter PORT  = 64;
+parameter PORT    = 64;
 
 parameter LSB     = 2;
 `ifndef DIST
