@@ -228,6 +228,7 @@ module kinpira
   // For ninjin
   wire                      which;
   wire                      req;
+  wire [LWIDTH-1:0]         qbits;
   wire [MEMSIZE-1:0]        in_offset;
   wire [MEMSIZE-1:0]        out_offset;
   wire [BWIDTH-1:0]         net_offset;
@@ -242,6 +243,8 @@ module kinpira
   wire [LWIDTH-1:0]         total_in;
   wire [LWIDTH-1:0]         img_height;
   wire [LWIDTH-1:0]         img_width;
+  wire [LWIDTH-1:0]         fea_height;
+  wire [LWIDTH-1:0]         fea_width;
   wire [LWIDTH-1:0]         conv_kern;
   wire [LWIDTH-1:0]         conv_strid;
   wire [LWIDTH-1:0]         conv_pad;
@@ -279,6 +282,7 @@ module kinpira
 
   // For renkon
   wire                      renkon_req;
+  wire [LWIDTH-1:0]         renkon_qbits;
   wire signed [DWIDTH-1:0]  renkon_img_rdata;
   wire [RENKON_CORELOG-1:0] renkon_net_sel;
   wire                      renkon_net_we;
@@ -287,11 +291,12 @@ module kinpira
   wire [MEMSIZE-1:0]        renkon_in_offset;
   wire [MEMSIZE-1:0]        renkon_out_offset;
   wire [RENKON_NETSIZE-1:0] renkon_net_offset;
-  wire [LWIDTH-1:0]         renkon_qbits;
   wire [LWIDTH-1:0]         renkon_total_out;
   wire [LWIDTH-1:0]         renkon_total_in;
   wire [LWIDTH-1:0]         renkon_img_height;
   wire [LWIDTH-1:0]         renkon_img_width;
+  wire [LWIDTH-1:0]         renkon_fea_height;
+  wire [LWIDTH-1:0]         renkon_fea_width;
   wire [LWIDTH-1:0]         renkon_conv_kern;
   wire [LWIDTH-1:0]         renkon_conv_strid;
   wire [LWIDTH-1:0]         renkon_conv_pad;
@@ -309,6 +314,7 @@ module kinpira
 
   // For gobou
   wire                      gobou_req;
+  wire [LWIDTH-1:0]         gobou_qbits;
   wire signed [DWIDTH-1:0]  gobou_img_rdata;
   wire [GOBOU_CORELOG-1:0]  gobou_net_sel;
   wire                      gobou_net_we;
@@ -317,7 +323,6 @@ module kinpira
   wire [MEMSIZE-1:0]        gobou_in_offset;
   wire [MEMSIZE-1:0]        gobou_out_offset;
   wire [GOBOU_NETSIZE-1:0]  gobou_net_offset;
-  wire [LWIDTH-1:0]         gobou_qbits;
   wire [LWIDTH-1:0]         gobou_total_out;
   wire [LWIDTH-1:0]         gobou_total_in;
   wire                      gobou_bias_en;
@@ -444,14 +449,16 @@ module kinpira
   assign renkon_img_rdata  = which == WHICH_RENKON ? mem_img_rdata : 0;
 
   assign renkon_req        = which == WHICH_RENKON ? req : 0;
+  assign renkon_qbits      = which == WHICH_RENKON ? qbits : 0;
   assign renkon_in_offset  = which == WHICH_RENKON ? in_offset : 0;
   assign renkon_out_offset = which == WHICH_RENKON ? out_offset : 0;
   assign renkon_net_offset = which == WHICH_RENKON ? net_offset[RENKON_NETSIZE-1:0] : 0;
-  assign renkon_qbits      = which == WHICH_RENKON ? qbits : 0;
   assign renkon_total_out  = which == WHICH_RENKON ? total_out : 0;
   assign renkon_total_in   = which == WHICH_RENKON ? total_in : 0;
   assign renkon_img_height = which == WHICH_RENKON ? img_height : 0;
   assign renkon_img_width  = which == WHICH_RENKON ? img_width : 0;
+  assign renkon_fea_height = which == WHICH_RENKON ? fea_height : 0;
+  assign renkon_fea_width  = which == WHICH_RENKON ? fea_width : 0;
   assign renkon_conv_kern  = which == WHICH_RENKON ? conv_kern : 0;
   assign renkon_conv_strid = which == WHICH_RENKON ? conv_strid : 0;
   assign renkon_conv_pad   = which == WHICH_RENKON ? conv_pad : 0;
@@ -473,10 +480,10 @@ module kinpira
   assign gobou_img_rdata   = which == WHICH_GOBOU ? mem_img_rdata : 0;
 
   assign gobou_req         = which == WHICH_GOBOU ? req : 0;
+  assign gobou_qbits       = which == WHICH_GOBOU ? qbits : 0;
   assign gobou_in_offset   = which == WHICH_GOBOU ? in_offset : 0;
   assign gobou_out_offset  = which == WHICH_GOBOU ? out_offset : 0;
   assign gobou_net_offset  = which == WHICH_GOBOU ? net_offset[GOBOU_NETSIZE-1:0] : 0;
-  assign gobou_qbits       = which == WHICH_GOBOU ? qbits : 0;
   assign gobou_total_out   = which == WHICH_GOBOU ? total_out : 0;
   assign gobou_total_in    = which == WHICH_GOBOU ? total_in : 0;
   assign gobou_bias_en     = which == WHICH_GOBOU ? bias_en : 0;
@@ -752,6 +759,7 @@ module kinpira
     .clk        (clk),
     .xrst       (xrst),
     .req        (renkon_req),
+    .qbits      (renkon_qbits[LWIDTH-1:0]),
     .net_sel    (renkon_net_sel[RENKON_CORELOG-1:0]),
     .net_we     (renkon_net_we),
     .net_addr   (renkon_net_addr[RENKON_NETSIZE-1:0]),
@@ -759,11 +767,12 @@ module kinpira
     .in_offset  (renkon_in_offset[MEMSIZE-1:0]),
     .out_offset (renkon_out_offset[MEMSIZE-1:0]),
     .net_offset (renkon_net_offset[RENKON_NETSIZE-1:0]),
-    .qbits      (renkon_qbits[LWIDTH-1:0]),
     .total_out  (renkon_total_out[LWIDTH-1:0]),
     .total_in   (renkon_total_in[LWIDTH-1:0]),
     .img_height (renkon_img_height[LWIDTH-1:0]),
     .img_width  (renkon_img_width[LWIDTH-1:0]),
+    .fea_height (renkon_fea_height[LWIDTH-1:0]),
+    .fea_width  (renkon_fea_width[LWIDTH-1:0]),
     .conv_kern  (renkon_conv_kern[LWIDTH-1:0]),
     .conv_strid (renkon_conv_strid[LWIDTH-1:0]),
     .conv_pad   (renkon_conv_pad[LWIDTH-1:0]),
@@ -787,6 +796,7 @@ module kinpira
     .clk        (clk),
     .xrst       (xrst),
     .req        (gobou_req),
+    .qbits      (gobou_qbits[LWIDTH-1:0]),
     .net_sel    (gobou_net_sel[GOBOU_CORELOG-1:0]),
     .net_we     (gobou_net_we),
     .net_addr   (gobou_net_addr[GOBOU_NETSIZE-1:0]),
@@ -794,7 +804,6 @@ module kinpira
     .in_offset  (gobou_in_offset[MEMSIZE-1:0]),
     .out_offset (gobou_out_offset[MEMSIZE-1:0]),
     .net_offset (gobou_net_offset[GOBOU_NETSIZE-1:0]),
-    .qbits      (gobou_qbits[LWIDTH-1:0]),
     .total_out  (gobou_total_out[LWIDTH-1:0]),
     .total_in   (gobou_total_in[LWIDTH-1:0]),
     .bias_en    (gobou_bias_en),
