@@ -9,8 +9,6 @@ extern "C" {
 
 enum conv_mode {
   CONV_BIAS   = 1U << 0,
-  CONV_VALID  = 1U << 1,
-  CONV_SAME   = 1U << 2,
 };
 
 enum norm_mode {
@@ -39,11 +37,11 @@ Layer *vec_layer(
   u32 *full_param, u32 *norm_param, u32 *actv_param
 );
 
-u32 *convolution_2d(int conv_kern, int mode);
+u32 *convolution_2d(int kern, int strid, int pad, int mode);
 u32 *fully_connected(int mode);
 u32 *normalization(int mode);
 u32 *activation(int mode);
-u32 *pooling_2d(int pool_kern, int mode);
+u32 *pooling_2d(int kern, int strid, int pad, int mode);
 
 void set_input(s16 **in, Map *out);
 void map2vec(Map *in, Vec *out);

@@ -44,17 +44,17 @@ void LeNet_init(s16 **input, s16 **output)
   set_input(input, image_ptr);
 
   conv0 = map_layer(image_ptr, pmap0,
-    convolution_2d(CONV_KERN, CONV_BIAS | CONV_VALID),
+    convolution_2d(CONV_KERN, 1, 0, CONV_BIAS),
     NULL,
     activation(ACTV_RELU),
-    pooling_2d(POOL_KERN, POOL_MAX)
+    pooling_2d(POOL_KERN, POOL_KERN, 0, POOL_MAX)
   );
 
   conv1 = map_layer(pmap0, pmap1,
-    convolution_2d(CONV_KERN, CONV_BIAS | CONV_VALID),
+    convolution_2d(CONV_KERN, 1, 0, CONV_BIAS),
     NULL,
     activation(ACTV_RELU),
-    pooling_2d(POOL_KERN, POOL_MAX)
+    pooling_2d(POOL_KERN, POOL_KERN, 0, POOL_MAX)
   );
 
   map2vec(pmap1, pvec1);

@@ -140,6 +140,8 @@ void exec_core(Layer *l)
 {
   *reg_which        = l->which;
   // usleep(1000);
+  *reg_qbits        = l->qbits;
+  // usleep(1000);
   *reg_in_offset    = l->in_offset;
   // usleep(1000);
   *reg_out_offset   = l->out_offset;
@@ -158,14 +160,20 @@ void exec_core(Layer *l)
   // usleep(1000);
   *reg_base_param1  = l->base_param[1];
   // usleep(1000);
-  *reg_conv_param   = l->conv_param;
+  *reg_base_param2  = l->base_param[2];
+  // usleep(1000);
+  *reg_conv_param0  = l->conv_param[0];
+  // usleep(1000);
+  *reg_conv_param1  = l->conv_param[1];
   // usleep(1000);
   *reg_bias_param   = l->bias_param;
   // usleep(1000);
   // *reg_norm_param = l->norm_param;
   *reg_actv_param   = l->actv_param;
   // usleep(1000);
-  *reg_pool_param   = l->pool_param;
+  *reg_pool_param0  = l->pool_param[0];
+  // usleep(1000);
+  *reg_pool_param1  = l->pool_param[1];
   // usleep(1000);
 
   // print_port();
