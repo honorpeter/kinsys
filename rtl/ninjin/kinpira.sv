@@ -653,13 +653,13 @@ module kinpira
     .*
   );
 
-  // mem_sp #(DWIDTH, RENKON_CORELOG+RENKON_NETSIZE) mem_renkon_debug(
-  //     .mem_we     (mem_renkon_we),
-  //     .mem_addr   (mem_renkon_addr),
-  //     .mem_wdata  (mem_renkon_wdata[DWIDTH-1:0]),
-  //     .mem_rdata  (mem_renkon_rdata[DWIDTH-1:0]),
-  //     .*
-  // );
+  mem_sp #(DWIDTH, RENKON_CORELOG+RENKON_NETSIZE) mem_renkon_debug(
+      .mem_we     (mem_renkon_we),
+      .mem_addr   (mem_renkon_addr),
+      .mem_wdata  (mem_renkon_wdata[DWIDTH-1:0]),
+      .mem_rdata  (mem_renkon_rdata[DWIDTH-1:0]),
+      .*
+  );
 
   ninjin_s_axi_gobou #(
     .ID_WIDTH     (C_s_axi_gobou_ID_WIDTH),
@@ -724,13 +724,13 @@ module kinpira
     .*
   );
 
-  // mem_sp #(DWIDTH, GOBOU_CORELOG+GOBOU_NETSIZE) mem_gobou_debug(
-  //     .mem_we     (mem_gobou_we),
-  //     .mem_addr   (mem_gobou_addr),
-  //     .mem_wdata  (mem_gobou_wdata[DWIDTH-1:0]),
-  //     .mem_rdata  (mem_gobou_rdata[DWIDTH-1:0]),
-  //     .*
-  // );
+  mem_sp #(DWIDTH, GOBOU_CORELOG+GOBOU_NETSIZE) mem_gobou_debug(
+      .mem_we     (mem_gobou_we),
+      .mem_addr   (mem_gobou_addr),
+      .mem_wdata  (mem_gobou_wdata[DWIDTH-1:0]),
+      .mem_rdata  (mem_gobou_rdata[DWIDTH-1:0]),
+      .*
+  );
 
 // }}}
 //==========================================================

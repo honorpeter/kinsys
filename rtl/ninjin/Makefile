@@ -1,13 +1,13 @@
 VERBOSE   = 0
 SIMULATOR = vsim
-MODULE    = ninjin_ddr_buf.sv
-# MODULE    = kinpira.sv
-# DEPENDS   = \
-# 	ninjin_s_axi_params.sv \
-# 	ninjin_s_axi_renkon.sv \
-# 	ninjin_s_axi_gobou.sv \
-# 	ninjin_m_axi_image.sv \
-# 	ninjin_ddr_buf.sv
+# MODULE    = ninjin_ddr_buf.sv
+MODULE    = kinpira.sv
+DEPENDS   = \
+	ninjin_s_axi_params.sv \
+	ninjin_s_axi_renkon.sv \
+	ninjin_s_axi_gobou.sv \
+	ninjin_m_axi_image.sv \
+	ninjin_ddr_buf.sv
 TARGET    = test/test_$(MODULE)
 SOURCES   = $(wildcard *.sv)
 TESTSUITE = $(wildcard test/*.sv)
