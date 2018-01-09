@@ -2,7 +2,7 @@
 `include "ninjin.svh"
 
 // `define SAIF
-// `define NINJIN
+`define NINJIN
 `define DIRECT
 
 // int N_OUT = 32;
@@ -95,7 +95,6 @@ module test_renkon_top;
   assign renkon_img_rdata = mem_img_rdata;
 
 `ifdef NINJIN
-/// {{{
   reg                     pre_req;
   reg [WORDSIZE-1:0]      pre_base;
   reg [LWIDTH-1:0]        read_len;
@@ -110,7 +109,6 @@ module test_renkon_top;
   wire [WORDSIZE+LSB-1:0] ddr_base;
   wire [LWIDTH-1:0]       ddr_len;
   wire [BWIDTH-1:0]       ddr_rdata;
-  wire [2-1:0]            probe_state;
   integer _ddr_base [1:0];
   integer _ddr_len [1:0];
   ninjin_ddr_buf mem_img(
@@ -151,6 +149,9 @@ module test_renkon_top;
       #(STEP);
       for (int i = 0; i < _ddr_len[DDR_WRITE]; i++) begin
         ddr_raddr = i + (_ddr_base[DDR_WRITE] >> LSB);
+        mem_i[(ddr_raddr << RATELOG)]   = ddr_rdata[DWIDTH-1:0];
+        mem_i[(ddr_raddr << RATELOG)+1] = ddr_rdata[2*DWIDTH-1:DWIDTH];
+        $display("%d: %d %d", ddr_raddr<<1, ddr_rdata[31:16], ddr_rdata[15:0]);
         #(STEP);
       end
       ddr_raddr = 0;
@@ -158,7 +159,6 @@ module test_renkon_top;
     end
     #(STEP/2+1);
   end
-// }}}
 `else
   mem_sp #(DWIDTH, MEMSIZE) mem_img(
     .mem_we     (mem_img_we),
@@ -284,8 +284,7 @@ module test_renkon_top;
     #(STEP);
     req = 0;
 
-    // while(!ack) #(STEP);
-    #(STEP*20000);
+    while(!ack) #(STEP);
 
     #(STEP*10);
 
@@ -514,10 +513,11 @@ module test_renkon_top;
         img_addr = i + OUT_OFFSET;
         #(STEP*2);
         `ifdef NINJIN
+        $fdisplay(fd, "%0d", mem_i[img_addr]);
         `else
         assert (mem_img.mem[img_addr] == mem_img_rdata);
-        `endif
         $fdisplay(fd, "%0d", mem_img_rdata);
+        `endif
       end
 
       img_addr = 0;

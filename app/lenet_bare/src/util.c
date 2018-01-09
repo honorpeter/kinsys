@@ -177,7 +177,7 @@ void exec_core(Layer *l)
   *reg_pool_param1  = l->pool_param[1];
   // usleep(1000);
 
-  // print_port();
+  print_port();
 
   *reg_pre_req = 1;
   *reg_pre_req = 0;
@@ -185,12 +185,14 @@ void exec_core(Layer *l)
     // Nop
   } while (!*reg_pre_ack);
 
+  print_port();
 
   *reg_req = 0x1;
   *reg_req = 0x0;
   do {
     // Nop
   } while (!*reg_ack);
+  print_port();
 }
 
 void print_result(s16 *output, const int length)
@@ -219,18 +221,15 @@ void print_port()
     "&port[4]:  %08x &port[5]:  %08x &port[6]:  %08x &port[7]:  %08x\n"
     "&port[8]:  %08x &port[9]:  %08x &port[10]: %08x &port[11]: %08x\n"
     "&port[12]: %08x &port[13]: %08x &port[14]: %08x &port[15]: %08x\n"
-    "&port[16]: %08x &port[17]: %08x &port[18]: %08x &port[19]: %08x\n"
-    "&port[20]: %08x &port[21]: %08x &port[22]: %08x &port[23]: %08x\n"
-    "&port[24]: %08x &port[25]: %08x &port[26]: %08x &port[27]: %08x\n"
-    "&port[28]: %08x &port[29]: %08x &port[30]: %08x &port[31]: %08x\n"
+    "&port[16]: %08x &port[17]: %08x &port[18]: %08x\n"
+    "\n"
+    "&port[60]: %08x &port[61]: %08x &port[62]: %08x &port[63]: %08x\n"
     , port[0], port[1], port[2], port[3]
     , port[4], port[5], port[6], port[7]
     , port[8], port[9], port[10], port[11]
     , port[12], port[13], port[14], port[15]
-    , port[16], port[17], port[18], port[19]
-    , port[20], port[21], port[22], port[23]
-    , port[24], port[25], port[26], port[27]
-    , port[28], port[29], port[30], port[31]
+    , port[16], port[17], port[18]
+    , port[60], port[61], port[62], port[63]
   );
 }
 

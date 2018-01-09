@@ -12,12 +12,9 @@ parameter GOBOU_CORE    = _;
 parameter GOBOU_CORELOG = _;
 parameter GOBOU_NETSIZE = _;
 `else
-// parameter GOBOU_CORE    = 16;
-// parameter GOBOU_CORELOG = 4;
-// parameter GOBOU_NETSIZE = 13;
-parameter GOBOU_CORE    = 1024;
+parameter GOBOU_CORE    = 16;
 parameter GOBOU_CORELOG = 4;
-parameter GOBOU_NETSIZE = 17;
+parameter GOBOU_NETSIZE = 13;
 `endif
 
 ////////////////////////////////////////////////////////////

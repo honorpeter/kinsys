@@ -24,7 +24,7 @@ int main(void)
 #if defined(zedboard)
   puts("### lenet_bare @ zedboard\n");
 #elif defined(zcu102)
-  // puts("### lenet_bare @ zcu102\n");
+  puts("### lenet_bare @ zcu102\n");
 #endif
 
   memmove(input, image, sizeof(s16)*N_IN*IMG_SIZE*IMG_SIZE);

@@ -5,8 +5,8 @@ set origin_dir .
 set proj_name [lindex $argv 0]
 set app_name  [lindex $argv 1]
 
-set stack_size 0x2000
-set heap_size  0x2000
+set stack_size 0x20000
+set heap_size  0x20000
 
 set sdk_ws_dir $origin_dir/$proj_name/$proj_name.sdk
 if {[file exists $sdk_ws_dir] == 0} {

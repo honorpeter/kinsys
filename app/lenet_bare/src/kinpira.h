@@ -47,9 +47,9 @@ uint32_t (*mem_gobou)[GOBOU_WORDS];
 #define reg_pool_param1 &port[18]
 
 // output reg
-#define reg_r_which     &port[31]
-#define reg_ack         &port[30]
-#define reg_pre_ack     &port[29]
-#define reg_err         &port[28]
+#define reg_r_which     &port[63]
+#define reg_ack         &port[62]
+#define reg_pre_ack     &port[61]
+#define reg_err         &port[60]
 
 #endif

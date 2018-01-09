@@ -243,7 +243,8 @@ module test_gobou_top;
     #(STEP);
     req = 0;
 
-    while(!ack) #(STEP);
+    // while(!ack) #(STEP);
+    #(STEP*10000);
 
     #(STEP*10);
 

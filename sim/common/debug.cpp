@@ -5,6 +5,8 @@
 #include <limits>
 #include <lib.hpp>
 
+const int qbits     = 8;
+
 const int isize     = 28;
 const int fsize     = 5;
 const int psize     = 2;
@@ -24,10 +26,12 @@ T mul(T x, T y)
 {
   int prod = x * y;
 
-  if (prod >= 0)
-    return prod / static_cast<T>(pow(2, 8));
+  if (prod < 0)
+    // return prod / static_cast<T>(pow(2, 8)) - 1;
+    return (prod >> qbits) - 1;
   else
-    return prod / static_cast<T>(pow(2, 8)) - 1;
+    // return prod / static_cast<T>(pow(2, 8));
+    return (prod >> qbits);
 }
 
 template <typename T>
