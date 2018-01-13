@@ -12,7 +12,7 @@ module renkon_ctrl_core
   , input  [MEMSIZE-1:0]        in_offset
   , input  [MEMSIZE-1:0]        out_offset
   , input  [RENKON_NETSIZE-1:0] net_offset
-  , input  [LWIDTH-1:0]         qbits
+  , input  [DWIDTHLOG-1:0]         qbits
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_height
@@ -44,7 +44,7 @@ module renkon_ctrl_core
   , output                            serial_we
   , output [RENKON_CORELOG:0]         serial_re
   , output [OUTSIZE-1:0]              serial_addr
-  , output [LWIDTH-1:0]               _qbits
+  , output [DWIDTHLOG-1:0]               _qbits
   , output [LWIDTH-1:0]               _fea_height
   , output [LWIDTH-1:0]               _fea_width
   , output [LWIDTH-1:0]               _conv_strid
@@ -91,7 +91,7 @@ module renkon_ctrl_core
   reg               req$;
   reg               ack$;
 
-  reg [LWIDTH-1:0]  qbits$;
+  reg [DWIDTHLOG-1:0]  qbits$;
   reg [LWIDTH-1:0]  total_out$;
   reg [LWIDTH-1:0]  total_in$;
   reg [LWIDTH-1:0]  img_height$;
@@ -134,6 +134,7 @@ module renkon_ctrl_core
   reg [LWIDTH-1:0]          pool_kern$;
   reg [LWIDTH-1:0]          pool_strid$;
   reg [LWIDTH-1:0]          pool_pad$;
+  reg in_period$;
 
 
 
@@ -454,14 +455,6 @@ module renkon_ctrl_core
   assign serial_re   = serial_re$;
   assign serial_addr = serial_addr$;
 
-  reg in_period$;
-  always @(posedge clk)
-    if (!xrst)
-      in_period$ <= 0;
-    else if (in_ctrl.start)
-      in_period$ <= 1;
-    else if (in_ctrl.stop)
-      in_period$ <= 0;
   assign in_ctrl.ready  = in_period$;
   assign out_ctrl.delay = 1;
 
@@ -540,6 +533,14 @@ module renkon_ctrl_core
     else
       serial_end$ <= serial_re$ == RENKON_CORE
                   && serial_addr$ == serial_cnt$ - 1;
+
+  always @(posedge clk)
+    if (!xrst)
+      in_period$ <= 0;
+    else if (in_ctrl.start)
+      in_period$ <= 1;
+    else if (in_ctrl.stop)
+      in_period$ <= 0;
 
   renkon_ctrl_linebuf_pad #(CONV_MAX, D_PIXELBUF, 1'b0) ctrl_buf_pix(
     .height     (img_height$),

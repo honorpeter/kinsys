@@ -4,7 +4,7 @@
 module renkon_conv_tree25
   ( input                       clk
   , input                       xrst
-  , input  [LWIDTH-1:0]         _qbits
+  , input  [DWIDTHLOG-1:0]         _qbits
   , input  signed [DWIDTH-1:0]  pixel  [25-1:0]
   , input  signed [DWIDTH-1:0]  weight [25-1:0]
   , output signed [DWIDTH-1:0]  fmap
@@ -37,6 +37,7 @@ module renkon_conv_tree25
   wire signed [DWIDTH-1:0]   sum3_1;
   wire signed [DWIDTH-1:0]   sum4_0;
 
+  reg [DWIDTHLOG-1:0]       qbits$;
   reg signed [DWIDTH-1:0]   pixel$     [25-1:0];
   reg signed [DWIDTH-1:0]   weight$    [25-1:0];
   reg signed [2*DWIDTH-1:0] pro$       [25-1:0];
@@ -72,6 +73,7 @@ module renkon_conv_tree25
     assign pro[i] = pixel$[i] * weight$[i];
 
   for (genvar i = 0; i < 25; i++)
+    // rounder16a rnd(.x(pro$[i]), .qbits(qbits$), .y(pro_short[i]), .*);
     assign pro_short[i] = round(pro$[i]);
 
   assign sum0_0  = pro_short$[0]  + pro_short$[1];
@@ -95,8 +97,8 @@ module renkon_conv_tree25
   assign sum2_0 = sum1_0 + sum1_1;
   assign sum2_1 = sum1_2 + sum1_3;
   assign sum2_2 = sum1_4 + sum1_5;
-  assign sum3_0 = sum2_0 + sum2_1;
-  assign sum3_1 = sum2_2 + pro_short$[24];
+  assign sum3_0 = sum2_0$ + sum2_1$;
+  assign sum3_1 = sum2_2$ + pro_short24_d1$;
   assign sum4_0 = sum3_0 + sum3_1;
 
   assign fmap = fmap$;
@@ -151,19 +153,49 @@ module renkon_conv_tree25
 //  Function
 //==========================================================
 
-  reg [LWIDTH-1:0] qbits$;
   always @(posedge clk)
     if (!xrst)
       qbits$ <= 0;
     else
       qbits$ <= _qbits;
 
-  function signed [DWIDTH-1:0] round;
-    input signed [2*DWIDTH-1:0] data;
+  // NOTE: the position of reg definition effects implementation?
+  function signed [DWIDTH-1:0] round
+    ( input signed [2*DWIDTH-1:0] data
+    );
     if (data[2*DWIDTH-1] == 1)
-      round = $signed(data >> qbits$) - 1;
+      round = $signed(data >>> qbits$) - 1;
     else
-      round = $signed(data >> qbits$);
+      round = $signed(data >>> qbits$);
   endfunction
+
+  // function signed [DWIDTH-1:0] round;
+  //   input signed [2*DWIDTH-1:0] data;
+  //   for (int i = 0; i < DWIDTH; i++) begin
+  //     if (qbits$ == i) begin
+  //       if (data[2*DWIDTH-1] == 1)
+  //         round = $signed(data >>> i) - 1;
+  //       else
+  //         round = $signed(data >>> i);
+  //     end
+  //   end
+  // endfunction
+
+  // function signed [DWIDTH-1:0] round
+  //   ( input signed [2*DWIDTH-1:0] data
+  //   );
+  //   if (data[2*DWIDTH-1] == 1)
+  //     round = shift(data) - 1;
+  //   else
+  //     round = shift(data);
+  // endfunction
+
+  // function signed [DWIDTH-1:0] shift
+  //   ( input signed [2*DWIDTH-1:0] data
+  //   );
+  //   for (int i = 0; i < DWIDTH; i++)
+  //     if (qbits$ == i)
+  //       shift = data >>> i;
+  // endfunction
 
 endmodule

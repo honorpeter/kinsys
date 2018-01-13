@@ -4,7 +4,7 @@ module gobou_top
   ( input                     clk
   , input                     xrst
   , input                     req
-  , input [LWIDTH-1:0]        qbits
+  , input [DWIDTHLOG-1:0]        qbits
   , input signed [DWIDTH-1:0] img_rdata
   , input [GOBOU_CORELOG-1:0] net_sel
   , input                     net_we
@@ -36,7 +36,7 @@ module gobou_top
   wire                      mac_oe;
   wire                      accum_we;
   wire                      accum_rst;
-  wire [LWIDTH-1:0]         _qbits;
+  wire [DWIDTHLOG-1:0]         _qbits;
   wire                      _bias_en;
   wire                      bias_oe;
   wire                      _relu_en;

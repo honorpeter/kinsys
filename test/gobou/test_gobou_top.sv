@@ -30,7 +30,7 @@ module test_gobou_top;
   reg [MEMSIZE-1:0]       in_offset;
   reg [MEMSIZE-1:0]       out_offset;
   reg [GOBOU_NETSIZE-1:0] net_offset;
-  reg [LWIDTH-1:0]        qbits;
+  reg [DWIDTHLOG-1:0]     qbits;
   reg [LWIDTH-1:0]        total_out;
   reg [LWIDTH-1:0]        total_in;
   reg                     bias_en;

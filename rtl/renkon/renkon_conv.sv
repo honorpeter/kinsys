@@ -3,7 +3,7 @@
 module renkon_conv
   ( input                       clk
   , input                       xrst
-  , input  [LWIDTH-1:0]         _qbits
+  , input  [DWIDTHLOG-1:0]         _qbits
   , input                       out_en
   , input  [CONV_MAX-1:0]       wreg_we
   , input                       mem_feat_we

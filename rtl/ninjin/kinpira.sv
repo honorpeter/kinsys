@@ -2,6 +2,45 @@
 `include "renkon.svh"
 `include "gobou.svh"
 
+module rounder16
+  ( input signed [2*DWIDTH-1:0] x
+  , input [DWIDTHLOG-1:0]       qbits
+  , output signed [DWIDTH-1:0]  y
+  );
+
+  wire signed [DWIDTH-1:0] round;
+
+  assign y = x[2*DWIDTH-1] == 1
+           ? round - 1
+           : round;
+
+  assign round = gen_round(x, qbits);
+  function signed [DWIDTH-1:0] gen_round
+    ( input signed [2*DWIDTH-1:0] x
+    , input [DWIDTHLOG-1:0] qbits
+    );
+
+    case (qbits)
+      0:  gen_round = x >>> 0;
+      1:  gen_round = x >>> 1;
+      2:  gen_round = x >>> 2;
+      3:  gen_round = x >>> 3;
+      4:  gen_round = x >>> 4;
+      5:  gen_round = x >>> 5;
+      6:  gen_round = x >>> 6;
+      7:  gen_round = x >>> 7;
+      8:  gen_round = x >>> 8;
+      9:  gen_round = x >>> 9;
+      10: gen_round = x >>> 10;
+      11: gen_round = x >>> 11;
+      12: gen_round = x >>> 12;
+      13: gen_round = x >>> 13;
+      14: gen_round = x >>> 14;
+      15: gen_round = x >>> 15;
+    endcase
+  endfunction
+endmodule
+
 module kinpira
   // Parameters of Axi Slave Bus Interface s_axi_params
  #( parameter C_s_axi_params_DATA_WIDTH = BWIDTH
@@ -228,7 +267,7 @@ module kinpira
   // For ninjin
   wire                      which;
   wire                      req;
-  wire [LWIDTH-1:0]         qbits;
+  wire [DWIDTHLOG-1:0]         qbits;
   wire [MEMSIZE-1:0]        in_offset;
   wire [MEMSIZE-1:0]        out_offset;
   wire [BWIDTH-1:0]         net_offset;
@@ -282,7 +321,7 @@ module kinpira
 
   // For renkon
   wire                      renkon_req;
-  wire [LWIDTH-1:0]         renkon_qbits;
+  wire [DWIDTHLOG-1:0]         renkon_qbits;
   wire signed [DWIDTH-1:0]  renkon_img_rdata;
   wire [RENKON_CORELOG-1:0] renkon_net_sel;
   wire                      renkon_net_we;
@@ -314,7 +353,7 @@ module kinpira
 
   // For gobou
   wire                      gobou_req;
-  wire [LWIDTH-1:0]         gobou_qbits;
+  wire [DWIDTHLOG-1:0]         gobou_qbits;
   wire signed [DWIDTH-1:0]  gobou_img_rdata;
   wire [GOBOU_CORELOG-1:0]  gobou_net_sel;
   wire                      gobou_net_we;
@@ -333,8 +372,16 @@ module kinpira
   wire [MEMSIZE-1:0]        gobou_img_addr;
   wire signed [DWIDTH-1:0]  gobou_img_wdata;
 
-  reg which$;
   wire [3:0] err;
+
+  wire [BWIDTH-1:0]         debug_in;
+  wire signed [DWIDTH-1:0]  debug_out0;
+  wire signed [DWIDTH-1:0]  debug_out1;
+  wire signed [DWIDTH-1:0]  debug_out2;
+
+  reg [DWIDTHLOG-1:0] qbits$;
+
+  reg which$;
 
 
 // }}}
@@ -347,7 +394,7 @@ module kinpira
   assign xrst       = s_axi_params_aresetn;
   assign which      = in_port[0][0];
   assign req        = in_port[1][0];
-  assign qbits      = in_port[2][LWIDTH-1:0];
+  assign qbits      = in_port[2][DWIDTHLOG-1:0];
   assign in_offset  = in_port[3][MEMSIZE-1+RATELOG:RATELOG];
   assign out_offset = in_port[4][MEMSIZE-1+RATELOG:RATELOG];
   assign net_offset = in_port[5][BWIDTH-1:0];
@@ -417,10 +464,10 @@ module kinpira
   assign out_port[38] = 32'd0;
   assign out_port[37] = 32'd0;
   assign out_port[36] = 32'd0;
-  assign out_port[35] = 32'd0;
-  assign out_port[34] = 32'd0;
-  assign out_port[33] = 32'd0;
-  assign out_port[32] = 32'd0;
+  // assign out_port[35] = 32'd0;
+  // assign out_port[34] = 32'd0;
+  // assign out_port[33] = 32'd0;
+  // assign out_port[32] = 32'd0;
 
 
 
@@ -653,13 +700,13 @@ module kinpira
     .*
   );
 
-  mem_sp #(DWIDTH, RENKON_CORELOG+RENKON_NETSIZE) mem_renkon_debug(
-      .mem_we     (mem_renkon_we),
-      .mem_addr   (mem_renkon_addr),
-      .mem_wdata  (mem_renkon_wdata[DWIDTH-1:0]),
-      .mem_rdata  (mem_renkon_rdata[DWIDTH-1:0]),
-      .*
-  );
+  // mem_sp #(DWIDTH, RENKON_CORELOG+RENKON_NETSIZE) mem_renkon_debug(
+  //     .mem_we     (mem_renkon_we),
+  //     .mem_addr   (mem_renkon_addr),
+  //     .mem_wdata  (mem_renkon_wdata[DWIDTH-1:0]),
+  //     .mem_rdata  (mem_renkon_rdata[DWIDTH-1:0]),
+  //     .*
+  // );
 
   ninjin_s_axi_gobou #(
     .ID_WIDTH     (C_s_axi_gobou_ID_WIDTH),
@@ -724,13 +771,13 @@ module kinpira
     .*
   );
 
-  mem_sp #(DWIDTH, GOBOU_CORELOG+GOBOU_NETSIZE) mem_gobou_debug(
-      .mem_we     (mem_gobou_we),
-      .mem_addr   (mem_gobou_addr),
-      .mem_wdata  (mem_gobou_wdata[DWIDTH-1:0]),
-      .mem_rdata  (mem_gobou_rdata[DWIDTH-1:0]),
-      .*
-  );
+  // mem_sp #(DWIDTH, GOBOU_CORELOG+GOBOU_NETSIZE) mem_gobou_debug(
+  //     .mem_we     (mem_gobou_we),
+  //     .mem_addr   (mem_gobou_addr),
+  //     .mem_wdata  (mem_gobou_wdata[DWIDTH-1:0]),
+  //     .mem_rdata  (mem_gobou_rdata[DWIDTH-1:0]),
+  //     .*
+  // );
 
 // }}}
 //==========================================================
@@ -759,7 +806,7 @@ module kinpira
     .clk        (clk),
     .xrst       (xrst),
     .req        (renkon_req),
-    .qbits      (renkon_qbits[LWIDTH-1:0]),
+    .qbits      (renkon_qbits[DWIDTHLOG-1:0]),
     .net_sel    (renkon_net_sel[RENKON_CORELOG-1:0]),
     .net_we     (renkon_net_we),
     .net_addr   (renkon_net_addr[RENKON_NETSIZE-1:0]),
@@ -796,7 +843,7 @@ module kinpira
     .clk        (clk),
     .xrst       (xrst),
     .req        (gobou_req),
-    .qbits      (gobou_qbits[LWIDTH-1:0]),
+    .qbits      (gobou_qbits[DWIDTHLOG-1:0]),
     .net_sel    (gobou_net_sel[GOBOU_CORELOG-1:0]),
     .net_we     (gobou_net_we),
     .net_addr   (gobou_net_addr[GOBOU_NETSIZE-1:0]),
@@ -811,6 +858,65 @@ module kinpira
     .img_rdata  (gobou_img_rdata[DWIDTH-1:0]),
     .*
   );
+
+// }}}
+//==========================================================
+// debug
+//==========================================================
+// {{{
+
+  always @(posedge clk)
+    if (!xrst)
+      qbits$ <= 0;
+    else
+      qbits$ <= qbits;
+
+  // assign out_port[32] = {{16{debug_out[15]}}, debug_out};
+  // assign debug_in = in_port[31][MEMSIZE-1:0];
+  // mem_dp #(DWIDTH, 15) mem_image_debug(
+  //   // Outputs
+  //   .mem_rdata1 (),
+  //   .mem_rdata2 (debug_out[DWIDTH-1:0]),
+  //   // Inputs
+  //   .clk        (clk),
+  //   .mem_we1    (mem_img_we),
+  //   .mem_addr1  (mem_img_addr[MEMSIZE-1:0]-out_offset),
+  //   .mem_wdata1 (mem_img_wdata[DWIDTH-1:0]),
+  //   .mem_we2    (0),
+  //   .mem_addr2  (debug_in[MEMSIZE-1:0]),
+  //   .mem_wdata2 (0),
+  //   .*
+  // );
+
+  assign debug_in     = in_port[31];
+  assign out_port[32] = qbits$;
+  assign out_port[33] = debug_out0;
+  assign out_port[34] = debug_out1;
+  assign out_port[35] = debug_out2;
+
+  assign debug_out0  = round0(debug_in);
+  function signed [DWIDTH-1:0] round0;
+    input signed [2*DWIDTH-1:0] data;
+    for (int i = 0; i < DWIDTH; i++) begin
+      if (qbits$ == i) begin
+        if (data[2*DWIDTH-1] == 1)
+          round0 = $signed(data >>> i) - 1;
+        else
+          round0 = $signed(data >>> i);
+      end
+    end
+  endfunction
+
+  assign debug_out1  = round1(debug_in);
+  function signed [DWIDTH-1:0] round1;
+    input signed [2*DWIDTH-1:0] data;
+    if (data[2*DWIDTH-1] == 1)
+      round1 = $signed(data >>> qbits$) - 1;
+    else
+      round1 = $signed(data >>> qbits$);
+  endfunction
+
+  rounder16 rnd(debug_in, qbits$, debug_out2);
 
 // }}}
 endmodule

@@ -12,7 +12,6 @@
 
 static u32 renkon_offset = 0;
 static u32 gobou_offset  = 0;
-// TODO: fetch kern and bias from encoded params.
 static int kern   = 0;
 static int strid  = 0;
 static int pad    = 0;
@@ -32,7 +31,8 @@ Layer *map_layer(
   u32 *conv_param, u32 *norm_param, u32 *actv_param, u32 *pool_param
 )
 {
-  Layer *l = (Layer *)malloc(sizeof(Layer));
+  // Layer *l = (Layer *)malloc(sizeof(Layer));
+  Layer *l = (Layer *)calloc(1, sizeof(Layer));
 
   l->which      = WHICH_RENKON;
   l->qbits      = 8;
@@ -77,7 +77,8 @@ Layer *vec_layer(
   u32 *full_param, u32 *norm_param, u32 *actv_param
 )
 {
-  Layer *l = (Layer *)malloc(sizeof(Layer));
+  // Layer *l = (Layer *)malloc(sizeof(Layer));
+  Layer *l = (Layer *)calloc(1, sizeof(Layer));
 
   l->which      = WHICH_GOBOU;
   l->qbits      = 8;

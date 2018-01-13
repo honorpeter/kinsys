@@ -164,7 +164,8 @@ int main(int argc, char **argv)
   relu(amap0, bmap0);
   pool(pmap0, amap0);
 
-  save(pmap0, "../../data/common/conv0_tru.dat");
+  // save(pmap0, "../../data/common/conv0_tru.dat");
+  save(fmap0, "../../data/common/conv0_tru.dat");
 
   auto fmap1  = zeros<int16_t>(n_c1, pm0size-fsize+1, pm0size-fsize+1);
   auto bmap1  = zeros<int16_t>(n_c1, pm0size-fsize+1, pm0size-fsize+1);

@@ -92,9 +92,6 @@ int kinpira_init(void)
 
 int kinpira_exit(void)
 {
-  // TODO: remove switchdcache
-  // system("modprobe -r switchdcache");
-
   munmap(port, sizeof(u32)*REGSIZE);
   munmap(mem_renkon, sizeof(u32)*RENKON_CORE*RENKON_WORDS);
   munmap(mem_gobou, sizeof(u32)*GOBOU_CORE*GOBOU_WORDS);

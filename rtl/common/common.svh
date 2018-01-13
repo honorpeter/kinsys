@@ -9,6 +9,7 @@
 parameter STEP    = 10;
 parameter DWIDTH  = 16;
 parameter LWIDTH  = 16;
+parameter DWIDTHLOG  = 4;
 
 ////////////////////////////////////////////////////////////
 // User parameters

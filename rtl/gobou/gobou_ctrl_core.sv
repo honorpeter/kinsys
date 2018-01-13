@@ -11,7 +11,7 @@ module gobou_ctrl_core
   , input  [MEMSIZE-1:0]        in_offset
   , input  [MEMSIZE-1:0]        out_offset
   , input  [GOBOU_NETSIZE-1:0]  net_offset
-  , input  [LWIDTH-1:0]         qbits
+  , input  [DWIDTHLOG-1:0]         qbits
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
   , input                       bias_en
@@ -24,7 +24,7 @@ module gobou_ctrl_core
   , output signed [DWIDTH-1:0]  img_wdata
   , output [GOBOU_CORE-1:0]     mem_net_we
   , output [GOBOU_NETSIZE-1:0]  mem_net_addr
-  , output [LWIDTH-1:0]         _qbits
+  , output [DWIDTHLOG-1:0]         _qbits
   , output                      _bias_en
   , output                      breg_we
   , output                      _relu_en
@@ -49,7 +49,7 @@ module gobou_ctrl_core
   reg                     req$;
   reg                     ack$;
   reg [2-1:0]             setup$;
-  reg [LWIDTH-1:0]        qbits$;
+  reg [DWIDTHLOG-1:0]        qbits$;
   reg [LWIDTH-1:0]        total_out$;
   reg [LWIDTH-1:0]        total_in$;
   reg [LWIDTH-1:0]        count_out$;
@@ -67,6 +67,7 @@ module gobou_ctrl_core
   reg                     relu_en$;
   reg                     serial_we$;
   reg [LWIDTH-1:0]        serial_cnt$;
+  reg [MEMSIZE-1:0] img_addr$;
 
 //==========================================================
 // core control
@@ -218,7 +219,6 @@ module gobou_ctrl_core
       out_offset$ <= out_offset;
     end
 
-  reg [MEMSIZE-1:0] img_addr$;
   assign img_addr = img_addr$;
   always @(posedge clk)
     if (!xrst)

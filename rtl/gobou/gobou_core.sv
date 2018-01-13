@@ -6,7 +6,7 @@ module gobou_core
   , input                       mac_oe
   , input                       accum_rst
   , input                       accum_we
-  , input  [LWIDTH-1:0]         _qbits
+  , input  [DWIDTHLOG-1:0]      _qbits
   , input                       _bias_en
   , input                       breg_we
   , input                       bias_oe

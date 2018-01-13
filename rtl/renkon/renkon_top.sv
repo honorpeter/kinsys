@@ -4,7 +4,7 @@ module renkon_top
   ( input                       clk
   , input                       xrst
   , input                       req
-  , input  [LWIDTH-1:0]         qbits
+  , input  [DWIDTHLOG-1:0]      qbits
   , input  signed [DWIDTH-1:0]  img_rdata
   , input  [RENKON_CORELOG-1:0] net_sel
   , input                       net_we
@@ -47,7 +47,7 @@ module renkon_top
   wire [$clog2(CONV_MAX+1):0]     buf_pix_rsel;
   wire                            buf_pix_we;
   wire [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr;
-  wire [LWIDTH-1:0]               _qbits;
+  wire [DWIDTHLOG-1:0]               _qbits;
   wire                            _bias_en;
   wire                            _relu_en;
   wire                            _pool_en;

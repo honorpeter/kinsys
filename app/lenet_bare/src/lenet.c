@@ -88,14 +88,11 @@ void LeNet_eval(void)
   TIME(exec_core(full2));
   TIME(exec_core(full3));
 
-  // printf("\033[2J");
-  // puts("### lenet_bare\n");
-
-  // assert_rep(image_ptr->body, image, N_IN*IMG_SIZE*IMG_SIZE);
-  // assert_rep(pmap0->body, conv0_tru, N_C0*PM0_SIZE*PM0_SIZE);
-  // assert_rep(pmap1->body, conv1_tru, N_C1*PM1_SIZE*PM1_SIZE);
-  // assert_rep(fvec2->body, full2_tru, N_F2);
-  // assert_rep(fvec3->body, full3_tru, N_F3);
+  assert_rep(image_ptr->body, image, N_IN*IMG_SIZE*IMG_SIZE);
+  assert_rep(pmap0->body, conv0_tru, N_C0*PM0_SIZE*PM0_SIZE);
+  assert_rep(pmap1->body, conv1_tru, N_C1*PM1_SIZE*PM1_SIZE);
+  assert_rep(fvec2->body, full2_tru, N_F2);
+  assert_rep(fvec3->body, full3_tru, N_F3);
 }
 
 

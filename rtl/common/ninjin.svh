@@ -10,8 +10,10 @@
 // BWIDTH ~ base width (memory bandwidth for host system.)
 parameter BWIDTH  = 32;
 
-parameter RATE    = BWIDTH / DWIDTH;
-parameter RATELOG = $clog2(RATE);
+// parameter RATE    = BWIDTH / DWIDTH;
+// parameter RATELOG = $clog2(RATE);
+parameter RATE    = 2;
+parameter RATELOG = 1;
 
 parameter REGSIZE = 6;
 // parameter PORT  = 2 ** REGSIZE;

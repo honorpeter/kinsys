@@ -4,13 +4,13 @@ module renkon_ctrl_linebuf_pad
  #( parameter MAXFIL    = 3
   , parameter MAXIMG    = 32
   , parameter COVER_ALL = 1'b0
-  , parameter MAXDELAY  = 16
 
-  , localparam MAXPAD = (MAXFIL-1)/2
-  , localparam BUFSIZE = MAXIMG + 1
-  , localparam BUFLINE = MAXFIL + 1
-  , localparam SIZEWIDTH = $clog2(BUFSIZE)
-  , localparam LINEWIDTH = $clog2(BUFLINE)
+  , localparam MAXDELAY   = 16
+  , localparam MAXPAD     = (MAXFIL-1)/2
+  , localparam BUFSIZE    = MAXIMG + 1
+  , localparam BUFLINE    = MAXFIL + 1
+  , localparam SIZEWIDTH  = $clog2(BUFSIZE)
+  , localparam LINEWIDTH  = $clog2(BUFLINE)
   )
   ( input                   clk
   , input                   xrst
@@ -44,6 +44,8 @@ module renkon_ctrl_linebuf_pad
   wire [SIZEWIDTH-1:0]      row_count;
   wire [SIZEWIDTH-1:0]      str_x_count;
   wire [SIZEWIDTH-1:0]      str_y_count;
+  wire [LWIDTH-1:0] str_x_start;
+  wire [LWIDTH-1:0] str_y_start;
 
   enum reg [2-1:0] {
     S_WAIT, S_CHARGE, S_ACTIVE
@@ -308,8 +310,6 @@ module renkon_ctrl_linebuf_pad
       buf_addr$ <= col_count;
 
   // TODO: to doit precisely -> kern % strid - 1
-  wire [LWIDTH-1:0] str_x_start;
-  wire [LWIDTH-1:0] str_y_start;
   assign str_x_start = strid == 1   ? 0
                      : strid < kern ? kern-strid-1
                      : kern-1;
@@ -361,8 +361,6 @@ module renkon_ctrl_linebuf_pad
 //==========================================================
 // {{{
 
-  wire [LWIDTH-1:0] own_height = make_size(height, kern, strid, pad);
-  wire [LWIDTH-1:0] own_width  = make_size(width,  kern, strid, pad);
   function [LWIDTH-1:0] make_size
     ( input [LWIDTH-1:0] size
     , input [LWIDTH-1:0] kern

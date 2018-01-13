@@ -10,7 +10,7 @@ module gobou_ctrl
   , input  [MEMSIZE-1:0]        in_offset
   , input  [MEMSIZE-1:0]        out_offset
   , input  [GOBOU_NETSIZE-1:0]  net_offset
-  , input  [LWIDTH-1:0]         qbits
+  , input  [DWIDTHLOG-1:0]      qbits
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
   , input                       bias_en
@@ -27,7 +27,7 @@ module gobou_ctrl
   , output                      mac_oe
   , output                      accum_we
   , output                      accum_rst
-  , output [LWIDTH-1:0]         _qbits
+  , output [DWIDTHLOG-1:0]      _qbits
   , output                      _bias_en
   , output                      bias_oe
   , output                      _relu_en

@@ -129,6 +129,12 @@ module ninjin_m_axi_image
   reg [WORDSIZE-1:0]      ddr_waddr$;
   reg [BWIDTH-1:0]        ddr_wdata$;
   reg [WORDSIZE-1:0]      ddr_raddr$;
+  reg [WORDSIZE-1:0]    tmp_addr$;
+  reg [DATA_WIDTH-1:0]  tmp_data$;
+  reg [DATA_WIDTH-1:0]  tmp_data2$;
+  reg have_awaddr$;
+  reg next_awaddr$;
+
 
 //==========================================================
 // core control
@@ -292,8 +298,6 @@ module ninjin_m_axi_image
   assign wnext = wready && wvalid$;
 
   // TODO: re-define this temp signal
-  reg have_awaddr$;
-  reg next_awaddr$;
   always @(posedge clk) begin
     have_awaddr$ <= awready && awvalid$;
     next_awaddr$ <= have_awaddr$;
@@ -489,10 +493,6 @@ module ninjin_m_axi_image
 // temp TODO: absolutely need refactoring
 //==========================================================
 // {{{
-
-  reg [WORDSIZE-1:0]    tmp_addr$;
-  reg [DATA_WIDTH-1:0]  tmp_data$;
-  reg [DATA_WIDTH-1:0]  tmp_data2$;
 
   assign ddr_raddr  = tmp_addr$;
   assign wdata  = tmp_data$;

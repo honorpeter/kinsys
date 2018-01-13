@@ -97,6 +97,7 @@ module ninjin_ddr_buf
   reg [MEMSIZE-1:0]       read_len$;
   reg [MEMSIZE-1:0]       write_len$;
   reg [MEMSIZE-1:0]       count_len$;
+  reg [MEMSIZE-1:0]       burst_len$;
   reg [LWIDTH-1:0]        count_buf$;
   reg [LWIDTH-1:0]        count_post$;
   reg                     switch_buf$;
@@ -111,7 +112,7 @@ module ninjin_ddr_buf
 // {{{
 
   assign s_pref_end  = state$[0] == S_PREF
-                    && burst_len != 0 && count_buf$ == burst_len-1;
+                    && burst_len$ != 0 && count_buf$ == burst_len$-1;
   assign s_read_end  = state$[0] == S_READ
                     && count_len$ != 0 && count_buf$ == count_len$-1;
   assign s_write_end = state$[0] == S_WRITE
@@ -231,6 +232,13 @@ module ninjin_ddr_buf
   assign burst_len = count_len$ > RATE*BURST_MAX
                    ? BURST_MAX
                    : count_len$ >> RATELOG;
+
+  // TODO: delayed
+  always @(posedge clk)
+    if (!xrst)
+      burst_len$  <= 0;
+    else
+      burst_len$  <= burst_len;
 
   always @(posedge clk)
     if (!xrst) begin

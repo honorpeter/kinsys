@@ -22,17 +22,18 @@ typedef uintptr_t UINTPTR;
 
 typedef struct {
   u32 which;
+  u32 qbits;
   u32 in_offset;
   u32 out_offset;
   u32 net_offset;
   u32 read_len;
   u32 write_len;
-  u32 base_param[2];
-  u32 conv_param;
+  u32 base_param[3];
+  u32 conv_param[2];
   u32 bias_param;
   u32 norm_param;
   u32 actv_param;
-  u32 pool_param;
+  u32 pool_param[2];
 } Layer;
 
 typedef struct {

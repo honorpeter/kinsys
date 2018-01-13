@@ -45,6 +45,8 @@ set obj [get_filesets sources_1]
 update_ip_catalog -rebuild
 
 # Set 'sources_1' fileset object
+  # "[file normalize "$origin_dir/../dist/renkon_linebuf.sv"]" \
+  # "[file normalize "$origin_dir/../dist/renkon_ctrl_linebuf.sv"]" \
 set obj [get_filesets sources_1]
 set files [list \
   "[file normalize "$origin_dir/../dist/mem_sp.sv"]" \
@@ -52,7 +54,6 @@ set files [list \
   "[file normalize "$origin_dir/../dist/renkon.svh"]" \
   "[file normalize "$origin_dir/../dist/renkon_pool_max4.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_pool_max9.sv"]" \
-  "[file normalize "$origin_dir/../dist/renkon_linebuf.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_linebuf_pad.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_conv_wreg.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_conv_tree9.sv"]" \
@@ -68,7 +69,6 @@ set files [list \
   "[file normalize "$origin_dir/../dist/renkon_ctrl_core.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_ctrl_conv.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_ctrl_bias.sv"]" \
-  "[file normalize "$origin_dir/../dist/renkon_ctrl_linebuf.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_ctrl_linebuf_pad.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_conv.sv"]" \
   "[file normalize "$origin_dir/../dist/renkon_bias.sv"]" \

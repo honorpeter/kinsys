@@ -5,12 +5,12 @@
 #include <limits>
 #include <lib.hpp>
 
-// const int n_out     = 32;
-// const int n_in      = 16;
+const int n_out     = 32;
+const int n_in      = 16;
 const int img_height  = 12;
 const int img_width   = 16;
-const int n_out       = 16;
-const int n_in        = 1;
+// const int n_out       = 16;
+// const int n_in        = 1;
 // const int img_height  = 28;
 // const int img_width   = 28;
 const int qbits = 8;
@@ -23,14 +23,14 @@ int make_size(int size, int kern, int strid, int pad, bool cover_all=false)
     return (size + pad * 2 - kern) / strid + 1;
 }
 
-const int conv_kern   = 1;
+const int conv_kern   = 5;
 const int conv_strid  = 1;
 const int conv_pad    = 0;
 const int fea_height  = make_size(img_height, conv_kern, conv_strid, conv_pad);
 const int fea_width   = make_size(img_width, conv_kern, conv_strid, conv_pad);
-const int pool_kern   = 3;
+const int pool_kern   = 2;
 const int pool_strid  = 2;
-const int pool_pad    = 1;
+const int pool_pad    = 0;
 const int out_height  = make_size(fea_height, pool_kern, pool_strid, pool_pad,
                                   true);
 const int out_width   = make_size(fea_width, pool_kern, pool_strid, pool_pad,
@@ -135,7 +135,7 @@ int main(void)
   relu(amap, bmap);
   pool(pmap, amap);
 
-#if 1
+#if 0
   for range(n, n_out)
     for range(i, out_height)
       for range(j, out_width)
