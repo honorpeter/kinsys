@@ -124,6 +124,7 @@ Filesystem Packages --->
   rm -rf project-spec/meta-user/recipes-modules/udmabuf/udmabuf
 
   cp -r $TOP/app/$APP_NAME/*      project-spec/meta-user/recipes-apps/$APP_NAME
+  cp -r $TOP/app/common/library/* project-spec/meta-user/recipes-apps/$APP_NAME
   cp -r $TOP/app/common/modules/* project-spec/meta-user/recipes-modules
   cp -r $TOP/app/common/$BOARD/*  project-spec/meta-user
 
@@ -131,8 +132,9 @@ Filesystem Packages --->
 else
   cd $PETA_NAME
   cp -r $TOP/app/$APP_NAME/*      project-spec/meta-user/recipes-apps/$APP_NAME
-  # cp -r $TOP/app/common/modules/* project-spec/meta-user/recipes-modules
-  # cp -r $TOP/app/common/$BOARD/*  project-spec/meta-user
+  cp -r $TOP/app/common/library/* project-spec/meta-user/recipes-apps/$APP_NAME
+  cp -r $TOP/app/common/modules/* project-spec/meta-user/recipes-modules
+  cp -r $TOP/app/common/$BOARD/*  project-spec/meta-user
   petalinux-build
 fi
 

@@ -2,10 +2,7 @@
 #include <stdlib.h>
 
 #include "lenet.h"
-#include "types.h"
-#include "util.h"
-#include "layer.h"
-#include "bare.h"
+#include "kinpira.h"
 
 #include "data/W_conv0.h"
 #include "data/b_conv0.h"

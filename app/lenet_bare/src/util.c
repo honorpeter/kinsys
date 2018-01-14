@@ -3,9 +3,7 @@
 #include <string.h>
 #include <limits.h>
 
-#include "util.h"
 #include "kinpira.h"
-#include "types.h"
 
 #include <assert.h>
 

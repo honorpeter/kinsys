@@ -3,10 +3,6 @@
 #include <string.h>
 
 #include "kinpira.h"
-#include "types.h"
-#include "util.h"
-#include "peta.h"
-
 #include "lenet.h"
 
 #include "data/image.h"

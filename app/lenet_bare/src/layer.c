@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include "layer.h"
 #include "kinpira.h"
-#include "types.h"
 
 #define CEIL_DIV(a, b) ((a) % (b) == 0 ? (a) / (b) : (a) / (b) + 1)
 

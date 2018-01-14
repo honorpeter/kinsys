@@ -17,17 +17,28 @@ extern "C" {
   }                                                                 \
 } while (0)
 
+#if 0
 #define assert_rep(a, b, len) do {                              \
   for (int i = 0; i < (len); i++) {                             \
     if (*((a)+i) != *((b)+i)) {                                 \
+      printf("Assertion failed: %s == %s, file %s, line %d\n",  \
+              #a, #b, __FILE__, __LINE__);                      \
       printf("\t%d: %s == %x, %s == %x\n",                      \
               i, #a, *((a)+i), #b, *((b)+i));                   \
+      exit(1);                                                  \
     }                                                           \
   }                                                             \
 } while (0)
-      // printf("Assertion failed: %s == %s, file %s, line %d\n",  \
-      //         #a, #b, __FILE__, __LINE__);                      \
-      // exit(1);                                                  \
+#else
+#define assert_rep(a, b, len) do {            \
+  for (int i = 0; i < (len); i++) {           \
+    if (*((a)+i) != *((b)+i)) {               \
+      printf("\t%d:\t%s == %x, %s == %x\n",   \
+              i, #a, *((a)+i), #b, *((b)+i)); \
+    }                                         \
+  }                                           \
+} while (0)
+#endif
 
 #define assert_not(cond, fail_msg) do {                 \
   if ((cond)) {                                         \

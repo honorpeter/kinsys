@@ -8,73 +8,40 @@
 #include "transform.hpp"
 #include "activation.hpp"
 
-#include "types.h"
-#include "peta.h"
-#include "util.h"
-#include "layer.h"
-
-#define CONV(input, output, pool)               \
-  map_layer((input), (output),                  \
-    convolution_2d(0, CONV_BIAS | CONV_SAME),   \
-    NULL,                                       \
-    activation(ACTV_RELU),                      \
-    (pool ? pooling_2d(0, POOL_MAX) : NULL)     \
-  );
-
-#define FIRE(input, output, pool)               \
-  std::vector<Layer *>{                         \
-    map_layer((input), (output),                \
-      convolution_2d(0, CONV_BIAS | CONV_SAME), \
-      NULL,                                     \
-      activation(ACTV_RELU),                    \
-      NULL                                      \
-    ),                                          \
-    map_layer((input), (output),                \
-      convolution_2d(0, CONV_BIAS | CONV_SAME), \
-      NULL,                                     \
-      activation(ACTV_RELU),                    \
-      (pool ? pooling_2d(0, POOL_MAX) : NULL)   \
-    ),                                          \
-    map_layer((input), (output),                \
-      convolution_2d(0, CONV_BIAS | CONV_SAME), \
-      NULL,                                     \
-      activation(ACTV_RELU),                    \
-      (pool ? pooling_2d(0, POOL_MAX) : NULL)   \
-    ),                                          \
-  }
+#include "kinpira.h"
 
 static inline Layer *
-conv(Map *input, Map *output, bool pool)
+conv(Map *input, Map *output, int kern, int strid, int pad, bool pool)
 {
   return map_layer(input, output,
-    convolution_2d(0, CONV_BIAS | CONV_SAME),
+    convolution_2d(kern, strid, pad, CONV_BIAS),
     NULL,
     activation(ACTV_RELU),
-    (pool ? pooling_2d(0, POOL_MAX) : NULL)
+    (pool ? pooling_2d(3, 2, 1, POOL_MAX) : NULL)
   );
 }
 
 static inline std::vector<Layer *>
-fire(Map *input, Map *output, bool pool)
+fire(Map *input, Map *output, Map *feature, bool pool)
 {
   return std::vector<Layer *>{
-    map_layer((input), (output),
-      convolution_2d(0, CONV_BIAS | CONV_SAME),
+    map_layer(input, output,
+      convolution_2d(1, 1, 0, CONV_BIAS),
       NULL,
       activation(ACTV_RELU),
       NULL
     ),
-    map_layer((input), (output),
-      convolution_2d(0, CONV_BIAS | CONV_SAME),
+    map_layer(input, output,
+      convolution_2d(1, 1, 0, CONV_BIAS),
       NULL,
       activation(ACTV_RELU),
-      (pool ? pooling_2d(0, POOL_MAX) : NULL)
+      (pool ? pooling_2d(3, 2, 1, POOL_MAX) : NULL)
     ),
-    map_layer((input), (output),
-      convolution_2d(0, CONV_BIAS | CONV_SAME),
+    map_layer(input, output,
+      convolution_2d(3, 1, 1, CONV_BIAS),
       NULL,
       activation(ACTV_RELU),
-      (pool ? pooling_2d(0, POOL_MAX) : NULL)
+      (pool ? pooling_2d(3, 2, 1, POOL_MAX) : NULL)
     ),
   };
 }
@@ -103,7 +70,7 @@ SqueezeDet::SqueezeDet(std::shared_ptr<Image> input,
   const int conv_k3_s2_pSAME = 0;
   const int pool_k3_s2_pSAME = 0;
   const int conv_k3_s1_pSAME = 0;
-  conv1  = conv(image_ptr, pmap1, conv_k3_s2_pSAME | pool_k3_s2_pSAME);
+  conv1  = conv(image_ptr, pmap1, 3, 2, 1, true);
   fire2  = fire(pmap1,  fmap2,  false);
   fire3  = fire(fmap2,  pmap3,  true);
   fire4  = fire(pmap3,  fmap4,  false);
@@ -114,7 +81,7 @@ SqueezeDet::SqueezeDet(std::shared_ptr<Image> input,
   fire9  = fire(fmap8,  fmap9,  false);
   fire10 = fire(fmap9,  fmap10, false);
   fire11 = fire(fmap10, fmap11, false);
-  conv12 = conv(fmap11, fmap12, conv_k3_s1_pSAME);
+  conv12 = conv(fmap11, fmap12, 3, 1, 1, false);
 
   // set_output(fmap12, output);
 

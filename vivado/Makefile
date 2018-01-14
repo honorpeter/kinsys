@@ -1,7 +1,7 @@
 BOARD    = zcu102
 IP       = kinpira
-# APP      = squeezedet
-APP      = lenet
+APP      = squeezedet
+# APP      = lenet
 APP_BARE = lenet_bare
 
 .PHONY: run_bare bare build zybo zedboard ip all clean linux

@@ -45,7 +45,7 @@ void MVTracker::associate(Mask& boxes)
 
   // set id
   std::unordered_map<int, int> n_id_map;
-  for (int i = 0; i < boxes.size(); ++i) {
+  for (int i = 0; i < (int)boxes.size(); ++i) {
     auto col = std::find(col_idx.begin(), col_idx.end(), i);
     if (col != col_idx.end()) {
       auto row = row_idx.begin() + std::distance(col_idx.begin(), col);
@@ -63,7 +63,7 @@ void MVTracker::associate(Mask& boxes)
   id_map = n_id_map;
 
   // get id
-  for (int i = 0; i < boxes.size(); ++i)
+  for (int i = 0; i < (int)boxes.size(); ++i)
     tracks.push_back(std::make_pair(id_map[i], boxes[i]));
 
   prev_boxes = boxes;
@@ -93,7 +93,7 @@ void MVTracker::annotate()
   stateList.resize(boxes.size());
   errorCovList.resize(boxes.size());
 
-  for (int i = 0; i < boxes.size(); ++i) {
+  for (int i = 0; i < (int)boxes.size(); ++i) {
     total += 1;
     stateList[i] = cv::Mat(calc_center(boxes[i]));
     errorCovList[i] = cv::Mat::eye(dp, dp, CV_32F) * 1.0;

@@ -3,10 +3,6 @@
 #include <string.h>
 
 #include "kinpira.h"
-#include "types.h"
-#include "util.h"
-#include "bare.h"
-
 #include "lenet.h"
 
 #include "data/image.h"
@@ -21,11 +17,7 @@ int main(void)
 
   setbuf(stdout, NULL);
   printf("\033[2J");
-#if defined(zedboard)
-  puts("### lenet_bare @ zedboard\n");
-#elif defined(zcu102)
-  puts("### lenet_bare @ zcu102\n");
-#endif
+  puts("### lenet_bare\n");
 
   memmove(input, image, sizeof(s16)*N_IN*IMG_SIZE*IMG_SIZE);
   LeNet_eval();

@@ -3,9 +3,7 @@
 #include <string.h>
 #include <limits.h>
 
-#include "bare.h"
 #include "kinpira.h"
-#include "types.h"
 
 #include <xil_cache.h>
 

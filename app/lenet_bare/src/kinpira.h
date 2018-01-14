@@ -1,6 +1,10 @@
 #ifndef _KINPIRA_H_
 #define _KINPIRA_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 #define WHICH_RENKON    0
@@ -51,5 +55,14 @@ uint32_t (*mem_gobou)[GOBOU_WORDS];
 #define reg_ack         &port[62]
 #define reg_pre_ack     &port[61]
 #define reg_err         &port[60]
+
+#include "types.h"
+#include "bare.h"
+#include "util.h"
+#include "layer.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
