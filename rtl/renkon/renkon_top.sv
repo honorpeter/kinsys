@@ -5,11 +5,22 @@ module renkon_top
   , input                       xrst
   , input                       req
   , input  [DWIDTHLOG-1:0]      qbits
+`ifdef QUANT
+  , input  signed [DWIDTH-1:0]  w_scale
+  , input  signed [DWIDTH-1:0]  w_offset
+  , input  signed [DWIDTH-1:0]  b_scale
+  , input  signed [DWIDTH-1:0]  b_offset
+`endif
   , input  signed [DWIDTH-1:0]  img_rdata
   , input  [RENKON_CORELOG-1:0] net_sel
   , input                       net_we
   , input  [RENKON_NETSIZE-1:0] net_addr
+`ifdef QUANT
+  // , input  [QWIDTH-1:0]         net_wdata
+  , input  signed [QWIDTH-1:0]  net_wdata
+`else
   , input  signed [DWIDTH-1:0]  net_wdata
+`endif
   , input  [MEMSIZE-1:0]        in_offset
   , input  [MEMSIZE-1:0]        out_offset
   , input  [RENKON_NETSIZE-1:0] net_offset
@@ -75,6 +86,10 @@ module renkon_top
   wire signed [DWIDTH-1:0]        result [RENKON_CORE-1:0];
   wire signed [DWIDTH-1:0]        out_wdata;
 
+`ifdef QUANT
+  wire signed [DWIDTH-1:0]        net_quant [RENKON_CORE-1:0];
+`endif
+
   renkon_ctrl ctrl(.*);
 
   renkon_linebuf_pad #(CONV_MAX, D_PIXELBUF) buf_pix(
@@ -91,6 +106,22 @@ module renkon_top
   );
 
   for (genvar i = 0; i < RENKON_CORE; i++) begin : pe
+`ifdef QUANT
+    mem_sp #(QWIDTH, RENKON_NETSIZE) mem_net(
+      .mem_we     (mem_net_we[i]),
+      .mem_addr   (mem_net_addr),
+      .mem_wdata  (net_wdata),
+      .mem_rdata  (net_quant[i]),
+      .*
+    );
+
+    dequant #(DWIDTH, QWIDTH) deq(
+      .which  (breg_we),
+      .x      (net_quant[i]),
+      .y      (net_rdata[i]),
+      .*
+    );
+`else
     mem_sp #(DWIDTH, RENKON_NETSIZE) mem_net(
       .mem_we     (mem_net_we[i]),
       .mem_addr   (mem_net_addr),
@@ -98,6 +129,7 @@ module renkon_top
       .mem_rdata  (net_rdata[i]),
       .*
     );
+`endif
 
     renkon_core core(
       .net_rdata    (net_rdata[i]),

@@ -59,5 +59,8 @@ exec sed -i \
   -e "1i _HEAP_SIZE = ${heap_size};" \
   $sdk_ws_dir/$app_name/src/lscript.ld
 
+if {[file exists $app_dir/$app_name] != 0} {
+  exec cp -rf {*}[glob $app_dir/$app_name/*] $sdk_ws_dir/$app_name
+}
 projects -build
 

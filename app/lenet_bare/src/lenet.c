@@ -4,14 +4,10 @@
 #include "lenet.h"
 #include "kinpira.h"
 
-#include "data/W_conv0.h"
-#include "data/b_conv0.h"
-#include "data/W_conv1.h"
-#include "data/b_conv1.h"
-#include "data/W_full2.h"
-#include "data/b_full2.h"
-#include "data/W_full3.h"
-#include "data/b_full3.h"
+#include "data/conv0.h"
+#include "data/conv1.h"
+#include "data/full2.h"
+#include "data/full3.h"
 
 #include "data/image.h"
 #include "data/conv0_tru.h"
@@ -70,10 +66,17 @@ void LeNet_init(s16 **input, s16 **output)
 
   set_output(fvec3, output);
 
+#ifdef QUANT
+  assign_map_quant(conv0, W_conv0, b_conv0, 0.0, 255.0, 0.0, 255.0);
+  assign_map_quant(conv1, W_conv1, b_conv1, 0.0, 255.0, 0.0, 255.0);
+  assign_vec_quant(full2, W_full2, b_full2, 0.0, 255.0, 0.0, 255.0);
+  assign_vec_quant(full3, W_full3, b_full3, 0.0, 255.0, 0.0, 255.0);
+#else
   assign_map(conv0, W_conv0, b_conv0);
   assign_map(conv1, W_conv1, b_conv1);
   assign_vec(full2, W_full2, b_full2);
   assign_vec(full3, W_full3, b_full3);
+#endif
 }
 
 

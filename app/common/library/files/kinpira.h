@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#define QUANT
+
 #include <stdint.h>
 
 #define WHICH_RENKON    0
@@ -32,23 +34,29 @@ uint32_t (*mem_gobou)[GOBOU_WORDS];
 #define reg_which       &port[0]
 #define reg_req         &port[1]
 #define reg_qbits       &port[2]
-#define reg_in_offset   &port[3]
-#define reg_out_offset  &port[4]
-#define reg_net_offset  &port[5]
-#define reg_pre_req     &port[6]
-#define reg_pre_base    &port[7]
-#define reg_read_len    &port[8]
-#define reg_write_len   &port[9]
+#ifdef QUANT
+#define reg_w_scale     &port[3]
+#define reg_w_offset    &port[4]
+#define reg_b_scale     &port[5]
+#define reg_b_offset    &port[6]
+#endif
+#define reg_in_offset   &port[7]
+#define reg_out_offset  &port[8]
+#define reg_net_offset  &port[9]
+#define reg_pre_req     &port[10]
+#define reg_pre_base    &port[11]
+#define reg_read_len    &port[12]
+#define reg_write_len   &port[13]
 
-#define reg_base_param0 &port[10]
-#define reg_base_param1 &port[11]
-#define reg_base_param2 &port[12]
-#define reg_conv_param0 &port[13]
-#define reg_conv_param1 &port[14]
-#define reg_bias_param  &port[15]
-#define reg_actv_param  &port[16]
-#define reg_pool_param0 &port[17]
-#define reg_pool_param1 &port[18]
+#define reg_base_param0 &port[14]
+#define reg_base_param1 &port[15]
+#define reg_base_param2 &port[16]
+#define reg_conv_param0 &port[17]
+#define reg_conv_param1 &port[18]
+#define reg_bias_param  &port[19]
+#define reg_actv_param  &port[20]
+#define reg_pool_param0 &port[21]
+#define reg_pool_param1 &port[22]
 
 // output reg
 #define reg_r_which     &port[63]

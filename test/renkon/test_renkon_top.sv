@@ -70,12 +70,22 @@ module test_renkon_top;
   reg [RENKON_CORELOG-1:0]  net_sel;
   reg                       net_we;
   reg [RENKON_NETSIZE-1:0]  net_addr;
+`ifdef QUANT
+  reg signed [QWIDTH-1:0]   net_wdata;
+`else
   reg signed [DWIDTH-1:0]   net_wdata;
+`endif
   reg [MEMSIZE-1:0]         in_offset;
   reg [MEMSIZE-1:0]         out_offset;
   reg [RENKON_NETSIZE-1:0]  net_offset;
 
   reg [DWIDTHLOG-1:0]       qbits;
+`ifdef QUANT
+  reg signed [DWIDTH-1:0]   w_scale;
+  reg signed [DWIDTH-1:0]   w_offset;
+  reg signed [DWIDTH-1:0]   b_scale;
+  reg signed [DWIDTH-1:0]   b_offset;
+`endif
   reg [LWIDTH-1:0]          total_out;
   reg [LWIDTH-1:0]          total_in;
   reg [LWIDTH-1:0]          img_height;
@@ -240,6 +250,13 @@ module test_renkon_top;
 
     xrst        = 1;
     req         = 0;
+    qbits       = QBITS;
+`ifdef QUANT
+    w_scale     = 256;
+    w_offset    = 0;
+    b_scale     = 256;
+    b_offset    = 0;
+`endif
     net_sel     = 0;
     net_we      = 0;
     net_addr    = 0;
@@ -247,7 +264,6 @@ module test_renkon_top;
     in_offset   = IN_OFFSET;
     out_offset  = OUT_OFFSET;
     net_offset  = NET_OFFSET;
-    qbits       = QBITS;
     total_out   = N_OUT;
     total_in    = N_IN;
     img_height  = IMG_HEIGHT;
@@ -572,31 +588,36 @@ module test_renkon_top;
       if (now_time >= req_time)
       begin
         $display(
-          "%5d: ", now_time - req_time,
+          // "%5d: ", now_time - req_time,
           "%d ",  req,
           "%d ",  ack,
           "*%d ", dut.ctrl.ctrl_core.state$,
+          "&%d ", dut.pe[0].deq.which,
+          "%3d ", dut.pe[0].deq.scale,
+          "%3d ", dut.pe[0].deq.offset,
           "| ",
           "%2d ", dut.ctrl.ctrl_core.count_out$,
           "%2d ", dut.ctrl.ctrl_core.count_in$,
           "%2d ", dut.ctrl.ctrl_core.weight_x$,
           "%2d ", dut.ctrl.ctrl_core.weight_y$,
-          ": ",
-          "%2d ", dut.ctrl.ctrl_conv.conv_x$,
-          "%2d ", dut.ctrl.ctrl_conv.conv_y$,
+          // ": ",
+          // "%2d ", dut.ctrl.ctrl_conv.conv_x$,
+          // "%2d ", dut.ctrl.ctrl_conv.conv_y$,
           ": ",
           "%5b ", dut.wreg_we,
           "%1b ", dut.breg_we,
-          "| ",
-          "%1d ", mem_img_we,
-          "%4d ", mem_img_addr,
-          "%4x ", mem_img_wdata,
-          "%4x ", mem_img_rdata,
           // "| ",
-          // "%1d ", dut.pe[0].mem_net.mem_we,
-          // "%4d ", dut.pe[0].mem_net.mem_addr,
+          // "%1d ", mem_img_we,
+          // "%4d ", mem_img_addr,
+          // "%4x ", mem_img_wdata,
+          // "%4x ", mem_img_rdata,
+          "| ",
+          "%1d ", dut.pe[0].mem_net.mem_we,
+          "%4d ", dut.pe[0].mem_net.mem_addr,
           // "%4d ", dut.pe[0].mem_net.mem_wdata,
           // "%4d ", dut.pe[0].mem_net.mem_rdata,
+          "%4d ", dut.net_quant[0],
+          "%4d ", dut.net_rdata[0],
           // "| ",
           // "%1d ", dut.pe[0].core.conv.mem_feat_rst,
           // "%1d ", dut.pe[0].core.conv.mem_feat_we,

@@ -267,7 +267,13 @@ module kinpira
   // For ninjin
   wire                      which;
   wire                      req;
-  wire [DWIDTHLOG-1:0]         qbits;
+  wire [DWIDTHLOG-1:0]      qbits;
+`ifdef QUANT
+  wire signed [DWIDTH-1:0]  w_scale;
+  wire signed [DWIDTH-1:0]  w_offset;
+  wire signed [DWIDTH-1:0]  b_scale;
+  wire signed [DWIDTH-1:0]  b_offset;
+`endif
   wire [MEMSIZE-1:0]        in_offset;
   wire [MEMSIZE-1:0]        out_offset;
   wire [BWIDTH-1:0]         net_offset;
@@ -321,12 +327,23 @@ module kinpira
 
   // For renkon
   wire                      renkon_req;
-  wire [DWIDTHLOG-1:0]         renkon_qbits;
+  wire [DWIDTHLOG-1:0]      renkon_qbits;
+`ifdef QUANT
+  wire signed [DWIDTH-1:0]  renkon_w_scale;
+  wire signed [DWIDTH-1:0]  renkon_w_offset;
+  wire signed [DWIDTH-1:0]  renkon_b_scale;
+  wire signed [DWIDTH-1:0]  renkon_b_offset;
+`endif
   wire signed [DWIDTH-1:0]  renkon_img_rdata;
   wire [RENKON_CORELOG-1:0] renkon_net_sel;
   wire                      renkon_net_we;
   wire [RENKON_NETSIZE-1:0] renkon_net_addr;
+`ifdef QUANT
+  // wire [QWIDTH-1:0]         renkon_net_wdata;
+  wire signed [QWIDTH-1:0]  renkon_net_wdata;
+`else
   wire signed [DWIDTH-1:0]  renkon_net_wdata;
+`endif
   wire [MEMSIZE-1:0]        renkon_in_offset;
   wire [MEMSIZE-1:0]        renkon_out_offset;
   wire [RENKON_NETSIZE-1:0] renkon_net_offset;
@@ -353,12 +370,23 @@ module kinpira
 
   // For gobou
   wire                      gobou_req;
-  wire [DWIDTHLOG-1:0]         gobou_qbits;
+  wire [DWIDTHLOG-1:0]      gobou_qbits;
+`ifdef QUANT
+  wire signed [DWIDTH-1:0]  gobou_w_scale;
+  wire signed [DWIDTH-1:0]  gobou_w_offset;
+  wire signed [DWIDTH-1:0]  gobou_b_scale;
+  wire signed [DWIDTH-1:0]  gobou_b_offset;
+`endif
   wire signed [DWIDTH-1:0]  gobou_img_rdata;
   wire [GOBOU_CORELOG-1:0]  gobou_net_sel;
   wire                      gobou_net_we;
   wire [GOBOU_NETSIZE-1:0]  gobou_net_addr;
+`ifdef QUANT
+  // wire [QWIDTH-1:0]         gobou_net_wdata;
+  wire signed [QWIDTH-1:0]  gobou_net_wdata;
+`else
   wire signed [DWIDTH-1:0]  gobou_net_wdata;
+`endif
   wire [MEMSIZE-1:0]        gobou_in_offset;
   wire [MEMSIZE-1:0]        gobou_out_offset;
   wire [GOBOU_NETSIZE-1:0]  gobou_net_offset;
@@ -395,23 +423,29 @@ module kinpira
   assign which      = in_port[0][0];
   assign req        = in_port[1][0];
   assign qbits      = in_port[2][DWIDTHLOG-1:0];
-  assign in_offset  = in_port[3][MEMSIZE-1+RATELOG:RATELOG];
-  assign out_offset = in_port[4][MEMSIZE-1+RATELOG:RATELOG];
-  assign net_offset = in_port[5][BWIDTH-1:0];
-  assign pre_req    = in_port[6][0];
-  assign pre_base   = in_port[7][WORDSIZE-1+LSB:LSB];
-  assign read_len   = in_port[8][LWIDTH-1:0];
-  assign write_len  = in_port[9][LWIDTH-1:0];
+`ifdef QUANT
+  assign w_scale    = in_port[3][DWIDTH-1:0];
+  assign w_offset   = in_port[4][DWIDTH-1:0];
+  assign b_scale    = in_port[5][DWIDTH-1:0];
+  assign b_offset   = in_port[6][DWIDTH-1:0];
+`endif
+  assign in_offset  = in_port[7][MEMSIZE-1+RATELOG:RATELOG];
+  assign out_offset = in_port[8][MEMSIZE-1+RATELOG:RATELOG];
+  assign net_offset = in_port[9][BWIDTH-1:0];
+  assign pre_req    = in_port[10][0];
+  assign pre_base   = in_port[11][WORDSIZE-1+LSB:LSB];
+  assign read_len   = in_port[12][LWIDTH-1:0];
+  assign write_len  = in_port[13][LWIDTH-1:0];
 
-  assign base_param[0] = in_port[10][BWIDTH-1:0];
-  assign base_param[1] = in_port[11][BWIDTH-1:0];
-  assign base_param[2] = in_port[12][BWIDTH-1:0];
-  assign conv_param[0] = in_port[13][BWIDTH-1:0];
-  assign conv_param[1] = in_port[14][BWIDTH-1:0];
-  assign bias_param    = in_port[15][BWIDTH-1:0];
-  assign actv_param    = in_port[16][BWIDTH-1:0];
-  assign pool_param[0] = in_port[17][BWIDTH-1:0];
-  assign pool_param[1] = in_port[18][BWIDTH-1:0];
+  assign base_param[0] = in_port[14][BWIDTH-1:0];
+  assign base_param[1] = in_port[15][BWIDTH-1:0];
+  assign base_param[2] = in_port[16][BWIDTH-1:0];
+  assign conv_param[0] = in_port[17][BWIDTH-1:0];
+  assign conv_param[1] = in_port[18][BWIDTH-1:0];
+  assign bias_param    = in_port[19][BWIDTH-1:0];
+  assign actv_param    = in_port[20][BWIDTH-1:0];
+  assign pool_param[0] = in_port[21][BWIDTH-1:0];
+  assign pool_param[1] = in_port[22][BWIDTH-1:0];
 
   // Network parameters
   assign total_out  = base_param[0][2*LWIDTH-1:LWIDTH];
@@ -491,12 +525,22 @@ module kinpira
   assign renkon_net_sel   = mem_renkon_addr[RENKON_NETSIZE+RENKON_CORELOG-1:RENKON_NETSIZE];
   assign renkon_net_we    = mem_renkon_we;
   assign renkon_net_addr  = mem_renkon_addr[RENKON_NETSIZE-1:0];
+`ifdef QUANT
+  assign renkon_net_wdata = mem_renkon_wdata[QWIDTH-1:0];
+`else
   assign renkon_net_wdata = mem_renkon_wdata[DWIDTH-1:0];
+`endif
 
   assign renkon_img_rdata  = which == WHICH_RENKON ? mem_img_rdata : 0;
 
   assign renkon_req        = which == WHICH_RENKON ? req : 0;
   assign renkon_qbits      = which == WHICH_RENKON ? qbits : 0;
+`ifdef QUANT
+  assign renkon_w_scale    = which == WHICH_RENKON ? w_scale : 0;
+  assign renkon_w_offset   = which == WHICH_RENKON ? w_offset : 0;
+  assign renkon_b_scale    = which == WHICH_RENKON ? b_scale : 0;
+  assign renkon_b_offset   = which == WHICH_RENKON ? b_offset : 0;
+`endif
   assign renkon_in_offset  = which == WHICH_RENKON ? in_offset : 0;
   assign renkon_out_offset = which == WHICH_RENKON ? out_offset : 0;
   assign renkon_net_offset = which == WHICH_RENKON ? net_offset[RENKON_NETSIZE-1:0] : 0;
@@ -522,12 +566,22 @@ module kinpira
   assign gobou_net_sel    = mem_gobou_addr[GOBOU_NETSIZE+GOBOU_CORELOG-1:GOBOU_NETSIZE];
   assign gobou_net_we     = mem_gobou_we;
   assign gobou_net_addr   = mem_gobou_addr[GOBOU_NETSIZE-1:0];
+`ifdef QUANT
+  assign gobou_net_wdata  = mem_gobou_wdata[QWIDTH-1:0];
+`else
   assign gobou_net_wdata  = mem_gobou_wdata[DWIDTH-1:0];
+`endif
 
   assign gobou_img_rdata   = which == WHICH_GOBOU ? mem_img_rdata : 0;
 
   assign gobou_req         = which == WHICH_GOBOU ? req : 0;
   assign gobou_qbits       = which == WHICH_GOBOU ? qbits : 0;
+`ifdef QUANT
+  assign gobou_w_scale     = which == WHICH_GOBOU ? w_scale : 0;
+  assign gobou_w_offset    = which == WHICH_GOBOU ? w_offset : 0;
+  assign gobou_b_scale     = which == WHICH_GOBOU ? b_scale : 0;
+  assign gobou_b_offset    = which == WHICH_GOBOU ? b_offset : 0;
+`endif
   assign gobou_in_offset   = which == WHICH_GOBOU ? in_offset : 0;
   assign gobou_out_offset  = which == WHICH_GOBOU ? out_offset : 0;
   assign gobou_net_offset  = which == WHICH_GOBOU ? net_offset[GOBOU_NETSIZE-1:0] : 0;
@@ -807,10 +861,20 @@ module kinpira
     .xrst       (xrst),
     .req        (renkon_req),
     .qbits      (renkon_qbits[DWIDTHLOG-1:0]),
+`ifdef QUANT
+    .w_scale    (renkon_w_scale[DWIDTH-1:0]),
+    .w_offset   (renkon_w_offset[DWIDTH-1:0]),
+    .b_scale    (renkon_b_scale[DWIDTH-1:0]),
+    .b_offset   (renkon_b_offset[DWIDTH-1:0]),
+`endif
     .net_sel    (renkon_net_sel[RENKON_CORELOG-1:0]),
     .net_we     (renkon_net_we),
     .net_addr   (renkon_net_addr[RENKON_NETSIZE-1:0]),
+`ifdef QUANT
+    .net_wdata  (renkon_net_wdata[QWIDTH-1:0]),
+`else
     .net_wdata  (renkon_net_wdata[DWIDTH-1:0]),
+`endif
     .in_offset  (renkon_in_offset[MEMSIZE-1:0]),
     .out_offset (renkon_out_offset[MEMSIZE-1:0]),
     .net_offset (renkon_net_offset[RENKON_NETSIZE-1:0]),
@@ -844,10 +908,20 @@ module kinpira
     .xrst       (xrst),
     .req        (gobou_req),
     .qbits      (gobou_qbits[DWIDTHLOG-1:0]),
+`ifdef QUANT
+    .w_scale    (gobou_w_scale[DWIDTH-1:0]),
+    .w_offset   (gobou_w_offset[DWIDTH-1:0]),
+    .b_scale    (gobou_b_scale[DWIDTH-1:0]),
+    .b_offset   (gobou_b_offset[DWIDTH-1:0]),
+`endif
     .net_sel    (gobou_net_sel[GOBOU_CORELOG-1:0]),
     .net_we     (gobou_net_we),
     .net_addr   (gobou_net_addr[GOBOU_NETSIZE-1:0]),
+`ifdef QUANT
+    .net_wdata  (gobou_net_wdata[QWIDTH-1:0]),
+`else
     .net_wdata  (gobou_net_wdata[DWIDTH-1:0]),
+`endif
     .in_offset  (gobou_in_offset[MEMSIZE-1:0]),
     .out_offset (gobou_out_offset[MEMSIZE-1:0]),
     .net_offset (gobou_net_offset[GOBOU_NETSIZE-1:0]),

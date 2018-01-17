@@ -30,6 +30,8 @@ def bin_of_hex(path):
     hexfile = np.loadtxt(path, dtype=np.int,
                          converters={0: lambda s: int(s, 16)})
     fixed = hexfile & 0xffff
+    print(path)
+    print(fixed)
     return list(map("  0b{:016b},".format, fixed))
 
 def gen_image(args):
@@ -52,23 +54,28 @@ def gen_image(args):
 
 def gen_param(args):
     for layer in os.listdir(PARAM_DIR):
-        for Type in ["W", "b"]:
-            param_path = join(PARAM_DIR, layer, f"{Type}.dat")
-            param = bin_of_float(param_path)
-            with open(join(DIST_DIR, f"{Type}_{layer}.h"), "w") as f:
-                f.write(textwrap.dedent(f"""
-                    #ifndef _{Type.upper()}_{layer.upper()}_H_
-                    #define _{Type.upper()}_{layer.upper()}_H_
+        with open(join(DIST_DIR, f"{layer}.h"), "w") as f:
+            f.write(textwrap.dedent(f"""
+                #ifndef _{layer.upper()}_H_
+                #define _{layer.upper()}_H_
 
+            """).strip()+"\n\n")
+            for Type in ["W", "b"]:
+                param_path = join(PARAM_DIR, layer, f"{Type}.dat")
+                param = bin_of_float(param_path)
+                f.write(textwrap.dedent(f"""
                     // PATH: {param_path}
-                    static u32 {Type}_{layer}[{len(param)}] = {{
+                    static s16 {Type}_{layer}[{len(param)}] = {{
                 """).strip()+"\n")
                 f.write(f"{os.linesep.join(param)}"+"\n")
                 f.write(textwrap.dedent(f"""
                     }};
 
-                    #endif
-                """).strip()+"\n")
+                """).strip()+"\n\n")
+            f.write(textwrap.dedent(f"""
+
+                #endif
+            """).strip()+"\n")
 
 def gen_debug(args):
     for layer in os.listdir(PARAM_DIR):

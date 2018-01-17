@@ -56,6 +56,23 @@ private:
   std::vector<Layer *> fire11;
   Layer *              conv12;
 
+// #define _PARAM(name) \
+// u8 * W_##name; float W_##name##_min; float W_##name##_max; \
+// u8 * b_##name; float b_##name##_min; float b_##name##_max;
+//   _PARAM(conv1);
+//   _PARAM(fire2);
+//   _PARAM(fire3);
+//   _PARAM(fire4);
+//   _PARAM(fire5);
+//   _PARAM(fire6);
+//   _PARAM(fire7);
+//   _PARAM(fire8);
+//   _PARAM(fire9);
+//   _PARAM(fire10);
+//   _PARAM(fire11);
+//   _PARAM(conv12);
+// #undef _PARAM
+
   Map *image_ptr;
   Map *pmap1;
   Map *fmap2;

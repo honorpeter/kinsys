@@ -49,6 +49,7 @@ update_ip_catalog -rebuild
   # "[file normalize "$origin_dir/../dist/renkon_ctrl_linebuf.sv"]" \
 set obj [get_filesets sources_1]
 set files [list \
+  "[file normalize "$origin_dir/../dist/dequant.sv"]" \
   "[file normalize "$origin_dir/../dist/mem_sp.sv"]" \
   "[file normalize "$origin_dir/../dist/common.svh"]" \
   "[file normalize "$origin_dir/../dist/renkon.svh"]" \

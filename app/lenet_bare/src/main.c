@@ -16,7 +16,7 @@ int main(void)
   LeNet_init(&input, &output);
 
   setbuf(stdout, NULL);
-  printf("\033[2J");
+  // printf("\033[2J");
   puts("### lenet_bare\n");
 
   memmove(input, image, sizeof(s16)*N_IN*IMG_SIZE*IMG_SIZE);

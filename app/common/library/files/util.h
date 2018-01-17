@@ -48,8 +48,19 @@ extern "C" {
   }                                                     \
 } while (0)
 
-void assign_map(Layer *l, u32 *weight, u32 *bias);
-void assign_vec(Layer *l, u32 *weight, u32 *bias);
+#ifdef QUANT
+// void assign_map_quant(Layer *l, u8 *weight, u8 *bias,
+void assign_map_quant(Layer *l, s16 *weight, s16 *bias,
+                      float weight_min, float weight_max,
+                      float bias_min, float bias_max);
+// void assign_vec_quant(Layer *l, u8 *weight, u8 *bias,
+void assign_vec_quant(Layer *l, s16 *weight, s16 *bias,
+                      float weight_min, float weight_max,
+                      float bias_min, float bias_max);
+#else
+void assign_map(Layer *l, s16 *weight, s16 *bias);
+void assign_vec(Layer *l, s16 *weight, s16 *bias);
+#endif
 
 void exec_core(Layer *l);
 

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <math.h>
 
 #include "kinpira.h"
 
@@ -14,7 +15,14 @@ static u32 bit(u32 value, int high, int low)
 
 
 
-void assign_map(Layer *l, u32 *weight, u32 *bias)
+#ifdef QUANT
+// void assign_map_quant(Layer *l, u8 *weight, u8 *bias,
+void assign_map_quant(Layer *l, s16 *weight, s16 *bias,
+                      float weight_min, float weight_max,
+                      float bias_min, float bias_max)
+#else
+void assign_map(Layer *l, s16 *weight, s16 *bias)
+#endif
 {
   const int core  = RENKON_CORE;
   const int n_out = bit(l->base_param[0], 2*LWIDTH-1, LWIDTH);
@@ -28,16 +36,11 @@ void assign_map(Layer *l, u32 *weight, u32 *bias)
 
   for (int n = 0; n < n_out/core; n++) {
     for (int dn = 0; dn < core; dn++) {
-      // memmove(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
       for (int i = 0; i < unit; i++)
-        mem_renkon[dn][idx+i] = weight[idx_w+i];
-      // for (int i = 0; i < unit; i++)
-      //   assert(mem_renkon[dn][idx+i] == weight[idx_w+i]);
+        mem_renkon[dn][idx+i] = (u32)weight[idx_w+i];
       idx_w += unit;
 
-      // memmove(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
-      mem_renkon[dn][idx+unit] = bias[idx_b];
-      // assert(mem_renkon[dn][idx+unit] == bias[idx_b]);
+      mem_renkon[dn][idx+unit] = (u32)bias[idx_b];
       idx_b += 1;
     }
 
@@ -47,34 +50,41 @@ void assign_map(Layer *l, u32 *weight, u32 *bias)
   if (n_out % core != 0) {
     for (int dn = 0; dn < core; dn++) {
       if (idx_b < n_out) {
-        // memmove(&mem_renkon[dn][idx], &weight[idx_w], sizeof(u32)*unit);
         for (int i = 0; i < unit; i++)
-          mem_renkon[dn][idx+i] = weight[idx_w+i];
-        // for (int i = 0; i < unit; i++)
-        //   assert(mem_renkon[dn][idx+i] == weight[idx_w+i]);
+          mem_renkon[dn][idx+i] = (u32)weight[idx_w+i];
         idx_w += unit;
 
-        // memmove(&mem_renkon[dn][idx+unit], &bias[idx_b], sizeof(u32)*1);
-        mem_renkon[dn][idx+unit] = bias[idx_b];
-        // assert(mem_renkon[dn][idx+unit] == bias[idx_b]);
+        mem_renkon[dn][idx+unit] = (u32)bias[idx_b];
         idx_b += 1;
       }
       else {
-        // memset(&mem_renkon[dn][idx], 0, sizeof(u32)*(unit+1));
         for (int i = 0; i < unit+1; i++)
-          mem_renkon[dn][idx+i] = 0;
-        // for (int i = 0; i < unit+1; i++)
-        //   assert(mem_renkon[dn][idx+i] == 0);
+          mem_renkon[dn][idx+i] = (u32)0;
       }
     }
 
     idx += unit + 1;
   }
+
+#ifdef QUANT
+  l->w_scale  = rint(((weight_max - weight_min) / 255.0) * 256.0);
+  l->w_offset = rint(weight_min * 256.0);
+  l->b_scale  = rint(((bias_max - bias_min) / 255.0) * 256.0);
+  l->b_offset = rint(bias_min * 256.0);
+  printf("%d %d %d %d\n", l->w_scale, l->w_offset, l->b_scale, l->b_offset);
+#endif
 }
 
 
 
-void assign_vec(Layer *l, u32 *weight, u32 *bias)
+#ifdef QUANT
+// void assign_vec_quant(Layer *l, u8 *weight, u8 *bias,
+void assign_vec_quant(Layer *l, s16 *weight, s16 *bias,
+                      float weight_min, float weight_max,
+                      float bias_min, float bias_max)
+#else
+void assign_vec(Layer *l, s16 *weight, s16 *bias)
+#endif
 {
   const int core  = GOBOU_CORE;
   const int n_out = bit(l->base_param[0], 2*LWIDTH-1, LWIDTH);
@@ -86,16 +96,11 @@ void assign_vec(Layer *l, u32 *weight, u32 *bias)
 
   for (int n = 0; n < n_out/core; n++) {
     for (int dn = 0; dn < core; dn++) {
-      // memmove(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
       for (int i = 0; i < n_in; i++)
-        mem_gobou[dn][idx+i] = weight[idx_w+i];
-      // for (int i = 0; i < n_in; i++)
-      //   assert(mem_gobou[dn][idx+i] == weight[idx_w+i]);
+        mem_gobou[dn][idx+i] = (u32)weight[idx_w+i];
       idx_w += n_in;
 
-      // memmove(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
-      mem_gobou[dn][idx+n_in] = bias[idx_b];
-      // assert(mem_gobou[dn][idx+n_in] == bias[idx_b]);
+      mem_gobou[dn][idx+n_in] = (u32)bias[idx_b];
       idx_b += 1;
     }
 
@@ -105,29 +110,29 @@ void assign_vec(Layer *l, u32 *weight, u32 *bias)
   if (n_out % core != 0) {
     for (int dn = 0; dn < core; dn++) {
       if (idx_b < n_out) {
-        // memmove(&mem_gobou[dn][idx], &weight[idx_w], sizeof(u32)*n_in);
         for (int i = 0; i < n_in; i++)
-          mem_gobou[dn][idx+i] = weight[idx_w+i];
-        // for (int i = 0; i < n_in; i++)
-        //   assert(mem_gobou[dn][idx+i] == weight[idx_w+i]);
+          mem_gobou[dn][idx+i] = (u32)weight[idx_w+i];
         idx_w += n_in;
 
-        // memmove(&mem_gobou[dn][idx+n_in], &bias[idx_b], sizeof(u32)*1);
-        mem_gobou[dn][idx+n_in] = bias[idx_b];
-        // assert(mem_gobou[dn][idx+n_in] == bias[idx_b]);
+        mem_gobou[dn][idx+n_in] = (u32)bias[idx_b];
         idx_b += 1;
       }
       else {
-        // memset(&mem_gobou[dn][idx], 0, sizeof(u32)*(n_in+1));
         for (int i = 0; i < n_in+1; i++)
-          mem_gobou[dn][idx+i] = 0;
-        // for (int i = 0; i < n_in+1; i++)
-        //   assert(mem_gobou[dn][idx+i] == 0);
+          mem_gobou[dn][idx+i] = (u32)0;
       }
     }
 
     idx += n_in + 1;
   }
+
+#ifdef QUANT
+  l->w_scale  = rint(((weight_max - weight_min) / 255.0) * 256.0);
+  l->w_offset = rint(weight_min * 256.0);
+  l->b_scale  = rint(((bias_max - bias_min) / 255.0) * 256.0);
+  l->b_offset = rint(bias_min * 256.0);
+  printf("%d %d %d %d\n", l->w_scale, l->w_offset, l->b_scale, l->b_offset);
+#endif
 }
 
 
@@ -138,6 +143,16 @@ void exec_core(Layer *l)
   usleep(1);
   *reg_qbits        = l->qbits;
   usleep(1);
+#ifdef QUANT
+  *reg_w_scale      = l->w_scale;
+  usleep(1);
+  *reg_w_offset     = l->w_offset;
+  usleep(1);
+  *reg_b_scale      = l->b_scale;
+  usleep(1);
+  *reg_b_offset     = l->b_offset;
+  usleep(1);
+#endif
   *reg_in_offset    = l->in_offset;
   usleep(1);
   *reg_out_offset   = l->out_offset;

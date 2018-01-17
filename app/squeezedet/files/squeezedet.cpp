@@ -10,6 +10,19 @@
 
 #include "kinpira.h"
 
+#include "data/conv1.h"
+#include "data/fire2.h"
+#include "data/fire3.h"
+#include "data/fire4.h"
+#include "data/fire5.h"
+#include "data/fire6.h"
+#include "data/fire7.h"
+#include "data/fire8.h"
+#include "data/fire9.h"
+#include "data/fire10.h"
+#include "data/fire11.h"
+#include "data/conv12.h"
+
 static inline Layer *
 conv(Map *input, Map *output, int kern, int strid, int pad, bool pool)
 {
@@ -85,18 +98,18 @@ SqueezeDet::SqueezeDet(std::shared_ptr<Image> input,
 
   // set_output(fmap12, output);
 
-  // assign_map(conv1,   W_conv1,  b_conv1);
-  // assign_maps(fire2,  W_fire2,  b_fire2);
-  // assign_maps(fire3,  W_fire3,  b_fire3);
-  // assign_maps(fire4,  W_fire4,  b_fire4);
-  // assign_maps(fire5,  W_fire5,  b_fire5);
-  // assign_maps(fire6,  W_fire6,  b_fire6);
-  // assign_maps(fire7,  W_fire7,  b_fire7);
-  // assign_maps(fire8,  W_fire8,  b_fire8);
-  // assign_maps(fire9,  W_fire9,  b_fire9);
-  // assign_maps(fire10, W_fire10, b_fire10);
-  // assign_maps(fire11, W_fire11, b_fire11);
-  // assign_map(conv12,  W_conv12, b_conv12);
+  assign_map_quant(conv1,   W_conv1,  b_conv1,  W_conv1_min,  W_conv1_max,  b_conv1_min,  b_conv1_max );
+  assign_maps_quant(fire2,  W_fire2,  b_fire2,  W_fire2_min,  W_fire2_max,  b_fire2_min,  b_fire2_max );
+  assign_maps_quant(fire3,  W_fire3,  b_fire3,  W_fire3_min,  W_fire3_max,  b_fire3_min,  b_fire3_max );
+  assign_maps_quant(fire4,  W_fire4,  b_fire4,  W_fire4_min,  W_fire4_max,  b_fire4_min,  b_fire4_max );
+  assign_maps_quant(fire5,  W_fire5,  b_fire5,  W_fire5_min,  W_fire5_max,  b_fire5_min,  b_fire5_max );
+  assign_maps_quant(fire6,  W_fire6,  b_fire6,  W_fire6_min,  W_fire6_max,  b_fire6_min,  b_fire6_max );
+  assign_maps_quant(fire7,  W_fire7,  b_fire7,  W_fire7_min,  W_fire7_max,  b_fire7_min,  b_fire7_max );
+  assign_maps_quant(fire8,  W_fire8,  b_fire8,  W_fire8_min,  W_fire8_max,  b_fire8_min,  b_fire8_max );
+  assign_maps_quant(fire9,  W_fire9,  b_fire9,  W_fire9_min,  W_fire9_max,  b_fire9_min,  b_fire9_max );
+  assign_maps_quant(fire10, W_fire10, b_fire10, W_fire10_min, W_fire10_max, b_fire10_min, b_fire10_max);
+  assign_maps_quant(fire11, W_fire11, b_fire11, W_fire11_min, W_fire11_max, b_fire11_min, b_fire11_max);
+  assign_map_quant(conv12,  W_conv12, b_conv12, W_fire12_min, W_fire12_max, b_fire12_min, b_fire12_max);
 
   ANCHOR_BOX = set_anchors();
 }

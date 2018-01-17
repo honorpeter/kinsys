@@ -23,6 +23,13 @@ module test_gobou_top;
   reg                     clk;
   reg                     xrst;
   reg                     req;
+  reg [DWIDTHLOG-1:0]     qbits;
+`ifdef QUANT
+  reg signed [DWIDTH-1:0]  w_scale;
+  reg signed [DWIDTH-1:0]  w_offset;
+  reg signed [DWIDTH-1:0]  b_scale;
+  reg signed [DWIDTH-1:0]  b_offset;
+`endif
   reg [GOBOU_CORELOG-1:0] net_sel;
   reg                     net_we;
   reg [GOBOU_NETSIZE-1:0] net_addr;
@@ -30,7 +37,6 @@ module test_gobou_top;
   reg [MEMSIZE-1:0]       in_offset;
   reg [MEMSIZE-1:0]       out_offset;
   reg [GOBOU_NETSIZE-1:0] net_offset;
-  reg [DWIDTHLOG-1:0]     qbits;
   reg [LWIDTH-1:0]        total_out;
   reg [LWIDTH-1:0]        total_in;
   reg                     bias_en;
@@ -185,6 +191,13 @@ module test_gobou_top;
 
     xrst        = 1;
     req         = 0;
+    qbits       = QBITS;
+`ifdef QUANT
+    w_scale     = 256;
+    w_offset    = 0;
+    b_scale     = 256;
+    b_offset    = 0;
+`endif
     net_sel     = 0;
     net_we      = 0;
     net_addr    = 0;
@@ -192,7 +205,6 @@ module test_gobou_top;
     in_offset   = IMG_OFFSET;
     out_offset  = OUT_OFFSET;
     net_offset  = NET_OFFSET;
-    qbits       = QBITS;
     total_out   = N_OUT;
     total_in    = N_IN;
     bias_en     = DO_BIAS;
