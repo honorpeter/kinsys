@@ -71,7 +71,6 @@ void assign_map(Layer *l, s16 *weight, s16 *bias)
   l->w_offset = rint(weight_min * 256.0);
   l->b_scale  = rint(((bias_max - bias_min) / 255.0) * 256.0);
   l->b_offset = rint(bias_min * 256.0);
-  printf("%d %d %d %d\n", l->w_scale, l->w_offset, l->b_scale, l->b_offset);
 #endif
 }
 
@@ -131,7 +130,6 @@ void assign_vec(Layer *l, s16 *weight, s16 *bias)
   l->w_offset = rint(weight_min * 256.0);
   l->b_scale  = rint(((bias_max - bias_min) / 255.0) * 256.0);
   l->b_offset = rint(bias_min * 256.0);
-  printf("%d %d %d %d\n", l->w_scale, l->w_offset, l->b_scale, l->b_offset);
 #endif
 }
 
