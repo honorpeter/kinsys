@@ -176,7 +176,7 @@ void MVTracker::interpolate()
 #ifdef THREAD
 thr = std::thread([&] {
 #endif
-  frame = eat_front(in_fifo);
+  frame = pop_front(in_fifo);
   auto mvs = frame.mvs;
 
   for (auto& box : boxes) {
@@ -196,5 +196,5 @@ void MVTracker::sync()
 #ifdef THREAD
   thr.join();
 #endif
-  out_fifo->push_back(std::make_pair(frame, tracks));
+  push_back(out_fifo, std::make_pair(frame, tracks));
 }

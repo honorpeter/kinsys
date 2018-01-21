@@ -15,7 +15,7 @@ void Display::post_frame()
 #ifdef THREAD
   thr = std::thread([&] {
 #endif
-    std::tie(frame, objs) = eat_front(fifo);
+    std::tie(frame, objs) = pop_front(fifo);
 
     cv::Mat img(frame.height, frame.width, CV_8UC3, frame.src);
     delete [] frame.body;
@@ -26,7 +26,10 @@ void Display::post_frame()
       break;
     }
 
+#ifdef RELEASE
     cv::imshow("display", img);
+#else
+#endif
     cv::waitKey(1);
 #ifdef THREAD
   });

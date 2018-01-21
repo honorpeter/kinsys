@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include "webcam.hpp"
+#include "wrapper.hpp"
 
 Webcam::Webcam(std::shared_ptr<std::deque<Image>> fifo)
   : fifo(fifo)
@@ -8,7 +9,7 @@ Webcam::Webcam(std::shared_ptr<std::deque<Image>> fifo)
   av_register_all();
   avdevice_register_all();
 
-#if 0
+#if RELEASE
   const char *name = "/dev/video0";
   AVInputFormat *in_format = av_find_input_format("v4l2");
   AVDictionary *format_opts = nullptr;
@@ -148,7 +149,7 @@ void Webcam::preprocess(cv::Mat& img, std::vector<AVMotionVector> &mvs)
     }
   }
 
-  fifo->push_back(target);
+  push_back(fifo, target);
 }
 
 void Webcam::get_i_frame()

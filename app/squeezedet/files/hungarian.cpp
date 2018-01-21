@@ -346,6 +346,7 @@ linear_sum_assignment(std::vector<std::vector<float>> &cost)
     cout << endl;
   }
 #endif
+
   _internal::Hungarian solver(cost);
   solver.solve();
   return solver.dump();

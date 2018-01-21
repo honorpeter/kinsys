@@ -4,12 +4,14 @@
 #include <iostream>
 #include <chrono>
 #include <deque>
+#include <mutex>
 #include <memory>
 #include <vector>
 
 #include "kinpira.h"
 
-// #define THREAD
+#define THREAD
+// #define RELEASE
 
 using std::cout;
 using std::endl;
@@ -32,22 +34,38 @@ void undef_layers(std::vector<Layer *> ls);
 
 void undef_maps(std::vector<Map *> ms);
 
+extern std::mutex mtx;
+
 template <typename T>
-static T eat_front(std::shared_ptr<std::deque<T>> fifo)
+T pop_front(std::shared_ptr<std::deque<T>> fifo)
 {
-  cout << "eat_front: " << fifo->size() << endl;
+  std::lock_guard<std::mutex> lock(mtx);
   T tmp = fifo->front();
   fifo->pop_front();
   return tmp;
 };
 
 template <typename T>
-static T eat_back(std::shared_ptr<std::deque<T>> fifo)
+T pop_back(std::shared_ptr<std::deque<T>> fifo)
 {
-  cout << "eat_back: " << fifo->size() << endl;
+  std::lock_guard<std::mutex> lock(mtx);
   T tmp = fifo->back();
   fifo->pop_back();
   return tmp;
+};
+
+template <typename T>
+void push_front(std::shared_ptr<std::deque<T>> fifo, T tmp)
+{
+  std::lock_guard<std::mutex> lock(mtx);
+  fifo->push_front(tmp);
+};
+
+template <typename T>
+void push_back(std::shared_ptr<std::deque<T>> fifo, T tmp)
+{
+  std::lock_guard<std::mutex> lock(mtx);
+  fifo->push_back(tmp);
 };
 
 #endif

@@ -10,18 +10,20 @@
 
 #include "kinpira.h"
 
-// #include "data/conv1.hpp"
-// #include "data/fire2.hpp"
-// #include "data/fire3.hpp"
-// #include "data/fire4.hpp"
-// #include "data/fire5.hpp"
-// #include "data/fire6.hpp"
-// #include "data/fire7.hpp"
-// #include "data/fire8.hpp"
-// #include "data/fire9.hpp"
-// #include "data/fire10.hpp"
-// #include "data/fire11.hpp"
-// #include "data/conv12.hpp"
+#ifdef RELEASE
+#include "data/conv1.hpp"
+#include "data/fire2.hpp"
+#include "data/fire3.hpp"
+#include "data/fire4.hpp"
+#include "data/fire5.hpp"
+#include "data/fire6.hpp"
+#include "data/fire7.hpp"
+#include "data/fire8.hpp"
+#include "data/fire9.hpp"
+#include "data/fire10.hpp"
+#include "data/fire11.hpp"
+#include "data/conv12.hpp"
+#endif
 
 static inline Layer *
 conv(Map *input, Map *output, int kern, int strid, int pad, bool pool)
@@ -107,38 +109,26 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
   fmap11  = define_fire(fire11_maps, 96, 384, 384,  78, 24);
   fmap12  = define_map( 72,   78,  24);
 
-  // // set_input(&in_det->body, image);
+  // set_input(&in_det->body, image);
   in_det->body = image->body;
 
-  // puts("conv1");
   conv1  = conv(image,  pmap1, 3, 2, 1, true);
-  // puts("fire2");
   fire2  = fire(pmap1,  fire2_maps,  false);
-  // puts("fire3");
   fire3  = fire(fmap2,  fire3_maps,  true);
-  // puts("fire4");
   fire4  = fire(pmap3,  fire4_maps,  false);
-  // puts("fire5");
   fire5  = fire(fmap4,  fire5_maps,  true);
-  // puts("fire6");
   fire6  = fire(pmap5,  fire6_maps,  false);
-  // puts("fire7");
   fire7  = fire(fmap6,  fire7_maps,  false);
-  // puts("fire8");
   fire8  = fire(fmap7,  fire8_maps,  false);
-  // puts("fire9");
   fire9  = fire(fmap8,  fire9_maps,  false);
-  // puts("fire10");
   fire10 = fire(fmap9,  fire10_maps, false);
-  // puts("fire11");
   fire11 = fire(fmap10, fire11_maps, false);
-  // puts("conv12");
   conv12 = conv(fmap11, fmap12, 3, 1, 1, false);
 
-  // // set_output(fmap12, &out_det->first.body);
+  // set_output(fmap12, &out_det->first.body);
   out_det->first.body = fmap12->body;
 
-#if 0
+#ifdef RELEASE
   assign_map_quant( conv1,   W_conv1,  b_conv1,
                     W_conv1_min,  W_conv1_max,  b_conv1_min,  b_conv1_max );
   assign_maps_quant(fire2,  W_fire2,  b_fire2,
@@ -163,10 +153,9 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
                     W_fire11_min, W_fire11_max, b_fire11_min, b_fire11_max);
   assign_map_quant( conv12,  W_conv12, b_conv12,
                     W_conv12_min, W_conv12_max, b_conv12_min, b_conv12_max);
-
 #endif
 
-  ANCHOR_BOX = set_anchors();
+  init_matrix();
 }
 
 SqueezeDet::~SqueezeDet()
@@ -210,6 +199,26 @@ SqueezeDet::~SqueezeDet()
   undef_map(fmap12);
 
   kinpira_exit();
+}
+
+void SqueezeDet::init_matrix()
+{
+  ANCHOR_BOX = set_anchors();
+
+  preds = zeros<float>(fmap12->shape[0], fmap12->shape[1], fmap12->shape[2]);
+  pred_class = zeros<float>(out_h, out_w, ANCHOR_PER_GRID * CLASSES);
+  pred_confidence = zeros<float>(out_h, out_w, ANCHOR_PER_GRID);
+  pred_box = zeros<float>(out_h, out_w, num_box_delta-num_confidence_scores);
+  pred_class_flat = zeros<float>(ANCHORS*CLASSES);
+  pred_class_ = zeros<float>(ANCHORS, CLASSES);
+  pred_class_probs = zeros<float>(ANCHORS, CLASSES);
+  pred_confidence_flat = zeros<float>(ANCHORS);
+  pred_confidence_scores = zeros<float>(ANCHORS);
+  pred_box_flat = zeros<float>(ANCHORS*4);
+  pred_box_delta = zeros<float>(ANCHORS, 4);
+  _probs = zeros<float>(ANCHORS, CLASSES);
+  probs = zeros<float>(ANCHORS);
+  classes = zeros<int>(ANCHORS);
 }
 
 auto SqueezeDet::merge_box_delta(Mat2D<float>& anchor, Mat2D<float>& delta)
@@ -341,7 +350,7 @@ Mat2D<float> SqueezeDet::set_anchors()
 
 void SqueezeDet::filter()
 { // {{{
-  std::vector<int> whole(probs.size());
+  std::vector<int> whole(ANCHORS);
   std::iota(whole.begin(), whole.end(), 0);
   std::vector<int> order;
 
@@ -378,19 +387,18 @@ void SqueezeDet::filter()
     }
 
     auto keep = nms(cand_boxes, cand_probs, NMS_THRESH);
-#if 0
+#ifdef RELEASE
     for (int i = 0; i < (int)keep.size(); ++i) {
       if (keep[i]) {
-        // TODO: (x, y, w, h) to (l, t, r, b)
         auto mask_boxes = bbox_transform(cand_boxes[i][0], cand_boxes[i][1],
                                          cand_boxes[i][2], cand_boxes[i][3]);
         mask.emplace_back(BBox{
           .name  = class_map[c],
           .prob  = cand_probs[i],
-          .left  = static_cast<int>(mask_boxes[i][0]),
-          .top   = static_cast<int>(mask_boxes[i][1]),
-          .right = static_cast<int>(mask_boxes[i][2]),
-          .bot   = static_cast<int>(mask_boxes[i][3]),
+          .left  = static_cast<int>(mask_boxes[0]),
+          .top   = static_cast<int>(mask_boxes[1]),
+          .right = static_cast<int>(mask_boxes[2]),
+          .bot   = static_cast<int>(mask_boxes[3]),
         });
       }
     }
@@ -411,17 +419,6 @@ void SqueezeDet::filter()
 
 void SqueezeDet::interpret(Mat3D<float>& preds)
 { // {{{
-  const int num_class_probs = ANCHOR_PER_GRID * CLASSES;
-  const int num_confidence_scores = ANCHOR_PER_GRID + num_class_probs;
-  const int num_box_delta = preds.size();
-
-  const int out_h = preds[0].size();
-  const int out_w = preds[0][0].size();
-
-  auto pred_class = zeros<float>(out_h, out_w, ANCHOR_PER_GRID * CLASSES);
-  auto pred_confidence = zeros<float>(out_h, out_w, ANCHOR_PER_GRID);
-  auto pred_box = zeros<float>(out_h, out_w,
-                               num_box_delta-num_confidence_scores);
   for (int j = 0; j < out_h; ++j) {
     for (int k = 0; k < out_w; ++k) {
       // convert to tensorflow encoding
@@ -436,32 +433,22 @@ void SqueezeDet::interpret(Mat3D<float>& preds)
     }
   }
 
-  auto pred_class_flat = zeros<float>(ANCHORS*CLASSES);
-  auto pred_class_ = zeros<float>(ANCHORS, CLASSES);
-  auto pred_class_probs = zeros<float>(ANCHORS, CLASSES);
   flatten(pred_class_flat, pred_class);
   reshape(pred_class_, pred_class_flat);
   for (int i = 0; i < ANCHORS; ++i)
     softmax(pred_class_probs[i], pred_class_[i]);
 
-  auto pred_confidence_flat = zeros<float>(ANCHORS);
-  auto pred_confidence_scores = zeros<float>(ANCHORS);
   flatten(pred_confidence_flat, pred_confidence);
   sigmoid(pred_confidence_scores, pred_confidence_flat);
 
-  auto pred_box_flat = zeros<float>(ANCHORS*4);
-  auto pred_box_delta = zeros<float>(ANCHORS, 4);
   flatten(pred_box_flat, pred_box);
   reshape(pred_box_delta, pred_box_flat);
   merge_box_delta(ANCHOR_BOX, pred_box_delta);
 
-  Mat2D<float> _probs = zeros<float>(ANCHORS, CLASSES);
   for (int i = 0; i < ANCHORS; ++i)
     // scalar * vector
     _probs[i] = pred_confidence_scores[i] * pred_class_probs[i];
 
-  probs = zeros<float>(ANCHORS);
-  classes = zeros<int>(ANCHORS);
   for (int i = 0; i < ANCHORS; ++i) {
     probs[i] = max(_probs[i]);
     classes[i] = argmax(_probs[i]);
@@ -475,7 +462,7 @@ thr = std::thread([&] {
 #endif
   frame = *in_det;
 
-#if 0
+#ifdef RELEASE
   exec_core(conv1);
   exec_cores(fire2);
   exec_cores(fire3);
@@ -499,8 +486,6 @@ thr = std::thread([&] {
 #endif
 
   int idx = 0;
-  auto preds =
-    zeros<float>(fmap12->shape[0], fmap12->shape[1], fmap12->shape[2]);
   for (int i = 0; i < fmap12->shape[0]; ++i)
     for (int j = 0; j < fmap12->shape[1]; ++j)
       for (int k = 0; k < fmap12->shape[2]; ++k)

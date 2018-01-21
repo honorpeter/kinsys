@@ -21,6 +21,7 @@
 uint32_t *port;
 uint32_t (*mem_renkon)[RENKON_WORDS];
 uint32_t (*mem_gobou)[GOBOU_WORDS];
+std::mutex mtx;
 
 // TODO: implementation
 bool loop_continue()
@@ -53,7 +54,7 @@ void loop_scenario(const int gop_size = 12)
   // blocking
   SHOW(cam.get_i_frame());
 
-  SHOW(*in_det = eat_front(in_fifo));
+  SHOW(*in_det = pop_front(in_fifo));
   SHOW(model.evaluate());
   SHOW(cam.get_sub_gop());
 
@@ -65,7 +66,7 @@ void loop_scenario(const int gop_size = 12)
     SHOW(me.sync());
 
     SHOW(disp.post_frame());
-    SHOW(*in_det = eat_back(in_fifo));
+    SHOW(*in_det = pop_back(in_fifo));
     SHOW(model.evaluate());
     SHOW(cam.get_sub_gop());
 
@@ -78,8 +79,7 @@ void loop_scenario(const int gop_size = 12)
       SHOW(disp.post_frame());
 
       // TODO: Time Keep
-      // while (false);
-      /* SHOW(std::this_thread::sleep_for(std::chrono::milliseconds(34))); */
+      // SHOW(std::this_thread::sleep_for(std::chrono::milliseconds(34)));
     }
 
     SHOW(disp.sync());

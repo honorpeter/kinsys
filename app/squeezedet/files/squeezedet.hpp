@@ -31,6 +31,7 @@ public:
 private:
   std::thread thr;
 
+  void init_matrix();
   void interpret(Mat3D<float>& preds);
   void filter();
   auto merge_box_delta(Mat2D<float>& anchor, Mat2D<float>& delta);
@@ -98,6 +99,26 @@ private:
 
   const std::array<std::string, 3> class_map =
     {{"car", "pedestrian", "cyclist"}};
+
+  const int num_class_probs = 9*3;//ANCHOR_PER_GRID * CLASSES;
+  const int num_confidence_scores = 9+9*3;//ANCHOR_PER_GRID + num_class_probs;
+  const int num_box_delta = 9*4+9+9*3;//preds.size();
+
+  const int out_h = 24;// preds[0].size();
+  const int out_w = 78;// preds[0][0].size();
+
+  Mat3D<float> preds;
+  Mat3D<float> pred_class;
+  Mat3D<float> pred_confidence;
+  Mat3D<float> pred_box;
+  Mat1D<float> pred_class_flat;
+  Mat2D<float> pred_class_;
+  Mat2D<float> pred_class_probs;
+  Mat1D<float> pred_confidence_flat;
+  Mat1D<float> pred_confidence_scores;
+  Mat1D<float> pred_box_flat;
+  Mat2D<float> pred_box_delta;
+  Mat2D<float> _probs;
 };
 
 #endif
