@@ -10,18 +10,18 @@
 
 #include "kinpira.h"
 
-#include "data/conv1.hpp"
-#include "data/fire2.hpp"
-#include "data/fire3.hpp"
-#include "data/fire4.hpp"
-#include "data/fire5.hpp"
-#include "data/fire6.hpp"
-#include "data/fire7.hpp"
-#include "data/fire8.hpp"
-#include "data/fire9.hpp"
-#include "data/fire10.hpp"
-#include "data/fire11.hpp"
-#include "data/conv12.hpp"
+// #include "data/conv1.hpp"
+// #include "data/fire2.hpp"
+// #include "data/fire3.hpp"
+// #include "data/fire4.hpp"
+// #include "data/fire5.hpp"
+// #include "data/fire6.hpp"
+// #include "data/fire7.hpp"
+// #include "data/fire8.hpp"
+// #include "data/fire9.hpp"
+// #include "data/fire10.hpp"
+// #include "data/fire11.hpp"
+// #include "data/conv12.hpp"
 
 static inline Layer *
 conv(Map *input, Map *output, int kern, int strid, int pad, bool pool)
@@ -108,35 +108,35 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
   fmap12  = define_map( 72,   78,  24);
 
   // // set_input(&in_det->body, image);
-  // in_det->body = image->body;
+  in_det->body = image->body;
 
-  puts("conv1");
+  // puts("conv1");
   conv1  = conv(image,  pmap1, 3, 2, 1, true);
-  puts("fire2");
+  // puts("fire2");
   fire2  = fire(pmap1,  fire2_maps,  false);
-  puts("fire3");
+  // puts("fire3");
   fire3  = fire(fmap2,  fire3_maps,  true);
-  puts("fire4");
+  // puts("fire4");
   fire4  = fire(pmap3,  fire4_maps,  false);
-  puts("fire5");
+  // puts("fire5");
   fire5  = fire(fmap4,  fire5_maps,  true);
-  puts("fire6");
+  // puts("fire6");
   fire6  = fire(pmap5,  fire6_maps,  false);
-  puts("fire7");
+  // puts("fire7");
   fire7  = fire(fmap6,  fire7_maps,  false);
-  puts("fire8");
+  // puts("fire8");
   fire8  = fire(fmap7,  fire8_maps,  false);
-  puts("fire9");
+  // puts("fire9");
   fire9  = fire(fmap8,  fire9_maps,  false);
-  puts("fire10");
+  // puts("fire10");
   fire10 = fire(fmap9,  fire10_maps, false);
-  puts("fire11");
+  // puts("fire11");
   fire11 = fire(fmap10, fire11_maps, false);
-  puts("conv12");
+  // puts("conv12");
   conv12 = conv(fmap11, fmap12, 3, 1, 1, false);
 
   // // set_output(fmap12, &out_det->first.body);
-  // out_det->first.body = fmap12->body;
+  out_det->first.body = fmap12->body;
 
 #if 0
   assign_map_quant( conv1,   W_conv1,  b_conv1,
@@ -378,19 +378,34 @@ void SqueezeDet::filter()
     }
 
     auto keep = nms(cand_boxes, cand_probs, NMS_THRESH);
+#if 0
     for (int i = 0; i < (int)keep.size(); ++i) {
       if (keep[i]) {
         // TODO: (x, y, w, h) to (l, t, r, b)
+        auto mask_boxes = bbox_transform(cand_boxes[i][0], cand_boxes[i][1],
+                                         cand_boxes[i][2], cand_boxes[i][3]);
         mask.emplace_back(BBox{
           .name  = class_map[c],
           .prob  = cand_probs[i],
-          .left  = static_cast<int>(cand_boxes[i][0]),
-          .top   = static_cast<int>(cand_boxes[i][1]),
-          .right = static_cast<int>(cand_boxes[i][2]),
-          .bot   = static_cast<int>(cand_boxes[i][3]),
+          .left  = static_cast<int>(mask_boxes[i][0]),
+          .top   = static_cast<int>(mask_boxes[i][1]),
+          .right = static_cast<int>(mask_boxes[i][2]),
+          .bot   = static_cast<int>(mask_boxes[i][3]),
         });
       }
     }
+#else
+    for (int i = 0; i < 2; ++i) {
+      mask.emplace_back(BBox{
+        .name  = class_map[c],
+        .prob  = 0.5,
+        .left  = 10,
+        .top   = 10,
+        .right = 100,
+        .bot   = 100,
+      });
+    }
+#endif
   }
 } // }}}
 
@@ -455,8 +470,12 @@ void SqueezeDet::interpret(Mat3D<float>& preds)
 
 void SqueezeDet::evaluate()
 {
+#ifdef THREAD
+thr = std::thread([&] {
+#endif
   frame = *in_det;
 
+#if 0
   exec_core(conv1);
   exec_cores(fire2);
   exec_cores(fire3);
@@ -469,19 +488,35 @@ void SqueezeDet::evaluate()
   exec_cores(fire10);
   exec_cores(fire11);
   exec_core(conv12);
+#else
+  do {
+    int idx = 0;
+    for (int i = 0; i < fmap12->shape[0]; ++i)
+      for (int j = 0; j < fmap12->shape[1]; ++j)
+        for (int k = 0; k < fmap12->shape[2]; ++k)
+          fmap12->body[idx] = idx;
+  } while (0);
+#endif
 
-  Mat3D<float> preds;
   int idx = 0;
+  auto preds =
+    zeros<float>(fmap12->shape[0], fmap12->shape[1], fmap12->shape[2]);
   for (int i = 0; i < fmap12->shape[0]; ++i)
     for (int j = 0; j < fmap12->shape[1]; ++j)
       for (int k = 0; k < fmap12->shape[2]; ++k)
-        preds[i][j][k] = static_cast<float>(fmap12->body[idx++]);
+        preds[i][j][k] = static_cast<float>(fmap12->body[idx++]) / 256.0;
 
   interpret(preds);
   filter();
+#ifdef THREAD
+});
+#endif
 }
 
 void SqueezeDet::sync()
 {
+#ifdef THREAD
+  thr.join();
+#endif
   *out_det = std::make_pair(frame, mask);
 }

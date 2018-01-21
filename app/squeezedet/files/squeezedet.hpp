@@ -92,8 +92,6 @@ private:
   const float PROB_THRESH           = 0.005;
   const int TOP_N_DETECTION         = 64;
 
-  const bool EXCLUDE_HARD_EXAMPLES  = false;
-
   Mat2D<float> ANCHOR_BOX;
   const int ANCHOR_PER_GRID         = 9;
   const int ANCHORS                 = 78 * 24 * ANCHOR_PER_GRID;

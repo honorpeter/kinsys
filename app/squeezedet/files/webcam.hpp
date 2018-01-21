@@ -32,11 +32,16 @@ public:
   // Logicool Webcam C920 H.264
   const int gop_size = 300;
   const int sub_gop_size = 12;
+  const int mb_size = 16;
+  const int max_mb_size = 512;
+  const float bgr_means[3] = {103.939, 116.779, 123.68};
 
 private:
   std::thread thr;
 
-  void preprocess(cv::Mat& img);
+  void preprocess(cv::Mat& img, std::vector<AVMotionVector> &mvs);
+  void extract_mvs(AVFrame *frame, std::vector<AVMotionVector> &mvs);
+  void format_mvs(Image &img, std::vector<AVMotionVector> &mvs);
 
   std::shared_ptr<std::deque<Image>> fifo;
   Image target;
@@ -49,7 +54,7 @@ private:
   AVFrame *frame_bgr = nullptr;
 
   AVPacket packet;
-  AVMotionVector *mvs = nullptr;
+  std::vector<AVMotionVector> mvs;
 
   uint8_t *buffer = nullptr;
 

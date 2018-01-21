@@ -16,21 +16,6 @@ struct Image {
   int width;
   unsigned char *src;
   s16 *body;
-
-  Image() {
-    this->body   = new s16[0];
-  }
-
-  Image(int channel, int height, int width, unsigned char *src) {
-    this->height = height;
-    this->width  = width;
-    this->src    = src;
-    this->body   = new s16[channel * height * width];
-  }
-
-  ~Image() {
-    delete[] this->body;
-  }
 };
 
 struct BBox {

@@ -9,6 +9,8 @@
 
 #include "kinpira.h"
 
+// #define THREAD
+
 using std::cout;
 using std::endl;
 using namespace std::chrono;
@@ -33,6 +35,7 @@ void undef_maps(std::vector<Map *> ms);
 template <typename T>
 static T eat_front(std::shared_ptr<std::deque<T>> fifo)
 {
+  cout << "eat_front: " << fifo->size() << endl;
   T tmp = fifo->front();
   fifo->pop_front();
   return tmp;
@@ -41,6 +44,7 @@ static T eat_front(std::shared_ptr<std::deque<T>> fifo)
 template <typename T>
 static T eat_back(std::shared_ptr<std::deque<T>> fifo)
 {
+  cout << "eat_back: " << fifo->size() << endl;
   T tmp = fifo->back();
   fifo->pop_back();
   return tmp;

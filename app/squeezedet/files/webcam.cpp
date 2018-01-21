@@ -1,8 +1,6 @@
-#include "webcam.hpp"
+#include <algorithm>
 
-static void my_vector_frame(AVFrame *frame, AVMotionVector *mvs)
-{
-}
+#include "webcam.hpp"
 
 Webcam::Webcam(std::shared_ptr<std::deque<Image>> fifo)
   : fifo(fifo)
@@ -10,6 +8,7 @@ Webcam::Webcam(std::shared_ptr<std::deque<Image>> fifo)
   av_register_all();
   avdevice_register_all();
 
+#if 0
   const char *name = "/dev/video0";
   AVInputFormat *in_format = av_find_input_format("v4l2");
   AVDictionary *format_opts = nullptr;
@@ -17,6 +16,15 @@ Webcam::Webcam(std::shared_ptr<std::deque<Image>> fifo)
   av_dict_set(&format_opts, "video_size", "640x480", 0);
   av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
   av_dict_set(&format_opts, "input_format", "h264", 0);
+#else
+  const char *name = "car.mp4";
+  AVInputFormat *in_format = av_find_input_format("avc1");
+  AVDictionary *format_opts = nullptr;
+  av_dict_set(&format_opts, "framerate", "30", 0);
+  av_dict_set(&format_opts, "video_size", "240x240", 0);
+  av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
+  av_dict_set(&format_opts, "input_format", "h264", 0);
+#endif
 
   if (avformat_open_input(&format_ctx, name, in_format, &format_opts) != 0)
     throw "input failed";
@@ -73,30 +81,74 @@ Webcam::~Webcam()
 
 }
 
-void Webcam::preprocess(cv::Mat& img)
+void Webcam::extract_mvs(AVFrame *frame, std::vector<AVMotionVector> &mvs)
+{
+  AVFrameSideData *side =
+    av_frame_get_side_data(frame, AV_FRAME_DATA_MOTION_VECTORS);
+  if (side == NULL) {
+    mvs = std::vector<AVMotionVector>();
+  }
+  else {
+    int mvcount = side->size / sizeof(AVMotionVector);
+    AVMotionVector *mvarray = (AVMotionVector *)side->data;
+
+    mvs = std::vector<AVMotionVector>(mvarray, mvarray + mvcount);
+  }
+}
+
+void Webcam::format_mvs(Image &img, std::vector<AVMotionVector> &mvs)
+{
+  // const int flow_rows = std::min(img.height / mb_size, max_mb_size);
+  // const int flow_cols = std::min(img.width / mb_size, max_mb_size);
+  const int flow_rows = img.height;
+  const int flow_cols = img.width;
+  auto flow = zeros<int>(flow_rows, flow_cols, 2);
+
+  for (AVMotionVector& mv : mvs) {
+    int mvdx = mv.dst_x - mv.src_x;
+    int mvdy = mv.dst_y - mv.src_y;
+
+    // size_t i_clipped = std::max(0, std::min(mv.dst_y / mb_size, flow_rows - 1));
+    // size_t j_clipped = std::max(0, std::min(mv.dst_x / mb_size, flow_cols - 1));
+    size_t i_clipped = std::max(0, std::min((int)mv.dst_y, flow_rows - 1));
+    size_t j_clipped = std::max(0, std::min((int)mv.dst_x, flow_cols - 1));
+
+    flow[i_clipped][j_clipped][0] = mvdx;
+    flow[i_clipped][j_clipped][1] = mvdy;
+  }
+
+  img.mvs = flow;
+}
+
+void Webcam::preprocess(cv::Mat& img, std::vector<AVMotionVector> &mvs)
 {
   const int in_c = img.channels();
   const int in_h = img.rows;
   const int in_w = img.cols;
 
-  // Image target(in_c * in_h * in_w);
-  target  = Image(in_c, in_h, in_w, img.data);
+  target.height = in_h;
+  target.width  = in_w;
+  target.src    = img.data;
+
+  format_mvs(target, mvs);
 
   cv::Mat frame_f;
   img.convertTo(frame_f, CV_32FC3);
 
   int idx = 0;
-  const float BGR_MEANS[3] = {103.939, 116.779, 123.68};
+  target.body = new s16[in_c * in_h * in_w];
   for (int k = 0; k < in_c; ++k) {
     for (int i = 0; i < in_h; ++i) {
       for (int j = 0; j < in_w; ++j) {
-        float acc = frame_f.at<cv::Vec3f>(i, j)[k] - BGR_MEANS[k];
+        float acc = frame_f.at<cv::Vec3f>(i, j)[k] - bgr_means[k];
         acc /= 255.0;
         target.body[idx] = static_cast<s16>(acc*256.);
         ++idx;
       }
     }
   }
+
+  fifo->push_back(target);
 }
 
 void Webcam::get_i_frame()
@@ -123,20 +175,21 @@ void Webcam::get_i_frame()
             frame->linesize, 0, codec_ctx->height,
             frame_bgr->data, frame_bgr->linesize);
 
-  my_vector_frame(frame, mvs);
+  extract_mvs(frame, mvs);
 
   av_packet_unref(&packet);
 
   cv::Mat img(codec_ctx->height, codec_ctx->width,
               CV_8UC3, frame_bgr->data[0]);
 
-  preprocess(img);
-  fifo->push_back(target);
+  preprocess(img, mvs);
 }
 
 void Webcam::get_sub_gop()
 {
-  // thr = std::thread([&] {
+#ifdef THREAD
+  thr = std::thread([&] {
+#endif
     for (int i = 0; i < sub_gop_size; ++i) {
       if (av_read_frame(format_ctx, &packet) < 0)
       {
@@ -164,18 +217,21 @@ void Webcam::get_sub_gop()
                 frame->linesize, 0, codec_ctx->height,
                 frame_bgr->data, frame_bgr->linesize);
 
-      my_vector_frame(frame, mvs);
+      extract_mvs(frame, mvs);
 
       cv::Mat img(codec_ctx->height, codec_ctx->width,
                   CV_8UC3, frame_bgr->data[0]);
 
-      preprocess(img);
+      preprocess(img, mvs);
     }
-  // });
+#ifdef THREAD
+  });
+#endif
 }
 
 void Webcam::sync()
 {
-  // thr.join();
-  fifo->push_back(target);
+#ifdef THREAD
+  thr.join();
+#endif
 }

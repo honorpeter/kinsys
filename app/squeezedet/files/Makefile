@@ -6,11 +6,17 @@ APP_OBJS += activation.o arithmetic.o bbox_utils.o display.o hungarian.o \
 	    layer.o peta.o squeezedet.o tracker.o transform.o util.o webcam.o \
 	    wrapper.o
 
-CFLAGS   = -std=c11 -Wall
-CXXFLAGS = -std=c++14 -Wall -Wno-deprecated-declarations
+CC	  = gcc-7
+CXX	  = g++-7
+CXXFLAGS += `pkg-config --cflags opencv libavcodec`
+LDLIBS   += `pkg-config --libs opencv libavcodec`
+CXXFLAGS += -DTHREAD
 
-LDLIBS  += -pthread
-LDLIBS  += -lavcodec -lavformat -lavutil -lswscale -lavdevice
+CFLAGS   += -std=c11 -Wall -O3
+CXXFLAGS += -std=c++14 -Wall -Wno-deprecated-declarations -O3
+
+LDLIBS   += -pthread
+LDLIBS   += -lavcodec -lavformat -lavutil -lswscale -lavdevice
 # LDLIBS  += \
 # 	-lopencv_shape \
 # 	-lopencv_stitching \

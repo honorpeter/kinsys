@@ -12,10 +12,13 @@ Display::~Display()
 
 void Display::post_frame()
 {
-  // thr = std::thread([&] {
+#ifdef THREAD
+  thr = std::thread([&] {
+#endif
     std::tie(frame, objs) = eat_front(fifo);
 
     cv::Mat img(frame.height, frame.width, CV_8UC3, frame.src);
+    delete [] frame.body;
 
     // TODO: overlay bounding-boxes, object-class and tracked-ids
     for (auto& obj : objs) {
@@ -25,10 +28,14 @@ void Display::post_frame()
 
     cv::imshow("display", img);
     cv::waitKey(1);
-  // });
+#ifdef THREAD
+  });
+#endif
 }
 
 void Display::sync()
 {
-  // thr.join();
+#ifdef THREAD
+  thr.join();
+#endif
 }

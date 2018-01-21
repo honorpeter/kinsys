@@ -19,9 +19,6 @@ public:
             std::shared_ptr<std::pair<Image, Mask>> out_det);
   ~MVTracker();
 
-  void predict(Mask& boxes);
-  void associate(Mask& boxes);
-  void tracking(Image& frame, Mask& boxes);
   void annotate();
   void interpolate();
 
@@ -30,6 +27,9 @@ public:
 private:
   std::thread thr;
 
+  void predict(Mask& boxes);
+  void associate(Mask& boxes);
+  void tracking(Image& frame, Mask& boxes);
   int assign_id();
 
   cv::KalmanFilter kalman;

@@ -332,10 +332,13 @@ Hungarian::dump()
 
 #include <iostream>
 std::pair<std::vector<int>, std::vector<int>>
-linear_sum_assignment(std::vector<std::vector<float>> cost)
+linear_sum_assignment(std::vector<std::vector<float>> &cost)
 {
-#if 1
-  cout << cost.size() << endl;
+  if (cost.size() == 0 || cost[0].size() == 0)
+    return std::make_pair(std::vector<int>{}, std::vector<int>{});
+
+#if 0
+  cout << "cost.size: " << cost.size() << endl;
   for (auto x : cost) {
     for (auto y : x) {
       cout << y << " ";

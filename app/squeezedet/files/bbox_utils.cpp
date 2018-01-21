@@ -20,7 +20,7 @@ float iou_cost(BBox& next_box, BBox& prev_box)
   cap.right = std::max(next_box.right, prev_box.right);
   cap.bot   = std::max(next_box.bot, prev_box.bot);
 
-  int area_cap;
+  float area_cap;
   if (cap.left <= cap.right && cap.top <= cap.bot)
     area_cap = (cap.right - cap.left + 1) * (cap.bot - cap.top + 1);
   else
@@ -31,7 +31,7 @@ float iou_cost(BBox& next_box, BBox& prev_box)
   int area_prev = (prev_box.right - prev_box.left + 1)
                 * (prev_box.bot - prev_box.top + 1);
 
-  int area_cup = area_next + area_prev - area_cap;
+  float area_cup = area_next + area_prev - area_cap;
 
   float iou = area_cap / area_cup;
 
@@ -46,7 +46,7 @@ Mat2D<float> calc_cost(Mask& src_boxes, Mask& dst_boxes)
 
   for (int i = 0; i < src_size; ++i)
     for (int j = 0; j < dst_size; ++j)
-      cost_matrix[i][j] = iou_cost(dst_boxes[i], src_boxes[i]);
+      cost_matrix[i][j] = iou_cost(dst_boxes[j], src_boxes[i]);
 
   return cost_matrix;
 }

@@ -45,12 +45,11 @@ void loop_scenario(const int gop_size = 12)
   auto in_det   = std::make_shared<Image>();
   auto out_det  = std::make_shared<std::pair<Image, Mask>>();
 
-  // Webcam cam(in_fifo);
+  Webcam cam(in_fifo);
   SqueezeDet model(in_det, out_det);
   MVTracker me(in_fifo, out_fifo, out_det);
   Display disp(out_fifo);
 
-#if 0
   // blocking
   SHOW(cam.get_i_frame());
 
@@ -80,14 +79,13 @@ void loop_scenario(const int gop_size = 12)
 
       // TODO: Time Keep
       // while (false);
-      SHOW(std::this_thread::sleep_for(std::chrono::milliseconds(34)));
+      /* SHOW(std::this_thread::sleep_for(std::chrono::milliseconds(34))); */
     }
 
     SHOW(disp.sync());
     SHOW(model.sync());
     SHOW(cam.sync());
   } while (loop_continue());
-#endif
 }
 
 int main(void)

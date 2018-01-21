@@ -60,8 +60,7 @@ Layer *map_layer(
   renkon_offset += CEIL_DIV(out->shape[0], RENKON_CORE)
                  * (in->shape[0]*kern*kern + bias);
 
-  printf("%d: %d %d %d\n", out->shape[0], CEIL_DIV(out->shape[0], RENKON_CORE), in->shape[0], kern);
-  printf("renkon_offset: %d\n", renkon_offset);
+  // printf("renkon_offset: %d\n", renkon_offset);
   if (renkon_offset > RENKON_WORDS) {
     fprintf(stderr, "exceeds the capacity of map weight memories\n");
     exit(1);
@@ -105,7 +104,7 @@ Layer *vec_layer(
   gobou_offset += CEIL_DIV(out->shape, GOBOU_CORE)
                 * (in->shape + bias);
 
-  printf("gobou_offset: %d\n", gobou_offset);
+  // printf("gobou_offset: %d\n", gobou_offset);
   if (gobou_offset > GOBOU_WORDS) {
     fprintf(stderr, "exceeds the capacity of vec weight memories\n");
     exit(1);

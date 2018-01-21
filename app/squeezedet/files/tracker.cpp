@@ -47,17 +47,17 @@ void MVTracker::associate(Mask& boxes)
   std::unordered_map<int, int> n_id_map;
   for (int i = 0; i < (int)boxes.size(); ++i) {
     auto col = std::find(col_idx.begin(), col_idx.end(), i);
-    if (col != col_idx.end()) {
+    if (col == col_idx.end()) {
+      n_id_map[i] = assign_id();
+    }
+    else {
       auto row = row_idx.begin() + std::distance(col_idx.begin(), col);
       auto trans_cost = cost[*row][*col];
 
       if (trans_cost <= cost_thresh)
-        n_id_map[*col] = id_map[*row];
+        n_id_map[i] = id_map[*row];
       else
-        n_id_map[*col] = assign_id();
-    }
-    else {
-      n_id_map[*col] = assign_id();
+        n_id_map[i] = assign_id();
     }
   }
   id_map = n_id_map;
@@ -78,24 +78,6 @@ void MVTracker::tracking(Image& frame, Mask& boxes)
 {
   predict(boxes);
   associate(boxes);
-}
-
-void MVTracker::annotate()
-{
-  std::tie(frame, boxes) = *out_det;
-  tracking(frame, boxes);
-
-  // reset
-  total = 0;
-  count = 0;
-  stateList.resize(boxes.size());
-  errorCovList.resize(boxes.size());
-
-  for (int i = 0; i < (int)boxes.size(); ++i) {
-    total += 1;
-    stateList[i] = cv::Mat(calc_center(boxes[i]));
-    errorCovList[i] = cv::Mat::eye(dp, dp, CV_32F) * 1.0;
-  }
 }
 
 Mat3D<int> find_inner(Mat3D<int>& mvs, BBox& box, Image& frame)
@@ -165,8 +147,35 @@ BBox move_bbox(BBox& box, std::array<float, 2>& d_box, Image& frame)
   return n_box;
 }
 
+void MVTracker::annotate()
+{
+#ifdef THREAD
+thr = std::thread([&] {
+#endif
+  std::tie(frame, boxes) = *out_det;
+  tracking(frame, boxes);
+
+  // reset
+  total = 0;
+  count = 0;
+  stateList.resize(boxes.size());
+  errorCovList.resize(boxes.size());
+
+  for (int i = 0; i < (int)boxes.size(); ++i) {
+    total += 1;
+    stateList[i] = cv::Mat(calc_center(boxes[i]));
+    errorCovList[i] = cv::Mat::eye(dp, dp, CV_32F) * 1.0;
+  }
+#ifdef THREAD
+});
+#endif
+}
+
 void MVTracker::interpolate()
 {
+#ifdef THREAD
+thr = std::thread([&] {
+#endif
   frame = eat_front(in_fifo);
   auto mvs = frame.mvs;
 
@@ -177,9 +186,15 @@ void MVTracker::interpolate()
   }
 
   tracking(frame, boxes);
+#ifdef THREAD
+});
+#endif
 }
 
 void MVTracker::sync()
 {
+#ifdef THREAD
+  thr.join();
+#endif
   out_fifo->push_back(std::make_pair(frame, tracks));
 }
