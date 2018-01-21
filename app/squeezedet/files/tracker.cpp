@@ -78,8 +78,6 @@ void MVTracker::tracking(Image& frame, Mask& boxes)
 {
   predict(boxes);
   associate(boxes);
-
-  out_fifo->push_back(std::make_pair(frame, tracks));
 }
 
 void MVTracker::annotate()
@@ -183,4 +181,5 @@ void MVTracker::interpolate()
 
 void MVTracker::sync()
 {
+  out_fifo->push_back(std::make_pair(frame, tracks));
 }

@@ -7,8 +7,8 @@
 parameter BWIDTH  = 32;
 
 // parameter RATE    = BWIDTH / DWIDTH;
-// parameter RATELOG = $clog2(RATE);
 parameter RATE    = 2;
+// parameter RATELOG = $clog2(RATE);
 parameter RATELOG = 1;
 
 parameter REGSIZE = 6;

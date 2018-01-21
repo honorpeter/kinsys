@@ -16,8 +16,8 @@ module gobou_top
   , input                       net_we
   , input  [GOBOU_NETSIZE-1:0]  net_addr
 `ifdef QUANT
-  // , input  [QWIDTH-1:0]         net_wdata
-  , input  signed [QWIDTH-1:0]  net_wdata
+  , input  [QWIDTH-1:0]         net_wdata
+  // , input  signed [QWIDTH-1:0]  net_wdata
 `else
   , input  signed [DWIDTH-1:0]  net_wdata
 `endif

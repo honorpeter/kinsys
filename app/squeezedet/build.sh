@@ -10,12 +10,12 @@ source $ROOT/utils/config.sh
 
 RENKON_CORE=8
 RENKON_CORELOG=3
-RENKON_NETSIZE=11
-RENKON_MAXIMG=32
+RENKON_NETSIZE=18
+RENKON_MAXIMG=240
 
-GOBOU_CORE=1
-GOBOU_CORELOG=4
-GOBOU_NETSIZE=13
+GOBOU_CORE=2
+GOBOU_CORELOG=1
+GOBOU_NETSIZE=1
 
 ############################################################
 # building
@@ -29,6 +29,6 @@ make -C $ROOT/rtl dist
 annotate_rtl $ROOT/dist
 
 make -C $ROOT/vivado ip proj build
-make -C $ROOT/vivado peta APP=squeezedet
+# make -C $ROOT/vivado peta APP=squeezedet
 
 exit

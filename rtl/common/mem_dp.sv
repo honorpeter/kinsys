@@ -5,6 +5,7 @@
 module mem_dp
  #( parameter DWIDTH  = 16
   , parameter MEMSIZE = 8
+  , parameter WORDS = 2 ** MEMSIZE
   )
   ( input                       clk
   , input                       mem_we1
@@ -17,11 +18,9 @@ module mem_dp
   , output signed [DWIDTH-1:0]  mem_rdata2
   );
 
-  localparam WORDS = 2 ** MEMSIZE;
-
-  reg signed [DWIDTH-1:0]   mem [WORDS-1:0];
-  reg        [MEMSIZE-1:0]  addr1$;
-  reg        [MEMSIZE-1:0]  addr2$;
+  reg signed [DWIDTH-1:0] mem [WORDS-1:0];
+  reg [MEMSIZE-1:0]       addr1$;
+  reg [MEMSIZE-1:0]       addr2$;
 
   assign mem_rdata1 = mem[addr1$];
   assign mem_rdata2 = mem[addr2$];

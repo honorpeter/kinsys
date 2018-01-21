@@ -2,10 +2,9 @@
 //  http://csclab.murraystate.edu/~bob.pilgrim/445/munkres.html
 
 #include <limits>
-#include <iostream>
-#include <iomanip>
 
 #include "hungarian.hpp"
+#include "wrapper.hpp"
 
 namespace _internal {
 
@@ -331,9 +330,19 @@ Hungarian::dump()
 
 }
 
+#include <iostream>
 std::pair<std::vector<int>, std::vector<int>>
 linear_sum_assignment(std::vector<std::vector<float>> cost)
 {
+#if 1
+  cout << cost.size() << endl;
+  for (auto x : cost) {
+    for (auto y : x) {
+      cout << y << " ";
+    }
+    cout << endl;
+  }
+#endif
   _internal::Hungarian solver(cost);
   solver.solve();
   return solver.dump();

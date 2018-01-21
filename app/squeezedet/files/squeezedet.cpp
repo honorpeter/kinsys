@@ -10,18 +10,18 @@
 
 #include "kinpira.h"
 
-#include "data/conv1.h"
-#include "data/fire2.h"
-#include "data/fire3.h"
-#include "data/fire4.h"
-#include "data/fire5.h"
-#include "data/fire6.h"
-#include "data/fire7.h"
-#include "data/fire8.h"
-#include "data/fire9.h"
-#include "data/fire10.h"
-#include "data/fire11.h"
-#include "data/conv12.h"
+#include "data/conv1.hpp"
+#include "data/fire2.hpp"
+#include "data/fire3.hpp"
+#include "data/fire4.hpp"
+#include "data/fire5.hpp"
+#include "data/fire6.hpp"
+#include "data/fire7.hpp"
+#include "data/fire8.hpp"
+#include "data/fire9.hpp"
+#include "data/fire10.hpp"
+#include "data/fire11.hpp"
+#include "data/conv12.hpp"
 
 static inline Layer *
 conv(Map *input, Map *output, int kern, int strid, int pad, bool pool)
@@ -30,86 +30,141 @@ conv(Map *input, Map *output, int kern, int strid, int pad, bool pool)
     convolution_2d(kern, strid, pad, CONV_BIAS),
     NULL,
     activation(ACTV_RELU),
-    (pool ? pooling_2d(3, 2, 1, POOL_MAX) : NULL)
+    (pool ? pooling_2d(3, 2, 0, POOL_MAX) : NULL)
   );
 }
 
 static inline std::vector<Layer *>
-fire(Map *input, Map *output, Map *feature, bool pool)
+fire(Map *input, std::vector<Map *> maps, bool pool)
 {
+  Map *sq1x1 = maps[0];
+  Map *ex1x1 = maps[1];
+  Map *ex3x3 = maps[2];
+
   return std::vector<Layer *>{
-    map_layer(input, output,
+    map_layer(input, sq1x1,
       convolution_2d(1, 1, 0, CONV_BIAS),
       NULL,
       activation(ACTV_RELU),
       NULL
     ),
-    map_layer(input, output,
+    map_layer(sq1x1, ex1x1,
       convolution_2d(1, 1, 0, CONV_BIAS),
       NULL,
       activation(ACTV_RELU),
-      (pool ? pooling_2d(3, 2, 1, POOL_MAX) : NULL)
+      (pool ? pooling_2d(3, 2, 0, POOL_MAX) : NULL)
     ),
-    map_layer(input, output,
+    map_layer(sq1x1, ex3x3,
       convolution_2d(3, 1, 1, CONV_BIAS),
       NULL,
       activation(ACTV_RELU),
-      (pool ? pooling_2d(3, 2, 1, POOL_MAX) : NULL)
+      (pool ? pooling_2d(3, 2, 0, POOL_MAX) : NULL)
     ),
   };
 }
 
-SqueezeDet::SqueezeDet(std::shared_ptr<Image> input,
-                       std::shared_ptr<std::pair<Image, Mask>> output)
-  : input(input), output(output)
+static Map * define_fire(std::vector<Map *> &maps,
+                         int s1x1, int e1x1, int e3x3, int map_w, int map_h)
+{
+  Map *sq1x1 = define_map(s1x1, map_w, map_h);
+  Map *ex1x1 = define_map(e1x1, map_w, map_h);
+  Map *ex3x3 = define_map(e3x3, map_w, map_h);
+
+  maps = std::vector<Map *>{sq1x1, ex1x1, ex3x3};
+
+  Map *output = (Map *)malloc(sizeof(Map));
+
+  // concatenate ex1x1 and ex3x3
+  assert(ex1x1->shape[1] == ex3x3->shape[1]);
+  assert(ex1x1->shape[2] == ex3x3->shape[2]);
+  output->shape[0] = ex1x1->shape[0] + ex3x3->shape[0];
+  output->shape[1] = ex1x1->shape[1];
+  output->shape[2] = ex1x1->shape[2];
+
+  output->body = ex1x1->body;
+  output->phys_addr = ex1x1->phys_addr;
+
+  return output;
+}
+
+SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
+                       const std::shared_ptr<std::pair<Image, Mask>> &out_det)
+  : in_det(in_det), out_det(out_det)
 {
   kinpira_init();
 
-  pmap1  = define_map(64,  312, 96);
-  fmap2  = define_map(128, 312, 96);
-  pmap3  = define_map(128, 156, 48);
-  fmap4  = define_map(256, 156, 48);
-  pmap5  = define_map(256, 78,  24);
-  fmap6  = define_map(384, 78,  24);
-  fmap7  = define_map(384, 78,  24);
-  fmap8  = define_map(512, 78,  24);
-  fmap9  = define_map(512, 78,  24);
-  fmap10 = define_map(768, 78,  24);
-  fmap11 = define_map(768, 78,  24);
-  fmap12 = define_map(72,  78,  24);
+  image   = define_map(  3, 1248, 384);
+  pmap1   = define_map( 64,  312,  96);
+  fmap2   = define_fire(fire2_maps,  16,  64,  64, 312, 96);
+  pmap3   = define_fire(fire3_maps,  16,  64,  64, 156, 48);
+  fmap4   = define_fire(fire4_maps,  32, 128, 128, 156, 48);
+  pmap5   = define_fire(fire5_maps,  32, 128, 128,  78, 24);
+  fmap6   = define_fire(fire6_maps,  48, 192, 192,  78, 24);
+  fmap7   = define_fire(fire7_maps,  48, 192, 192,  78, 24);
+  fmap8   = define_fire(fire8_maps,  64, 256, 256,  78, 24);
+  fmap9   = define_fire(fire9_maps,  64, 256, 256,  78, 24);
+  fmap10  = define_fire(fire10_maps, 96, 384, 384,  78, 24);
+  fmap11  = define_fire(fire11_maps, 96, 384, 384,  78, 24);
+  fmap12  = define_map( 72,   78,  24);
 
-  // set_input(input, image_ptr);
+  // // set_input(&in_det->body, image);
+  // in_det->body = image->body;
 
-  const int conv_k3_s2_pSAME = 0;
-  const int pool_k3_s2_pSAME = 0;
-  const int conv_k3_s1_pSAME = 0;
-  conv1  = conv(image_ptr, pmap1, 3, 2, 1, true);
-  fire2  = fire(pmap1,  fmap2,  false);
-  fire3  = fire(fmap2,  pmap3,  true);
-  fire4  = fire(pmap3,  fmap4,  false);
-  fire5  = fire(fmap4,  pmap5,  true);
-  fire6  = fire(pmap5,  fmap6,  false);
-  fire7  = fire(fmap6,  fmap7,  false);
-  fire8  = fire(fmap7,  fmap8,  false);
-  fire9  = fire(fmap8,  fmap9,  false);
-  fire10 = fire(fmap9,  fmap10, false);
-  fire11 = fire(fmap10, fmap11, false);
+  puts("conv1");
+  conv1  = conv(image,  pmap1, 3, 2, 1, true);
+  puts("fire2");
+  fire2  = fire(pmap1,  fire2_maps,  false);
+  puts("fire3");
+  fire3  = fire(fmap2,  fire3_maps,  true);
+  puts("fire4");
+  fire4  = fire(pmap3,  fire4_maps,  false);
+  puts("fire5");
+  fire5  = fire(fmap4,  fire5_maps,  true);
+  puts("fire6");
+  fire6  = fire(pmap5,  fire6_maps,  false);
+  puts("fire7");
+  fire7  = fire(fmap6,  fire7_maps,  false);
+  puts("fire8");
+  fire8  = fire(fmap7,  fire8_maps,  false);
+  puts("fire9");
+  fire9  = fire(fmap8,  fire9_maps,  false);
+  puts("fire10");
+  fire10 = fire(fmap9,  fire10_maps, false);
+  puts("fire11");
+  fire11 = fire(fmap10, fire11_maps, false);
+  puts("conv12");
   conv12 = conv(fmap11, fmap12, 3, 1, 1, false);
 
-  // set_output(fmap12, output);
+  // // set_output(fmap12, &out_det->first.body);
+  // out_det->first.body = fmap12->body;
 
-  assign_map_quant(conv1,   W_conv1,  b_conv1,  W_conv1_min,  W_conv1_max,  b_conv1_min,  b_conv1_max );
-  assign_maps_quant(fire2,  W_fire2,  b_fire2,  W_fire2_min,  W_fire2_max,  b_fire2_min,  b_fire2_max );
-  assign_maps_quant(fire3,  W_fire3,  b_fire3,  W_fire3_min,  W_fire3_max,  b_fire3_min,  b_fire3_max );
-  assign_maps_quant(fire4,  W_fire4,  b_fire4,  W_fire4_min,  W_fire4_max,  b_fire4_min,  b_fire4_max );
-  assign_maps_quant(fire5,  W_fire5,  b_fire5,  W_fire5_min,  W_fire5_max,  b_fire5_min,  b_fire5_max );
-  assign_maps_quant(fire6,  W_fire6,  b_fire6,  W_fire6_min,  W_fire6_max,  b_fire6_min,  b_fire6_max );
-  assign_maps_quant(fire7,  W_fire7,  b_fire7,  W_fire7_min,  W_fire7_max,  b_fire7_min,  b_fire7_max );
-  assign_maps_quant(fire8,  W_fire8,  b_fire8,  W_fire8_min,  W_fire8_max,  b_fire8_min,  b_fire8_max );
-  assign_maps_quant(fire9,  W_fire9,  b_fire9,  W_fire9_min,  W_fire9_max,  b_fire9_min,  b_fire9_max );
-  assign_maps_quant(fire10, W_fire10, b_fire10, W_fire10_min, W_fire10_max, b_fire10_min, b_fire10_max);
-  assign_maps_quant(fire11, W_fire11, b_fire11, W_fire11_min, W_fire11_max, b_fire11_min, b_fire11_max);
-  assign_map_quant(conv12,  W_conv12, b_conv12, W_fire12_min, W_fire12_max, b_fire12_min, b_fire12_max);
+#if 0
+  assign_map_quant( conv1,   W_conv1,  b_conv1,
+                    W_conv1_min,  W_conv1_max,  b_conv1_min,  b_conv1_max );
+  assign_maps_quant(fire2,  W_fire2,  b_fire2,
+                    W_fire2_min,  W_fire2_max,  b_fire2_min,  b_fire2_max );
+  assign_maps_quant(fire3,  W_fire3,  b_fire3,
+                    W_fire3_min,  W_fire3_max,  b_fire3_min,  b_fire3_max );
+  assign_maps_quant(fire4,  W_fire4,  b_fire4,
+                    W_fire4_min,  W_fire4_max,  b_fire4_min,  b_fire4_max );
+  assign_maps_quant(fire5,  W_fire5,  b_fire5,
+                    W_fire5_min,  W_fire5_max,  b_fire5_min,  b_fire5_max );
+  assign_maps_quant(fire6,  W_fire6,  b_fire6,
+                    W_fire6_min,  W_fire6_max,  b_fire6_min,  b_fire6_max );
+  assign_maps_quant(fire7,  W_fire7,  b_fire7,
+                    W_fire7_min,  W_fire7_max,  b_fire7_min,  b_fire7_max );
+  assign_maps_quant(fire8,  W_fire8,  b_fire8,
+                    W_fire8_min,  W_fire8_max,  b_fire8_min,  b_fire8_max );
+  assign_maps_quant(fire9,  W_fire9,  b_fire9,
+                    W_fire9_min,  W_fire9_max,  b_fire9_min,  b_fire9_max );
+  assign_maps_quant(fire10, W_fire10, b_fire10,
+                    W_fire10_min, W_fire10_max, b_fire10_min, b_fire10_max);
+  assign_maps_quant(fire11, W_fire11, b_fire11,
+                    W_fire11_min, W_fire11_max, b_fire11_min, b_fire11_max);
+  assign_map_quant( conv12,  W_conv12, b_conv12,
+                    W_conv12_min, W_conv12_max, b_conv12_min, b_conv12_max);
+
+#endif
 
   ANCHOR_BOX = set_anchors();
 }
@@ -129,7 +184,18 @@ SqueezeDet::~SqueezeDet()
   undef_layers(fire11);
   undef_layer(conv12);
 
-  undef_map(image_ptr);
+  undef_maps(fire2_maps);
+  undef_maps(fire3_maps);
+  undef_maps(fire4_maps);
+  undef_maps(fire5_maps);
+  undef_maps(fire6_maps);
+  undef_maps(fire7_maps);
+  undef_maps(fire8_maps);
+  undef_maps(fire9_maps);
+  undef_maps(fire10_maps);
+  undef_maps(fire11_maps);
+
+  undef_map(image);
   undef_map(pmap1);
   undef_map(fmap2);
   undef_map(pmap3);
@@ -385,13 +451,11 @@ void SqueezeDet::interpret(Mat3D<float>& preds)
     probs[i] = max(_probs[i]);
     classes[i] = argmax(_probs[i]);
   }
-
-  *output = std::make_pair(frame, mask);
 } // }}}
 
 void SqueezeDet::evaluate()
 {
-  frame = *input;
+  frame = *in_det;
 
   exec_core(conv1);
   exec_cores(fire2);
@@ -419,4 +483,5 @@ void SqueezeDet::evaluate()
 
 void SqueezeDet::sync()
 {
+  *out_det = std::make_pair(frame, mask);
 }

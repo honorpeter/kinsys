@@ -339,8 +339,8 @@ module kinpira
   wire                      renkon_net_we;
   wire [RENKON_NETSIZE-1:0] renkon_net_addr;
 `ifdef QUANT
-  // wire [QWIDTH-1:0]         renkon_net_wdata;
-  wire signed [QWIDTH-1:0]  renkon_net_wdata;
+  wire [QWIDTH-1:0]         renkon_net_wdata;
+  // wire signed [QWIDTH-1:0]  renkon_net_wdata;
 `else
   wire signed [DWIDTH-1:0]  renkon_net_wdata;
 `endif
@@ -382,8 +382,8 @@ module kinpira
   wire                      gobou_net_we;
   wire [GOBOU_NETSIZE-1:0]  gobou_net_addr;
 `ifdef QUANT
-  // wire [QWIDTH-1:0]         gobou_net_wdata;
-  wire signed [QWIDTH-1:0]  gobou_net_wdata;
+  wire [QWIDTH-1:0]         gobou_net_wdata;
+  // wire signed [QWIDTH-1:0]  gobou_net_wdata;
 `else
   wire signed [DWIDTH-1:0]  gobou_net_wdata;
 `endif

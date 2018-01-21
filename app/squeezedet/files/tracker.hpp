@@ -3,11 +3,12 @@
 
 #include <deque>
 #include <memory>
+#include <thread>
 #include <unordered_map>
 
 #include <opencv2/opencv.hpp>
 
-#include "types.h"
+#include "kinpira.h"
 #include "bbox_utils.hpp"
 
 class MVTracker
@@ -27,6 +28,8 @@ public:
   void sync();
 
 private:
+  std::thread thr;
+
   int assign_id();
 
   cv::KalmanFilter kalman;

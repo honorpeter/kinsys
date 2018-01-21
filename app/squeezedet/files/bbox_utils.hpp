@@ -4,7 +4,9 @@
 #include <array>
 #include <string>
 
-#include "types.h"
+#include <opencv2/opencv.hpp>
+
+#include "kinpira.h"
 #include "matrix.hpp"
 
 struct Image {
@@ -12,7 +14,23 @@ struct Image {
   Mat3D<int> mvs;
   int height;
   int width;
-  std::vector<s16> body;
+  unsigned char *src;
+  s16 *body;
+
+  Image() {
+    this->body   = new s16[0];
+  }
+
+  Image(int channel, int height, int width, unsigned char *src) {
+    this->height = height;
+    this->width  = width;
+    this->src    = src;
+    this->body   = new s16[channel * height * width];
+  }
+
+  ~Image() {
+    delete[] this->body;
+  }
 };
 
 struct BBox {

@@ -17,24 +17,24 @@ sys.path.append("../../utils")
 import save
 
 BASE_DIR = "/home/work/takau/2.mlearn/fixednets/data/kitti"
-# INPUT_DIR = join(BASE_DIR, "mnist", "test")
 PARAM_DIR = join(BASE_DIR, "Q_squeezeDet_01_scaled")
-# DIST_DIR = join("files", "data")
-DIST_DIR = join("", "data")
+DIST_DIR = join("files", "data")
 
 def gen_conv_quant(layer):
-    for Type in ["W", "b"]:
-        param_path = join(PARAM_DIR, layer, f"{Type}.txt")
-        param_min_path = join(PARAM_DIR, layer, f"min_{Type}.txt")
-        param_max_path = join(PARAM_DIR, layer, f"max_{Type}.txt")
-        param = np.loadtxt(param_path, dtype=str)
-        param_min = np.loadtxt(param_min_path, dtype=np.float)
-        param_max = np.loadtxt(param_max_path, dtype=np.float)
-        with open(join(DIST_DIR, f"{Type}_{layer}.hpp"), "w") as f:
-            f.write(textwrap.dedent(f"""
-                #ifndef _{Type.upper()}_{layer.upper()}_HPP_
-                #define _{Type.upper()}_{layer.upper()}_HPP_
+    with open(join(DIST_DIR, f"{layer}.hpp"), "w") as f:
+        f.write(textwrap.dedent(f"""
+            #ifndef _{layer.upper()}_HPP_
+            #define _{layer.upper()}_HPP_
 
+        """).strip()+"\n\n")
+        for Type in ["W", "b"]:
+            param_path = join(PARAM_DIR, layer, f"{Type}.txt")
+            param_min_path = join(PARAM_DIR, layer, f"min_{Type}.txt")
+            param_max_path = join(PARAM_DIR, layer, f"max_{Type}.txt")
+            param = np.loadtxt(param_path, dtype=str)
+            param_min = np.loadtxt(param_min_path, dtype=np.float)
+            param_max = np.loadtxt(param_max_path, dtype=np.float)
+            f.write(textwrap.dedent(f"""
                 // PATH: {param_path}
                 static u8 {Type}_{layer}[{len(param)}] = {{
             """).strip()+"\n")
@@ -45,8 +45,11 @@ def gen_conv_quant(layer):
                 static float {Type}_{layer}_min = {param_min};
                 static float {Type}_{layer}_max = {param_max};
 
-                #endif
-            """).strip()+"\n")
+            """).strip()+"\n\n")
+        f.write(textwrap.dedent(f"""
+
+            #endif
+        """).strip()+"\n")
 
 def gen_fire_quant(layer, subs = ["squeeze1x1", "expand1x1", "expand3x3"]):
     with open(join(DIST_DIR, f"{layer}.hpp"), "w") as f:

@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <memory>
+#include <thread>
 
 #include <opencv2/opencv.hpp>
 
@@ -19,7 +20,11 @@ public:
   void sync();
 
 private:
+  std::thread thr;
   std::shared_ptr<std::deque<std::pair<Image, Track>>> fifo;
+
+  Image frame;
+  Track objs;
 };
 
 #endif

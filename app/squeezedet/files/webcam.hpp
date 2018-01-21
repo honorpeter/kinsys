@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <memory>
+#include <thread>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -14,7 +15,7 @@ extern "C" {
 
 #include <opencv2/opencv.hpp>
 
-#include "types.h"
+#include "kinpira.h"
 #include "bbox_utils.hpp"
 
 class Webcam
@@ -33,9 +34,12 @@ public:
   const int sub_gop_size = 12;
 
 private:
+  std::thread thr;
+
   void preprocess(cv::Mat& img);
 
   std::shared_ptr<std::deque<Image>> fifo;
+  Image target;
 
   AVFormatContext *format_ctx = nullptr;
   AVCodecContext *codec_ctx = nullptr;

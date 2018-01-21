@@ -4,13 +4,12 @@
 
 # TODO: scripting petalinux-config
 
-BOARD=$1
-APP_NAME=$2
-TOP=`git rev-parse --show-toplevel`
 export TMPDIR=/ldisk/takau/tmp
 
+TOP=`git rev-parse --show-toplevel`
+BOARD=$1
+APP_NAME=$2
 PETA_NAME=linux-$BOARD
-PETA_FPGA=design_1_wrapper.bit
 case $BOARD in
   zedboard | zybo )
     PETA_ARCH=zynq
@@ -22,12 +21,10 @@ case $BOARD in
     PETA_ARCH=microblaze
     ;;
 esac
+PETA_FPGA=design_1_wrapper.bit
 
 if [ ! -e $PETA_NAME ]; then
-  ln -s ${BOARD}/${BOARD}.sdk/$PETA_NAME
-
   ### Create project for the target board
-  cd ${BOARD}/${BOARD}.sdk
   petalinux-create --type project --template $PETA_ARCH --name $PETA_NAME --force
   petalinux-util --webtalk off
 
@@ -36,19 +33,7 @@ if [ ! -e $PETA_NAME ]; then
   $TOP/utils/confirm.sh "
 Yocto Settings ---> TMPDIR Location ---> ( /tmp/... to /ldisk/\$USER/... )
 "
-  petalinux-config --get-hw-description=..
-
-  # ### User applications
-  # petalinux-create --type apps --name $APP_NAME --enable
-  # petalinux-create --type modules --name udmabuf --enable
-  #
-  # # Assert 2016.4
-  # rm -rf project-spec/meta-user/recipes-apps/$APP_NAME/$APP_NAME
-  # rm -rf project-spec/meta-user/recipes-modules/udmabuf/udmabuf
-  #
-  # cp -r $TOP/app/$APP_NAME/*      project-spec/meta-user/recipes-apps/$APP_NAME
-  # cp -r $TOP/app/common/modules/* project-spec/meta-user/recipes-modules
-  # cp -r $TOP/app/common/$BOARD/*  project-spec/meta-user
+  petalinux-config --get-hw-description=$TOP/vivado/$BOARD/${BOARD}.sdk
 
   ### Kernel configuration
   $TOP/utils/confirm.sh "
@@ -58,9 +43,6 @@ Device Drivers ---> Multimedia support  ---> Media USB Adapters ---> USB Video C
   petalinux-config --component kernel
 
   ### Rootfs configuration
-#   $TOP/utils/confirm.sh "
-# No need for configuration
-# "
   $TOP/utils/confirm.sh "
 Filesystem Packages --->
   * libs ---> libmali-xlnx
@@ -117,14 +99,17 @@ Filesystem Packages --->
 
   ### User applications
   petalinux-create --type apps --name $APP_NAME --enable
+  petalinux-create --type apps --name configs --enable
   petalinux-create --type modules --name udmabuf --enable
 
   # Assert 2016.4
   rm -rf project-spec/meta-user/recipes-apps/$APP_NAME/$APP_NAME
+  rm -rf project-spec/meta-user/recipes-apps/configs/configs
   rm -rf project-spec/meta-user/recipes-modules/udmabuf/udmabuf
 
   cp -r $TOP/app/$APP_NAME/*      project-spec/meta-user/recipes-apps/$APP_NAME
   cp -r $TOP/app/common/library/* project-spec/meta-user/recipes-apps/$APP_NAME
+  cp -r $TOP/app/common/configs/* project-spec/meta-user/recipes-apps/configs
   cp -r $TOP/app/common/modules/* project-spec/meta-user/recipes-modules
   cp -r $TOP/app/common/$BOARD/*  project-spec/meta-user
 
@@ -133,6 +118,7 @@ else
   cd $PETA_NAME
   cp -r $TOP/app/$APP_NAME/*      project-spec/meta-user/recipes-apps/$APP_NAME
   cp -r $TOP/app/common/library/* project-spec/meta-user/recipes-apps/$APP_NAME
+  cp -r $TOP/app/common/configs/* project-spec/meta-user/recipes-apps/configs
   cp -r $TOP/app/common/modules/* project-spec/meta-user/recipes-modules
   cp -r $TOP/app/common/$BOARD/*  project-spec/meta-user
   petalinux-build

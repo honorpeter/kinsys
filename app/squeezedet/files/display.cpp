@@ -12,22 +12,23 @@ Display::~Display()
 
 void Display::post_frame()
 {
-  Image frame;
-  Track objs;
-  std::tie(frame, objs) = eat_front(fifo);
+  // thr = std::thread([&] {
+    std::tie(frame, objs) = eat_front(fifo);
 
-  cv::Mat img(frame.height, frame.width, CV_8UC3, frame.body.data());
+    cv::Mat img(frame.height, frame.width, CV_8UC3, frame.src);
 
-  // TODO: overlay bounding-boxes, object-class and tracked-ids
-  for (auto& obj : objs) {
-    std::make_pair(obj.first, obj.second);
-    break;
-  }
+    // TODO: overlay bounding-boxes, object-class and tracked-ids
+    for (auto& obj : objs) {
+      std::make_pair(obj.first, obj.second);
+      break;
+    }
 
-  cv::imshow("display", img);
-  cv::waitKey(1);
+    cv::imshow("display", img);
+    cv::waitKey(1);
+  // });
 }
 
 void Display::sync()
 {
+  // thr.join();
 }

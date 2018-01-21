@@ -17,8 +17,8 @@ parameter STEP      = 10;
 parameter DWIDTH    = 16;
 parameter DWIDTHLOG = 4;
 parameter LWIDTH    = 16;
-// parameter QWIDTH    = 8;
-parameter QWIDTH    = 16;
+parameter QWIDTH    = 8;
+// parameter QWIDTH    = 16;
 
 ////////////////////////////////////////////////////////////
 // User parameters

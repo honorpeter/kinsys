@@ -2,9 +2,10 @@
 #define _SQUEEZEDET_HPP_
 
 #include <memory>
+#include <thread>
 #include <vector>
 
-#include "types.h"
+#include "kinpira.h"
 #include "bbox_utils.hpp"
 #include "matrix.hpp"
 
@@ -19,8 +20,8 @@ struct BBoxMask
 class SqueezeDet
 {
 public:
-  SqueezeDet(std::shared_ptr<Image> input,
-             std::shared_ptr<std::pair<Image, Mask>> output);
+  SqueezeDet(const std::shared_ptr<Image> &in_det,
+             const std::shared_ptr<std::pair<Image, Mask>> &out_det);
   ~SqueezeDet();
 
   void evaluate();
@@ -28,6 +29,8 @@ public:
   void sync();
 
 private:
+  std::thread thr;
+
   void interpret(Mat3D<float>& preds);
   void filter();
   auto merge_box_delta(Mat2D<float>& anchor, Mat2D<float>& delta);
@@ -36,8 +39,8 @@ private:
 
   Image frame;
   Mask mask;
-  std::shared_ptr<Image> input;
-  std::shared_ptr<std::pair<Image, Mask>> output;
+  std::shared_ptr<Image> in_det;
+  std::shared_ptr<std::pair<Image, Mask>> out_det;
 
   Mat2D<float> boxes;
   Mat1D<float> probs;
@@ -56,24 +59,18 @@ private:
   std::vector<Layer *> fire11;
   Layer *              conv12;
 
-// #define _PARAM(name) \
-// u8 * W_##name; float W_##name##_min; float W_##name##_max; \
-// u8 * b_##name; float b_##name##_min; float b_##name##_max;
-//   _PARAM(conv1);
-//   _PARAM(fire2);
-//   _PARAM(fire3);
-//   _PARAM(fire4);
-//   _PARAM(fire5);
-//   _PARAM(fire6);
-//   _PARAM(fire7);
-//   _PARAM(fire8);
-//   _PARAM(fire9);
-//   _PARAM(fire10);
-//   _PARAM(fire11);
-//   _PARAM(conv12);
-// #undef _PARAM
+  std::vector<Map *> fire2_maps;
+  std::vector<Map *> fire3_maps;
+  std::vector<Map *> fire4_maps;
+  std::vector<Map *> fire5_maps;
+  std::vector<Map *> fire6_maps;
+  std::vector<Map *> fire7_maps;
+  std::vector<Map *> fire8_maps;
+  std::vector<Map *> fire9_maps;
+  std::vector<Map *> fire10_maps;
+  std::vector<Map *> fire11_maps;
 
-  Map *image_ptr;
+  Map *image;
   Map *pmap1;
   Map *fmap2;
   Map *pmap3;

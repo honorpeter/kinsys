@@ -5,6 +5,7 @@
 module mem_sp
  #( parameter DWIDTH  = 16
   , parameter MEMSIZE = 8
+  , parameter WORDS = 2 ** MEMSIZE
   )
   ( input                       clk
   , input                       mem_we
@@ -12,8 +13,6 @@ module mem_sp
   , input  signed [DWIDTH-1:0]  mem_wdata
   , output signed [DWIDTH-1:0]  mem_rdata
   );
-
-  localparam WORDS = 2 ** MEMSIZE;
 
   reg signed [DWIDTH-1:0] mem [WORDS-1:0];
   reg [MEMSIZE-1:0]       addr$;

@@ -39,7 +39,18 @@ SRC_URI = "\
   file://wrapper.cpp \
   file://main.cpp \
   file://Makefile \
-  file://data/dummy \
+  file://data/conv1.hpp \
+  file://data/fire2.hpp \
+  file://data/fire3.hpp \
+  file://data/fire4.hpp \
+  file://data/fire5.hpp \
+  file://data/fire6.hpp \
+  file://data/fire7.hpp \
+  file://data/fire8.hpp \
+  file://data/fire9.hpp \
+  file://data/fire10.hpp \
+  file://data/fire11.hpp \
+  file://data/conv12.hpp \
 "
 
 S = "${WORKDIR}"

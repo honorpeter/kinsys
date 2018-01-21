@@ -19,16 +19,16 @@ extern "C" {
 #define REGSIZE         6
 
 #define RENKON_CORE     8
-#define RENKON_NETSIZE  11
-#define GOBOU_CORE      16
-#define GOBOU_NETSIZE   13
+#define RENKON_NETSIZE  18
+#define GOBOU_CORE      2
+#define GOBOU_NETSIZE   1
 
-#define RENKON_WORDS    2048
-#define GOBOU_WORDS     8192
+#define RENKON_WORDS    262144
+#define GOBOU_WORDS     2
 
-uint32_t *port;
-uint32_t (*mem_renkon)[RENKON_WORDS];
-uint32_t (*mem_gobou)[GOBOU_WORDS];
+extern uint32_t *port;
+extern uint32_t (*mem_renkon)[RENKON_WORDS];
+extern uint32_t (*mem_gobou)[GOBOU_WORDS];
 
 // input reg
 #define reg_which       &port[0]
