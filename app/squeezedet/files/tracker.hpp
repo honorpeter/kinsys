@@ -14,9 +14,10 @@
 class MVTracker
 {
 public:
-  MVTracker(std::shared_ptr<std::deque<Image>> in_fifo,
-            std::shared_ptr<std::deque<std::pair<Image, Track>>> out_fifo,
-            std::shared_ptr<std::pair<Image, Mask>> out_det);
+  MVTracker(
+    const std::shared_ptr<std::deque<Image>> &in_fifo,
+    const std::shared_ptr<std::deque<std::pair<Image, Track>>> &out_fifo,
+    const std::shared_ptr<std::pair<Image, Mask>> &out_det);
   ~MVTracker();
 
   void annotate();

@@ -29,7 +29,7 @@ module ninjin_m_axi_image
   , input                     ddr_req
   , input                     ddr_mode
   , input [WORDSIZE+LSB-1:0]  ddr_base
-  , input [LWIDTH-1:0]        ddr_len
+  , input [MEMSIZE-1:0]       ddr_len
   , input [BWIDTH-1:0]        ddr_rdata
 
   , output [3:0]              err
@@ -122,9 +122,9 @@ module ninjin_m_axi_image
   reg                     read_active$;
   reg                     req$;
   reg [WORDSIZE-1:0]      read_base$;
-  reg [LWIDTH-1:0]        read_len$;
+  reg [MEMSIZE-1:0]       read_len$;
   reg [WORDSIZE-1:0]      write_base$;
-  reg [LWIDTH-1:0]        write_len$;
+  reg [MEMSIZE-1:0]       write_len$;
   reg                     ddr_we$;
   reg [WORDSIZE-1:0]      ddr_waddr$;
   reg [BWIDTH-1:0]        ddr_wdata$;

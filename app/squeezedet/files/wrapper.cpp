@@ -18,6 +18,9 @@ void assign_maps_quant(
 {
   const int size = ls.size();
   assert(ls.size() == weights.size() && ls.size() == biases.size());
+  // cout << ls.size() << " " << weights.size() << " " << biases.size()
+  //      << " " << weights_min.size() << " " << weights_max.size()
+  //      << " " << biases_min.size() << " " << biases_max.size() << endl;
 
   for (int i = 0; i < size; ++i)
     assign_map_quant(

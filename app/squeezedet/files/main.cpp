@@ -10,18 +10,12 @@
 #include "tracker.hpp"
 #include "wrapper.hpp"
 
-#define SHOW(func) { \
-  start = system_clock::now(); \
-  (func); \
-  end = system_clock::now(); \
-  cout << #func << ":\t" \
-       << duration_cast<milliseconds>(end-start).count() << " [ms]" << endl; \
-}
-
 uint32_t *port;
 uint32_t (*mem_renkon)[RENKON_WORDS];
 uint32_t (*mem_gobou)[GOBOU_WORDS];
+#ifdef THREAD
 std::mutex mtx;
+#endif
 
 // TODO: implementation
 bool loop_continue()

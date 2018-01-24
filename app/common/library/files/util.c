@@ -17,7 +17,6 @@ static u32 bit(u32 value, int high, int low)
 
 #ifdef QUANT
 void assign_map_quant(Layer *l, u8 *weight, u8 *bias,
-// void assign_map_quant(Layer *l, s16 *weight, s16 *bias,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max)
 #else
@@ -78,7 +77,6 @@ void assign_map(Layer *l, s16 *weight, s16 *bias)
 
 #ifdef QUANT
 void assign_vec_quant(Layer *l, u8 *weight, u8 *bias,
-// void assign_vec_quant(Layer *l, s16 *weight, s16 *bias,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max)
 #else
@@ -137,72 +135,42 @@ void assign_vec(Layer *l, s16 *weight, s16 *bias)
 
 void exec_core(Layer *l)
 {
-  *reg_which        = l->which;
-  usleep(1);
-  *reg_qbits        = l->qbits;
-  usleep(1);
+  *reg_which        = l->which; usleep(1);
+  *reg_qbits        = l->qbits; usleep(1);
 #ifdef QUANT
-  *reg_w_scale      = l->w_scale;
-  usleep(1);
-  *reg_w_offset     = l->w_offset;
-  usleep(1);
-  *reg_b_scale      = l->b_scale;
-  usleep(1);
-  *reg_b_offset     = l->b_offset;
-  usleep(1);
+  *reg_w_scale      = l->w_scale; usleep(1);
+  *reg_w_offset     = l->w_offset; usleep(1);
+  *reg_b_scale      = l->b_scale; usleep(1);
+  *reg_b_offset     = l->b_offset; usleep(1);
 #endif
-  *reg_in_offset    = l->in_offset;
-  usleep(1);
-  *reg_out_offset   = l->out_offset;
-  usleep(1);
-  *reg_net_offset   = l->net_offset;
-  usleep(1);
+  *reg_in_offset    = l->in_offset; usleep(1);
+  *reg_out_offset   = l->out_offset; usleep(1);
+  *reg_net_offset   = l->net_offset; usleep(1);
 
-  *reg_pre_base     = l->in_offset;
-  usleep(1);
-  *reg_read_len     = l->read_len;
-  usleep(1);
-  *reg_write_len    = l->write_len;
-  usleep(1);
+  *reg_pre_base     = l->in_offset; usleep(1);
+  *reg_read_len     = l->read_len; usleep(1);
+  *reg_write_len    = l->write_len; usleep(1);
 
-  *reg_base_param0  = l->base_param[0];
-  usleep(1);
-  *reg_base_param1  = l->base_param[1];
-  usleep(1);
-  *reg_base_param2  = l->base_param[2];
-  usleep(1);
-  *reg_conv_param0  = l->conv_param[0];
-  usleep(1);
-  *reg_conv_param1  = l->conv_param[1];
-  usleep(1);
-  *reg_bias_param   = l->bias_param;
-  usleep(1);
-  // *reg_norm_param = l->norm_param;
-  // usleep(1);
-  *reg_actv_param   = l->actv_param;
-  usleep(1);
-  *reg_pool_param0  = l->pool_param[0];
-  usleep(1);
-  *reg_pool_param1  = l->pool_param[1];
-  usleep(1);
+  *reg_base_param0  = l->base_param[0]; usleep(1);
+  *reg_base_param1  = l->base_param[1]; usleep(1);
+  *reg_base_param2  = l->base_param[2]; usleep(1);
+  *reg_conv_param0  = l->conv_param[0]; usleep(1);
+  *reg_conv_param1  = l->conv_param[1]; usleep(1);
+  *reg_bias_param   = l->bias_param; usleep(1);
+  // *reg_norm_param = l->norm_param; usleep(1);
+  *reg_actv_param   = l->actv_param; usleep(1);
+  *reg_pool_param0  = l->pool_param[0]; usleep(1);
+  *reg_pool_param1  = l->pool_param[1]; usleep(1);
 
   // print_port();
 
-  *reg_pre_req = 0x1;
-  usleep(1);
-  *reg_pre_req = 0x0;
-  usleep(1);
-  do {
-    // Nop
-  } while (!*reg_pre_ack);
+  *reg_pre_req = 0x1; usleep(1);
+  *reg_pre_req = 0x0; usleep(1);
+  do { usleep(1); } while (!*reg_pre_ack);
 
-  *reg_req = 0x1;
-  usleep(1);
-  *reg_req = 0x0;
-  usleep(1);
-  do {
-    // Nop
-  } while (!*reg_ack);
+  *reg_req = 0x1; usleep(1);
+  *reg_req = 0x0; usleep(1);
+  do { usleep(1); } while (!*reg_ack);
 }
 
 void print_result(s16 *output, const int length)
@@ -231,14 +199,16 @@ void print_port()
     "&port[4]:  %08x &port[5]:  %08x &port[6]:  %08x &port[7]:  %08x\n"
     "&port[8]:  %08x &port[9]:  %08x &port[10]: %08x &port[11]: %08x\n"
     "&port[12]: %08x &port[13]: %08x &port[14]: %08x &port[15]: %08x\n"
-    "&port[16]: %08x &port[17]: %08x &port[18]: %08x\n"
-    "\n"
+    "&port[16]: %08x &port[17]: %08x &port[18]: %08x &port[19]: %08x\n"
+    "&port[20]: %08x &port[21]: %08x &port[22]: %08x\n"
     "&port[60]: %08x &port[61]: %08x &port[62]: %08x &port[63]: %08x\n"
+    "\n"
     , port[0], port[1], port[2], port[3]
     , port[4], port[5], port[6], port[7]
     , port[8], port[9], port[10], port[11]
     , port[12], port[13], port[14], port[15]
-    , port[16], port[17], port[18]
+    , port[16], port[17], port[18], port[19]
+    , port[20], port[21], port[22]
     , port[60], port[61], port[62], port[63]
   );
 }

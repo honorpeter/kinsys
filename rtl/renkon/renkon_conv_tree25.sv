@@ -159,7 +159,6 @@ module renkon_conv_tree25
     else
       qbits$ <= _qbits;
 
-  // NOTE: the position of reg definition effects implementation?
   function signed [DWIDTH-1:0] round
     ( input signed [2*DWIDTH-1:0] data
     );
@@ -168,34 +167,5 @@ module renkon_conv_tree25
     else
       round = $signed(data >>> qbits$);
   endfunction
-
-  // function signed [DWIDTH-1:0] round;
-  //   input signed [2*DWIDTH-1:0] data;
-  //   for (int i = 0; i < DWIDTH; i++) begin
-  //     if (qbits$ == i) begin
-  //       if (data[2*DWIDTH-1] == 1)
-  //         round = $signed(data >>> i) - 1;
-  //       else
-  //         round = $signed(data >>> i);
-  //     end
-  //   end
-  // endfunction
-
-  // function signed [DWIDTH-1:0] round
-  //   ( input signed [2*DWIDTH-1:0] data
-  //   );
-  //   if (data[2*DWIDTH-1] == 1)
-  //     round = shift(data) - 1;
-  //   else
-  //     round = shift(data);
-  // endfunction
-
-  // function signed [DWIDTH-1:0] shift
-  //   ( input signed [2*DWIDTH-1:0] data
-  //   );
-  //   for (int i = 0; i < DWIDTH; i++)
-  //     if (qbits$ == i)
-  //       shift = data >>> i;
-  // endfunction
 
 endmodule

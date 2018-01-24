@@ -14,7 +14,7 @@
 #include <sys/mman.h>
 
 // #define PAGED
-// #define RELEASE
+#define RELEASE
 
 
 static int __port;
@@ -36,7 +36,7 @@ int kinpira_init(void)
 {
 #ifdef RELEASE
   system("modprobe uio_pdrv_genirq");
-  system("modprobe udmabuf udmabuf0=104857600");
+  system("modprobe udmabuf udmabuf0=1048576");
   sleep(1);
 
   // Open Kinpira as UIO Driver
@@ -83,7 +83,7 @@ int kinpira_init(void)
                                PROT_READ | PROT_WRITE, MAP_SHARED,
                                __mem_gobou, 0);
 
-  mem_image = (s16 *)mmap(NULL, 104857600,
+  mem_image = (s16 *)mmap(NULL, 1048576,
                           PROT_READ | PROT_WRITE, MAP_SHARED,
                           __mem_image, 0);
 
@@ -100,7 +100,7 @@ int kinpira_init(void)
   mem_gobou =
     (u32 (*)[GOBOU_WORDS])malloc(sizeof(u32)*GOBOU_CORE*GOBOU_WORDS);
 
-  mem_image = (s16 *)malloc(sizeof(s16)*1024*1024*100);
+  mem_image = (s16 *)malloc(sizeof(s16)*1048576);
 #endif
 
 #ifdef PAGED
@@ -119,7 +119,7 @@ int kinpira_exit(void)
   munmap(port, sizeof(u32)*REGSIZE);
   munmap(mem_renkon, sizeof(u32)*RENKON_CORE*RENKON_WORDS);
   munmap(mem_gobou, sizeof(u32)*GOBOU_CORE*GOBOU_WORDS);
-  munmap(mem_image, sizeof(s16)*104857600);
+  munmap(mem_image, sizeof(s16)*1048576);
 
   close(__port);
   close(__mem_renkon);
@@ -154,9 +154,7 @@ Map *define_map(int map_c, int map_w, int map_h)
 
   r->phys_addr = phys_addr + offset;
 
-#ifndef RELEASE
-  printf("offset: %d\n", offset);
-#endif
+  printf("offset: %lu\n", offset/sizeof(s16));
 
 #ifdef PAGED
   offset += (map_size / pagesize + 1) * pagesize;
@@ -181,9 +179,7 @@ Vec *define_vec(int vec_l)
 
   r->phys_addr = phys_addr + offset;
 
-#ifndef RELEASE
-  printf("offset: %d\n", offset);
-#endif
+  printf("offset: %lu\n", offset/sizeof(s16));
 
 #ifdef PAGED
   offset += (vec_size / pagesize + 1) * pagesize;

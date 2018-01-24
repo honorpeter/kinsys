@@ -1,7 +1,8 @@
 #include "display.hpp"
 #include "wrapper.hpp"
 
-Display::Display(std::shared_ptr<std::deque<std::pair<Image, Track>>> fifo)
+Display::Display(
+  const std::shared_ptr<std::deque<std::pair<Image, Track>>> &fifo)
   : fifo(fifo)
 {
 }
@@ -22,8 +23,11 @@ void Display::post_frame()
 
     // TODO: overlay bounding-boxes, object-class and tracked-ids
     for (auto& obj : objs) {
-      std::make_pair(obj.first, obj.second);
-      break;
+      const int id = obj.first;
+      const BBox box = obj.second;
+      cv::rectangle(img,
+                    cv::Point(box.left, box.top), cv::Point(box.right, box.bot),
+                    cv::Scalar(0, 255, 0), 4);
     }
 
 #ifdef RELEASE

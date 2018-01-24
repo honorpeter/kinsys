@@ -86,27 +86,35 @@ private:
   Map *fmap12;
 
   const int CLASSES                 = 3;
-  const int IMAGE_WIDTH             = 1248;
-  const int IMAGE_HEIGHT            = 384;
+  // const int IMAGE_WIDTH             = 1248;
+  // const int IMAGE_HEIGHT            = 384;
+  const int IMAGE_WIDTH             = 176;
+  const int IMAGE_HEIGHT            = 144;
+
+  const int OUT_W                   = IMAGE_WIDTH/16;
+  const int OUT_H                   = IMAGE_HEIGHT/16;
 
   const float NMS_THRESH            = 0.4;
   const float PROB_THRESH           = 0.005;
   const int TOP_N_DETECTION         = 64;
 
-  Mat2D<float> ANCHOR_BOX;
   const int ANCHOR_PER_GRID         = 9;
-  const int ANCHORS                 = 78 * 24 * ANCHOR_PER_GRID;
+  const int ANCHORS                 = OUT_W * OUT_H * ANCHOR_PER_GRID;
+
+  const std::vector<std::array<float, 2>> anchor_shapes = {
+    {  36.,  37.}, { 366., 174.}, { 115.,  59.},
+    { 162.,  87.}, {  38.,  90.}, { 258., 173.},
+    { 224., 108.}, {  78., 170.}, {  72.,  43.}
+  };
 
   const std::array<std::string, 3> class_map =
     {{"car", "pedestrian", "cyclist"}};
 
-  const int num_class_probs = 9*3;//ANCHOR_PER_GRID * CLASSES;
-  const int num_confidence_scores = 9+9*3;//ANCHOR_PER_GRID + num_class_probs;
-  const int num_box_delta = 9*4+9+9*3;//preds.size();
+  const int num_class_probs = ANCHOR_PER_GRID * CLASSES;
+  const int num_confidence_scores = ANCHOR_PER_GRID + num_class_probs;
+  const int num_box_delta = ANCHOR_PER_GRID * 4 + num_confidence_scores;
 
-  const int out_h = 24;// preds[0].size();
-  const int out_w = 78;// preds[0][0].size();
-
+  Mat2D<float> anchor_box;
   Mat3D<float> preds;
   Mat3D<float> pred_class;
   Mat3D<float> pred_confidence;

@@ -47,14 +47,14 @@
 		s_axi_params: kinpira@a0000000 {
 			compatible = "generic-uio";
 			reg = <0x0 0xa0000000 0x0 0x10000>;
-			xlnx,s-axi-params-addr-width = <0x7>;
+			xlnx,s-axi-params-addr-width = <0x8>;
 			xlnx,s-axi-params-data-width = <0x20>;
 		};
 
-		s_axi_renkon: kinpira@a0010000 {
+		s_axi_renkon: kinpira@a0800000 {
 			compatible = "generic-uio";
-			reg = <0x0 0xa0010000 0x0 0x10000>;
-			xlnx,s-axi-renkon-addr-width = <0x10>;
+			reg = <0x0 0xa0800000 0x0 0x800000>;
+			xlnx,s-axi-renkon-addr-width = <0x17>;
 			xlnx,s-axi-renkon-aruser-width = <0x0>;
 			xlnx,s-axi-renkon-awuser-width = <0x0>;
 			xlnx,s-axi-renkon-buser-width = <0x0>;
@@ -64,10 +64,10 @@
 			xlnx,s-axi-renkon-wuser-width = <0x0>;
 		};
 
-		s_axi_gobou: kinpira@a0080000 {
+		s_axi_gobou: kinpira@a0010000 {
 			compatible = "generic-uio";
-			reg = <0x0 0xa0080000 0x0 0x80000>;
-			xlnx,s-axi-gobou-addr-width = <0x13>;
+			reg = <0x0 0xa0010000 0x0 0x10000>;
+			xlnx,s-axi-gobou-addr-width = <0x4>;
 			xlnx,s-axi-gobou-aruser-width = <0x0>;
 			xlnx,s-axi-gobou-awuser-width = <0x0>;
 			xlnx,s-axi-gobou-buser-width = <0x0>;

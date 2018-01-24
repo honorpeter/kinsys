@@ -21,7 +21,7 @@ extern "C" {
 class Webcam
 {
 public:
-  Webcam(std::shared_ptr<std::deque<Image>> fifo);
+  Webcam(const std::shared_ptr<std::deque<Image>> &fifo);
   ~Webcam();
 
   void get_i_frame();

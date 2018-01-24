@@ -16,7 +16,7 @@ extern "C" {
 #define DWIDTH          16
 #define LWIDTH          16
 #define MEMSIZE         31
-#define REGSIZE         6
+#define REGSIZE         64
 
 #define RENKON_CORE     8
 #define RENKON_NETSIZE  18

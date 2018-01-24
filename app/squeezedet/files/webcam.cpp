@@ -3,18 +3,18 @@
 #include "webcam.hpp"
 #include "wrapper.hpp"
 
-Webcam::Webcam(std::shared_ptr<std::deque<Image>> fifo)
+Webcam::Webcam(const std::shared_ptr<std::deque<Image>> &fifo)
   : fifo(fifo)
 {
   av_register_all();
   avdevice_register_all();
 
-#if RELEASE
+#ifdef RELEASE
   const char *name = "/dev/video0";
   AVInputFormat *in_format = av_find_input_format("v4l2");
   AVDictionary *format_opts = nullptr;
   av_dict_set(&format_opts, "framerate", "30", 0);
-  av_dict_set(&format_opts, "video_size", "640x480", 0);
+  av_dict_set(&format_opts, "video_size", "176x144", 0);
   av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
   av_dict_set(&format_opts, "input_format", "h264", 0);
 #else
@@ -22,7 +22,7 @@ Webcam::Webcam(std::shared_ptr<std::deque<Image>> fifo)
   AVInputFormat *in_format = av_find_input_format("avc1");
   AVDictionary *format_opts = nullptr;
   av_dict_set(&format_opts, "framerate", "30", 0);
-  av_dict_set(&format_opts, "video_size", "240x240", 0);
+  av_dict_set(&format_opts, "video_size", "176x144", 0);
   av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
   av_dict_set(&format_opts, "input_format", "h264", 0);
 #endif
@@ -73,13 +73,17 @@ Webcam::Webcam(std::shared_ptr<std::deque<Image>> fifo)
 
 Webcam::~Webcam()
 {
+#if 0
+  puts("~Webcam");
   av_free(buffer);
   av_free(frame_bgr);
   av_free(frame);
+  puts("free");
 
   avformat_close_input(&format_ctx);
   avcodec_close(codec_ctx);
-
+  puts("close");
+#endif
 }
 
 void Webcam::extract_mvs(AVFrame *frame, std::vector<AVMotionVector> &mvs)
@@ -133,15 +137,15 @@ void Webcam::preprocess(cv::Mat& img, std::vector<AVMotionVector> &mvs)
 
   format_mvs(target, mvs);
 
-  cv::Mat frame_f;
-  img.convertTo(frame_f, CV_32FC3);
+  cv::Mat img_f;
+  img.convertTo(img_f, CV_32FC3);
 
   int idx = 0;
   target.body = new s16[in_c * in_h * in_w];
   for (int k = 0; k < in_c; ++k) {
     for (int i = 0; i < in_h; ++i) {
       for (int j = 0; j < in_w; ++j) {
-        float acc = frame_f.at<cv::Vec3f>(i, j)[k] - bgr_means[k];
+        float acc = img_f.at<cv::Vec3f>(i, j)[k] - bgr_means[k];
         acc /= 255.0;
         target.body[idx] = static_cast<s16>(acc*256.);
         ++idx;

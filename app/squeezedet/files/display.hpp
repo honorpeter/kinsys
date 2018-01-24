@@ -12,7 +12,7 @@
 class Display
 {
 public:
-  Display(std::shared_ptr<std::deque<std::pair<Image, Track>>> fifo);
+  Display(const std::shared_ptr<std::deque<std::pair<Image, Track>>> &fifo);
   ~Display();
 
   void post_frame();

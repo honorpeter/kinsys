@@ -7,9 +7,9 @@
 
 // TODO: mutex fifos
 MVTracker::MVTracker(
-  std::shared_ptr<std::deque<Image>> in_fifo,
-  std::shared_ptr<std::deque<std::pair<Image, Track>>> out_fifo,
-  std::shared_ptr<std::pair<Image, Mask>> out_det)
+  const std::shared_ptr<std::deque<Image>> &in_fifo,
+  const std::shared_ptr<std::deque<std::pair<Image, Track>>> &out_fifo,
+  const std::shared_ptr<std::pair<Image, Mask>> &out_det)
   : in_fifo(in_fifo), out_fifo(out_fifo), out_det(out_det)
 {
   const int initial_size = 16;
@@ -173,6 +173,8 @@ thr = std::thread([&] {
 
 void MVTracker::interpolate()
 {
+  system_clock::time_point start, end;
+
 #ifdef THREAD
 thr = std::thread([&] {
 #endif
@@ -180,9 +182,21 @@ thr = std::thread([&] {
   auto mvs = frame.mvs;
 
   for (auto& box : boxes) {
+      start = system_clock::now();
     auto inner_mvs = find_inner(mvs, box, frame);
+      end = system_clock::now();
+      cout << "find_inner" << ":\t"
+           << duration_cast<milliseconds>(end-start).count() << " [ms]" << endl;
+      start = system_clock::now();
     auto d_box = average_mvs(inner_mvs);
+      end = system_clock::now();
+      cout << "average_mvs" << ":\t"
+           << duration_cast<milliseconds>(end-start).count() << " [ms]" << endl;
+      start = system_clock::now();
     box = move_bbox(box, d_box, frame);
+      end = system_clock::now();
+      cout << "move_bbox" << ":\t"
+           << duration_cast<milliseconds>(end-start).count() << " [ms]" << endl;
   }
 
   tracking(frame, boxes);

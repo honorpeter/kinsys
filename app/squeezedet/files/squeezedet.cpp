@@ -66,9 +66,12 @@ fire(Map *input, std::vector<Map *> maps, bool pool)
 }
 
 static Map * define_fire(std::vector<Map *> &maps,
-                         int s1x1, int e1x1, int e3x3, int map_w, int map_h)
+                         int s1x1, int e1x1, int e3x3, int map_w, int map_h,
+                         bool pool)
 {
-  Map *sq1x1 = define_map(s1x1, map_w, map_h);
+  Map *sq1x1 = pool
+             ? define_map(s1x1, 2*map_w, 2*map_h)
+             : define_map(s1x1, map_w, map_h);
   Map *ex1x1 = define_map(e1x1, map_w, map_h);
   Map *ex3x3 = define_map(e3x3, map_w, map_h);
 
@@ -95,19 +98,19 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
 {
   kinpira_init();
 
-  image   = define_map(  3, 1248, 384);
-  pmap1   = define_map( 64,  312,  96);
-  fmap2   = define_fire(fire2_maps,  16,  64,  64, 312, 96);
-  pmap3   = define_fire(fire3_maps,  16,  64,  64, 156, 48);
-  fmap4   = define_fire(fire4_maps,  32, 128, 128, 156, 48);
-  pmap5   = define_fire(fire5_maps,  32, 128, 128,  78, 24);
-  fmap6   = define_fire(fire6_maps,  48, 192, 192,  78, 24);
-  fmap7   = define_fire(fire7_maps,  48, 192, 192,  78, 24);
-  fmap8   = define_fire(fire8_maps,  64, 256, 256,  78, 24);
-  fmap9   = define_fire(fire9_maps,  64, 256, 256,  78, 24);
-  fmap10  = define_fire(fire10_maps, 96, 384, 384,  78, 24);
-  fmap11  = define_fire(fire11_maps, 96, 384, 384,  78, 24);
-  fmap12  = define_map( 72,   78,  24);
+  image  = define_map(  3,                     IMAGE_WIDTH,   IMAGE_HEIGHT);
+  pmap1  = define_map( 64,                     IMAGE_WIDTH/4, IMAGE_HEIGHT/4);
+  fmap2  = define_fire(fire2_maps, 16, 64, 64, IMAGE_WIDTH/4, IMAGE_HEIGHT/4, false);
+  pmap3  = define_fire(fire3_maps, 16, 64, 64, IMAGE_WIDTH/8, IMAGE_HEIGHT/8, true);
+  fmap4  = define_fire(fire4_maps, 32,128,128, IMAGE_WIDTH/8, IMAGE_HEIGHT/8, false);
+  pmap5  = define_fire(fire5_maps, 32,128,128, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, true);
+  fmap6  = define_fire(fire6_maps, 48,192,192, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, false);
+  fmap7  = define_fire(fire7_maps, 48,192,192, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, false);
+  fmap8  = define_fire(fire8_maps, 64,256,256, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, false);
+  fmap9  = define_fire(fire9_maps, 64,256,256, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, false);
+  fmap10 = define_fire(fire10_maps,96,384,384, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, false);
+  fmap11 = define_fire(fire11_maps,96,384,384, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, false);
+  fmap12 = define_map( 72,                     IMAGE_WIDTH/16,IMAGE_HEIGHT/16);
 
   // set_input(&in_det->body, image);
   in_det->body = image->body;
@@ -160,6 +163,9 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
 
 SqueezeDet::~SqueezeDet()
 {
+#if 0
+  puts("~SqueezeDet");
+
   undef_layer(conv1);
   undef_layers(fire2);
   undef_layers(fire3);
@@ -172,6 +178,7 @@ SqueezeDet::~SqueezeDet()
   undef_layers(fire10);
   undef_layers(fire11);
   undef_layer(conv12);
+  puts("undef_layer");
 
   undef_maps(fire2_maps);
   undef_maps(fire3_maps);
@@ -183,6 +190,7 @@ SqueezeDet::~SqueezeDet()
   undef_maps(fire9_maps);
   undef_maps(fire10_maps);
   undef_maps(fire11_maps);
+  puts("undef_maps");
 
   undef_map(image);
   undef_map(pmap1);
@@ -197,18 +205,21 @@ SqueezeDet::~SqueezeDet()
   undef_map(fmap10);
   undef_map(fmap11);
   undef_map(fmap12);
+  puts("undef_map");
 
   kinpira_exit();
+  puts("kinpira_exit");
+#endif
 }
 
 void SqueezeDet::init_matrix()
 {
-  ANCHOR_BOX = set_anchors();
+  anchor_box = set_anchors();
 
   preds = zeros<float>(fmap12->shape[0], fmap12->shape[1], fmap12->shape[2]);
-  pred_class = zeros<float>(out_h, out_w, ANCHOR_PER_GRID * CLASSES);
-  pred_confidence = zeros<float>(out_h, out_w, ANCHOR_PER_GRID);
-  pred_box = zeros<float>(out_h, out_w, num_box_delta-num_confidence_scores);
+  pred_class = zeros<float>(OUT_H, OUT_W, ANCHOR_PER_GRID * CLASSES);
+  pred_confidence = zeros<float>(OUT_H, OUT_W, ANCHOR_PER_GRID);
+  pred_box = zeros<float>(OUT_H, OUT_W, num_box_delta-num_confidence_scores);
   pred_class_flat = zeros<float>(ANCHORS*CLASSES);
   pred_class_ = zeros<float>(ANCHORS, CLASSES);
   pred_class_probs = zeros<float>(ANCHORS, CLASSES);
@@ -313,29 +324,21 @@ Mat1D<float> SqueezeDet::safe_exp(Mat1D<float>& w, float thresh)
 
 Mat2D<float> SqueezeDet::set_anchors()
 { // {{{
-  const int H = 24, W = 78, B = 9;
-
-  const float anchor_shapes[B][2] = {
-    {  36.,  37.}, { 366., 174.}, { 115.,  59.},
-    { 162.,  87.}, {  38.,  90.}, { 258., 173.},
-    { 224., 108.}, {  78., 170.}, {  72.,  43.}
-  };
-
-  auto center_x = zeros<float>(W);
-  for (int i = 0; i < W; ++i) {
-    center_x[i] = static_cast<float>(i+1)/(W+1) * IMAGE_WIDTH;
+  auto center_x = zeros<float>(OUT_W);
+  for (int i = 0; i < OUT_W; ++i) {
+    center_x[i] = static_cast<float>(i+1)/(OUT_W+1) * IMAGE_WIDTH;
   }
 
-  auto center_y = zeros<float>(H);
-  for (int i = 0; i < H; ++i) {
-    center_y[i] = static_cast<float>(i+1)/(H+1) * IMAGE_HEIGHT;
+  auto center_y = zeros<float>(OUT_H);
+  for (int i = 0; i < OUT_H; ++i) {
+    center_y[i] = static_cast<float>(i+1)/(OUT_H+1) * IMAGE_HEIGHT;
   }
 
-  auto anchors = zeros<float>(H*W*B, 4);
+  auto anchors = zeros<float>(OUT_H*OUT_W*ANCHOR_PER_GRID, 4);
   int idx = 0;
-  for (int i = 0; i < H; ++i) {
-    for (int j = 0; j < W; ++j) {
-      for (int k = 0; k < B; ++k) {
+  for (int i = 0; i < OUT_H; ++i) {
+    for (int j = 0; j < OUT_W; ++j) {
+      for (int k = 0; k < ANCHOR_PER_GRID; ++k) {
         anchors[idx][0] = center_x[j];
         anchors[idx][1] = center_y[i];
         anchors[idx][2] = anchor_shapes[k][0];
@@ -354,6 +357,7 @@ void SqueezeDet::filter()
   std::iota(whole.begin(), whole.end(), 0);
   std::vector<int> order;
 
+  puts("sort");
   if (0 < TOP_N_DETECTION && TOP_N_DETECTION < (int)probs.size()) {
     std::sort(whole.begin(), whole.end(), [&](int i, int j) {
       return probs[i] > probs[j];
@@ -386,6 +390,7 @@ void SqueezeDet::filter()
       }
     }
 
+  puts("nms");
     auto keep = nms(cand_boxes, cand_probs, NMS_THRESH);
 #ifdef RELEASE
     for (int i = 0; i < (int)keep.size(); ++i) {
@@ -419,8 +424,8 @@ void SqueezeDet::filter()
 
 void SqueezeDet::interpret(Mat3D<float>& preds)
 { // {{{
-  for (int j = 0; j < out_h; ++j) {
-    for (int k = 0; k < out_w; ++k) {
+  for (int j = 0; j < OUT_H; ++j) {
+    for (int k = 0; k < OUT_W; ++k) {
       // convert to tensorflow encoding
       for (int i = 0; i < num_class_probs; ++i)
         pred_class[j][k][i] = preds[i][j][k];
@@ -433,18 +438,22 @@ void SqueezeDet::interpret(Mat3D<float>& preds)
     }
   }
 
+  puts("softmax");
   flatten(pred_class_flat, pred_class);
   reshape(pred_class_, pred_class_flat);
   for (int i = 0; i < ANCHORS; ++i)
     softmax(pred_class_probs[i], pred_class_[i]);
 
+  puts("sigmoid");
   flatten(pred_confidence_flat, pred_confidence);
   sigmoid(pred_confidence_scores, pred_confidence_flat);
 
+  puts("merge_box_delta");
   flatten(pred_box_flat, pred_box);
   reshape(pred_box_delta, pred_box_flat);
-  merge_box_delta(ANCHOR_BOX, pred_box_delta);
+  merge_box_delta(anchor_box, pred_box_delta);
 
+  puts("probs");
   for (int i = 0; i < ANCHORS; ++i)
     // scalar * vector
     _probs[i] = pred_confidence_scores[i] * pred_class_probs[i];
@@ -457,24 +466,39 @@ void SqueezeDet::interpret(Mat3D<float>& preds)
 
 void SqueezeDet::evaluate()
 {
+  system_clock::time_point start, end;
+
 #ifdef THREAD
 thr = std::thread([&] {
 #endif
   frame = *in_det;
 
 #ifdef RELEASE
-  exec_core(conv1);
-  exec_cores(fire2);
-  exec_cores(fire3);
-  exec_cores(fire4);
-  exec_cores(fire5);
-  exec_cores(fire6);
-  exec_cores(fire7);
-  exec_cores(fire8);
-  exec_cores(fire9);
-  exec_cores(fire10);
-  exec_cores(fire11);
-  exec_core(conv12);
+  SHOW(exec_core(conv1));
+  SHOW(exec_cores(fire2));
+  SHOW(exec_cores(fire3));
+  SHOW(exec_cores(fire4));
+  SHOW(exec_cores(fire5));
+  SHOW(exec_cores(fire6));
+  SHOW(exec_cores(fire7));
+  SHOW(exec_cores(fire8));
+  SHOW(exec_cores(fire9));
+  SHOW(exec_cores(fire10));
+  SHOW(exec_cores(fire11));
+  SHOW(exec_core(conv12));
+
+  // exec_core(conv1);
+  // exec_cores(fire2);
+  // exec_cores(fire3);
+  // exec_cores(fire4);
+  // exec_cores(fire5);
+  // exec_cores(fire6);
+  // exec_cores(fire7);
+  // exec_cores(fire8);
+  // exec_cores(fire9);
+  // exec_cores(fire10);
+  // exec_cores(fire11);
+  // exec_core(conv12);
 #else
   do {
     int idx = 0;
@@ -491,8 +515,8 @@ thr = std::thread([&] {
       for (int k = 0; k < fmap12->shape[2]; ++k)
         preds[i][j][k] = static_cast<float>(fmap12->body[idx++]) / 256.0;
 
-  interpret(preds);
-  filter();
+  SHOW(interpret(preds));
+  SHOW(filter());
 #ifdef THREAD
 });
 #endif

@@ -25,7 +25,7 @@ static void define_pool(Layer *l, u32 *param);
 
 
 Layer *map_layer(
-  Map *in, Map *out,
+  Map *in, Map *out, int qbits,
   u32 *conv_param, u32 *norm_param, u32 *actv_param, u32 *pool_param
 )
 {
@@ -33,7 +33,7 @@ Layer *map_layer(
   Layer *l = (Layer *)calloc(1, sizeof(Layer));
 
   l->which      = WHICH_RENKON;
-  l->qbits      = 8;
+  l->qbits      = qbits;
   l->in_offset  = in->phys_addr;
   l->out_offset = out->phys_addr;
   l->net_offset = renkon_offset;
@@ -60,7 +60,7 @@ Layer *map_layer(
   renkon_offset += CEIL_DIV(out->shape[0], RENKON_CORE)
                  * (in->shape[0]*kern*kern + bias);
 
-  // printf("renkon_offset: %d\n", renkon_offset);
+  printf("renkon_offset: %d\n", renkon_offset);
   if (renkon_offset > RENKON_WORDS) {
     fprintf(stderr, "exceeds the capacity of map weight memories\n");
     exit(1);
@@ -72,7 +72,7 @@ Layer *map_layer(
 
 
 Layer *vec_layer(
-  Vec *in, Vec *out,
+  Vec *in, Vec *out, int qbits,
   u32 *full_param, u32 *norm_param, u32 *actv_param
 )
 {
@@ -80,7 +80,7 @@ Layer *vec_layer(
   Layer *l = (Layer *)calloc(1, sizeof(Layer));
 
   l->which      = WHICH_GOBOU;
-  l->qbits      = 8;
+  l->qbits      = qbits;
   l->in_offset  = in->phys_addr;
   l->out_offset = out->phys_addr;
   l->net_offset = gobou_offset;
@@ -104,7 +104,7 @@ Layer *vec_layer(
   gobou_offset += CEIL_DIV(out->shape, GOBOU_CORE)
                 * (in->shape + bias);
 
-  // printf("gobou_offset: %d\n", gobou_offset);
+  printf("gobou_offset: %d\n", gobou_offset);
   if (gobou_offset > GOBOU_WORDS) {
     fprintf(stderr, "exceeds the capacity of vec weight memories\n");
     exit(1);

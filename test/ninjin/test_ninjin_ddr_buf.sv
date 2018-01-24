@@ -3,12 +3,14 @@
 // TODO: currently, odd WRITE_LEN won't work.
 //       (However, actual WRITE_LEN may be CORE * ~, where CORE is even)
 
-const int READ_LEN   = 16*12*12;
-const int WRITE_LEN  = 8*4*4;
+// const int READ_LEN   = 16*12*12;
+// const int WRITE_LEN  = 8*4*4;
 // const int READ_LEN   = 1*28*28;
 // const int WRITE_LEN  = 8*12*12;
 // const int READ_LEN   = 512;
 // const int WRITE_LEN  = 16;
+const int READ_LEN   = 6336;
+const int WRITE_LEN  = 3168;
 
 // int READ_OFFSET  = 42;
 const int READ_OFFSET  = 'ha000;
@@ -24,8 +26,8 @@ module test_ninjin_ddr_buf;
   reg                     xrst;
   reg                     pre_req;
   reg [WORDSIZE-1:0]      pre_base;
-  reg [LWIDTH-1:0]        read_len;
-  reg [LWIDTH-1:0]        write_len;
+  reg [MEMSIZE-1:0]       read_len;
+  reg [MEMSIZE-1:0]       write_len;
   reg                     mem_we;
   reg [MEMSIZE-1:0]       mem_addr;
   reg signed [DWIDTH-1:0] mem_wdata;
@@ -38,9 +40,10 @@ module test_ninjin_ddr_buf;
   wire                      ddr_req;
   wire                      ddr_mode;
   wire [WORDSIZE+LSB-1:0]   ddr_base;
-  wire [LWIDTH-1:0]         ddr_len;
+  wire [MEMSIZE-1:0]        ddr_len;
   wire [BWIDTH-1:0]         ddr_rdata;
   wire signed [DWIDTH-1:0]  mem_rdata;
+  wire [1:0] buf_state;
 
   wire [2-1:0] probe_state;
 

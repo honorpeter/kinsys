@@ -6,8 +6,8 @@ module ninjin_ddr_buf
   // meta inputs
   , input                     pre_req
   , input [WORDSIZE-1:0]      pre_base
-  , input [LWIDTH-1:0]        read_len
-  , input [LWIDTH-1:0]        write_len
+  , input [MEMSIZE-1:0]       read_len
+  , input [MEMSIZE-1:0]       write_len
   // memory ports
   , input                     mem_we
   , input [MEMSIZE-1:0]       mem_addr
@@ -23,7 +23,7 @@ module ninjin_ddr_buf
   , output                      ddr_req
   , output                      ddr_mode
   , output [WORDSIZE+LSB-1:0]   ddr_base
-  , output [LWIDTH-1:0]         ddr_len
+  , output [MEMSIZE-1:0]        ddr_len
   , output [BWIDTH-1:0]         ddr_rdata
   // memory data
   , output signed [DWIDTH-1:0]  mem_rdata
@@ -64,8 +64,8 @@ module ninjin_ddr_buf
   wire signed [DWIDTH-1:0]    alpha [RATE-1:0];
   wire signed [DWIDTH-1:0]    bravo [RATE-1:0];
   wire signed [DWIDTH-1:0]    pre   [RATE-1:0];
-  wire [LWIDTH-1:0]           burst_len;
-  wire [LWIDTH-1:0]           rest_len;
+  wire [MEMSIZE-1:0]           burst_len;
+  wire [MEMSIZE-1:0]           rest_len;
 
   typedef enum reg [1:0] {
     ALPHA=0, BRAVO=1, PRE=2, POST=3
@@ -84,7 +84,7 @@ module ninjin_ddr_buf
   reg                     ddr_req$;
   reg                     ddr_mode$;
   reg [WORDSIZE+LSB-1:0]  ddr_base$;
-  reg [LWIDTH-1:0]        ddr_len$;
+  reg [MEMSIZE-1:0]       ddr_len$;
   reg                     buf_we$;
   reg [BUFSIZE-1:0]       buf_addr$;
   reg [BWIDTH-1:0]        buf_wdata$;
@@ -98,13 +98,13 @@ module ninjin_ddr_buf
   reg [MEMSIZE-1:0]       write_len$;
   reg [MEMSIZE-1:0]       count_len$;
   reg [MEMSIZE-1:0]       burst_len$;
-  reg [LWIDTH-1:0]        count_buf$;
-  reg [LWIDTH-1:0]        count_post$;
+  reg [MEMSIZE-1:0]       count_buf$;
+  reg [MEMSIZE-1:0]       count_post$;
   reg                     switch_buf$;
   reg_which               first_buf$;
   reg [RATELOG-1:0]       word_offset$;
   reg [BUFSIZE-1:0]       post_addr$;
-  reg [LWIDTH-1:0]        post_len$;
+  reg [MEMSIZE-1:0]       post_len$;
 
 //==========================================================
 // core control

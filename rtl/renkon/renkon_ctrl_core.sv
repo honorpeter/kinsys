@@ -44,7 +44,7 @@ module renkon_ctrl_core
   , output                            serial_we
   , output [RENKON_CORELOG:0]         serial_re
   , output [OUTSIZE-1:0]              serial_addr
-  , output [DWIDTHLOG-1:0]               _qbits
+  , output [DWIDTHLOG-1:0]            _qbits
   , output [LWIDTH-1:0]               _fea_height
   , output [LWIDTH-1:0]               _fea_width
   , output [LWIDTH-1:0]               _conv_strid
