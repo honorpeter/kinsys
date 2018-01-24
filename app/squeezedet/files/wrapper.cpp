@@ -13,19 +13,17 @@ void exec_cores(std::vector<Layer *> ls)
 void assign_maps_quant(
     std::vector<Layer *> ls,
     std::vector<u8 *> weights, std::vector<u8 *> biases,
+    int qbits,
     std::vector<float> weights_min, std::vector<float> weights_max,
     std::vector<float> biases_min, std::vector<float> biases_max)
 {
   const int size = ls.size();
   assert(ls.size() == weights.size() && ls.size() == biases.size());
-  // cout << ls.size() << " " << weights.size() << " " << biases.size()
-  //      << " " << weights_min.size() << " " << weights_max.size()
-  //      << " " << biases_min.size() << " " << biases_max.size() << endl;
 
   for (int i = 0; i < size; ++i)
     assign_map_quant(
-        ls[i], weights[i], biases[i],
-        weights_min[i], weights_max[i], biases_min[i], biases_max[i]);
+      ls[i], weights[i], biases[i],
+      qbits, weights_min[i], weights_max[i], biases_min[i], biases_max[i]);
 }
 #else
 void assign_maps(std::vector<Layer *> ls,

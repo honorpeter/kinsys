@@ -44,12 +44,14 @@ typedef struct {
 
 typedef struct {
   int shape[3];
+  int qbits;
   u32 phys_addr;
   s16 *body;
 } Map;
 
 typedef struct {
   int shape;
+  int qbits;
   u32 phys_addr;
   s16 *body;
 } Vec;

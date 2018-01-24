@@ -65,15 +65,15 @@ fire(Map *input, std::vector<Map *> maps, bool pool)
   };
 }
 
-static Map * define_fire(std::vector<Map *> &maps,
+static Map * define_fire(int qbits, std::vector<Map *> &maps,
                          int s1x1, int e1x1, int e3x3, int map_w, int map_h,
                          bool pool)
 {
   Map *sq1x1 = pool
-             ? define_map(s1x1, 2*map_w, 2*map_h)
-             : define_map(s1x1, map_w, map_h);
-  Map *ex1x1 = define_map(e1x1, map_w, map_h);
-  Map *ex3x3 = define_map(e3x3, map_w, map_h);
+             ? define_map(qbits, s1x1, 2*map_w, 2*map_h)
+             : define_map(qbits, s1x1, map_w, map_h);
+  Map *ex1x1 = define_map(qbits, e1x1, map_w, map_h);
+  Map *ex3x3 = define_map(qbits, e3x3, map_w, map_h);
 
   maps = std::vector<Map *>{sq1x1, ex1x1, ex3x3};
 
@@ -88,6 +88,7 @@ static Map * define_fire(std::vector<Map *> &maps,
 
   output->body = ex1x1->body;
   output->phys_addr = ex1x1->phys_addr;
+  output->qbits = ex1x1->qbits;
 
   return output;
 }
@@ -98,19 +99,19 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
 {
   kinpira_init();
 
-  image  = define_map(  3,                     IMAGE_WIDTH,   IMAGE_HEIGHT);
-  pmap1  = define_map( 64,                     IMAGE_WIDTH/4, IMAGE_HEIGHT/4);
-  fmap2  = define_fire(fire2_maps, 16, 64, 64, IMAGE_WIDTH/4, IMAGE_HEIGHT/4, false);
-  pmap3  = define_fire(fire3_maps, 16, 64, 64, IMAGE_WIDTH/8, IMAGE_HEIGHT/8, true);
-  fmap4  = define_fire(fire4_maps, 32,128,128, IMAGE_WIDTH/8, IMAGE_HEIGHT/8, false);
-  pmap5  = define_fire(fire5_maps, 32,128,128, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, true);
-  fmap6  = define_fire(fire6_maps, 48,192,192, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, false);
-  fmap7  = define_fire(fire7_maps, 48,192,192, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, false);
-  fmap8  = define_fire(fire8_maps, 64,256,256, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, false);
-  fmap9  = define_fire(fire9_maps, 64,256,256, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, false);
-  fmap10 = define_fire(fire10_maps,96,384,384, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, false);
-  fmap11 = define_fire(fire11_maps,96,384,384, IMAGE_WIDTH/16,IMAGE_HEIGHT/16, false);
-  fmap12 = define_map( 72,                     IMAGE_WIDTH/16,IMAGE_HEIGHT/16);
+  image  = define_map( 14,                       3, IMG_W,   IMG_H);
+  pmap1  = define_map( 13,                      64, IMG_W/4, IMG_H/4);
+  fmap2  = define_fire(12, fire2_maps,  16, 64, 64, IMG_W/4, IMG_H/4,  false);
+  pmap3  = define_fire(11, fire3_maps,  16, 64, 64, IMG_W/8, IMG_H/8,  true);
+  fmap4  = define_fire(10, fire4_maps,  32,128,128, IMG_W/8, IMG_H/8,  false);
+  pmap5  = define_fire(10, fire5_maps,  32,128,128, IMG_W/16,IMG_H/16, true);
+  fmap6  = define_fire(10, fire6_maps,  48,192,192, IMG_W/16,IMG_H/16, false);
+  fmap7  = define_fire(10, fire7_maps,  48,192,192, IMG_W/16,IMG_H/16, false);
+  fmap8  = define_fire(11, fire8_maps,  64,256,256, IMG_W/16,IMG_H/16, false);
+  fmap9  = define_fire(11, fire9_maps,  64,256,256, IMG_W/16,IMG_H/16, false);
+  fmap10 = define_fire(12, fire10_maps, 96,384,384, IMG_W/16,IMG_H/16, false);
+  fmap11 = define_fire(12, fire11_maps, 96,384,384, IMG_W/16,IMG_H/16, false);
+  fmap12 = define_map( 10,                      72, IMG_W/16,IMG_H/16);
 
   // set_input(&in_det->body, image);
   in_det->body = image->body;
@@ -132,30 +133,30 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
   out_det->first.body = fmap12->body;
 
 #ifdef RELEASE
-  assign_map_quant( conv1,   W_conv1,  b_conv1,
-                    W_conv1_min,  W_conv1_max,  b_conv1_min,  b_conv1_max );
+  assign_map_quant( conv1,  W_conv1,  b_conv1,
+    13, W_conv1_min,  W_conv1_max,  b_conv1_min,  b_conv1_max );
   assign_maps_quant(fire2,  W_fire2,  b_fire2,
-                    W_fire2_min,  W_fire2_max,  b_fire2_min,  b_fire2_max );
+    12, W_fire2_min,  W_fire2_max,  b_fire2_min,  b_fire2_max );
   assign_maps_quant(fire3,  W_fire3,  b_fire3,
-                    W_fire3_min,  W_fire3_max,  b_fire3_min,  b_fire3_max );
+    11, W_fire3_min,  W_fire3_max,  b_fire3_min,  b_fire3_max );
   assign_maps_quant(fire4,  W_fire4,  b_fire4,
-                    W_fire4_min,  W_fire4_max,  b_fire4_min,  b_fire4_max );
+    10, W_fire4_min,  W_fire4_max,  b_fire4_min,  b_fire4_max );
   assign_maps_quant(fire5,  W_fire5,  b_fire5,
-                    W_fire5_min,  W_fire5_max,  b_fire5_min,  b_fire5_max );
+    10, W_fire5_min,  W_fire5_max,  b_fire5_min,  b_fire5_max );
   assign_maps_quant(fire6,  W_fire6,  b_fire6,
-                    W_fire6_min,  W_fire6_max,  b_fire6_min,  b_fire6_max );
+    10, W_fire6_min,  W_fire6_max,  b_fire6_min,  b_fire6_max );
   assign_maps_quant(fire7,  W_fire7,  b_fire7,
-                    W_fire7_min,  W_fire7_max,  b_fire7_min,  b_fire7_max );
+    10, W_fire7_min,  W_fire7_max,  b_fire7_min,  b_fire7_max );
   assign_maps_quant(fire8,  W_fire8,  b_fire8,
-                    W_fire8_min,  W_fire8_max,  b_fire8_min,  b_fire8_max );
+    11, W_fire8_min,  W_fire8_max,  b_fire8_min,  b_fire8_max );
   assign_maps_quant(fire9,  W_fire9,  b_fire9,
-                    W_fire9_min,  W_fire9_max,  b_fire9_min,  b_fire9_max );
+    11, W_fire9_min,  W_fire9_max,  b_fire9_min,  b_fire9_max );
   assign_maps_quant(fire10, W_fire10, b_fire10,
-                    W_fire10_min, W_fire10_max, b_fire10_min, b_fire10_max);
+    12, W_fire10_min, W_fire10_max, b_fire10_min, b_fire10_max);
   assign_maps_quant(fire11, W_fire11, b_fire11,
-                    W_fire11_min, W_fire11_max, b_fire11_min, b_fire11_max);
-  assign_map_quant( conv12,  W_conv12, b_conv12,
-                    W_conv12_min, W_conv12_max, b_conv12_min, b_conv12_max);
+    12, W_fire11_min, W_fire11_max, b_fire11_min, b_fire11_max);
+  assign_map_quant( conv12, W_conv12, b_conv12,
+    10, W_conv12_min, W_conv12_max, b_conv12_min, b_conv12_max);
 #endif
 
   init_matrix();
@@ -294,10 +295,10 @@ auto SqueezeDet::merge_box_delta(Mat2D<float>& anchor, Mat2D<float>& delta)
 
   auto _boxes = bbox_transform(center_x, center_y, width, height);
 
-  auto xmins = clip<float>(_boxes[0], 0.0, IMAGE_WIDTH-1.0);
-  auto ymins = clip<float>(_boxes[1], 0.0, IMAGE_HEIGHT-1.0);
-  auto xmaxs = clip<float>(_boxes[2], 0.0, IMAGE_WIDTH-1.0);
-  auto ymaxs = clip<float>(_boxes[3], 0.0, IMAGE_HEIGHT-1.0);
+  auto xmins = clip<float>(_boxes[0], 0.0, IMG_W-1.0);
+  auto ymins = clip<float>(_boxes[1], 0.0, IMG_H-1.0);
+  auto xmaxs = clip<float>(_boxes[2], 0.0, IMG_W-1.0);
+  auto ymaxs = clip<float>(_boxes[3], 0.0, IMG_H-1.0);
 
   boxes = bbox_transform_inv(xmins, ymins, xmaxs, ymaxs);
 } // }}}
@@ -326,12 +327,12 @@ Mat2D<float> SqueezeDet::set_anchors()
 { // {{{
   auto center_x = zeros<float>(OUT_W);
   for (int i = 0; i < OUT_W; ++i) {
-    center_x[i] = static_cast<float>(i+1)/(OUT_W+1) * IMAGE_WIDTH;
+    center_x[i] = static_cast<float>(i+1)/(OUT_W+1) * IMG_W;
   }
 
   auto center_y = zeros<float>(OUT_H);
   for (int i = 0; i < OUT_H; ++i) {
-    center_y[i] = static_cast<float>(i+1)/(OUT_H+1) * IMAGE_HEIGHT;
+    center_y[i] = static_cast<float>(i+1)/(OUT_H+1) * IMG_H;
   }
 
   auto anchors = zeros<float>(OUT_H*OUT_W*ANCHOR_PER_GRID, 4);
@@ -486,19 +487,6 @@ thr = std::thread([&] {
   SHOW(exec_cores(fire10));
   SHOW(exec_cores(fire11));
   SHOW(exec_core(conv12));
-
-  // exec_core(conv1);
-  // exec_cores(fire2);
-  // exec_cores(fire3);
-  // exec_cores(fire4);
-  // exec_cores(fire5);
-  // exec_cores(fire6);
-  // exec_cores(fire7);
-  // exec_cores(fire8);
-  // exec_cores(fire9);
-  // exec_cores(fire10);
-  // exec_cores(fire11);
-  // exec_core(conv12);
 #else
   do {
     int idx = 0;
@@ -510,10 +498,11 @@ thr = std::thread([&] {
 #endif
 
   int idx = 0;
+  const float qoffs = 1 << fmap12->qbits;
   for (int i = 0; i < fmap12->shape[0]; ++i)
     for (int j = 0; j < fmap12->shape[1]; ++j)
       for (int k = 0; k < fmap12->shape[2]; ++k)
-        preds[i][j][k] = static_cast<float>(fmap12->body[idx++]) / 256.0;
+        preds[i][j][k] = fmap12->body[idx++] / qoffs;
 
   SHOW(interpret(preds));
   SHOW(filter());

@@ -25,15 +25,14 @@ static void define_pool(Layer *l, u32 *param);
 
 
 Layer *map_layer(
-  Map *in, Map *out, int qbits,
+  Map *in, Map *out,
   u32 *conv_param, u32 *norm_param, u32 *actv_param, u32 *pool_param
 )
 {
-  // Layer *l = (Layer *)malloc(sizeof(Layer));
   Layer *l = (Layer *)calloc(1, sizeof(Layer));
 
   l->which      = WHICH_RENKON;
-  l->qbits      = qbits;
+  l->qbits      = in->qbits;
   l->in_offset  = in->phys_addr;
   l->out_offset = out->phys_addr;
   l->net_offset = renkon_offset;
@@ -72,15 +71,14 @@ Layer *map_layer(
 
 
 Layer *vec_layer(
-  Vec *in, Vec *out, int qbits,
+  Vec *in, Vec *out,
   u32 *full_param, u32 *norm_param, u32 *actv_param
 )
 {
-  // Layer *l = (Layer *)malloc(sizeof(Layer));
   Layer *l = (Layer *)calloc(1, sizeof(Layer));
 
   l->which      = WHICH_GOBOU;
-  l->qbits      = qbits;
+  l->qbits      = in->qbits;
   l->in_offset  = in->phys_addr;
   l->out_offset = out->phys_addr;
   l->net_offset = gobou_offset;

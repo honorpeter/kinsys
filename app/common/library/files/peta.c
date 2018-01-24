@@ -21,7 +21,6 @@ static int __port;
 static int __mem_renkon;
 static int __mem_gobou;
 static int __mem_image;
-int16_t *mem_image;
 
 
 
@@ -39,31 +38,17 @@ int kinpira_init(void)
   system("modprobe udmabuf udmabuf0=1048576");
   sleep(1);
 
-  // Open Kinpira as UIO Driver
+  // Open Kinpira slave ports as UIO driver
   __port       = open("/dev/uio0", O_RDWR);
   __mem_renkon = open("/dev/uio1", O_RDWR);
   __mem_gobou  = open("/dev/uio2", O_RDWR);
-
   if (__port < 0 || __mem_renkon < 0 || __mem_gobou < 0) {
-    perror("uio open");
+    perror("uio open error");
     return errno;
   }
 
-  // Create udmabuf
-  int fd;
-  char attr[1024];
-
-  fd = open("/sys/class/udmabuf/udmabuf0/phys_addr", O_RDONLY);
-  if (fd < 0) {
-    perror("phys_addr open error");
-    return errno;
-  }
-
-  read(fd, attr, 1024);
-  sscanf(attr, "%x", &phys_addr);
-  close(fd);
-
-  __mem_image = open("/dev/udmabuf0", O_RDWR | O_SYNC);
+  // Open Kinpira master ports as udmabuf
+  __mem_image  = open("/dev/udmabuf0", O_RDWR | O_SYNC);
   if (__mem_image < 0) {
     perror("udmabuf open error");
     return errno;
@@ -91,6 +76,16 @@ int kinpira_init(void)
     fprintf(stderr, "mmap failed\n");
     return errno;
   }
+
+  int fd = open("/sys/class/udmabuf/udmabuf0/phys_addr", O_RDONLY);
+  if (fd < 0) {
+    perror("phys_addr open error");
+    return errno;
+  }
+  char attr[1024];
+  read(fd, attr, 1024);
+  sscanf(attr, "%x", &phys_addr);
+  close(fd);
 #else
   port = (u32 *)malloc(sizeof(u32)*REGSIZE);
 
@@ -140,9 +135,11 @@ int kinpira_exit(void)
 
 
 
-Map *define_map(int map_c, int map_w, int map_h)
+Map *define_map(int qbits, int map_c, int map_w, int map_h)
 {
   Map *r = (Map *)malloc(sizeof(Map));
+
+  r->qbits = qbits;
 
   r->shape[0] = map_c;
   r->shape[1] = map_w;
@@ -150,9 +147,8 @@ Map *define_map(int map_c, int map_w, int map_h)
 
   int map_size = sizeof(s16)*map_c*map_w*map_h;
 
-  r->body = (s16 *)((UINTPTR)mem_image + offset);
-
   r->phys_addr = phys_addr + offset;
+  r->body = (s16 *)((UINTPTR)mem_image + offset);
 
   printf("offset: %lu\n", offset/sizeof(s16));
 
@@ -167,17 +163,18 @@ Map *define_map(int map_c, int map_w, int map_h)
 
 
 
-Vec *define_vec(int vec_l)
+Vec *define_vec(int qbits, int vec_l)
 {
   Vec *r = (Vec *)malloc(sizeof(Vec));
+
+  r->qbits = qbits;
 
   r->shape = vec_l;
 
   int vec_size = sizeof(s16)*vec_l;
 
-  r->body = (s16 *)((UINTPTR)mem_image + offset);
-
   r->phys_addr = phys_addr + offset;
+  r->body = (s16 *)((UINTPTR)mem_image + offset);
 
   printf("offset: %lu\n", offset/sizeof(s16));
 

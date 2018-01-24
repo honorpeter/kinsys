@@ -29,6 +29,7 @@ extern "C" {
 extern uint32_t *port;
 extern uint32_t (*mem_renkon)[RENKON_WORDS];
 extern uint32_t (*mem_gobou)[GOBOU_WORDS];
+extern int16_t *mem_image;
 
 // input reg
 #define reg_which       &port[0]

@@ -17,6 +17,7 @@ static u32 bit(u32 value, int high, int low)
 
 #ifdef QUANT
 void assign_map_quant(Layer *l, u8 *weight, u8 *bias,
+                      int qbits,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max)
 #else
@@ -66,10 +67,11 @@ void assign_map(Layer *l, s16 *weight, s16 *bias)
   }
 
 #ifdef QUANT
-  l->w_scale  = rint(((weight_max - weight_min) / 255.0) * 256.0);
-  l->w_offset = rint(weight_min * 256.0);
-  l->b_scale  = rint(((bias_max - bias_min) / 255.0) * 256.0);
-  l->b_offset = rint(bias_min * 256.0);
+  const qoffs = 1 << qbits;
+  l->w_scale  = rint(((weight_max - weight_min) / 255.0) * qoffs);
+  l->w_offset = rint(weight_min * qoffs);
+  l->b_scale  = rint(((bias_max - bias_min) / 255.0) * qoffs);
+  l->b_offset = rint(bias_min * qoffs);
 #endif
 }
 
@@ -77,6 +79,7 @@ void assign_map(Layer *l, s16 *weight, s16 *bias)
 
 #ifdef QUANT
 void assign_vec_quant(Layer *l, u8 *weight, u8 *bias,
+                      int qbits,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max)
 #else
@@ -124,10 +127,11 @@ void assign_vec(Layer *l, s16 *weight, s16 *bias)
   }
 
 #ifdef QUANT
-  l->w_scale  = rint(((weight_max - weight_min) / 255.0) * 256.0);
-  l->w_offset = rint(weight_min * 256.0);
-  l->b_scale  = rint(((bias_max - bias_min) / 255.0) * 256.0);
-  l->b_offset = rint(bias_min * 256.0);
+  const float qoffs = 1 << qbits;
+  l->w_scale  = rint(((weight_max - weight_min) / 255.0) * qoffs);
+  l->w_offset = rint(weight_min * qoffs);
+  l->b_scale  = rint(((bias_max - bias_min) / 255.0) * qoffs);
+  l->b_offset = rint(bias_min * qoffs);
 #endif
 }
 

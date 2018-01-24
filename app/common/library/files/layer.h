@@ -28,12 +28,12 @@ enum actv_mode {
 };
 
 Layer *map_layer(
-  Map *in, Map *out, int qbits,
+  Map *in, Map *out,
   u32 *conv_param, u32 *norm_param, u32 *actv_param, u32 *pool_param
 );
 
 Layer *vec_layer(
-  Vec *in, Vec *out, int qbits,
+  Vec *in, Vec *out,
   u32 *full_param, u32 *norm_param, u32 *actv_param
 );
 

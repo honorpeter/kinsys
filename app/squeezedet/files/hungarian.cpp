@@ -330,7 +330,6 @@ Hungarian::dump()
 
 }
 
-#include <iostream>
 std::pair<std::vector<int>, std::vector<int>>
 linear_sum_assignment(std::vector<std::vector<float>> &cost)
 {

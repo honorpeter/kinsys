@@ -13,6 +13,7 @@
 uint32_t *port;
 uint32_t (*mem_renkon)[RENKON_WORDS];
 uint32_t (*mem_gobou)[GOBOU_WORDS];
+int16_t *mem_image;
 #ifdef THREAD
 std::mutex mtx;
 #endif

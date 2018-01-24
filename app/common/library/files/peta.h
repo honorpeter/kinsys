@@ -27,8 +27,8 @@ extern "C" {
 int kinpira_init(void);
 int kinpira_exit(void);
 
-Map *define_map(int map_c, int map_w, int map_h);
-Vec *define_vec(int vec_l);
+Map *define_map(int qbits, int map_c, int map_w, int map_h);
+Vec *define_vec(int qbits, int vec_l);
 
 void undef_map(Map *r);
 void undef_vec(Vec *r);

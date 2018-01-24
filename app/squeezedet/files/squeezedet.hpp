@@ -85,21 +85,21 @@ private:
   Map *fmap11;
   Map *fmap12;
 
-  const int CLASSES                 = 3;
-  // const int IMAGE_WIDTH             = 1248;
-  // const int IMAGE_HEIGHT            = 384;
-  const int IMAGE_WIDTH             = 176;
-  const int IMAGE_HEIGHT            = 144;
+  const int CLASSES         = 3;
+  // const int IMG_W           = 1248;
+  // const int IMG_H           = 384;
+  const int IMG_W           = 176;
+  const int IMG_H           = 144;
 
-  const int OUT_W                   = IMAGE_WIDTH/16;
-  const int OUT_H                   = IMAGE_HEIGHT/16;
+  const int OUT_W           = IMG_W/16;
+  const int OUT_H           = IMG_H/16;
 
-  const float NMS_THRESH            = 0.4;
-  const float PROB_THRESH           = 0.005;
-  const int TOP_N_DETECTION         = 64;
+  const float NMS_THRESH    = 0.4;
+  const float PROB_THRESH   = 0.005;
+  const int TOP_N_DETECTION = 64;
 
-  const int ANCHOR_PER_GRID         = 9;
-  const int ANCHORS                 = OUT_W * OUT_H * ANCHOR_PER_GRID;
+  const int ANCHOR_PER_GRID = 9;
+  const int ANCHORS         = OUT_W * OUT_H * ANCHOR_PER_GRID;
 
   const std::vector<std::array<float, 2>> anchor_shapes = {
     {  36.,  37.}, { 366., 174.}, { 115.,  59.},
