@@ -62,10 +62,6 @@ void MVTracker::associate(Mask& boxes)
   }
   id_map = n_id_map;
 
-  // get id
-  for (int i = 0; i < (int)boxes.size(); ++i)
-    tracks.push_back(std::make_pair(id_map[i], boxes[i]));
-
   prev_boxes = boxes;
 }
 
@@ -76,8 +72,17 @@ void MVTracker::predict(Mask& boxes)
 
 void MVTracker::tracking(Image& frame, Mask& boxes)
 {
+#if 0
   predict(boxes);
   associate(boxes);
+
+  // get id
+  for (int i = 0; i < (int)boxes.size(); ++i)
+    tracks.push_back(std::make_pair(id_map[i], boxes[i]));
+#else
+  for (int i = 0; i < (int)boxes.size(); ++i)
+    tracks.push_back(std::make_pair(0, boxes[i]));
+#endif
 }
 
 Mat3D<int> find_inner(Mat3D<int>& mvs, BBox& box, Image& frame)
@@ -155,6 +160,7 @@ thr = std::thread([&] {
   std::tie(frame, boxes) = *out_det;
   tracking(frame, boxes);
 
+#if 0
   // reset
   total = 0;
   count = 0;
@@ -166,6 +172,7 @@ thr = std::thread([&] {
     stateList[i] = cv::Mat(calc_center(boxes[i]));
     errorCovList[i] = cv::Mat::eye(dp, dp, CV_32F) * 1.0;
   }
+#endif
 #ifdef THREAD
 });
 #endif
@@ -182,21 +189,9 @@ thr = std::thread([&] {
   auto mvs = frame.mvs;
 
   for (auto& box : boxes) {
-      start = system_clock::now();
     auto inner_mvs = find_inner(mvs, box, frame);
-      end = system_clock::now();
-      cout << "find_inner" << ":\t"
-           << duration_cast<milliseconds>(end-start).count() << " [ms]" << endl;
-      start = system_clock::now();
     auto d_box = average_mvs(inner_mvs);
-      end = system_clock::now();
-      cout << "average_mvs" << ":\t"
-           << duration_cast<milliseconds>(end-start).count() << " [ms]" << endl;
-      start = system_clock::now();
     box = move_bbox(box, d_box, frame);
-      end = system_clock::now();
-      cout << "move_bbox" << ":\t"
-           << duration_cast<milliseconds>(end-start).count() << " [ms]" << endl;
   }
 
   tracking(frame, boxes);

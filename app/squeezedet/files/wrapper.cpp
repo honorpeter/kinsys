@@ -9,7 +9,7 @@ void exec_cores(std::vector<Layer *> ls)
     exec_core(l);
 }
 
-#ifdef QUANT
+#ifdef __KPR_QUANT__
 void assign_maps_quant(
     std::vector<Layer *> ls,
     std::vector<u8 *> weights, std::vector<u8 *> biases,

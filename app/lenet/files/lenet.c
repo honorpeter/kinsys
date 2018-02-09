@@ -27,12 +27,12 @@ void LeNet_init(s16 **input, s16 **output)
 {
   kinpira_init();
 
-  image_ptr = define_map(N_IN, IMG_SIZE, IMG_SIZE);
-  pmap0 = define_map(N_C0, PM0_SIZE, PM0_SIZE);
-  pmap1 = define_map(N_C1, PM1_SIZE, PM1_SIZE);
+  image_ptr = define_map(8, N_IN, IMG_SIZE, IMG_SIZE);
+  pmap0 = define_map(8, N_C0, PM0_SIZE, PM0_SIZE);
+  pmap1 = define_map(8, N_C1, PM1_SIZE, PM1_SIZE);
   pvec1 = (Vec *)malloc(sizeof(Vec));
-  fvec2 = define_vec(N_F2);
-  fvec3 = define_vec(N_F3);
+  fvec2 = define_vec(8, N_F2);
+  fvec3 = define_vec(8, N_F3);
 
   set_input(input, image_ptr);
 
@@ -66,17 +66,10 @@ void LeNet_init(s16 **input, s16 **output)
 
   set_output(fvec3, output);
 
-#ifdef QUANT
-  assign_map_quant(conv0, W_conv0, b_conv0, 0.0, 255.0, 0.0, 255.0);
-  assign_map_quant(conv1, W_conv1, b_conv1, 0.0, 255.0, 0.0, 255.0);
-  assign_vec_quant(full2, W_full2, b_full2, 0.0, 255.0, 0.0, 255.0);
-  assign_vec_quant(full3, W_full3, b_full3, 0.0, 255.0, 0.0, 255.0);
-#else
   assign_map(conv0, W_conv0, b_conv0);
   assign_map(conv1, W_conv1, b_conv1);
   assign_vec(full2, W_full2, b_full2);
   assign_vec(full3, W_full3, b_full3);
-#endif
 }
 
 

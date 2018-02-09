@@ -10,13 +10,14 @@
 
 #include "kinpira.h"
 
-// #define THREAD
+#define THREAD
 #define RELEASE
 
 using std::cout;
 using std::endl;
 using namespace std::chrono;
 
+#if 1
 #define SHOW(func) { \
   start = system_clock::now(); \
   (func); \
@@ -24,13 +25,17 @@ using namespace std::chrono;
   cout << #func << ":\t" \
        << duration_cast<milliseconds>(end-start).count() << " [ms]" << endl; \
 }
+#else
+#define SHOW(func) (func);
+#endif
 
 void exec_cores(std::vector<Layer *> ls);
 
-#ifdef QUANT
+#ifdef __KPR_QUANT__
 void assign_maps_quant(
     std::vector<Layer *> ls,
     std::vector<u8 *> weights, std::vector<u8 *> biases,
+    int qbits,
     std::vector<float> weights_min, std::vector<float> weights_max,
     std::vector<float> biases_min, std::vector<float> biases_max);
 #else

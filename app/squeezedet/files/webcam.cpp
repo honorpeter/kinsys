@@ -13,8 +13,10 @@ Webcam::Webcam(const std::shared_ptr<std::deque<Image>> &fifo)
   const char *name = "/dev/video0";
   AVInputFormat *in_format = av_find_input_format("v4l2");
   AVDictionary *format_opts = nullptr;
-  av_dict_set(&format_opts, "framerate", "30", 0);
+  // av_dict_set(&format_opts, "framerate", "5", 0);
+  av_dict_set(&format_opts, "framerate", "7.5", 0);
   av_dict_set(&format_opts, "video_size", "176x144", 0);
+  // av_dict_set(&format_opts, "video_size", "320x240", 0);
   av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
   av_dict_set(&format_opts, "input_format", "h264", 0);
 #else
@@ -147,7 +149,7 @@ void Webcam::preprocess(cv::Mat& img, std::vector<AVMotionVector> &mvs)
       for (int j = 0; j < in_w; ++j) {
         float acc = img_f.at<cv::Vec3f>(i, j)[k] - bgr_means[k];
         acc /= 255.0;
-        target.body[idx] = static_cast<s16>(acc*256.);
+        target.body[idx] = static_cast<s16>(acc*pixel_offset);
         ++idx;
       }
     }

@@ -23,7 +23,7 @@ typedef uintptr_t UINTPTR;
 typedef struct {
   u32 which;
   u32 qbits;
-#ifdef QUANT
+#ifdef __KPR_QUANT__
   u32 w_scale;
   u32 w_offset;
   u32 b_scale;

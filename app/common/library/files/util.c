@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "kinpira.h"
+#include "sim.h"
 
 #include <assert.h>
 
@@ -15,7 +16,7 @@ static u32 bit(u32 value, int high, int low)
 
 
 
-#ifdef QUANT
+#ifdef __KPR_QUANT__
 void assign_map_quant(Layer *l, u8 *weight, u8 *bias,
                       int qbits,
                       float weight_min, float weight_max,
@@ -66,18 +67,22 @@ void assign_map(Layer *l, s16 *weight, s16 *bias)
     idx += unit + 1;
   }
 
-#ifdef QUANT
-  const qoffs = 1 << qbits;
-  l->w_scale  = rint(((weight_max - weight_min) / 255.0) * qoffs);
-  l->w_offset = rint(weight_min * qoffs);
-  l->b_scale  = rint(((bias_max - bias_min) / 255.0) * qoffs);
-  l->b_offset = rint(bias_min * qoffs);
+#ifdef __KPR_QUANT__
+  const float qoffs = 1 << qbits;
+  const float w_min = weight_min * qoffs;
+  const float w_max = weight_max * qoffs;
+  const float b_min = bias_min * qoffs;
+  const float b_max = bias_max * qoffs;
+  l->w_scale  = (int)rint((w_max - w_min) / 255.0);
+  l->w_offset = (int)rint(w_min);
+  l->b_scale  = (int)rint((b_max - b_min) / 255.0);
+  l->b_offset = (int)rint(b_min);
 #endif
 }
 
 
 
-#ifdef QUANT
+#ifdef __KPR_QUANT__
 void assign_vec_quant(Layer *l, u8 *weight, u8 *bias,
                       int qbits,
                       float weight_min, float weight_max,
@@ -126,7 +131,7 @@ void assign_vec(Layer *l, s16 *weight, s16 *bias)
     idx += n_in + 1;
   }
 
-#ifdef QUANT
+#ifdef __KPR_QUANT__
   const float qoffs = 1 << qbits;
   l->w_scale  = rint(((weight_max - weight_min) / 255.0) * qoffs);
   l->w_offset = rint(weight_min * qoffs);
@@ -141,7 +146,7 @@ void exec_core(Layer *l)
 {
   *reg_which        = l->which; usleep(1);
   *reg_qbits        = l->qbits; usleep(1);
-#ifdef QUANT
+#ifdef __KPR_QUANT__
   *reg_w_scale      = l->w_scale; usleep(1);
   *reg_w_offset     = l->w_offset; usleep(1);
   *reg_b_scale      = l->b_scale; usleep(1);
@@ -168,6 +173,7 @@ void exec_core(Layer *l)
 
   // print_port();
 
+#ifdef __KPR_RELEASE__
   *reg_pre_req = 0x1; usleep(1);
   *reg_pre_req = 0x0; usleep(1);
   do { usleep(1); } while (!*reg_pre_ack);
@@ -175,7 +181,21 @@ void exec_core(Layer *l)
   *reg_req = 0x1; usleep(1);
   *reg_req = 0x0; usleep(1);
   do { usleep(1); } while (!*reg_ack);
+#else
+  switch (*reg_which) {
+    case WHICH_RENKON:
+      sim_renkon();
+      break;
+    case WHICH_GOBOU:
+      sim_gobou();
+      break;
+    default:
+      break;
+  }
+#endif
 }
+
+
 
 void print_result(s16 *output, const int length)
 {

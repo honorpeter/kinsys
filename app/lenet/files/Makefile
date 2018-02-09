@@ -2,7 +2,7 @@ APP = lenet
 
 # Add any other object files to this list below
 APP_OBJS  = main.o
-APP_OBJS += lenet.o layer.o peta.o util.o
+APP_OBJS += lenet.o layer.o peta.o util.o sim.o
 
 CFLAGS = -std=c11 -Wall
 

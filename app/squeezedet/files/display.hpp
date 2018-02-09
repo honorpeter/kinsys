@@ -4,6 +4,7 @@
 #include <deque>
 #include <memory>
 #include <thread>
+#include <unordered_map>
 
 #include <opencv2/opencv.hpp>
 
@@ -25,6 +26,11 @@ private:
 
   Image frame;
   Track objs;
+
+  std::unordered_map<std::string, cv::Scalar> color_map;
+
+  cv::VideoWriter out;
+  const std::string filename = "out.mp4";
 };
 
 #endif

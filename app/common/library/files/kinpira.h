@@ -5,8 +5,6 @@
 extern "C" {
 #endif
 
-#define QUANT
-
 #include <stdint.h>
 
 #define WHICH_RENKON    0
@@ -18,13 +16,21 @@ extern "C" {
 #define MEMSIZE         31
 #define REGSIZE         64
 
+#ifdef __KPR_QUANT__
 #define RENKON_CORE     8
 #define RENKON_NETSIZE  18
+#define RENKON_WORDS    262144
 #define GOBOU_CORE      2
 #define GOBOU_NETSIZE   1
-
-#define RENKON_WORDS    262144
 #define GOBOU_WORDS     2
+#else
+#define RENKON_CORE     8
+#define RENKON_NETSIZE  11
+#define RENKON_WORDS    2048
+#define GOBOU_CORE      16
+#define GOBOU_NETSIZE   13
+#define GOBOU_WORDS     8192
+#endif
 
 extern uint32_t *port;
 extern uint32_t (*mem_renkon)[RENKON_WORDS];
@@ -35,7 +41,7 @@ extern int16_t *mem_image;
 #define reg_which       &port[0]
 #define reg_req         &port[1]
 #define reg_qbits       &port[2]
-#ifdef QUANT
+#ifdef __KPR_QUANT__
 #define reg_w_scale     &port[3]
 #define reg_w_offset    &port[4]
 #define reg_b_scale     &port[5]

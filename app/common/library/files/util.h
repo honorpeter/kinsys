@@ -48,11 +48,13 @@ extern "C" {
   }                                                     \
 } while (0)
 
-#ifdef QUANT
+#ifdef __KPR_QUANT__
 void assign_map_quant(Layer *l, u8 *weight, u8 *bias,
+                      int qbits,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max);
 void assign_vec_quant(Layer *l, u8 *weight, u8 *bias,
+                      int qbits,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max);
 #else

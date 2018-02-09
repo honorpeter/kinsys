@@ -8,6 +8,12 @@
 #include "data/image.h"
 #include "data/full3_tru.h"
 
+
+uint32_t *port;
+uint32_t (*mem_renkon)[RENKON_WORDS];
+uint32_t (*mem_gobou)[GOBOU_WORDS];
+int16_t *mem_image;
+
 int main(void)
 {
   s16 label[LABEL];

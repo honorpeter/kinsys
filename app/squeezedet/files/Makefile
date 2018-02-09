@@ -4,7 +4,7 @@ APP = squeezedet
 APP_OBJS  = main.o
 APP_OBJS += activation.o arithmetic.o bbox_utils.o display.o hungarian.o \
 	    layer.o peta.o squeezedet.o tracker.o transform.o util.o webcam.o \
-	    wrapper.o
+	    wrapper.o sim.o
 
 # CC	  = gcc-7
 # CXX	  = g++-7
@@ -12,8 +12,8 @@ APP_OBJS += activation.o arithmetic.o bbox_utils.o display.o hungarian.o \
 # LDLIBS   += `pkg-config --libs opencv libavcodec`
 # CXXFLAGS += -DTHREAD
 
-CFLAGS   += -std=c11 -Wall -O3
-CXXFLAGS += -std=c++14 -Wall -Wno-deprecated-declarations -O3
+CFLAGS   += -std=c11 -Wall -O3 -D__KPR_QUANT__
+CXXFLAGS += -std=c++14 -Wall -Wno-deprecated-declarations -O3 -D__KPR_QUANT__
 
 LDLIBS   += -pthread
 LDLIBS   += -lavcodec -lavformat -lavutil -lswscale -lavdevice
@@ -71,6 +71,7 @@ LDLIBS  += \
 	-lopencv_photo \
 	-lopencv_imgproc \
 	-lopencv_core
+	# -lopencv_videoio \
 
 all: build
 

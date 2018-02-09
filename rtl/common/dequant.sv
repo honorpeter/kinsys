@@ -31,7 +31,8 @@ module dequant
   assign offset = offset$[which];
 
   assign z = x * scale;
-  assign y = (z >>> QBITS) + offset;
+  // assign y = (z >>> QBITS) + offset;
+  assign y = z[DWIDTH-1:0] + offset;
 
   always @(posedge clk)
     if (!xrst) begin

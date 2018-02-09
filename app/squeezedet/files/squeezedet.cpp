@@ -99,19 +99,19 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
 {
   kinpira_init();
 
-  image  = define_map( 14,                       3, IMG_W,   IMG_H);
-  pmap1  = define_map( 13,                      64, IMG_W/4, IMG_H/4);
-  fmap2  = define_fire(12, fire2_maps,  16, 64, 64, IMG_W/4, IMG_H/4,  false);
-  pmap3  = define_fire(11, fire3_maps,  16, 64, 64, IMG_W/8, IMG_H/8,  true);
-  fmap4  = define_fire(10, fire4_maps,  32,128,128, IMG_W/8, IMG_H/8,  false);
-  pmap5  = define_fire(10, fire5_maps,  32,128,128, IMG_W/16,IMG_H/16, true);
-  fmap6  = define_fire(10, fire6_maps,  48,192,192, IMG_W/16,IMG_H/16, false);
-  fmap7  = define_fire(10, fire7_maps,  48,192,192, IMG_W/16,IMG_H/16, false);
-  fmap8  = define_fire(11, fire8_maps,  64,256,256, IMG_W/16,IMG_H/16, false);
-  fmap9  = define_fire(11, fire9_maps,  64,256,256, IMG_W/16,IMG_H/16, false);
-  fmap10 = define_fire(12, fire10_maps, 96,384,384, IMG_W/16,IMG_H/16, false);
-  fmap11 = define_fire(12, fire11_maps, 96,384,384, IMG_W/16,IMG_H/16, false);
-  fmap12 = define_map( 10,                      72, IMG_W/16,IMG_H/16);
+  image  = define_map( 14,                       3, IMG_H,   IMG_W);
+  pmap1  = define_map( 13,                      64, IMG_H/4, IMG_W/4);
+  fmap2  = define_fire(12, fire2_maps,  16, 64, 64, IMG_H/4, IMG_W/4,  false);
+  pmap3  = define_fire(11, fire3_maps,  16, 64, 64, IMG_H/8, IMG_W/8,  true);
+  fmap4  = define_fire(10, fire4_maps,  32,128,128, IMG_H/8, IMG_W/8,  false);
+  pmap5  = define_fire(10, fire5_maps,  32,128,128, IMG_H/16,IMG_W/16, true);
+  fmap6  = define_fire(10, fire6_maps,  48,192,192, IMG_H/16,IMG_W/16, false);
+  fmap7  = define_fire(10, fire7_maps,  48,192,192, IMG_H/16,IMG_W/16, false);
+  fmap8  = define_fire(11, fire8_maps,  64,256,256, IMG_H/16,IMG_W/16, false);
+  fmap9  = define_fire(11, fire9_maps,  64,256,256, IMG_H/16,IMG_W/16, false);
+  fmap10 = define_fire(12, fire10_maps, 96,384,384, IMG_H/16,IMG_W/16, false);
+  fmap11 = define_fire(12, fire11_maps, 96,384,384, IMG_H/16,IMG_W/16, false);
+  fmap12 = define_map( 10,                      72, IMG_H/16,IMG_W/16);
 
   // set_input(&in_det->body, image);
   in_det->body = image->body;
@@ -130,7 +130,7 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
   conv12 = conv(fmap11, fmap12, 3, 1, 1, false);
 
   // set_output(fmap12, &out_det->first.body);
-  out_det->first.body = fmap12->body;
+  // out_det->first.body = fmap12->body;
 
 #ifdef RELEASE
   assign_map_quant( conv1,  W_conv1,  b_conv1,
@@ -214,24 +214,29 @@ SqueezeDet::~SqueezeDet()
 }
 
 void SqueezeDet::init_matrix()
-{
+{ // {{{
   anchor_box = set_anchors();
 
-  preds = zeros<float>(fmap12->shape[0], fmap12->shape[1], fmap12->shape[2]);
-  pred_class = zeros<float>(OUT_H, OUT_W, ANCHOR_PER_GRID * CLASSES);
-  pred_confidence = zeros<float>(OUT_H, OUT_W, ANCHOR_PER_GRID);
-  pred_box = zeros<float>(OUT_H, OUT_W, num_box_delta-num_confidence_scores);
-  pred_class_flat = zeros<float>(ANCHORS*CLASSES);
-  pred_class_ = zeros<float>(ANCHORS, CLASSES);
-  pred_class_probs = zeros<float>(ANCHORS, CLASSES);
-  pred_confidence_flat = zeros<float>(ANCHORS);
-  pred_confidence_scores = zeros<float>(ANCHORS);
-  pred_box_flat = zeros<float>(ANCHORS*4);
-  pred_box_delta = zeros<float>(ANCHORS, 4);
-  _probs = zeros<float>(ANCHORS, CLASSES);
-  probs = zeros<float>(ANCHORS);
-  classes = zeros<int>(ANCHORS);
-}
+  preds                   = zeros<float>(ANCHOR_PER_GRID*(CLASSES+1+4),
+                                         OUT_H, OUT_W);
+
+  pred_class              = zeros<float>(OUT_H, OUT_W, ANCHOR_PER_GRID*CLASSES);
+  pred_class_flat         = zeros<float>(ANCHORS*CLASSES);
+  pred_class_             = zeros<float>(ANCHORS, CLASSES);
+  pred_class_probs        = zeros<float>(ANCHORS, CLASSES);
+
+  pred_confidence         = zeros<float>(OUT_H, OUT_W, ANCHOR_PER_GRID);
+  pred_confidence_flat    = zeros<float>(ANCHORS);
+  pred_confidence_scores  = zeros<float>(ANCHORS);
+
+  pred_box                = zeros<float>(OUT_H, OUT_W, ANCHOR_PER_GRID*4);
+  pred_box_flat           = zeros<float>(ANCHORS*4);
+  pred_box_delta          = zeros<float>(ANCHORS, 4);
+
+  _probs                  = zeros<float>(ANCHORS, CLASSES);
+  probs                   = zeros<float>(ANCHORS);
+  classes                 = zeros<int>(ANCHORS);
+} // }}}
 
 auto SqueezeDet::merge_box_delta(Mat2D<float>& anchor, Mat2D<float>& delta)
 { // {{{
@@ -270,10 +275,14 @@ auto SqueezeDet::merge_box_delta(Mat2D<float>& anchor, Mat2D<float>& delta)
   };
 
   auto delta_t = transpose(delta);
-  auto delta_x = delta_t[0];
-  auto delta_y = delta_t[1];
-  auto delta_w = delta_t[2];
-  auto delta_h = delta_t[3];
+  // auto delta_x = delta_t[0];
+  // auto delta_y = delta_t[1];
+  // auto delta_w = delta_t[2];
+  // auto delta_h = delta_t[3];
+  auto delta_x = delta_t[0] / 64.0f;
+  auto delta_y = delta_t[1] / 64.0f;
+  auto delta_w = delta_t[2] / 16.0f;
+  auto delta_h = delta_t[3] / 16.0f;
 
   auto anchor_t = transpose(anchor);
   auto anchor_x = anchor_t[0];
@@ -358,7 +367,6 @@ void SqueezeDet::filter()
   std::iota(whole.begin(), whole.end(), 0);
   std::vector<int> order;
 
-  puts("sort");
   if (0 < TOP_N_DETECTION && TOP_N_DETECTION < (int)probs.size()) {
     std::sort(whole.begin(), whole.end(), [&](int i, int j) {
       return probs[i] > probs[j];
@@ -391,7 +399,6 @@ void SqueezeDet::filter()
       }
     }
 
-  puts("nms");
     auto keep = nms(cand_boxes, cand_probs, NMS_THRESH);
 #ifdef RELEASE
     for (int i = 0; i < (int)keep.size(); ++i) {
@@ -439,31 +446,54 @@ void SqueezeDet::interpret(Mat3D<float>& preds)
     }
   }
 
-  puts("softmax");
   flatten(pred_class_flat, pred_class);
   reshape(pred_class_, pred_class_flat);
   for (int i = 0; i < ANCHORS; ++i)
     softmax(pred_class_probs[i], pred_class_[i]);
 
-  puts("sigmoid");
   flatten(pred_confidence_flat, pred_confidence);
   sigmoid(pred_confidence_scores, pred_confidence_flat);
 
-  puts("merge_box_delta");
   flatten(pred_box_flat, pred_box);
   reshape(pred_box_delta, pred_box_flat);
   merge_box_delta(anchor_box, pred_box_delta);
 
-  puts("probs");
-  for (int i = 0; i < ANCHORS; ++i)
+  // for (int i = 0; i < ANCHORS; ++i)
+  //   // scalar * vector
+  //   _probs[i] = pred_confidence_scores[i] * pred_class_probs[i];
+
+  for (int i = 0; i < ANCHORS; ++i) {
     // scalar * vector
     _probs[i] = pred_confidence_scores[i] * pred_class_probs[i];
 
-  for (int i = 0; i < ANCHORS; ++i) {
-    probs[i] = max(_probs[i]);
+    probs[i]   = max(_probs[i]);
     classes[i] = argmax(_probs[i]);
   }
 } // }}}
+
+#include <fstream>
+#include <iomanip>
+#define PRINT_MAP(fmap) do { \
+  std::ofstream ofs(std::string(#fmap) + ".dat"); \
+  int idx = 0; \
+  const int map_c = (fmap)->shape[0]; \
+  const int map_h = (fmap)->shape[1]; \
+  const int map_w = (fmap)->shape[2]; \
+  ofs \
+    << #fmap \
+    << std::hex << " (" << (fmap)->phys_addr << ", " << (fmap)->body << ") : " \
+    << std::dec << map_c << " x " << map_h << " x " << map_w << endl; \
+  for (int i = 0; i < map_c; ++i) { \
+    for (int j = 0; j < map_h; ++j) { \
+      for (int k = 0; k < map_w; ++k) { \
+        ofs << (fmap)->body[idx++] << "\t"; \
+      } \
+      ofs << endl; \
+    } \
+    ofs << endl; \
+  } \
+  ofs << endl << endl; \
+} while (0)
 
 void SqueezeDet::evaluate()
 {
@@ -487,6 +517,19 @@ thr = std::thread([&] {
   SHOW(exec_cores(fire10));
   SHOW(exec_cores(fire11));
   SHOW(exec_core(conv12));
+
+  // exec_core(conv1);
+  // exec_cores(fire2);
+  // exec_cores(fire3);
+  // exec_cores(fire4);
+  // exec_cores(fire5);
+  // exec_cores(fire6);
+  // exec_cores(fire7);
+  // exec_cores(fire8);
+  // exec_cores(fire9);
+  // exec_cores(fire10);
+  // exec_cores(fire11);
+  // exec_core(conv12);
 #else
   do {
     int idx = 0;
@@ -497,15 +540,51 @@ thr = std::thread([&] {
   } while (0);
 #endif
 
+#if 1
+  PRINT_MAP(image );
+  PRINT_MAP(pmap1 );
+  PRINT_MAP(fmap2 );
+  PRINT_MAP(pmap3 );
+  PRINT_MAP(fmap4 );
+  PRINT_MAP(pmap5 );
+  PRINT_MAP(fmap6 );
+  PRINT_MAP(fmap7 );
+  PRINT_MAP(fmap8 );
+  PRINT_MAP(fmap9 );
+  PRINT_MAP(fmap10);
+  PRINT_MAP(fmap11);
+  PRINT_MAP(fmap12);
+
+
+  PRINT_MAP(fire2_maps[0]);
+  PRINT_MAP(fire2_maps[1]);
+  PRINT_MAP(fire2_maps[2]);
+  PRINT_MAP(fire3_maps[0]);
+  PRINT_MAP(fire3_maps[1]);
+  PRINT_MAP(fire3_maps[2]);
+  PRINT_MAP(fire4_maps[0]);
+  PRINT_MAP(fire4_maps[1]);
+  PRINT_MAP(fire4_maps[2]);
+  PRINT_MAP(fire5_maps[0]);
+  PRINT_MAP(fire5_maps[1]);
+  PRINT_MAP(fire5_maps[2]);
+  exit(0);
+#endif
+
   int idx = 0;
   const float qoffs = 1 << fmap12->qbits;
-  for (int i = 0; i < fmap12->shape[0]; ++i)
-    for (int j = 0; j < fmap12->shape[1]; ++j)
-      for (int k = 0; k < fmap12->shape[2]; ++k)
+  for (int i = 0; i < fmap12->shape[0]; ++i) {
+    for (int j = 0; j < fmap12->shape[1]; ++j) {
+      for (int k = 0; k < fmap12->shape[2]; ++k) {
         preds[i][j][k] = fmap12->body[idx++] / qoffs;
+        std::this_thread::sleep_for(std::chrono::microseconds(1));
+        // cout << preds[i][j][k] << endl;
+      }
+    }
+  }
 
-  SHOW(interpret(preds));
-  SHOW(filter());
+  interpret(preds);
+  filter();
 #ifdef THREAD
 });
 #endif

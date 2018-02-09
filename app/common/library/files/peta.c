@@ -14,13 +14,15 @@
 #include <sys/mman.h>
 
 // #define PAGED
-#define RELEASE
+// #define __KPR_RELEASE__
 
 
+#ifdef __KPR_RELEASE__
 static int __port;
 static int __mem_renkon;
 static int __mem_gobou;
 static int __mem_image;
+#endif
 
 
 
@@ -33,7 +35,7 @@ static u32 offset;
 
 int kinpira_init(void)
 {
-#ifdef RELEASE
+#ifdef __KPR_RELEASE__
   system("modprobe uio_pdrv_genirq");
   system("modprobe udmabuf udmabuf0=1048576");
   sleep(1);
@@ -110,7 +112,7 @@ int kinpira_init(void)
 
 int kinpira_exit(void)
 {
-#ifdef RELEASE
+#ifdef __KPR_RELEASE__
   munmap(port, sizeof(u32)*REGSIZE);
   munmap(mem_renkon, sizeof(u32)*RENKON_CORE*RENKON_WORDS);
   munmap(mem_gobou, sizeof(u32)*GOBOU_CORE*GOBOU_WORDS);
@@ -135,17 +137,17 @@ int kinpira_exit(void)
 
 
 
-Map *define_map(int qbits, int map_c, int map_w, int map_h)
+Map *define_map(int qbits, int map_c, int map_h, int map_w)
 {
   Map *r = (Map *)malloc(sizeof(Map));
 
   r->qbits = qbits;
 
   r->shape[0] = map_c;
-  r->shape[1] = map_w;
-  r->shape[2] = map_h;
+  r->shape[1] = map_h;
+  r->shape[2] = map_w;
 
-  int map_size = sizeof(s16)*map_c*map_w*map_h;
+  int map_size = sizeof(s16)*map_c*map_h*map_w;
 
   r->phys_addr = phys_addr + offset;
   r->body = (s16 *)((UINTPTR)mem_image + offset);

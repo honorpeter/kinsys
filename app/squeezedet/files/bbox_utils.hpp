@@ -10,7 +10,7 @@
 #include "matrix.hpp"
 
 struct Image {
-  float scales[2];
+  std::array<float, 2> scales;
   Mat3D<int> mvs;
   int height;
   int width;

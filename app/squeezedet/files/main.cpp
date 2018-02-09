@@ -21,7 +21,7 @@ std::mutex mtx;
 // TODO: implementation
 bool loop_continue()
 {
-#if 1
+#if 0
   static int end_cnt = 0;
 
   if (end_cnt++ == 10)
@@ -33,9 +33,20 @@ bool loop_continue()
 #endif
 }
 
+inline void set_image(const std::shared_ptr<Image> &in_det, const Image &image)
+{
+  in_det->scales  = image.scales;
+  in_det->height  = image.height;
+  in_det->width   = image.width;
+  in_det->src     = image.src;
+  in_det->mvs     = image.mvs;
+  memmove(in_det->body, image.body, sizeof(s16)*3*image.height*image.width);
+}
+
 void loop_scenario(const int gop_size = 12)
 {
   system_clock::time_point start, end;
+  system_clock::time_point clk;
   auto in_fifo  = std::make_shared<std::deque<Image>>();
   auto out_fifo = std::make_shared<std::deque<std::pair<Image, Track>>>();
   auto in_det   = std::make_shared<Image>();
@@ -49,23 +60,27 @@ void loop_scenario(const int gop_size = 12)
   // blocking
   SHOW(cam.get_i_frame());
 
-  SHOW(*in_det = pop_front(in_fifo));
+  // SHOW(*in_det = pop_front(in_fifo));
+  SHOW(set_image(in_det, pop_front(in_fifo)));
   SHOW(model.evaluate());
   SHOW(cam.get_sub_gop());
 
   SHOW(model.sync());
+  SHOW(me.annotate());
   SHOW(cam.sync());
 
   do {
-    SHOW(me.annotate());
     SHOW(me.sync());
 
-    SHOW(disp.post_frame());
-    SHOW(*in_det = pop_back(in_fifo));
+    // SHOW(*in_det = pop_back(in_fifo));
+    SHOW(set_image(in_det, pop_back(in_fifo)));
     SHOW(model.evaluate());
+    SHOW(disp.post_frame());
     SHOW(cam.get_sub_gop());
 
     for (int i = 0; i < gop_size-1; ++i) {
+      clk = std::chrono::system_clock::now();
+
       SHOW(me.interpolate());
 
       SHOW(disp.sync());
@@ -73,12 +88,13 @@ void loop_scenario(const int gop_size = 12)
 
       SHOW(disp.post_frame());
 
-      // TODO: Time Keep
-      // SHOW(std::this_thread::sleep_for(std::chrono::milliseconds(34)));
+      // SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(200)));
+      SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(134)));
     }
 
-    SHOW(disp.sync());
     SHOW(model.sync());
+    SHOW(me.annotate());
+    SHOW(disp.sync());
     SHOW(cam.sync());
   } while (loop_continue());
 }

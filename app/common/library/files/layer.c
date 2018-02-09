@@ -290,6 +290,7 @@ void set_input(s16 **in, Map *out)
 void map2vec(Map *in, Vec *out)
 {
   out->shape     = in->shape[0] * in->shape[1] * in->shape[2];
+  out->qbits     = in->qbits;
   out->phys_addr = in->phys_addr;
   out->body      = in->body;
 }
