@@ -24,7 +24,8 @@ Webcam::Webcam(const std::shared_ptr<std::deque<Image>> &fifo)
   AVInputFormat *in_format = av_find_input_format("avc1");
   AVDictionary *format_opts = nullptr;
   av_dict_set(&format_opts, "framerate", "30", 0);
-  av_dict_set(&format_opts, "video_size", "176x144", 0);
+  // av_dict_set(&format_opts, "video_size", "176x144", 0);
+  av_dict_set(&format_opts, "video_size", "240x240", 0);
   av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
   av_dict_set(&format_opts, "input_format", "h264", 0);
 #endif
@@ -200,6 +201,8 @@ void Webcam::get_sub_gop()
     for (int i = 0; i < sub_gop_size; ++i) {
       if (av_read_frame(format_ctx, &packet) < 0)
       {
+        has_frame = false;
+        return;
         --i;
         // throw "read failed";
         continue;
@@ -207,6 +210,8 @@ void Webcam::get_sub_gop()
 
       if (packet.stream_index != video_stream)
       {
+        // has_frame = false;
+        // return;
         --i;
         continue;
       }
@@ -215,6 +220,8 @@ void Webcam::get_sub_gop()
       avcodec_decode_video2(codec_ctx, frame, &got_frame, &packet);
       if (!got_frame)
       {
+        // has_frame = false;
+        // return;
         --i;
         // throw "frame was not obtained";
         continue;
@@ -234,6 +241,11 @@ void Webcam::get_sub_gop()
 #ifdef THREAD
   });
 #endif
+}
+
+bool Webcam::has_frames()
+{
+  return has_frame;
 }
 
 void Webcam::sync()

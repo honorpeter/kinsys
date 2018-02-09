@@ -26,6 +26,7 @@ public:
 
   void get_i_frame();
   void get_sub_gop();
+  bool has_frames();
 
   void sync();
 
@@ -60,6 +61,8 @@ private:
   uint8_t *buffer = nullptr;
 
   int video_stream;
+
+  bool has_frame = true;
 };
 
 #endif

@@ -10,8 +10,9 @@ Display::Display(
              }
 {
 #ifndef RELEASE
-  out.open(filename, cv::VideoWriter::fourcc('M', 'P', '4', 'V'),
-           5.0, cv::Size(640, 480));
+  // out.open(filename, cv::VideoWriter::fourcc('M', 'P', '4', 'V'),
+  out.open(filename, cv::VideoWriter::fourcc('a', 'v', 'c', '1'),
+           30.0, cv::Size(240, 240));
 #endif
 }
 

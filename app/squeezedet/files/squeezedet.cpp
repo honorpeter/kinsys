@@ -526,7 +526,7 @@ thr = std::thread([&] {
   // exec_cores(fire11);
   // exec_core(conv12);
 
-#if 1
+#if 0
   PRINT_MAP(image );
   PRINT_MAP(pmap1 );
   PRINT_MAP(fmap2 );

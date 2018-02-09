@@ -88,15 +88,17 @@ void loop_scenario(const int gop_size = 12)
 
       SHOW(disp.post_frame());
 
+#ifdef RELEASE
       // SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(200)));
       SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(134)));
+#endif
     }
 
     SHOW(model.sync());
     SHOW(me.annotate());
     SHOW(disp.sync());
     SHOW(cam.sync());
-  } while (loop_continue());
+  } while (cam.has_frames());
 }
 
 int main(void)
