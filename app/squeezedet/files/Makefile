@@ -70,8 +70,8 @@ LDLIBS  += \
 	-lopencv_highgui \
 	-lopencv_photo \
 	-lopencv_imgproc \
+	-lopencv_videoio \
 	-lopencv_core
-	# -lopencv_videoio \
 
 all: build
 

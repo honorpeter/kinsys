@@ -9,8 +9,10 @@ Display::Display(
              , {"cyclist",    cv::Scalar(  0,   0, 255)}
              }
 {
-  // out.open(filename, cv::VideoWriter::fourcc('M', 'P', '4', 'V'),
-  //          5.0, cv::Size(640, 480));
+#ifndef RELEASE
+  out.open(filename, cv::VideoWriter::fourcc('M', 'P', '4', 'V'),
+           5.0, cv::Size(640, 480));
+#endif
 }
 
 Display::~Display()
@@ -35,10 +37,12 @@ void Display::post_frame()
       cv::rectangle(img,
                     cv::Point(box.left, box.top), cv::Point(box.right, box.bot),
                     color_map[box.name], 1);
+      assert(!id);
     }
 
-#ifdef RELEASE
-    // out.write(img);
+#ifndef RELEASE
+    out.write(img);
+#else
     cv::imshow("display", img);
 #endif
     cv::waitKey(1);

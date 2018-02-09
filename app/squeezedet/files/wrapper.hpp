@@ -11,7 +11,7 @@
 #include "kinpira.h"
 
 #define THREAD
-#define RELEASE
+// #define RELEASE
 
 using std::cout;
 using std::endl;

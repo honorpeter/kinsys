@@ -10,7 +10,6 @@
 
 #include "kinpira.h"
 
-#ifdef RELEASE
 #include "data/conv1.hpp"
 #include "data/fire2.hpp"
 #include "data/fire3.hpp"
@@ -23,7 +22,6 @@
 #include "data/fire10.hpp"
 #include "data/fire11.hpp"
 #include "data/conv12.hpp"
-#endif
 
 static inline Layer *
 conv(Map *input, Map *output, int kern, int strid, int pad, bool pool)
@@ -132,7 +130,6 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
   // set_output(fmap12, &out_det->first.body);
   // out_det->first.body = fmap12->body;
 
-#ifdef RELEASE
   assign_map_quant( conv1,  W_conv1,  b_conv1,
     13, W_conv1_min,  W_conv1_max,  b_conv1_min,  b_conv1_max );
   assign_maps_quant(fire2,  W_fire2,  b_fire2,
@@ -157,7 +154,6 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
     12, W_fire11_min, W_fire11_max, b_fire11_min, b_fire11_max);
   assign_map_quant( conv12, W_conv12, b_conv12,
     10, W_conv12_min, W_conv12_max, b_conv12_min, b_conv12_max);
-#endif
 
   init_matrix();
 }
@@ -400,7 +396,7 @@ void SqueezeDet::filter()
     }
 
     auto keep = nms(cand_boxes, cand_probs, NMS_THRESH);
-#ifdef RELEASE
+#if 1
     for (int i = 0; i < (int)keep.size(); ++i) {
       if (keep[i]) {
         auto mask_boxes = bbox_transform(cand_boxes[i][0], cand_boxes[i][1],
@@ -504,7 +500,6 @@ thr = std::thread([&] {
 #endif
   frame = *in_det;
 
-#ifdef RELEASE
   SHOW(exec_core(conv1));
   SHOW(exec_cores(fire2));
   SHOW(exec_cores(fire3));
@@ -530,15 +525,6 @@ thr = std::thread([&] {
   // exec_cores(fire10);
   // exec_cores(fire11);
   // exec_core(conv12);
-#else
-  do {
-    int idx = 0;
-    for (int i = 0; i < fmap12->shape[0]; ++i)
-      for (int j = 0; j < fmap12->shape[1]; ++j)
-        for (int k = 0; k < fmap12->shape[2]; ++k)
-          fmap12->body[idx] = idx;
-  } while (0);
-#endif
 
 #if 1
   PRINT_MAP(image );

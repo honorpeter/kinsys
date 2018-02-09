@@ -337,8 +337,10 @@ void sim_renkon()
   conv();
   if (bias_en)
     bias_renkon();
-  // if (norm_en)
-  //   norm_renkon();
+#if 0
+  if (norm_en)
+    norm_renkon();
+#endif
   if (relu_en)
     relu_renkon();
   if (pool_en)
@@ -353,8 +355,10 @@ void sim_gobou()
   full();
   if (bias_en)
     bias_gobou();
-  // if (norm_en)
-  //   norm_gobou();
+#if 0
+  if (norm_en)
+    norm_gobou();
+#endif
   if (relu_en)
     relu_gobou();
 }
