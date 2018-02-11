@@ -20,14 +20,19 @@ Webcam::Webcam(const std::shared_ptr<std::deque<Image>> &fifo)
   av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
   av_dict_set(&format_opts, "input_format", "h264", 0);
 #else
-  const char *name = "car.mp4";
+  // const char *name = "car.mp4";
+  // AVInputFormat *in_format = av_find_input_format("avc1");
+  // AVDictionary *format_opts = nullptr;
+  // av_dict_set(&format_opts, "framerate", "30", 0);
+  // av_dict_set(&format_opts, "video_size", "240x240", 0);
+  // av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
+
+  const char *name = "taxi.mp4";
   AVInputFormat *in_format = av_find_input_format("avc1");
   AVDictionary *format_opts = nullptr;
   av_dict_set(&format_opts, "framerate", "30", 0);
-  // av_dict_set(&format_opts, "video_size", "176x144", 0);
-  av_dict_set(&format_opts, "video_size", "240x240", 0);
+  av_dict_set(&format_opts, "video_size", "1248x384", 0);
   av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
-  av_dict_set(&format_opts, "input_format", "h264", 0);
 #endif
 
   if (avformat_open_input(&format_ctx, name, in_format, &format_opts) != 0)
@@ -66,8 +71,8 @@ Webcam::Webcam(const std::shared_ptr<std::deque<Image>> &fifo)
   if (frame == NULL || frame_bgr == NULL)
     throw "frame allocation failed";
 
-  int num_bytes = avpicture_get_size(AV_PIX_FMT_BGR24,
-                                     codec_ctx->width, codec_ctx->height);
+  num_bytes = avpicture_get_size(AV_PIX_FMT_BGR24,
+                                 codec_ctx->width, codec_ctx->height);
   buffer = (uint8_t *)av_malloc(sizeof(uint8_t) * num_bytes);
 
   avpicture_fill((AVPicture *)frame_bgr, buffer, AV_PIX_FMT_BGR24,
@@ -136,15 +141,18 @@ void Webcam::preprocess(cv::Mat& img, std::vector<AVMotionVector> &mvs)
 
   target.height = in_h;
   target.width  = in_w;
-  target.src    = img.data;
 
   format_mvs(target, mvs);
 
-  cv::Mat img_f;
+  cv::Mat img_i, img_f;
+
+  img.copyTo(img_i);
+  target.src = img_i.data;
+
   img.convertTo(img_f, CV_32FC3);
+  target.body = new s16[in_c * in_h * in_w];
 
   int idx = 0;
-  target.body = new s16[in_c * in_h * in_w];
   for (int k = 0; k < in_c; ++k) {
     for (int i = 0; i < in_h; ++i) {
       for (int j = 0; j < in_w; ++j) {
@@ -187,8 +195,11 @@ void Webcam::get_i_frame()
 
   av_packet_unref(&packet);
 
+  // cv::Mat img(codec_ctx->height, codec_ctx->width,
+  //             CV_8UC3, frame_bgr->data[0]);
+  imgbuf.emplace_back(buffer, buffer+num_bytes);
   cv::Mat img(codec_ctx->height, codec_ctx->width,
-              CV_8UC3, frame_bgr->data[0]);
+              CV_8UC3, imgbuf.back().data());
 
   preprocess(img, mvs);
 }
@@ -198,6 +209,9 @@ void Webcam::get_sub_gop()
 #ifdef THREAD
   thr = std::thread([&] {
 #endif
+    // if (imgbuf.size() > sub_gop_size)
+    //   imgbuf.clear();
+
     for (int i = 0; i < sub_gop_size; ++i) {
       if (av_read_frame(format_ctx, &packet) < 0)
       {
@@ -233,8 +247,11 @@ void Webcam::get_sub_gop()
 
       extract_mvs(frame, mvs);
 
+      // cv::Mat img(codec_ctx->height, codec_ctx->width,
+      //             CV_8UC3, frame_bgr->data[0]);
+      imgbuf.emplace_back(buffer, buffer+num_bytes);
       cv::Mat img(codec_ctx->height, codec_ctx->width,
-                  CV_8UC3, frame_bgr->data[0]);
+                  CV_8UC3, imgbuf.back().data());
 
       preprocess(img, mvs);
     }

@@ -80,6 +80,7 @@ void MVTracker::tracking(Image& frame, Mask& boxes)
   for (int i = 0; i < (int)boxes.size(); ++i)
     tracks.push_back(std::make_pair(id_map[i], boxes[i]));
 #else
+  tracks.clear();
   for (int i = 0; i < (int)boxes.size(); ++i)
     tracks.push_back(std::make_pair(0, boxes[i]));
 #endif
@@ -195,6 +196,8 @@ thr = std::thread([&] {
   }
 
   tracking(frame, boxes);
+
+  push_back(out_fifo, std::make_pair(frame, tracks));
 #ifdef THREAD
 });
 #endif
@@ -205,5 +208,4 @@ void MVTracker::sync()
 #ifdef THREAD
   thr.join();
 #endif
-  push_back(out_fifo, std::make_pair(frame, tracks));
 }

@@ -500,31 +500,31 @@ thr = std::thread([&] {
 #endif
   frame = *in_det;
 
-  SHOW(exec_core(conv1));
-  SHOW(exec_cores(fire2));
-  SHOW(exec_cores(fire3));
-  SHOW(exec_cores(fire4));
-  SHOW(exec_cores(fire5));
-  SHOW(exec_cores(fire6));
-  SHOW(exec_cores(fire7));
-  SHOW(exec_cores(fire8));
-  SHOW(exec_cores(fire9));
-  SHOW(exec_cores(fire10));
-  SHOW(exec_cores(fire11));
-  SHOW(exec_core(conv12));
+  // SHOW(exec_core(conv1));
+  // SHOW(exec_cores(fire2));
+  // SHOW(exec_cores(fire3));
+  // SHOW(exec_cores(fire4));
+  // SHOW(exec_cores(fire5));
+  // SHOW(exec_cores(fire6));
+  // SHOW(exec_cores(fire7));
+  // SHOW(exec_cores(fire8));
+  // SHOW(exec_cores(fire9));
+  // SHOW(exec_cores(fire10));
+  // SHOW(exec_cores(fire11));
+  // SHOW(exec_core(conv12));
 
-  // exec_core(conv1);
-  // exec_cores(fire2);
-  // exec_cores(fire3);
-  // exec_cores(fire4);
-  // exec_cores(fire5);
-  // exec_cores(fire6);
-  // exec_cores(fire7);
-  // exec_cores(fire8);
-  // exec_cores(fire9);
-  // exec_cores(fire10);
-  // exec_cores(fire11);
-  // exec_core(conv12);
+  exec_core(conv1);
+  exec_cores(fire2);
+  exec_cores(fire3);
+  exec_cores(fire4);
+  exec_cores(fire5);
+  exec_cores(fire6);
+  exec_cores(fire7);
+  exec_cores(fire8);
+  exec_cores(fire9);
+  exec_cores(fire10);
+  exec_cores(fire11);
+  exec_core(conv12);
 
 #if 0
   PRINT_MAP(image );
@@ -571,6 +571,8 @@ thr = std::thread([&] {
 
   interpret(preds);
   filter();
+
+  *out_det = std::make_pair(frame, mask);
 #ifdef THREAD
 });
 #endif
@@ -581,5 +583,4 @@ void SqueezeDet::sync()
 #ifdef THREAD
   thr.join();
 #endif
-  *out_det = std::make_pair(frame, mask);
 }

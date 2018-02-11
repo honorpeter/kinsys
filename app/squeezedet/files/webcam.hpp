@@ -63,6 +63,8 @@ private:
   int video_stream;
 
   bool has_frame = true;
+  int num_bytes;
+  std::vector<std::vector<uint8_t>> imgbuf;
 };
 
 #endif

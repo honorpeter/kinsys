@@ -82,22 +82,24 @@ private:
   Map *fmap12;
 
   const int CLASSES         = 3;
-  // const int IMG_W           = 1248;
-  // const int IMG_H           = 384;
+  const int IMG_W           = 1248;
+  const int IMG_H           = 384;
   // const int IMG_W           = 176;
   // const int IMG_H           = 144;
-  const int IMG_W           = 240;
-  const int IMG_H           = 240;
+  // const int IMG_W           = 240;
+  // const int IMG_H           = 240;
+  // const int IMG_W           = 320;
+  // const int IMG_H           = 240;
 
   const int OUT_W           = IMG_W/16;
   const int OUT_H           = IMG_H/16;
 
-  // const float NMS_THRESH    = 0.4;
-  // const float PROB_THRESH   = 0.005;
-  // const int TOP_N_DETECTION = 64;
   const float NMS_THRESH    = 0.4;
-  const float PROB_THRESH   = 0.1;
-  const int TOP_N_DETECTION = 8;
+  const float PROB_THRESH   = 0.005;
+  const int TOP_N_DETECTION = 64;
+  // const float NMS_THRESH    = 0.4;
+  // const float PROB_THRESH   = 0.1;
+  // const int TOP_N_DETECTION = 8;
 
   const int ANCHOR_PER_GRID = 9;
   const int ANCHORS         = OUT_W * OUT_H * ANCHOR_PER_GRID;

@@ -4,6 +4,8 @@
 
 #include "kinpira.h"
 
+#define __KPR_DEBUG__
+
 #define CEIL_DIV(a, b) ((a) % (b) == 0 ? (a) / (b) : (a) / (b) + 1)
 
 
@@ -59,7 +61,9 @@ Layer *map_layer(
   renkon_offset += CEIL_DIV(out->shape[0], RENKON_CORE)
                  * (in->shape[0]*kern*kern + bias);
 
+#ifdef __KPR_DEBUG__
   printf("renkon_offset: %d\n", renkon_offset);
+#endif
   if (renkon_offset > RENKON_WORDS) {
     fprintf(stderr, "exceeds the capacity of map weight memories\n");
     exit(1);
@@ -102,7 +106,9 @@ Layer *vec_layer(
   gobou_offset += CEIL_DIV(out->shape, GOBOU_CORE)
                 * (in->shape + bias);
 
+#ifdef __KPR_DEBUG__
   printf("gobou_offset: %d\n", gobou_offset);
+#endif
   if (gobou_offset > GOBOU_WORDS) {
     fprintf(stderr, "exceeds the capacity of vec weight memories\n");
     exit(1);

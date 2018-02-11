@@ -24,9 +24,6 @@ private:
   std::thread thr;
   std::shared_ptr<std::deque<std::pair<Image, Track>>> fifo;
 
-  Image frame;
-  Track objs;
-
   std::unordered_map<std::string, cv::Scalar> color_map;
 
   cv::VideoWriter out;

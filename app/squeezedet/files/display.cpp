@@ -10,9 +10,11 @@ Display::Display(
              }
 {
 #ifndef RELEASE
-  // out.open(filename, cv::VideoWriter::fourcc('M', 'P', '4', 'V'),
+  // out.open(filename, cv::VideoWriter::fourcc('a', 'v', 'c', '1'),
+  //          30.0, cv::Size(240, 240));
+
   out.open(filename, cv::VideoWriter::fourcc('a', 'v', 'c', '1'),
-           30.0, cv::Size(240, 240));
+           30.0, cv::Size(1248, 384));
 #endif
 }
 
@@ -25,6 +27,9 @@ void Display::post_frame()
 #ifdef THREAD
   thr = std::thread([&] {
 #endif
+  Image frame;
+  Track objs;
+
     std::tie(frame, objs) = pop_front(fifo);
 
     cv::Mat img(frame.height, frame.width, CV_8UC3, frame.src);

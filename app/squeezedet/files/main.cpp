@@ -70,6 +70,7 @@ void loop_scenario(const int gop_size = 12)
   SHOW(cam.sync());
 
   do {
+    // printf("... ");
     SHOW(me.sync());
 
     // SHOW(*in_det = pop_back(in_fifo));
@@ -78,6 +79,7 @@ void loop_scenario(const int gop_size = 12)
     SHOW(disp.post_frame());
     SHOW(cam.get_sub_gop());
 
+      // printf("■");
     for (int i = 0; i < gop_size-1; ++i) {
       clk = std::chrono::system_clock::now();
 
@@ -92,7 +94,9 @@ void loop_scenario(const int gop_size = 12)
       // SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(200)));
       SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(134)));
 #endif
+      // printf(" ■");
     }
+    puts("");
 
     SHOW(model.sync());
     SHOW(me.annotate());
@@ -103,6 +107,10 @@ void loop_scenario(const int gop_size = 12)
 
 int main(void)
 {
+  setbuf(stdout, NULL);
+  printf("\033[2J");
+  puts("### squeezedet\n");
+
   loop_scenario();
 
   return 0;
