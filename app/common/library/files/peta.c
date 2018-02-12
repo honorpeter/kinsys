@@ -15,8 +15,8 @@
 
 // #define PAGED
 // #define __KPR_RELEASE__
-
 #define __KPR_DEBUG__
+
 
 
 #ifdef __KPR_RELEASE__
@@ -99,7 +99,7 @@ int kinpira_init(void)
   mem_gobou =
     (u32 (*)[GOBOU_WORDS])malloc(sizeof(u32)*GOBOU_CORE*GOBOU_WORDS);
 
-  mem_image = (s16 *)malloc(sizeof(s16)*4194304*8);
+  mem_image = (s16 *)malloc(sizeof(s16)*4194304*5);
 #endif
 
 #ifdef PAGED

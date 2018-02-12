@@ -174,6 +174,8 @@ thr = std::thread([&] {
     errorCovList[i] = cv::Mat::eye(dp, dp, CV_32F) * 1.0;
   }
 #endif
+
+  push_back(out_fifo, std::make_pair(frame, tracks));
 #ifdef THREAD
 });
 #endif

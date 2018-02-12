@@ -144,10 +144,10 @@ void Webcam::preprocess(cv::Mat& img, std::vector<AVMotionVector> &mvs)
 
   format_mvs(target, mvs);
 
-  cv::Mat img_i, img_f;
+  cv::Mat img_f;
 
-  img.copyTo(img_i);
-  target.src = img_i.data;
+  // img.copyTo(img_i);
+  target.src = img.data;
 
   img.convertTo(img_f, CV_32FC3);
   target.body = new s16[in_c * in_h * in_w];
@@ -209,8 +209,8 @@ void Webcam::get_sub_gop()
 #ifdef THREAD
   thr = std::thread([&] {
 #endif
-    // if (imgbuf.size() > sub_gop_size)
-    //   imgbuf.clear();
+    if (imgbuf.size() > gop_size+1)
+      imgbuf.clear();
 
     for (int i = 0; i < sub_gop_size; ++i) {
       if (av_read_frame(format_ctx, &packet) < 0)

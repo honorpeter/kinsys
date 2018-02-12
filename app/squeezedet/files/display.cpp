@@ -27,9 +27,6 @@ void Display::post_frame()
 #ifdef THREAD
   thr = std::thread([&] {
 #endif
-  Image frame;
-  Track objs;
-
     std::tie(frame, objs) = pop_front(fifo);
 
     cv::Mat img(frame.height, frame.width, CV_8UC3, frame.src);

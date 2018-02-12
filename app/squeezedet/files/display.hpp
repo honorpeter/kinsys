@@ -26,6 +26,9 @@ private:
 
   std::unordered_map<std::string, cv::Scalar> color_map;
 
+  Image frame;
+  Track objs;
+
   cv::VideoWriter out;
   const std::string filename = "out.mp4";
 };
