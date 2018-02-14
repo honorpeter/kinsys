@@ -54,4 +54,4 @@ TODOs
 License
 ==================================================
 
-MIT License (see `LICENSE` file).
+GPLv2 License (see `LICENSE` file).
