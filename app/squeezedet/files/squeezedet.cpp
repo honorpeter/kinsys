@@ -479,6 +479,7 @@ void SqueezeDet::interpret(Mat3D<float>& preds)
     << #fmap \
     << std::hex << " (" << (fmap)->phys_addr << ", " << (fmap)->body << ") : " \
     << std::dec << map_c << " x " << map_h << " x " << map_w << endl; \
+  ofs << std::hex; \
   for (int i = 0; i < map_c; ++i) { \
     for (int j = 0; j < map_h; ++j) { \
       for (int k = 0; k < map_w; ++k) { \
@@ -526,7 +527,7 @@ thr = std::thread([&] {
   exec_cores(fire11);
   exec_core(conv12);
 
-#if 0
+#if 1
   PRINT_MAP(image );
   PRINT_MAP(pmap1 );
   PRINT_MAP(fmap2 );
