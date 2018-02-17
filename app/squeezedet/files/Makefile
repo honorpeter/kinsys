@@ -11,8 +11,9 @@ CXX	  = g++-7
 CXXFLAGS += `pkg-config --cflags opencv libavcodec`
 LDLIBS   += `pkg-config --libs opencv libavcodec`
 
-CFLAGS   += -std=c11 -Wall -O3 -D__KPR_QUANT__
-CXXFLAGS += -std=c++14 -Wall -Wno-deprecated-declarations -O3 -D__KPR_QUANT__
+FLAGS += -Wall -Wno-deprecated-declarations -Wno-pragmas -Og -g -D__KPR_QUANT__
+CFLAGS   += -std=c11 ${FLAGS}
+CXXFLAGS += -std=c++14 ${FLAGS}
 
 # CXXFLAGS += -DTHREAD
 # CXXFLAGS += -DRELEASE

@@ -7,12 +7,17 @@ void softmax(Mat1D<float>& output, Mat1D<float>& input)
 {
   const int len = input.size();
 
-  float expsum = 0.0;
+  double expsum = 0.0;
   for (int i = 0; i < len; ++i)
     expsum += exp(input[i]);
 
-  if (std::abs(expsum-0.0) < std::numeric_limits<float>::epsilon())
-    throw "softmax calculation failed";
+  if (std::abs(expsum-0.0) < std::numeric_limits<double>::epsilon())
+  {
+    for (int i = 0; i < len; ++i)
+      cout << input[i] << " : " << exp(input[i]) << endl;
+    std::cerr << "softmax calculation failed" << endl;
+    throw;
+  }
 
   for (int i = 0; i < len; ++i) {
     output[i] = exp(input[i]) / expsum;

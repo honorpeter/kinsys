@@ -24,13 +24,13 @@
 #include "data/conv12.hpp"
 
 static inline Layer *
-conv(Map *input, Map *output, int kern, int strid, int pad, bool pool)
+conv(Map *input, Map *output, int kern, int strid, int pad, bool aux)
 {
   return map_layer(input, output,
     convolution_2d(kern, strid, pad, CONV_BIAS),
     NULL,
-    activation(ACTV_RELU),
-    (pool ? pooling_2d(3, 2, 0, POOL_MAX) : NULL)
+    (aux ? activation(ACTV_RELU) : NULL),
+    (aux ? pooling_2d(3, 2, 0, POOL_MAX) : NULL)
   );
 }
 
@@ -475,10 +475,7 @@ void SqueezeDet::interpret(Mat3D<float>& preds)
   const int map_c = (fmap)->shape[0]; \
   const int map_h = (fmap)->shape[1]; \
   const int map_w = (fmap)->shape[2]; \
-  ofs \
-    << #fmap \
-    << std::hex << " (" << (fmap)->phys_addr << ", " << (fmap)->body << ") : " \
-    << std::dec << map_c << " x " << map_h << " x " << map_w << endl; \
+  ofs << map_c << " x " << map_h << " x " << map_w << endl; \
   ofs << std::hex; \
   for (int i = 0; i < map_c; ++i) { \
     for (int j = 0; j < map_h; ++j) { \
@@ -501,33 +498,20 @@ thr = std::thread([&] {
 #endif
   frame = *in_det;
 
-  // SHOW(exec_core(conv1));
-  // SHOW(exec_cores(fire2));
-  // SHOW(exec_cores(fire3));
-  // SHOW(exec_cores(fire4));
-  // SHOW(exec_cores(fire5));
-  // SHOW(exec_cores(fire6));
-  // SHOW(exec_cores(fire7));
-  // SHOW(exec_cores(fire8));
-  // SHOW(exec_cores(fire9));
-  // SHOW(exec_cores(fire10));
-  // SHOW(exec_cores(fire11));
-  // SHOW(exec_core(conv12));
+  SHOW(exec_core(conv1));
+  SHOW(exec_cores(fire2));
+  SHOW(exec_cores(fire3));
+  SHOW(exec_cores(fire4));
+  SHOW(exec_cores(fire5));
+  SHOW(exec_cores(fire6));
+  SHOW(exec_cores(fire7));
+  SHOW(exec_cores(fire8));
+  SHOW(exec_cores(fire9));
+  SHOW(exec_cores(fire10));
+  SHOW(exec_cores(fire11));
+  SHOW(exec_core(conv12));
 
-  exec_core(conv1);
-  exec_cores(fire2);
-  exec_cores(fire3);
-  exec_cores(fire4);
-  exec_cores(fire5);
-  exec_cores(fire6);
-  exec_cores(fire7);
-  exec_cores(fire8);
-  exec_cores(fire9);
-  exec_cores(fire10);
-  exec_cores(fire11);
-  exec_core(conv12);
-
-#if 1
+#if 0
   PRINT_MAP(image );
   PRINT_MAP(pmap1 );
   PRINT_MAP(fmap2 );

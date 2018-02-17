@@ -155,7 +155,7 @@ Map *define_map(int qbits, int map_c, int map_h, int map_w)
   r->body = (s16 *)((UINTPTR)mem_image + offset);
 
 #ifdef __KPR_DEBUG__
-  printf("offset: %lu\n", offset);
+  printf("offset: %u\n", offset);
 #endif
 
 #ifdef PAGED
@@ -183,7 +183,7 @@ Vec *define_vec(int qbits, int vec_l)
   r->body = (s16 *)((UINTPTR)mem_image + offset);
 
 #ifdef __KPR_DEBUG__
-  printf("offset: %lu\n", offset);
+  printf("offset: %u\n", offset);
 #endif
 
 #ifdef PAGED

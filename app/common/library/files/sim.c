@@ -13,7 +13,7 @@ static u32 bit(u32 value, int high, int low)
 
 static inline s16 mlt(unsigned N, s16 a, s16 b)
 {
-  int c = a * b;
+  int c = (int)a * b;
 
   if (c < 0)
     return (c >> N) - 1;
@@ -228,8 +228,8 @@ static void pool()
   const int strid = bit(*reg_pool_param1, 2*LWIDTH-1, LWIDTH);
   const int pad   = bit(*reg_pool_param1, LWIDTH-1, 0);
 
-  const int out_h = (fea_h + 2*pad + strid - kern)/strid;
-  const int out_w = (fea_w + 2*pad + strid - kern)/strid;
+  const int out_h = (fea_h + 2*pad - kern + strid - 1)/strid + 1;
+  const int out_w = (fea_w + 2*pad - kern + strid - 1)/strid + 1;
 
   s16 (*input)[fea_h][fea_w]
     = (s16 (*)[fea_h][fea_w])((UINTPTR)mem_image + *reg_out_offset);

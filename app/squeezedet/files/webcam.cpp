@@ -27,11 +27,18 @@ Webcam::Webcam(const std::shared_ptr<std::deque<Image>> &fifo)
   // av_dict_set(&format_opts, "video_size", "240x240", 0);
   // av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
 
-  const char *name = "taxi.mp4";
+  // const char *name = "taxi.mp4";
+  // AVInputFormat *in_format = av_find_input_format("avc1");
+  // AVDictionary *format_opts = nullptr;
+  // av_dict_set(&format_opts, "framerate", "30", 0);
+  // av_dict_set(&format_opts, "video_size", "1248x384", 0);
+  // av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
+
+  const char *name = "taxi2.mp4";
   AVInputFormat *in_format = av_find_input_format("avc1");
   AVDictionary *format_opts = nullptr;
   av_dict_set(&format_opts, "framerate", "30", 0);
-  av_dict_set(&format_opts, "video_size", "1248x384", 0);
+  av_dict_set(&format_opts, "video_size", "640x480", 0);
   av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
 #endif
 
@@ -158,7 +165,7 @@ void Webcam::preprocess(cv::Mat& img, std::vector<AVMotionVector> &mvs)
       for (int j = 0; j < in_w; ++j) {
         float acc = img_f.at<cv::Vec3f>(i, j)[k] - bgr_means[k];
         acc /= 255.0;
-        target.body[idx] = static_cast<s16>(acc*pixel_offset);
+        target.body[idx] = static_cast<s16>(rint(acc*pixel_offset));
         ++idx;
       }
     }

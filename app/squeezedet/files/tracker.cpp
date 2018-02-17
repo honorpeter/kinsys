@@ -113,10 +113,12 @@ Mat3D<int> find_inner(Mat3D<int>& mvs, BBox& box, Image& frame)
 
 auto average_mvs(Mat3D<int>& inner_mvs, float filling_rate=1.0)
 {
+  std::array<float, 2> d_box = {{0.0, 0.0}};
+  if (inner_mvs.size() == 0)
+    return d_box;
+
   const int rows = inner_mvs.size();
   const int cols = inner_mvs[0].size();
-
-  std::array<float, 2> d_box = {{0.0, 0.0}};
 
   for (int i = 0; i < rows; ++i)
     for (int j = 0; j < cols; ++j)

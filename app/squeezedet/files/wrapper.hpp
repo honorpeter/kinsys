@@ -54,6 +54,7 @@ extern std::mutex mtx;
 template <typename T>
 T pop_front(std::shared_ptr<std::deque<T>> fifo)
 {
+  cout << "pop_front: " << fifo->size() << endl;
 #ifdef THREAD
   std::lock_guard<std::mutex> lock(mtx);
 #endif
@@ -65,6 +66,7 @@ T pop_front(std::shared_ptr<std::deque<T>> fifo)
 template <typename T>
 T pop_back(std::shared_ptr<std::deque<T>> fifo)
 {
+  cout << "pop_back: " << fifo->size() << endl;
 #ifdef THREAD
   std::lock_guard<std::mutex> lock(mtx);
 #endif
@@ -76,6 +78,7 @@ T pop_back(std::shared_ptr<std::deque<T>> fifo)
 template <typename T>
 void push_front(std::shared_ptr<std::deque<T>> fifo, T tmp)
 {
+  cout << "push_front: " << fifo->size() << endl;
 #ifdef THREAD
   std::lock_guard<std::mutex> lock(mtx);
 #endif
@@ -85,6 +88,7 @@ void push_front(std::shared_ptr<std::deque<T>> fifo, T tmp)
 template <typename T>
 void push_back(std::shared_ptr<std::deque<T>> fifo, T tmp)
 {
+  cout << "push_back: " << fifo->size() << endl;
 #ifdef THREAD
   std::lock_guard<std::mutex> lock(mtx);
 #endif

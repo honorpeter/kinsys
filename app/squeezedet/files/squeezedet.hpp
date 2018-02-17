@@ -82,14 +82,14 @@ private:
   Map *fmap12;
 
   const int CLASSES         = 3;
-  const int IMG_W           = 1248;
-  const int IMG_H           = 384;
+  // const int IMG_W           = 1248;
+  // const int IMG_H           = 384;
   // const int IMG_W           = 176;
   // const int IMG_H           = 144;
   // const int IMG_W           = 240;
   // const int IMG_H           = 240;
-  // const int IMG_W           = 320;
-  // const int IMG_H           = 240;
+  const int IMG_W           = 640;
+  const int IMG_H           = 480;
 
   const int OUT_W           = IMG_W/16;
   const int OUT_H           = IMG_H/16;
