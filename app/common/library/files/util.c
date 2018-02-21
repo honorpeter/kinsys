@@ -6,7 +6,9 @@
 #include <time.h>
 
 #include "kinpira.h"
+#ifndef __KPR_RELEASE__
 #include "sim.h"
+#endif
 
 #include <assert.h>
 
@@ -145,45 +147,45 @@ void assign_vec(Layer *l, s16 *weight, s16 *bias)
 
 void exec_core(Layer *l)
 {
-  const struct timespec req = {.tv_sec = 0, .tv_nsec = 1};
+  // const struct timespec req = {.tv_sec = 0, .tv_nsec = 1000};
 
-  *reg_which        = l->which; nanosleep(&req, NULL);
-  *reg_qbits        = l->qbits; nanosleep(&req, NULL);
+  *reg_which        = l->which; usleep(1);
+  *reg_qbits        = l->qbits; usleep(1);
 #ifdef __KPR_QUANT__
-  *reg_w_scale      = l->w_scale; nanosleep(&req, NULL);
-  *reg_w_offset     = l->w_offset; nanosleep(&req, NULL);
-  *reg_b_scale      = l->b_scale; nanosleep(&req, NULL);
-  *reg_b_offset     = l->b_offset; nanosleep(&req, NULL);
+  *reg_w_scale      = l->w_scale; usleep(1);
+  *reg_w_offset     = l->w_offset; usleep(1);
+  *reg_b_scale      = l->b_scale; usleep(1);
+  *reg_b_offset     = l->b_offset; usleep(1);
 #endif
-  *reg_in_offset    = l->in_offset; nanosleep(&req, NULL);
-  *reg_out_offset   = l->out_offset; nanosleep(&req, NULL);
-  *reg_net_offset   = l->net_offset; nanosleep(&req, NULL);
+  *reg_in_offset    = l->in_offset; usleep(1);
+  *reg_out_offset   = l->out_offset; usleep(1);
+  *reg_net_offset   = l->net_offset; usleep(1);
 
-  *reg_pre_base     = l->in_offset; nanosleep(&req, NULL);
-  *reg_read_len     = l->read_len; nanosleep(&req, NULL);
-  *reg_write_len    = l->write_len; nanosleep(&req, NULL);
+  *reg_pre_base     = l->in_offset; usleep(1);
+  *reg_read_len     = l->read_len; usleep(1);
+  *reg_write_len    = l->write_len; usleep(1);
 
-  *reg_base_param0  = l->base_param[0]; nanosleep(&req, NULL);
-  *reg_base_param1  = l->base_param[1]; nanosleep(&req, NULL);
-  *reg_base_param2  = l->base_param[2]; nanosleep(&req, NULL);
-  *reg_conv_param0  = l->conv_param[0]; nanosleep(&req, NULL);
-  *reg_conv_param1  = l->conv_param[1]; nanosleep(&req, NULL);
-  *reg_bias_param   = l->bias_param; nanosleep(&req, NULL);
-  // *reg_norm_param = l->norm_param; nanosleep(&req, NULL);
-  *reg_actv_param   = l->actv_param; nanosleep(&req, NULL);
-  *reg_pool_param0  = l->pool_param[0]; nanosleep(&req, NULL);
-  *reg_pool_param1  = l->pool_param[1]; nanosleep(&req, NULL);
+  *reg_base_param0  = l->base_param[0]; usleep(1);
+  *reg_base_param1  = l->base_param[1]; usleep(1);
+  *reg_base_param2  = l->base_param[2]; usleep(1);
+  *reg_conv_param0  = l->conv_param[0]; usleep(1);
+  *reg_conv_param1  = l->conv_param[1]; usleep(1);
+  *reg_bias_param   = l->bias_param; usleep(1);
+  // *reg_norm_param = l->norm_param; usleep(1);
+  *reg_actv_param   = l->actv_param; usleep(1);
+  *reg_pool_param0  = l->pool_param[0]; usleep(1);
+  *reg_pool_param1  = l->pool_param[1]; usleep(1);
 
   // print_port();
 
 #ifdef __KPR_RELEASE__
-  *reg_pre_req = 0x1; nanosleep(&req, NULL);
-  *reg_pre_req = 0x0; nanosleep(&req, NULL);
-  do { nanosleep(&req, NULL); } while (!*reg_pre_ack);
+  *reg_pre_req = 0x1; usleep(1);
+  *reg_pre_req = 0x0; usleep(1);
+  do { usleep(1); } while (!*reg_pre_ack);
 
-  *reg_req = 0x1; nanosleep(&req, NULL);
-  *reg_req = 0x0; nanosleep(&req, NULL);
-  do { nanosleep(&req, NULL); } while (!*reg_ack);
+  *reg_req = 0x1; usleep(1);
+  *reg_req = 0x0; usleep(1);
+  do { usleep(1); } while (!*reg_ack);
 #else
   switch (*reg_which) {
     case WHICH_RENKON:

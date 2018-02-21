@@ -77,6 +77,7 @@ void MVTracker::tracking(Image& frame, Mask& boxes)
   associate(boxes);
 
   // get id
+  tracks.clear();
   for (int i = 0; i < (int)boxes.size(); ++i)
     tracks.push_back(std::make_pair(id_map[i], boxes[i]));
 #else
@@ -191,8 +192,8 @@ void MVTracker::interpolate()
 thr = std::thread([&] {
 #endif
   frame = pop_front(in_fifo);
-  auto mvs = frame.mvs;
 
+  auto mvs = frame.mvs;
   for (auto& box : boxes) {
     auto inner_mvs = find_inner(mvs, box, frame);
     auto d_box = average_mvs(inner_mvs);

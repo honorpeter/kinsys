@@ -14,7 +14,7 @@
 #include <sys/mman.h>
 
 // #define PAGED
-// #define __KPR_RELEASE__
+#define __KPR_RELEASE__
 #define __KPR_DEBUG__
 
 
@@ -39,7 +39,7 @@ int kinpira_init(void)
 {
 #ifdef __KPR_RELEASE__
   system("modprobe uio_pdrv_genirq");
-  system("modprobe udmabuf udmabuf0=4194304");
+  system("modprobe udmabuf udmabuf0=41943040");
   sleep(1);
 
   // Open Kinpira slave ports as UIO driver
@@ -72,7 +72,7 @@ int kinpira_init(void)
                                PROT_READ | PROT_WRITE, MAP_SHARED,
                                __mem_gobou, 0);
 
-  mem_image = (s16 *)mmap(NULL, 4194304,
+  mem_image = (s16 *)mmap(NULL, sizeof(s16)*20*1048576,
                           PROT_READ | PROT_WRITE, MAP_SHARED,
                           __mem_image, 0);
 
@@ -99,7 +99,7 @@ int kinpira_init(void)
   mem_gobou =
     (u32 (*)[GOBOU_WORDS])malloc(sizeof(u32)*GOBOU_CORE*GOBOU_WORDS);
 
-  mem_image = (s16 *)malloc(sizeof(s16)*4194304*5);
+  mem_image = (s16 *)malloc(sizeof(s16)*20*1048576);
 #endif
 
 #ifdef PAGED
@@ -118,7 +118,7 @@ int kinpira_exit(void)
   munmap(port, sizeof(u32)*REGSIZE);
   munmap(mem_renkon, sizeof(u32)*RENKON_CORE*RENKON_WORDS);
   munmap(mem_gobou, sizeof(u32)*GOBOU_CORE*GOBOU_WORDS);
-  munmap(mem_image, sizeof(s16)*4194304);
+  munmap(mem_image, sizeof(s16)*20*1048576);
 
   close(__port);
   close(__mem_renkon);

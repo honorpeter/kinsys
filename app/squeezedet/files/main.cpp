@@ -108,8 +108,8 @@ void loop_scenario(const int gop_size = 12)
 int main(void)
 {
   setbuf(stdout, NULL);
-  // printf("\033[2J");
-  // puts("### squeezedet\n");
+  printf("\033[2J");
+  puts("### squeezedet\n");
 
   loop_scenario();
 

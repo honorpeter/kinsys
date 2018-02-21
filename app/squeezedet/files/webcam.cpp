@@ -89,15 +89,12 @@ Webcam::Webcam(const std::shared_ptr<std::deque<Image>> &fifo)
 Webcam::~Webcam()
 {
 #if 0
-  puts("~Webcam");
   av_free(buffer);
   av_free(frame_bgr);
   av_free(frame);
-  puts("free");
 
   avformat_close_input(&format_ctx);
   avcodec_close(codec_ctx);
-  puts("close");
 #endif
 }
 
@@ -222,11 +219,11 @@ void Webcam::get_sub_gop()
     for (int i = 0; i < sub_gop_size; ++i) {
       if (av_read_frame(format_ctx, &packet) < 0)
       {
-        has_frame = false;
-        return;
+        // has_frame = false;
+        // return;
         --i;
-        // throw "read failed";
         continue;
+        // throw "read failed";
       }
 
       if (packet.stream_index != video_stream)
@@ -244,8 +241,8 @@ void Webcam::get_sub_gop()
         // has_frame = false;
         // return;
         --i;
-        // throw "frame was not obtained";
         continue;
+        // throw "frame was not obtained";
       }
 
       sws_scale(sws_ctx, (uint8_t const * const *)frame->data,
