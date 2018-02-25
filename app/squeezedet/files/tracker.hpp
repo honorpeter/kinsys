@@ -34,13 +34,14 @@ private:
   void tracking(const Mask& boxes);
   int assign_id();
 
-  Mat3D<int> find_inner(const std::unique_ptr<Mat3D<int>> &mvs,
-                        const BBox& box,
-                        const std::unique_ptr<Image>& frame);
-  std::array<float, 2> average_mvs(const Mat3D<int>& inner_mvs,
-                                   float filling_rate=0.5);
-  BBox move_bbox(BBox& box, std::array<float, 2>& d_box,
-                 std::unique_ptr<Image>& frame);
+  void find_inner(Mat3D<int>& inner_mvs,
+                  const std::unique_ptr<Mat3D<int>> &mvs,
+                  const BBox& box, const std::unique_ptr<Image>& frame);
+  void average_mvs(std::array<float, 2>& d_box,
+                   const Mat3D<int>& inner_mvs, float filling_rate=0.5);
+  void move_bbox(BBox& box,
+                 const std::array<float, 2>& d_box,
+                 const std::unique_ptr<Image>& frame);
 
   cv::KalmanFilter kalman;
 
@@ -65,10 +66,10 @@ private:
   std::unordered_map<int, int> id_map;
   const float cost_thresh = 1.0;
 
-  // std::unique_ptr<Image> frame;
-  // std::unique_ptr<Mat3D<int>> mvs;
-  // Mat3D<int> inner_mvs;
-  // std::array<float, 2> d_box;
+  std::unique_ptr<Image> frame;
+  std::unique_ptr<Mat3D<int>> mvs;
+  Mat3D<int> inner_mvs;
+  std::array<float, 2> d_box;
 };
 
 #endif

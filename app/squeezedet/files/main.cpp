@@ -82,7 +82,12 @@ void loop_scenario()
     for (int i = 0; i < cam.sub_gop_size-1; ++i) {
       clk = std::chrono::system_clock::now();
 
+      try {
       SHOW(me.interpolate());
+      }
+      catch (std::bad_alloc& e) {
+        cout << e.what() << endl;
+      }
 
       SHOW(disp.sync());
       SHOW(me.sync());
@@ -90,7 +95,7 @@ void loop_scenario()
       SHOW(disp.post_frame());
 
 #ifdef RELEASE
-      SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(134)));
+      SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(100)));
 #endif
     }
 

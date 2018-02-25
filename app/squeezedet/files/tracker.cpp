@@ -87,9 +87,9 @@ void MVTracker::tracking(const Mask& boxes)
 #endif
 }
 
-Mat3D<int> MVTracker::find_inner(const std::unique_ptr<Mat3D<int>>& mvs,
-                                 const BBox& box,
-                                 const std::unique_ptr<Image>& frame)
+void MVTracker::find_inner(Mat3D<int>& inner_mvs,
+                           const std::unique_ptr<Mat3D<int>>& mvs,
+                           const BBox& box, const std::unique_ptr<Image>& frame)
 {
   const int frame_rows = frame->height;
   const int frame_cols = frame->width;
@@ -98,7 +98,7 @@ Mat3D<int> MVTracker::find_inner(const std::unique_ptr<Mat3D<int>>& mvs,
 
   const std::array<int, 2> index_rate = {{frame_rows/rows, frame_cols/cols}};
 
-  Mat3D<int> inner_mvs;
+  inner_mvs.clear();
   for (int y = index_rate[0]/2; y < frame_rows; y += index_rate[0]) {
     if (box.top <= y && y < box.bot) {
       Mat2D<int> inner_mvs_line;
@@ -108,16 +108,14 @@ Mat3D<int> MVTracker::find_inner(const std::unique_ptr<Mat3D<int>>& mvs,
       inner_mvs.emplace_back(inner_mvs_line);
     }
   }
-
-  return inner_mvs;
 }
 
-std::array<float, 2> MVTracker::average_mvs(const Mat3D<int>& inner_mvs,
-                                            float filling_rate)
+void MVTracker::average_mvs(std::array<float, 2>& d_box,
+                            const Mat3D<int>& inner_mvs, float filling_rate)
 {
-  std::array<float, 2> d_box = {{0.0, 0.0}};
+  d_box.fill(0.0);
   if (inner_mvs.size() == 0)
-    return d_box;
+    return;
 
   const int rows = inner_mvs.size();
   const int cols = inner_mvs[0].size();
@@ -131,12 +129,11 @@ std::array<float, 2> MVTracker::average_mvs(const Mat3D<int>& inner_mvs,
     d_box[k] /= static_cast<float>(rows * cols);
     d_box[k] *= (1.0f / filling_rate);
   }
-
-  return d_box;
 }
 
-BBox MVTracker::move_bbox(BBox& box, std::array<float, 2>& d_box,
-                          std::unique_ptr<Image>& frame)
+void MVTracker::move_bbox(BBox& box,
+                          const std::array<float, 2>& d_box,
+                          const std::unique_ptr<Image>& frame)
 {
   int left  = box.left  + d_box[0];
   int top   = box.top   + d_box[1];
@@ -146,16 +143,12 @@ BBox MVTracker::move_bbox(BBox& box, std::array<float, 2>& d_box,
   auto height = frame->height;
   auto width = frame->width;
 
-  BBox n_box;
-
-  n_box.name  = box.name;
-  n_box.prob  = box.prob;
-  n_box.left  = clip<int>(left,  0, width-1);
-  n_box.top   = clip<int>(top,   0, height-1);
-  n_box.right = clip<int>(right, 0, width-1);
-  n_box.bot   = clip<int>(bot,   0, height-1);
-
-  return n_box;
+  box.name  = box.name;
+  box.prob  = box.prob;
+  box.left  = clip<int>(left,  0, width-1);
+  box.top   = clip<int>(top,   0, height-1);
+  box.right = clip<int>(right, 0, width-1);
+  box.bot   = clip<int>(bot,   0, height-1);
 }
 
 void MVTracker::annotate()
@@ -195,51 +188,29 @@ void MVTracker::interpolate()
 #ifdef THREAD
 thr = std::thread([&] {
 #endif
-  // system_clock::time_point start, end;
-  // start = system_clock::now();
+  puts("pop_front(in_fifo)");
   auto frame = pop_front(in_fifo);
-  // frame = pop_front(in_fifo);
-  // end = system_clock::now();
-  // cout << "auto frame = pop_front(in_fifo)" << ":\t"
-  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
 
-  // start = system_clock::now();
+  puts("std::move(frame->mvs)");
   auto mvs = std::move(frame->mvs);
-  // mvs = std::move(frame->mvs);
-  // end = system_clock::now();
-  // cout << "auto mvs = *frame.mvs" << ":\t"
-  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
-  // start = system_clock::now();
   for (auto& box : boxes) {
-    auto inner_mvs = find_inner(mvs, box, frame);
-    auto d_box = average_mvs(inner_mvs);
-    box = move_bbox(box, d_box, frame);
+    puts("find_inner(inner_mvs, mvs, box, frame)");
+    find_inner(inner_mvs, mvs, box, frame);
+    puts("average_mvs(inner_mvs)");
+    average_mvs(d_box, inner_mvs);
+    puts("move_bbox(box, d_box, frame)");
+    move_bbox(box, d_box, frame);
   }
-  // end = system_clock::now();
-  // cout << "box_interpolate" << ":\t"
-  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
 
-  // start = system_clock::now();
+  puts("tracking(boxes)");
   tracking(boxes);
-  // end = system_clock::now();
-  // cout << "tracking(boxes)" << ":\t"
-  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
 
-  // start = system_clock::now();
+  puts("std::make_unique<Track>(tracks)");
   auto fuga = std::make_unique<Track>(tracks);
-  // end = system_clock::now();
-  // cout << "auto fuga = std::make_unique(tracks)" << ":\t"
-  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
-  // start = system_clock::now();
+  puts("std::make_pair(std::move(frame), std::move(fuga))");
   auto hoge = std::make_pair(std::move(frame), std::move(fuga));
-  // end = system_clock::now();
-  // cout << "auto hoge = std::make_pair(std::move(frame), std::move(fuga))" << ":\t"
-  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
-  // start = system_clock::now();
+  puts("push_back(out_fifo, hoge)");
   push_back(out_fifo, hoge);
-  // end = system_clock::now();
-  // cout << "push_back(out_fifo, hoge)" << ":\t"
-  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
 #ifdef THREAD
 });
 #endif
