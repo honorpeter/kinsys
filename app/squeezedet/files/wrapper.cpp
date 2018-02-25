@@ -3,7 +3,7 @@
 #include "wrapper.hpp"
 #include "kinpira.h"
 
-void exec_cores(std::vector<Layer *> ls)
+void exec_cores(const std::vector<Layer *>& ls)
 {
   for (auto l : ls)
     exec_core(l);
@@ -11,11 +11,14 @@ void exec_cores(std::vector<Layer *> ls)
 
 #ifdef __KPR_QUANT__
 void assign_maps_quant(
-    std::vector<Layer *> ls,
-    std::vector<u8 *> weights, std::vector<u8 *> biases,
+    const std::vector<Layer *>& ls,
+    const std::vector<u8 *>& weights,
+    const std::vector<u8 *>& biases,
     int qbits,
-    std::vector<float> weights_min, std::vector<float> weights_max,
-    std::vector<float> biases_min, std::vector<float> biases_max)
+    const std::vector<float>& weights_min,
+    const std::vector<float>& weights_max,
+    const std::vector<float>& biases_min,
+    const std::vector<float>& biases_max)
 {
   const int size = ls.size();
   assert(ls.size() == weights.size() && ls.size() == biases.size());
@@ -26,8 +29,9 @@ void assign_maps_quant(
       qbits, weights_min[i], weights_max[i], biases_min[i], biases_max[i]);
 }
 #else
-void assign_maps(std::vector<Layer *> ls,
-                 std::vector<s16 *> weights, std::vector<s16 *> biases)
+void assign_maps(const std::vector<Layer *>& ls,
+                 const std::vector<s16 *>& weights,
+                 const std::vector<s16 *>& biases)
 {
   const int size = ls.size();
   assert(ls.size() == weights.size() && ls.size() == biases.size());

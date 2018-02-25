@@ -3,6 +3,7 @@
 
 #include <array>
 #include <string>
+#include <memory>
 
 #include <opencv2/opencv.hpp>
 
@@ -11,10 +12,10 @@
 
 struct Image {
   std::array<float, 2> scales;
-  Mat3D<int> mvs;
   int height;
   int width;
   unsigned char *src;
+  std::unique_ptr<Mat3D<int>> mvs;
   s16 *body;
 };
 
@@ -30,13 +31,14 @@ struct BBox {
 using Mask = std::vector<BBox>;
 using Track = std::vector<std::pair<int, BBox>>;
 
-std::vector<float> calc_center(BBox& box);
-float iou_cost(BBox& box);
-Mat2D<float> calc_cost(Mask& src_boxes, Mask& dst_boxes);
+std::vector<float> calc_center(const BBox& box);
+float iou_cost(const BBox& next_box, const BBox& prev_box);
+Mat2D<float> calc_cost(const Mask& src_boxes, const Mask& dst_boxes);
 
 Mat1D<float> bbox_transform(float cx, float cy, float w, float h);
 Mat1D<float> bbox_transform_inv(float xmin, float ymin, float xmax, float ymax);
-Mat1D<float> batch_iou(Mat2D<float> boxes, Mat1D<float> box);
-Mat1D<bool> nms(Mat2D<float> boxes, Mat1D<float> probs, float thresh);
+Mat1D<float> batch_iou(const Mat2D<float>& boxes, const Mat1D<float>& box);
+Mat1D<bool> nms(const Mat2D<float>& boxes,
+                const Mat1D<float>& probs, float thresh);
 
 #endif

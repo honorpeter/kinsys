@@ -7,7 +7,7 @@ namespace _internal {
 
 class Hungarian {
 public:
-  Hungarian(std::vector<std::vector<float>> cost);
+  Hungarian(const std::vector<std::vector<float>>& cost);
   ~Hungarian();
 
   void step_one();
@@ -48,6 +48,6 @@ private:
 }
 
 std::pair<std::vector<int>, std::vector<int>>
-linear_sum_assignment(std::vector<std::vector<float>> &cost);
+linear_sum_assignment(const std::vector<std::vector<float>>& cost);
 
 #endif

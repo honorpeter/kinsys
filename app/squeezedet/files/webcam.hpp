@@ -21,7 +21,7 @@ extern "C" {
 class Webcam
 {
 public:
-  Webcam(const std::shared_ptr<std::deque<Image>> &fifo);
+  Webcam(const std::shared_ptr<std::deque<std::unique_ptr<Image>>> &fifo);
   ~Webcam();
 
   void get_i_frame();
@@ -41,12 +41,14 @@ public:
 private:
   std::thread thr;
 
-  void preprocess(cv::Mat& img, std::vector<AVMotionVector> &mvs);
-  void extract_mvs(AVFrame *frame, std::vector<AVMotionVector> &mvs);
-  void format_mvs(Image &img, std::vector<AVMotionVector> &mvs);
+  void extract_mvs(AVFrame *frame,
+                   std::vector<AVMotionVector>& mvs);
+  void format_mvs(std::unique_ptr<Image>& img,
+                  const std::vector<AVMotionVector>& mvs);
+  void preprocess(cv::Mat& img,
+                  const std::vector<AVMotionVector> &mvs);
 
-  std::shared_ptr<std::deque<Image>> fifo;
-  Image target;
+  std::shared_ptr<std::deque<std::unique_ptr<Image>>> fifo;
 
   AVFormatContext *format_ctx = nullptr;
   AVCodecContext *codec_ctx = nullptr;
@@ -65,6 +67,8 @@ private:
   bool has_frame = true;
   int num_bytes;
   std::vector<std::vector<uint8_t>> imgbuf;
+
+  Mat3D<int> flow;
 };
 
 #endif

@@ -35,7 +35,7 @@ conv(Map *input, Map *output, int kern, int strid, int pad, bool aux)
 }
 
 static inline std::vector<Layer *>
-fire(Map *input, std::vector<Map *> maps, bool pool)
+fire(Map *input, std::vector<Map *>& maps, bool pool)
 {
   Map *sq1x1 = maps[0];
   Map *ex1x1 = maps[1];
@@ -111,7 +111,6 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
   fmap11 = define_fire(12, fire11_maps, 96,384,384, IMG_H/16,IMG_W/16, false);
   fmap12 = define_map( 10,                      72, IMG_H/16,IMG_W/16);
 
-  // set_input(&in_det->body, image);
   in_det->body = image->body;
 
   conv1  = conv(image,  pmap1, 3, 2, 1, true);
@@ -126,9 +125,6 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
   fire10 = fire(fmap9,  fire10_maps, false);
   fire11 = fire(fmap10, fire11_maps, false);
   conv12 = conv(fmap11, fmap12, 3, 1, 1, false);
-
-  // set_output(fmap12, &out_det->first.body);
-  // out_det->first.body = fmap12->body;
 
   assign_map_quant( conv1,  W_conv1,  b_conv1,
     13, W_conv1_min,  W_conv1_max,  b_conv1_min,  b_conv1_max );
@@ -161,8 +157,6 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
 SqueezeDet::~SqueezeDet()
 {
 #if 0
-  puts("~SqueezeDet");
-
   undef_layer(conv1);
   undef_layers(fire2);
   undef_layers(fire3);
@@ -175,7 +169,6 @@ SqueezeDet::~SqueezeDet()
   undef_layers(fire10);
   undef_layers(fire11);
   undef_layer(conv12);
-  puts("undef_layer");
 
   undef_maps(fire2_maps);
   undef_maps(fire3_maps);
@@ -187,7 +180,6 @@ SqueezeDet::~SqueezeDet()
   undef_maps(fire9_maps);
   undef_maps(fire10_maps);
   undef_maps(fire11_maps);
-  puts("undef_maps");
 
   undef_map(image);
   undef_map(pmap1);
@@ -202,10 +194,8 @@ SqueezeDet::~SqueezeDet()
   undef_map(fmap10);
   undef_map(fmap11);
   undef_map(fmap12);
-  puts("undef_map");
 
   kinpira_exit();
-  puts("kinpira_exit");
 #endif
 }
 
@@ -234,10 +224,13 @@ void SqueezeDet::init_matrix()
   classes                 = zeros<int>(ANCHORS);
 } // }}}
 
-auto SqueezeDet::merge_box_delta(Mat2D<float>& anchor, Mat2D<float>& delta)
+auto SqueezeDet::merge_box_delta(const Mat2D<float>& anchor,
+                                 const Mat2D<float>& delta)
 { // {{{
-  auto bbox_transform =
-  [](Mat1D<float> cx, Mat1D<float> cy, Mat1D<float> w, Mat1D<float> h) {
+  auto bbox_transform = [](const Mat1D<float>& cx,
+                           const Mat1D<float>& cy,
+                           const Mat1D<float>& w,
+                           const Mat1D<float>& h) {
     Mat2D<float> out_box = zeros<float>(4, cx.size());
 
     Mat1D<float> half_w = w / (float)2.0;
@@ -250,8 +243,10 @@ auto SqueezeDet::merge_box_delta(Mat2D<float>& anchor, Mat2D<float>& delta)
     return out_box;
   };
 
-  auto bbox_transform_inv =
-  [](Mat1D<float> xmin, Mat1D<float> ymin, Mat1D<float> xmax, Mat1D<float> ymax) {
+  auto bbox_transform_inv = [](const Mat1D<float>& xmin,
+                               const Mat1D<float>& ymin,
+                               const Mat1D<float>& xmax,
+                               const Mat1D<float>& ymax) {
     Mat2D<float> out_box = zeros<float>(4, xmin.size());
 
     Mat1D<float> width  = xmax - xmin;
@@ -308,7 +303,7 @@ auto SqueezeDet::merge_box_delta(Mat2D<float>& anchor, Mat2D<float>& delta)
   boxes = bbox_transform_inv(xmins, ymins, xmaxs, ymaxs);
 } // }}}
 
-Mat1D<float> SqueezeDet::safe_exp(Mat1D<float>& w, float thresh)
+Mat1D<float> SqueezeDet::safe_exp(const Mat1D<float>& w, float thresh)
 { // {{{
   const int len = w.size();
 
@@ -317,10 +312,12 @@ Mat1D<float> SqueezeDet::safe_exp(Mat1D<float>& w, float thresh)
     auto x = w[i];
     auto y = 0.0;
 
-    if (x > thresh)
+    if (x > thresh) {
       y = exp(thresh) * (x - thresh + 1.0);
-    else
+    }
+    else {
       y = exp(x);
+    }
 
     out[i] = y;
   }
@@ -426,26 +423,28 @@ void SqueezeDet::filter()
   }
 } // }}}
 
-void SqueezeDet::interpret(Mat3D<float>& preds)
+void SqueezeDet::interpret(const Mat3D<float>& preds)
 { // {{{
   for (int j = 0; j < OUT_H; ++j) {
     for (int k = 0; k < OUT_W; ++k) {
       // convert to tensorflow encoding
-      for (int i = 0; i < num_class_probs; ++i)
+      for (int i = 0; i < num_class_probs; ++i) {
         pred_class[j][k][i] = preds[i][j][k];
-
-      for (int i = num_class_probs; i < num_confidence_scores; ++i)
+      }
+      for (int i = num_class_probs; i < num_confidence_scores; ++i) {
         pred_confidence[j][k][i-num_class_probs] = preds[i][j][k];
-
-      for (int i = num_confidence_scores; i < num_box_delta; ++i)
+      }
+      for (int i = num_confidence_scores; i < num_box_delta; ++i) {
         pred_box[j][k][i-num_confidence_scores] = preds[i][j][k];
+      }
     }
   }
 
   flatten(pred_class_flat, pred_class);
   reshape(pred_class_, pred_class_flat);
-  for (int i = 0; i < ANCHORS; ++i)
+  for (int i = 0; i < ANCHORS; ++i) {
     softmax(pred_class_probs[i], pred_class_[i]);
+  }
 
   flatten(pred_confidence_flat, pred_confidence);
   sigmoid(pred_confidence_scores, pred_confidence_flat);
@@ -491,12 +490,10 @@ void SqueezeDet::interpret(Mat3D<float>& preds)
 
 void SqueezeDet::evaluate()
 {
-  system_clock::time_point start, end;
-
 #ifdef THREAD
 thr = std::thread([&] {
 #endif
-  frame = *in_det;
+  frame = std::move(*in_det);
 
   exec_core(conv1);
   exec_cores(fire2);
@@ -549,7 +546,6 @@ thr = std::thread([&] {
       for (int k = 0; k < fmap12->shape[2]; ++k) {
         preds[i][j][k] = fmap12->body[idx++] / qoffs;
         std::this_thread::sleep_for(std::chrono::microseconds(1));
-        // cout << preds[i][j][k] << endl;
       }
     }
   }
@@ -557,7 +553,7 @@ thr = std::thread([&] {
   interpret(preds);
   filter();
 
-  *out_det = std::make_pair(frame, mask);
+  *out_det = std::make_pair(std::move(frame), mask);
 #ifdef THREAD
 });
 #endif

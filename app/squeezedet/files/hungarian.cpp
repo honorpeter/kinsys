@@ -8,7 +8,7 @@
 
 namespace _internal {
 
-Hungarian::Hungarian(std::vector<std::vector<float>> cost)
+Hungarian::Hungarian(const std::vector<std::vector<float>>& cost)
   : cost(cost)
 {
   rows = cost.size();
@@ -331,7 +331,7 @@ Hungarian::dump()
 }
 
 std::pair<std::vector<int>, std::vector<int>>
-linear_sum_assignment(std::vector<std::vector<float>> &cost)
+linear_sum_assignment(const std::vector<std::vector<float>>& cost)
 {
   if (cost.size() == 0 || cost[0].size() == 0)
     return std::make_pair(std::vector<int>{}, std::vector<int>{});

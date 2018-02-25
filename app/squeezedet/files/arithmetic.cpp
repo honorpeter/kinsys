@@ -3,7 +3,7 @@
 #include <limits>
 
 template <typename T>
-Mat1D<T> operator+(Mat1D<T>& x, Mat1D<T>& y)
+Mat1D<T> operator+(const Mat1D<T>& x, const Mat1D<T>& y)
 {
   const int len = x.size();
   auto z = zeros<T>(len);
@@ -15,7 +15,7 @@ Mat1D<T> operator+(Mat1D<T>& x, Mat1D<T>& y)
 }
 
 template <typename T>
-Mat1D<T> operator-(Mat1D<T>& x, Mat1D<T>& y)
+Mat1D<T> operator-(const Mat1D<T>& x, const Mat1D<T>& y)
 {
   const int len = x.size();
   auto z = zeros<T>(len);
@@ -27,7 +27,7 @@ Mat1D<T> operator-(Mat1D<T>& x, Mat1D<T>& y)
 }
 
 template <typename T>
-Mat1D<T> operator*(Mat1D<T>& x, Mat1D<T>& y)
+Mat1D<T> operator*(const Mat1D<T>& x, const Mat1D<T>& y)
 {
   const int len = x.size();
   auto z = zeros<T>(len);
@@ -39,7 +39,7 @@ Mat1D<T> operator*(Mat1D<T>& x, Mat1D<T>& y)
 }
 
 template <typename T>
-Mat1D<T> operator/(Mat1D<T>& x, Mat1D<T>& y)
+Mat1D<T> operator/(const Mat1D<T>& x, const Mat1D<T>& y)
 {
   const int len = x.size();
   auto z = zeros<T>(len);
@@ -51,7 +51,7 @@ Mat1D<T> operator/(Mat1D<T>& x, Mat1D<T>& y)
 }
 
 template <typename T>
-Mat1D<T> operator+(T x, Mat1D<T>& y)
+Mat1D<T> operator+(T x, const Mat1D<T>& y)
 {
   const int len = y.size();
   auto z = zeros<T>(len);
@@ -63,7 +63,7 @@ Mat1D<T> operator+(T x, Mat1D<T>& y)
 }
 
 template <typename T>
-Mat1D<T> operator+(Mat1D<T>& x, T y)
+Mat1D<T> operator+(const Mat1D<T>& x, T y)
 {
   const int len = x.size();
   auto z = zeros<T>(len);
@@ -75,7 +75,7 @@ Mat1D<T> operator+(Mat1D<T>& x, T y)
 }
 
 template <typename T>
-Mat1D<T> operator-(T x, Mat1D<T>& y)
+Mat1D<T> operator-(T x, const Mat1D<T>& y)
 {
   const int len = y.size();
   auto z = zeros<T>(len);
@@ -87,7 +87,7 @@ Mat1D<T> operator-(T x, Mat1D<T>& y)
 }
 
 template <typename T>
-Mat1D<T> operator-(Mat1D<T>& x, T y)
+Mat1D<T> operator-(const Mat1D<T>& x, T y)
 {
   const int len = x.size();
   auto z = zeros<T>(len);
@@ -99,7 +99,7 @@ Mat1D<T> operator-(Mat1D<T>& x, T y)
 }
 
 template <typename T>
-Mat1D<T> operator*(T x, Mat1D<T>& y)
+Mat1D<T> operator*(T x, const Mat1D<T>& y)
 {
   const int len = y.size();
   auto z = zeros<T>(len);
@@ -111,7 +111,7 @@ Mat1D<T> operator*(T x, Mat1D<T>& y)
 }
 
 template <typename T>
-Mat1D<T> operator*(Mat1D<T>& x, T y)
+Mat1D<T> operator*(const Mat1D<T>& x, T y)
 {
   const int len = x.size();
   auto z = zeros<T>(len);
@@ -123,7 +123,7 @@ Mat1D<T> operator*(Mat1D<T>& x, T y)
 }
 
 template <typename T>
-Mat1D<T> operator/(T x, Mat1D<T>& y)
+Mat1D<T> operator/(T x, const Mat1D<T>& y)
 {
   const int len = y.size();
   auto z = zeros<T>(len);
@@ -135,7 +135,7 @@ Mat1D<T> operator/(T x, Mat1D<T>& y)
 }
 
 template <typename T>
-Mat1D<T> operator/(Mat1D<T>& x, T y)
+Mat1D<T> operator/(const Mat1D<T>& x, T y)
 {
   const int len = x.size();
   auto z = zeros<T>(len);
@@ -162,7 +162,7 @@ T clip(T source, T min, T max)
 }
 
 template <typename T>
-Mat1D<T> clip(Mat1D<T> source, T min, T max)
+Mat1D<T> clip(const Mat1D<T>& source, T min, T max)
 {
   const int len = source.size();
   auto target = zeros<T>(len);
@@ -181,7 +181,7 @@ Mat1D<T> clip(Mat1D<T> source, T min, T max)
 }
 
 template <typename T>
-T max(Mat1D<T> x)
+T max(const Mat1D<T>& x)
 {
   const int len = x.size();
 
@@ -196,7 +196,7 @@ T max(Mat1D<T> x)
 }
 
 template <typename T>
-int argmax(Mat1D<T> x)
+int argmax(const Mat1D<T>& x)
 {
   const int len = x.size();
 
@@ -213,7 +213,7 @@ int argmax(Mat1D<T> x)
 }
 
 template <typename T>
-T min(Mat1D<T> x)
+T min(const Mat1D<T>& x)
 {
   const int len = x.size();
 
@@ -228,7 +228,7 @@ T min(Mat1D<T> x)
 }
 
 template <typename T>
-int argmin(Mat1D<T> x)
+int argmin(const Mat1D<T>& x)
 {
   const int len = x.size();
 
@@ -245,7 +245,7 @@ int argmin(Mat1D<T> x)
 }
 
 template <typename T>
-Mat2D<T> transpose(Mat2D<T>& x)
+Mat2D<T> transpose(const Mat2D<T>& x)
 {
   const int len_x = x.size();
   const int len_y = x[0].size();

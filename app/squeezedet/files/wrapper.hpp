@@ -23,24 +23,28 @@ using namespace std::chrono;
   (func); \
   end = system_clock::now(); \
   cout << #func << ":\t" \
-       << duration_cast<milliseconds>(end-start).count() << " [ms]" << endl; \
+       << duration_cast<microseconds>(end-start).count() << " [us]" << endl; \
 }
 #else
 #define SHOW(func) (func);
 #endif
 
-void exec_cores(std::vector<Layer *> ls);
+void exec_cores(const std::vector<Layer *>& ls);
 
 #ifdef __KPR_QUANT__
 void assign_maps_quant(
-    std::vector<Layer *> ls,
-    std::vector<u8 *> weights, std::vector<u8 *> biases,
+    const std::vector<Layer *>& ls,
+    const std::vector<u8 *>& weights,
+    const std::vector<u8 *>& biases,
     int qbits,
-    std::vector<float> weights_min, std::vector<float> weights_max,
-    std::vector<float> biases_min, std::vector<float> biases_max);
+    const std::vector<float>& weights_min,
+    const std::vector<float>& weights_max,
+    const std::vector<float>& biases_min,
+    const std::vector<float>& biases_max);
 #else
-void assign_maps(std::vector<Layer *> ls,
-                 std::vector<s16 *> weights, std::vector<s16 *> biases);
+void assign_maps(const std::vector<Layer *>& ls,
+                 const std::vector<s16 *>& weights,
+                 const std::vector<s16 *>& biases);
 #endif
 
 void undef_layers(std::vector<Layer *> ls);
@@ -52,7 +56,33 @@ extern std::mutex mtx;
 #endif
 
 template <typename T>
-T pop_front(std::shared_ptr<std::deque<T>> fifo)
+inline std::unique_ptr<T>
+pop_front(const std::shared_ptr<std::deque<std::unique_ptr<T>>>& fifo)
+{
+#ifdef THREAD
+  std::lock_guard<std::mutex> lock(mtx);
+#endif
+  auto tmp = std::move(fifo->front());
+  fifo->pop_front();
+
+  return std::move(tmp);
+}
+
+template <typename T1, typename T2>
+inline std::pair<std::unique_ptr<T1>, std::unique_ptr<T2>>
+pop_front(const std::shared_ptr<std::deque<std::pair<std::unique_ptr<T1>, std::unique_ptr<T2>>>>& fifo)
+{
+#ifdef THREAD
+  std::lock_guard<std::mutex> lock(mtx);
+#endif
+  auto tmp = std::move(fifo->front());
+  fifo->pop_front();
+
+  return std::move(tmp);
+}
+
+template <typename T>
+inline T pop_front(const std::shared_ptr<std::deque<T>>& fifo)
 {
 #ifdef THREAD
   std::lock_guard<std::mutex> lock(mtx);
@@ -61,10 +91,23 @@ T pop_front(std::shared_ptr<std::deque<T>> fifo)
   fifo->pop_front();
 
   return tmp;
-};
+}
 
 template <typename T>
-T pop_back(std::shared_ptr<std::deque<T>> fifo)
+inline std::unique_ptr<T>
+pop_back(const std::shared_ptr<std::deque<std::unique_ptr<T>>>& fifo)
+{
+#ifdef THREAD
+  std::lock_guard<std::mutex> lock(mtx);
+#endif
+  auto tmp = std::move(fifo->back());
+  fifo->pop_back();
+
+  return std::move(tmp);
+}
+
+template <typename T>
+inline T pop_back(const std::shared_ptr<std::deque<T>>& fifo)
 {
 #ifdef THREAD
   std::lock_guard<std::mutex> lock(mtx);
@@ -73,24 +116,57 @@ T pop_back(std::shared_ptr<std::deque<T>> fifo)
   fifo->pop_back();
 
   return tmp;
-};
+}
 
 template <typename T>
-void push_front(std::shared_ptr<std::deque<T>> fifo, T tmp)
+inline void
+push_front(const std::shared_ptr<std::deque<T>>& fifo,
+           std::unique_ptr<T>& tmp)
+{
+#ifdef THREAD
+  std::lock_guard<std::mutex> lock(mtx);
+#endif
+  fifo->push_front(std::move(tmp));
+}
+
+template <typename T>
+inline void push_front(const std::shared_ptr<std::deque<T>>& fifo, const T& tmp)
 {
 #ifdef THREAD
   std::lock_guard<std::mutex> lock(mtx);
 #endif
   fifo->push_front(tmp);
-};
+}
 
 template <typename T>
-void push_back(std::shared_ptr<std::deque<T>> fifo, T tmp)
+inline void
+push_back(const std::shared_ptr<std::deque<std::unique_ptr<T>>>& fifo,
+          std::unique_ptr<T>& tmp)
+{
+#ifdef THREAD
+  std::lock_guard<std::mutex> lock(mtx);
+#endif
+  fifo->push_back(std::move(tmp));
+}
+
+template <typename T1, typename T2>
+inline void
+push_back(const std::shared_ptr<std::deque<std::pair<std::unique_ptr<T1>, std::unique_ptr<T2>>>>& fifo,
+          std::pair<std::unique_ptr<T1>, std::unique_ptr<T2>>& tmp)
+{
+#ifdef THREAD
+  std::lock_guard<std::mutex> lock(mtx);
+#endif
+  fifo->push_back(std::move(tmp));
+}
+
+template <typename T>
+inline void push_back(const std::shared_ptr<std::deque<T>>& fifo, const T& tmp)
 {
 #ifdef THREAD
   std::lock_guard<std::mutex> lock(mtx);
 #endif
   fifo->push_back(tmp);
-};
+}
 
 #endif

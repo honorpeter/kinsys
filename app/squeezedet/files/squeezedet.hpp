@@ -32,10 +32,11 @@ private:
   std::thread thr;
 
   void init_matrix();
-  void interpret(Mat3D<float>& preds);
+  void interpret(const Mat3D<float>& preds);
   void filter();
-  auto merge_box_delta(Mat2D<float>& anchor, Mat2D<float>& delta);
-  Mat1D<float> safe_exp(Mat1D<float>& w, float thresh);
+  auto merge_box_delta(const Mat2D<float>& anchor,
+                       const Mat2D<float>& delta);
+  Mat1D<float> safe_exp(const Mat1D<float>& w, float thresh);
   Mat2D<float> set_anchors();
 
   Image frame;

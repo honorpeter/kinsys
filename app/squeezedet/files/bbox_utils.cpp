@@ -4,7 +4,7 @@
 #include "bbox_utils.hpp"
 #include "arithmetic.hpp"
 
-std::vector<float> calc_center(BBox& box)
+std::vector<float> calc_center(const BBox& box)
 {
   float center_y = static_cast<float>(box.bot + box.top) / 2.0;
   float center_x = static_cast<float>(box.right + box.left) / 2.0;
@@ -12,7 +12,7 @@ std::vector<float> calc_center(BBox& box)
   return std::vector<float>{{center_x, center_y}};
 }
 
-float iou_cost(BBox& next_box, BBox& prev_box)
+float iou_cost(const BBox& next_box, const BBox& prev_box)
 {
   BBox cap;
   cap.left  = std::max(next_box.left, prev_box.left);
@@ -38,7 +38,7 @@ float iou_cost(BBox& next_box, BBox& prev_box)
   return 1.0 - iou;
 }
 
-Mat2D<float> calc_cost(Mask& src_boxes, Mask& dst_boxes)
+Mat2D<float> calc_cost(const Mask& src_boxes, const Mask& dst_boxes)
 {
   const int src_size = src_boxes.size();
   const int dst_size = dst_boxes.size();
@@ -78,7 +78,7 @@ Mat1D<float> bbox_transform_inv(float xmin, float ymin, float xmax, float ymax)
   return out_box;
 }
 
-Mat1D<float> batch_iou(Mat2D<float> boxes, Mat1D<float> box)
+Mat1D<float> batch_iou(const Mat2D<float>& boxes, const Mat1D<float>& box)
 {
   auto boxes_t = transpose(boxes);
 
@@ -111,7 +111,8 @@ Mat1D<float> batch_iou(Mat2D<float> boxes, Mat1D<float> box)
   return intersection_area / union_area;
 }
 
-Mat1D<bool> nms(Mat2D<float> boxes, Mat1D<float> probs, float thresh)
+Mat1D<bool> nms(const Mat2D<float>& boxes,
+                const Mat1D<float>& probs, float thresh)
 {
   const int len = probs.size();
 

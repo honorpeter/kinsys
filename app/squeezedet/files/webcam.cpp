@@ -3,7 +3,8 @@
 #include "webcam.hpp"
 #include "wrapper.hpp"
 
-Webcam::Webcam(const std::shared_ptr<std::deque<Image>> &fifo)
+Webcam::Webcam(
+  const std::shared_ptr<std::deque<std::unique_ptr<Image>>>& fifo)
   : fifo(fifo)
 {
   av_register_all();
@@ -84,6 +85,8 @@ Webcam::Webcam(const std::shared_ptr<std::deque<Image>> &fifo)
 
   avpicture_fill((AVPicture *)frame_bgr, buffer, AV_PIX_FMT_BGR24,
                  codec_ctx->width, codec_ctx->height);
+
+  flow = zeros<int>(144, 176, 2);
 }
 
 Webcam::~Webcam()
@@ -113,15 +116,18 @@ void Webcam::extract_mvs(AVFrame *frame, std::vector<AVMotionVector> &mvs)
   }
 }
 
-void Webcam::format_mvs(Image &img, std::vector<AVMotionVector> &mvs)
+void Webcam::format_mvs(std::unique_ptr<Image>& img,
+                        const std::vector<AVMotionVector>& mvs)
 {
+  system_clock::time_point start, end;
   // const int flow_rows = std::min(img.height / mb_size, max_mb_size);
   // const int flow_cols = std::min(img.width / mb_size, max_mb_size);
-  const int flow_rows = img.height;
-  const int flow_cols = img.width;
-  auto flow = zeros<int>(flow_rows, flow_cols, 2);
+  const int flow_rows = img->height;
+  const int flow_cols = img->width;
+  // auto flow = zeros<int>(flow_rows, flow_cols, 2);
 
-  for (AVMotionVector& mv : mvs) {
+  start = system_clock::now();
+  for (const AVMotionVector& mv : mvs) {
     int mvdx = mv.dst_x - mv.src_x;
     int mvdy = mv.dst_y - mv.src_y;
 
@@ -133,79 +139,95 @@ void Webcam::format_mvs(Image &img, std::vector<AVMotionVector> &mvs)
     flow[i_clipped][j_clipped][0] = mvdx;
     flow[i_clipped][j_clipped][1] = mvdy;
   }
+  end = system_clock::now();
+  cout << "min_max" << ":\t"
+       << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
 
-  img.mvs = flow;
+  SHOW(img->mvs = std::make_unique<Mat3D<int>>(flow));
 }
 
-void Webcam::preprocess(cv::Mat& img, std::vector<AVMotionVector> &mvs)
+void Webcam::preprocess(cv::Mat& img, const std::vector<AVMotionVector> &mvs)
 {
+  system_clock::time_point start, end;
   const int in_c = img.channels();
   const int in_h = img.rows;
   const int in_w = img.cols;
 
-  target.height = in_h;
-  target.width  = in_w;
+  start = system_clock::now();
+  auto target = std::make_unique<Image>();
+  end = system_clock::now();
+  cout << "auto target = std::make_unique<Image>()" << ":\t"
+       << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
+  target->height = in_h;
+  target->width  = in_w;
 
-  format_mvs(target, mvs);
+  SHOW(format_mvs(target, mvs));
 
   cv::Mat img_f;
 
+  SHOW(target->src = img.data);
+
   // img.copyTo(img_i);
-  target.src = img.data;
+  SHOW(img.convertTo(img_f, CV_32FC3));
+  SHOW(target->body = new s16[in_c * in_h * in_w]);
 
-  img.convertTo(img_f, CV_32FC3);
-  target.body = new s16[in_c * in_h * in_w];
-
+  start = system_clock::now();
   int idx = 0;
   for (int k = 0; k < in_c; ++k) {
     for (int i = 0; i < in_h; ++i) {
       for (int j = 0; j < in_w; ++j) {
         float acc = img_f.at<cv::Vec3f>(i, j)[k] - bgr_means[k];
         acc /= 255.0;
-        target.body[idx] = static_cast<s16>(rint(acc*pixel_offset));
+        target->body[idx] = static_cast<s16>(rint(acc*pixel_offset));
         ++idx;
       }
     }
   }
+  end = system_clock::now();
+  cout << "bgr_means" << ":\t"
+       << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
 
   push_back(fifo, target);
 }
 
 void Webcam::get_i_frame()
 {
+  system_clock::time_point start, end;
   char pict_type;
   do {
-    if (av_read_frame(format_ctx, &packet) < 0)
-      // throw "read failed";
+    int read_frame;
+    SHOW(read_frame = av_read_frame(format_ctx, &packet));
+    if (read_frame < 0)
       continue;
+      // throw "read failed";
 
     if (packet.stream_index != video_stream)
       continue;
 
     int got_frame;
-    avcodec_decode_video2(codec_ctx, frame, &got_frame, &packet);
+    SHOW(avcodec_decode_video2(codec_ctx, frame, &got_frame, &packet));
     if (!got_frame)
-      // throw "frame was not obtained";
       continue;
+      // throw "frame was not obtained";
 
-    pict_type = av_get_picture_type_char(frame->pict_type);
+    SHOW(pict_type = av_get_picture_type_char(frame->pict_type));
   } while (pict_type != 'I');
 
-  sws_scale(sws_ctx, (uint8_t const * const *)frame->data,
+  SHOW(sws_scale(sws_ctx, (uint8_t const * const *)frame->data,
             frame->linesize, 0, codec_ctx->height,
-            frame_bgr->data, frame_bgr->linesize);
+            frame_bgr->data, frame_bgr->linesize));
 
-  extract_mvs(frame, mvs);
+  SHOW(extract_mvs(frame, mvs));
 
-  av_packet_unref(&packet);
+  SHOW(av_packet_unref(&packet));
 
   // cv::Mat img(codec_ctx->height, codec_ctx->width,
   //             CV_8UC3, frame_bgr->data[0]);
-  imgbuf.emplace_back(buffer, buffer+num_bytes);
+  SHOW(imgbuf.emplace_back(buffer, buffer+num_bytes));
   cv::Mat img(codec_ctx->height, codec_ctx->width,
               CV_8UC3, imgbuf.back().data());
 
-  preprocess(img, mvs);
+  SHOW(preprocess(img, mvs));
 }
 
 void Webcam::get_sub_gop()
@@ -213,12 +235,11 @@ void Webcam::get_sub_gop()
 #ifdef THREAD
   thr = std::thread([&] {
 #endif
-    if (imgbuf.size() > gop_size+1)
+    if ((int)imgbuf.size() > gop_size+1)
       imgbuf.clear();
 
     for (int i = 0; i < sub_gop_size; ++i) {
-      if (av_read_frame(format_ctx, &packet) < 0)
-      {
+      if (av_read_frame(format_ctx, &packet) < 0) {
         // has_frame = false;
         // return;
         --i;
@@ -226,8 +247,7 @@ void Webcam::get_sub_gop()
         // throw "read failed";
       }
 
-      if (packet.stream_index != video_stream)
-      {
+      if (packet.stream_index != video_stream) {
         // has_frame = false;
         // return;
         --i;
@@ -236,8 +256,7 @@ void Webcam::get_sub_gop()
 
       int got_frame;
       avcodec_decode_video2(codec_ctx, frame, &got_frame, &packet);
-      if (!got_frame)
-      {
+      if (!got_frame) {
         // has_frame = false;
         // return;
         --i;

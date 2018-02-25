@@ -3,9 +3,9 @@
 
 #include "matrix.hpp"
 
-void softmax(Mat1D<float>& output, Mat1D<float>& input);
+void softmax(Mat1D<float>& output, const Mat1D<float>& input);
 
-void sigmoid(Mat1D<float>& output, Mat1D<float>& input);
+void sigmoid(Mat1D<float>& output, const Mat1D<float>& input);
 
 #include "activation.cpp"
 #endif

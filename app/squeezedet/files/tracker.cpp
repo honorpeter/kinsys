@@ -5,10 +5,10 @@
 #include "arithmetic.hpp"
 #include "hungarian.hpp"
 
-// TODO: mutex fifos
 MVTracker::MVTracker(
-  const std::shared_ptr<std::deque<Image>> &in_fifo,
-  const std::shared_ptr<std::deque<std::pair<Image, Track>>> &out_fifo,
+  const std::shared_ptr<std::deque<std::unique_ptr<Image>>>& in_fifo,
+  const std::shared_ptr<std::deque<
+    std::pair<std::unique_ptr<Image>, std::unique_ptr<Track>>>>& out_fifo,
   const std::shared_ptr<std::pair<Image, Mask>> &out_det)
   : in_fifo(in_fifo), out_fifo(out_fifo), out_det(out_det)
 {
@@ -36,7 +36,7 @@ int MVTracker::assign_id()
   return count++;
 }
 
-void MVTracker::associate(Mask& boxes)
+void MVTracker::associate(const Mask& boxes)
 {
   auto cost = calc_cost(prev_boxes, boxes);
 
@@ -65,12 +65,12 @@ void MVTracker::associate(Mask& boxes)
   prev_boxes = boxes;
 }
 
-void MVTracker::predict(Mask& boxes)
+void MVTracker::predict(const Mask& boxes)
 {
   // nop
 }
 
-void MVTracker::tracking(Image& frame, Mask& boxes)
+void MVTracker::tracking(const Mask& boxes)
 {
 #if 0
   predict(boxes);
@@ -79,32 +79,32 @@ void MVTracker::tracking(Image& frame, Mask& boxes)
   // get id
   tracks.clear();
   for (int i = 0; i < (int)boxes.size(); ++i)
-    tracks.push_back(std::make_pair(id_map[i], boxes[i]));
+    tracks.emplace_back(id_map[i], boxes[i]);
 #else
   tracks.clear();
   for (int i = 0; i < (int)boxes.size(); ++i)
-    tracks.push_back(std::make_pair(0, boxes[i]));
+    tracks.emplace_back(0, boxes[i]);
 #endif
 }
 
-Mat3D<int> find_inner(Mat3D<int>& mvs, BBox& box, Image& frame)
+Mat3D<int> MVTracker::find_inner(const std::unique_ptr<Mat3D<int>>& mvs,
+                                 const BBox& box,
+                                 const std::unique_ptr<Image>& frame)
 {
-  int frame_rows = frame.height;
-  int frame_cols = frame.width;
-  int rows = mvs.size();
-  int cols = mvs[0].size();
-  Mat3D<int> inner_mvs;
+  const int frame_rows = frame->height;
+  const int frame_cols = frame->width;
+  const int rows = mvs->size();
+  const int cols = mvs->at(0).size();
 
   const std::array<int, 2> index_rate = {{frame_rows/rows, frame_cols/cols}};
 
+  Mat3D<int> inner_mvs;
   for (int y = index_rate[0]/2; y < frame_rows; y += index_rate[0]) {
     if (box.top <= y && y < box.bot) {
       Mat2D<int> inner_mvs_line;
-
       for (int x = index_rate[1]/2; x < frame_cols; x += index_rate[1])
         if (box.left <= x && x < box.right)
-          inner_mvs_line.emplace_back(mvs[y][x]);
-
+          inner_mvs_line.emplace_back(mvs->at(y).at(x));
       inner_mvs.emplace_back(inner_mvs_line);
     }
   }
@@ -112,7 +112,8 @@ Mat3D<int> find_inner(Mat3D<int>& mvs, BBox& box, Image& frame)
   return inner_mvs;
 }
 
-auto average_mvs(Mat3D<int>& inner_mvs, float filling_rate=1.0)
+std::array<float, 2> MVTracker::average_mvs(const Mat3D<int>& inner_mvs,
+                                            float filling_rate)
 {
   std::array<float, 2> d_box = {{0.0, 0.0}};
   if (inner_mvs.size() == 0)
@@ -134,15 +135,16 @@ auto average_mvs(Mat3D<int>& inner_mvs, float filling_rate=1.0)
   return d_box;
 }
 
-BBox move_bbox(BBox& box, std::array<float, 2>& d_box, Image& frame)
+BBox MVTracker::move_bbox(BBox& box, std::array<float, 2>& d_box,
+                          std::unique_ptr<Image>& frame)
 {
   int left  = box.left  + d_box[0];
   int top   = box.top   + d_box[1];
   int right = box.right + d_box[0];
   int bot   = box.bot   + d_box[1];
 
-  auto height = frame.height;
-  auto width = frame.width;
+  auto height = frame->height;
+  auto width = frame->width;
 
   BBox n_box;
 
@@ -161,8 +163,9 @@ void MVTracker::annotate()
 #ifdef THREAD
 thr = std::thread([&] {
 #endif
-  std::tie(frame, boxes) = *out_det;
-  tracking(frame, boxes);
+  Image frame;
+  std::tie(frame, boxes) = std::move(*out_det);
+  tracking(boxes);
 
 #if 0
   // reset
@@ -178,7 +181,10 @@ thr = std::thread([&] {
   }
 #endif
 
-  push_back(out_fifo, std::make_pair(frame, tracks));
+  std::unique_ptr<Image> hoge = std::make_unique<Image>(std::move(frame));
+  std::unique_ptr<Track> what = std::make_unique<Track>(tracks);
+  auto fuga = std::make_pair(std::move(hoge), std::move(what));
+  push_back(out_fifo, fuga);
 #ifdef THREAD
 });
 #endif
@@ -186,23 +192,54 @@ thr = std::thread([&] {
 
 void MVTracker::interpolate()
 {
-  system_clock::time_point start, end;
-
 #ifdef THREAD
 thr = std::thread([&] {
 #endif
-  frame = pop_front(in_fifo);
+  // system_clock::time_point start, end;
+  // start = system_clock::now();
+  auto frame = pop_front(in_fifo);
+  // frame = pop_front(in_fifo);
+  // end = system_clock::now();
+  // cout << "auto frame = pop_front(in_fifo)" << ":\t"
+  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
 
-  auto mvs = frame.mvs;
+  // start = system_clock::now();
+  auto mvs = std::move(frame->mvs);
+  // mvs = std::move(frame->mvs);
+  // end = system_clock::now();
+  // cout << "auto mvs = *frame.mvs" << ":\t"
+  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
+  // start = system_clock::now();
   for (auto& box : boxes) {
     auto inner_mvs = find_inner(mvs, box, frame);
     auto d_box = average_mvs(inner_mvs);
     box = move_bbox(box, d_box, frame);
   }
+  // end = system_clock::now();
+  // cout << "box_interpolate" << ":\t"
+  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
 
-  tracking(frame, boxes);
+  // start = system_clock::now();
+  tracking(boxes);
+  // end = system_clock::now();
+  // cout << "tracking(boxes)" << ":\t"
+  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
 
-  push_back(out_fifo, std::make_pair(frame, tracks));
+  // start = system_clock::now();
+  auto fuga = std::make_unique<Track>(tracks);
+  // end = system_clock::now();
+  // cout << "auto fuga = std::make_unique(tracks)" << ":\t"
+  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
+  // start = system_clock::now();
+  auto hoge = std::make_pair(std::move(frame), std::move(fuga));
+  // end = system_clock::now();
+  // cout << "auto hoge = std::make_pair(std::move(frame), std::move(fuga))" << ":\t"
+  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
+  // start = system_clock::now();
+  push_back(out_fifo, hoge);
+  // end = system_clock::now();
+  // cout << "push_back(out_fifo, hoge)" << ":\t"
+  //      << duration_cast<microseconds>(end-start).count() << " [us]" << endl;
 #ifdef THREAD
 });
 #endif

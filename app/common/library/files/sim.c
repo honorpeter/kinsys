@@ -13,7 +13,7 @@ static u32 bit(u32 value, int high, int low)
 
 static inline s16 mlt(unsigned N, s16 a, s16 b)
 {
-  int c = (int)a * b;
+  int c = (int)a * (int)b;
 
   if (c < 0)
     return (c >> N) - 1;

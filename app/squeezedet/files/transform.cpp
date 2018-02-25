@@ -3,7 +3,7 @@
 #include <cassert>
 
 template <typename T>
-void flatten(Mat1D<T>& output, Mat2D<T>& input)
+void flatten(Mat1D<T>& output, const Mat2D<T>& input)
 {
   const int size0 = input.size();
   const int size1 = input[0].size();
@@ -20,7 +20,7 @@ void flatten(Mat1D<T>& output, Mat2D<T>& input)
 }
 
 template <typename T>
-void flatten(Mat1D<T>& output, Mat3D<T>& input)
+void flatten(Mat1D<T>& output, const Mat3D<T>& input)
 {
   const int size0 = input.size();
   const int size1 = input[0].size();
@@ -40,7 +40,7 @@ void flatten(Mat1D<T>& output, Mat3D<T>& input)
 }
 
 template <typename T>
-void flatten(Mat1D<T>& output, Mat4D<T>& input)
+void flatten(Mat1D<T>& output, const Mat4D<T>& input)
 {
   const int size0 = input.size();
   const int size1 = input[0].size();
@@ -63,7 +63,7 @@ void flatten(Mat1D<T>& output, Mat4D<T>& input)
 }
 
 template <typename T>
-void reshape(Mat2D<T>& output, Mat1D<T>& input)
+void reshape(Mat2D<T>& output, const Mat1D<T>& input)
 {
   const int size0 = output.size();
   const int size1 = output[0].size();
@@ -80,7 +80,7 @@ void reshape(Mat2D<T>& output, Mat1D<T>& input)
 }
 
 template <typename T>
-void reshape(Mat3D<T>& output, Mat1D<T>& input)
+void reshape(Mat3D<T>& output, const Mat1D<T>& input)
 {
   const int size0 = output.size();
   const int size1 = output[0].size();
@@ -100,7 +100,7 @@ void reshape(Mat3D<T>& output, Mat1D<T>& input)
 }
 
 template <typename T>
-void reshape(Mat4D<T>& output, Mat1D<T>& input)
+void reshape(Mat4D<T>& output, const Mat1D<T>& input)
 {
   const int size0 = output.size();
   const int size1 = output[0].size();
@@ -123,31 +123,31 @@ void reshape(Mat4D<T>& output, Mat1D<T>& input)
 }
 
 template <typename T>
-static inline int length(Mat1D<T>& x)
+static inline int length(const Mat1D<T>& x)
 {
   return x.size();
 }
 
 template <typename T>
-static inline int length(Mat2D<T>& x)
+static inline int length(const Mat2D<T>& x)
 {
   return x.size() * x[0].size();
 }
 
 template <typename T>
-static inline int length(Mat3D<T>& x)
+static inline int length(const Mat3D<T>& x)
 {
   return x.size() * x[0].size() * x[0][0].size();
 }
 
 template <typename T>
-static inline int length(Mat4D<T>& x)
+static inline int length(const Mat4D<T>& x)
 {
   return x.size() * x[0].size() * x[0][0].size() * x[0][0][0].size();
 }
 
 template <typename Mat>
-void concat(Mat& c, Mat& a, Mat& b)
+void concat(Mat& c, const Mat& a, const Mat& b)
 {
   const int n_a = a.size();
   const int n_b = b.size();

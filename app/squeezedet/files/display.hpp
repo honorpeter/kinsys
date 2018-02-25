@@ -13,7 +13,8 @@
 class Display
 {
 public:
-  Display(const std::shared_ptr<std::deque<std::pair<Image, Track>>> &fifo);
+  Display(const std::shared_ptr<std::deque<
+            std::pair<std::unique_ptr<Image>, std::unique_ptr<Track>>>> &fifo);
   ~Display();
 
   void post_frame();
@@ -22,12 +23,13 @@ public:
 
 private:
   std::thread thr;
-  std::shared_ptr<std::deque<std::pair<Image, Track>>> fifo;
+  std::shared_ptr<std::deque<
+    std::pair<std::unique_ptr<Image>, std::unique_ptr<Track>>>> fifo;
 
   std::unordered_map<std::string, cv::Scalar> color_map;
 
-  Image frame;
-  Track objs;
+  std::unique_ptr<Image> frame;
+  std::unique_ptr<Track> objs;
 
   cv::VideoWriter out;
   const std::string filename = "out.mp4";

@@ -33,22 +33,25 @@ bool loop_continue()
 #endif
 }
 
-inline void set_image(const std::shared_ptr<Image> &in_det, const Image &image)
+inline void set_image(const std::shared_ptr<Image>& in_det,
+                      const std::unique_ptr<Image>& image)
 {
-  in_det->scales  = image.scales;
-  in_det->height  = image.height;
-  in_det->width   = image.width;
-  in_det->src     = image.src;
-  in_det->mvs     = image.mvs;
-  memmove(in_det->body, image.body, sizeof(s16)*3*image.height*image.width);
+  in_det->scales  = image->scales;
+  in_det->height  = image->height;
+  in_det->width   = image->width;
+  in_det->src     = image->src;
+  in_det->mvs     = std::move(image->mvs);
+  memmove(in_det->body, image->body,
+          sizeof(s16)*3*image->height*image->width);
 }
 
-void loop_scenario(const int gop_size = 12)
+void loop_scenario()
 {
   system_clock::time_point start, end;
   system_clock::time_point clk;
-  auto in_fifo  = std::make_shared<std::deque<Image>>();
-  auto out_fifo = std::make_shared<std::deque<std::pair<Image, Track>>>();
+  auto in_fifo  = std::make_shared<std::deque<std::unique_ptr<Image>>>();
+  auto out_fifo = std::make_shared<std::deque<
+    std::pair<std::unique_ptr<Image>, std::unique_ptr<Track>>>>();
   auto in_det   = std::make_shared<Image>();
   auto out_det  = std::make_shared<std::pair<Image, Mask>>();
 
@@ -60,7 +63,6 @@ void loop_scenario(const int gop_size = 12)
   // blocking
   SHOW(cam.get_i_frame());
 
-  // SHOW(*in_det = pop_front(in_fifo));
   SHOW(set_image(in_det, pop_front(in_fifo)));
   SHOW(model.evaluate());
   SHOW(cam.get_sub_gop());
@@ -70,17 +72,14 @@ void loop_scenario(const int gop_size = 12)
   SHOW(cam.sync());
 
   do {
-    // printf("... ");
     SHOW(me.sync());
 
-    // SHOW(*in_det = pop_back(in_fifo));
     SHOW(set_image(in_det, pop_back(in_fifo)));
     SHOW(model.evaluate());
     SHOW(disp.post_frame());
     SHOW(cam.get_sub_gop());
 
-      // printf("■");
-    for (int i = 0; i < gop_size-1; ++i) {
+    for (int i = 0; i < cam.sub_gop_size-1; ++i) {
       clk = std::chrono::system_clock::now();
 
       SHOW(me.interpolate());
@@ -91,12 +90,9 @@ void loop_scenario(const int gop_size = 12)
       SHOW(disp.post_frame());
 
 #ifdef RELEASE
-      // SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(200)));
       SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(134)));
 #endif
-      // printf(" ■");
     }
-    // puts("");
 
     SHOW(model.sync());
     SHOW(me.annotate());
