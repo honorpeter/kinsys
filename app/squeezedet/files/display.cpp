@@ -55,6 +55,7 @@ void Display::post_frame()
 #ifndef RELEASE
     out.write(img);
 #else
+    // cv::resize(img, img, cv::Size(640, 480));
     cv::imshow("display", img);
 #endif
     cv::waitKey(1);

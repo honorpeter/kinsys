@@ -90,7 +90,8 @@ void loop_scenario()
       SHOW(disp.post_frame());
 
 #ifdef RELEASE
-      SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(100)));
+      // SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(100)));
+      SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(33)));
 #endif
     }
 

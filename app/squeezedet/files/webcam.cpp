@@ -14,8 +14,8 @@ Webcam::Webcam(
   const char *name = "/dev/video0";
   AVInputFormat *in_format = av_find_input_format("v4l2");
   AVDictionary *format_opts = nullptr;
-  // av_dict_set(&format_opts, "framerate", "7.5", 0);
-  av_dict_set(&format_opts, "framerate", "10", 0);
+  // av_dict_set(&format_opts, "framerate", "10", 0);
+  av_dict_set(&format_opts, "framerate", "30", 0);
   av_dict_set(&format_opts, "video_size", "176x144", 0);
   // av_dict_set(&format_opts, "video_size", "320x240", 0);
   av_dict_set(&format_opts, "pixel_format", "bgr0", 0);

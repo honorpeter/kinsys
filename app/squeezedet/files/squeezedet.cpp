@@ -502,7 +502,6 @@ thr = std::thread([&] {
   frame.src = in_det->src;
   frame.mvs = std::move(in_det->mvs);
 
-#if 0
   exec_core(conv1);
   exec_cores(fire2);
   exec_cores(fire3);
@@ -515,7 +514,6 @@ thr = std::thread([&] {
   exec_cores(fire10);
   exec_cores(fire11);
   exec_core(conv12);
-#endif
 
 #if 0
   PRINT_MAP(image );

@@ -2,29 +2,29 @@ APP = squeezedet
 
 # Add any other object files to this list below
 APP_OBJS  = main.o
-APP_OBJS += activation.o arithmetic.o bbox_utils.o display.o hungarian.o \
-	    layer.o peta.o squeezedet.o tracker.o transform.o util.o webcam.o \
-	    wrapper.o sim.o
 # APP_OBJS += activation.o arithmetic.o bbox_utils.o display.o hungarian.o \
 # 	    layer.o peta.o squeezedet.o tracker.o transform.o util.o webcam.o \
-# 	    wrapper.o
+# 	    wrapper.o sim.o
+APP_OBJS += activation.o arithmetic.o bbox_utils.o display.o hungarian.o \
+	    layer.o peta.o squeezedet.o tracker.o transform.o util.o webcam.o \
+	    wrapper.o
 
 # CC	  = gcc-7
 # CXX	  = g++-7
 # CXXFLAGS += `pkg-config --cflags opencv libavcodec`
 # LDLIBS   += `pkg-config --libs opencv libavcodec`
 
-CFLAGS += -g
-LDFLAGS += -g
-FLAGS += -Wall -Wno-deprecated-declarations -Wno-pragmas -O0 # -O3
-# FLAGS += -D__KPR_QUANT__ -D__KPR_RELEASE__ -D__KPR_DEBUG__
+# CFLAGS += -g
+# LDFLAGS += -g
+FLAGS += -Wall -Wno-deprecated-declarations -Wno-pragmas -O3
+FLAGS += -D__KPR_QUANT__ -D__KPR_RELEASE__
 # FLAGS += -D__KPR_QUANT__ -D__KPR_DEBUG__
-FLAGS += -D__KPR_QUANT__
+# FLAGS += -D__KPR_QUANT__
 CFLAGS   += -std=c11 ${FLAGS}
 CXXFLAGS += -std=c++14 ${FLAGS}
 
 CXXFLAGS += -DTHREAD
-# CXXFLAGS += -DRELEASE
+CXXFLAGS += -DRELEASE
 
 LDLIBS   += -pthread
 LDLIBS   += -lavcodec -lavformat -lavutil -lswscale -lavdevice
