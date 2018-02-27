@@ -111,7 +111,8 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
   fmap11 = define_fire(12, fire11_maps, 96,384,384, IMG_H/16,IMG_W/16, false);
   fmap12 = define_map( 10,                      72, IMG_H/16,IMG_W/16);
 
-  in_det->body = image->body;
+  // in_det->body = image->body;
+  in_det->body = std::unique_ptr<s16[]>(image->body);
 
   conv1  = conv(image,  pmap1, 3, 2, 1, true);
   fire2  = fire(pmap1,  fire2_maps,  false);
@@ -197,6 +198,9 @@ SqueezeDet::~SqueezeDet()
 
   kinpira_exit();
 #endif
+
+  if (thr.joinable())
+  thr.join();
 }
 
 void SqueezeDet::init_matrix()
@@ -293,7 +297,9 @@ auto SqueezeDet::merge_box_delta(const Mat2D<float>& anchor,
   auto height = safe_exp(delta_h, EXP_THRESH);
   height = anchor_h * height;
 
-  auto _boxes = bbox_transform(center_x, center_y, width, height);
+  // auto _boxes = bbox_transform(center_x, center_y, width, height);
+  Mat2D<float> _boxes;
+  _boxes = bbox_transform(center_x, center_y, width, height);
 
   auto xmins = clip<float>(_boxes[0], 0.0, IMG_W-1.0);
   auto ymins = clip<float>(_boxes[1], 0.0, IMG_H-1.0);
@@ -453,13 +459,9 @@ void SqueezeDet::interpret(const Mat3D<float>& preds)
   reshape(pred_box_delta, pred_box_flat);
   merge_box_delta(anchor_box, pred_box_delta);
 
-  // for (int i = 0; i < ANCHORS; ++i)
-  //   // scalar * vector
-  //   _probs[i] = pred_confidence_scores[i] * pred_class_probs[i];
-
   for (int i = 0; i < ANCHORS; ++i) {
-    // scalar * vector
-    _probs[i] = pred_confidence_scores[i] * pred_class_probs[i];
+    for (int j = 0; j < CLASSES; ++j)
+      _probs[i][j] = pred_confidence_scores[i] * pred_class_probs[i][j];
 
     probs[i]   = max(_probs[i]);
     classes[i] = argmax(_probs[i]);
@@ -493,8 +495,14 @@ void SqueezeDet::evaluate()
 #ifdef THREAD
 thr = std::thread([&] {
 #endif
-  frame = std::move(*in_det);
+  // frame = std::move(*in_det);
+  frame.height = in_det->height;
+  frame.width = in_det->width;
+  frame.scales = in_det->scales;
+  frame.src = in_det->src;
+  frame.mvs = std::move(in_det->mvs);
 
+#if 0
   exec_core(conv1);
   exec_cores(fire2);
   exec_cores(fire3);
@@ -507,6 +515,7 @@ thr = std::thread([&] {
   exec_cores(fire10);
   exec_cores(fire11);
   exec_core(conv12);
+#endif
 
 #if 0
   PRINT_MAP(image );
@@ -545,7 +554,9 @@ thr = std::thread([&] {
     for (int j = 0; j < fmap12->shape[1]; ++j) {
       for (int k = 0; k < fmap12->shape[2]; ++k) {
         preds[i][j][k] = fmap12->body[idx++] / qoffs;
+#if 0
         std::this_thread::sleep_for(std::chrono::microseconds(1));
+#endif
       }
     }
   }

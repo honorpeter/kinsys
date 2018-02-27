@@ -7,6 +7,13 @@
 #include <unordered_map>
 
 #include <opencv2/opencv.hpp>
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+#include <libavutil/motion_vector.h>
+#include <libavdevice/avdevice.h>
+}
 
 #include "kinpira.h"
 #include "bbox_utils.hpp"
@@ -34,11 +41,19 @@ private:
   void tracking(const Mask& boxes);
   int assign_id();
 
-  void find_inner(Mat3D<int>& inner_mvs,
+  // void find_inner(Mat3D<int>& inner_mvs,
+  Mat3D<int> find_inner(
                   const std::unique_ptr<Mat3D<int>> &mvs,
                   const BBox& box, const std::unique_ptr<Image>& frame);
-  void average_mvs(std::array<float, 2>& d_box,
-                   const Mat3D<int>& inner_mvs, float filling_rate=0.5);
+  // std::array<float, 2> average_mvs(std::array<float, 2>& d_box,
+  std::array<float, 2> average_mvs(
+                                   const Mat3D<int>& inner_mvs,
+                                   float filling_rate=0.5);
+  std::array<float, 2> average_inner(
+    const std::unique_ptr<std::vector<AVMotionVector>>& mvs,
+    const BBox& box,
+    const std::unique_ptr<Image>& frame,
+    const float filling_rate=0.5);
   void move_bbox(BBox& box,
                  const std::array<float, 2>& d_box,
                  const std::unique_ptr<Image>& frame);
@@ -66,10 +81,11 @@ private:
   std::unordered_map<int, int> id_map;
   const float cost_thresh = 1.0;
 
-  std::unique_ptr<Image> frame;
-  std::unique_ptr<Mat3D<int>> mvs;
-  Mat3D<int> inner_mvs;
-  std::array<float, 2> d_box;
+  // std::unique_ptr<Image> frame;
+  // std::unique_ptr<Mat3D<int>> mvs;
+  // Mat3D<int> inner_mvs;
+  // Mat2D<int> inner_mvs_line;
+  // std::array<float, 2> d_box;
 };
 
 #endif

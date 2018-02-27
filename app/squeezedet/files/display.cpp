@@ -24,6 +24,8 @@ Display::Display(
 
 Display::~Display()
 {
+  if (thr.joinable())
+  thr.join();
 }
 
 void Display::post_frame()
@@ -38,7 +40,6 @@ void Display::post_frame()
     objs = std::move(hoge.second);
 
     cv::Mat img(frame->height, frame->width, CV_8UC3, frame->src);
-
     // delete [] frame->body;
 
     // TODO: overlay bounding-boxes, object-class and tracked-ids
@@ -57,6 +58,7 @@ void Display::post_frame()
     cv::imshow("display", img);
 #endif
     cv::waitKey(1);
+
 #ifdef THREAD
   });
 #endif

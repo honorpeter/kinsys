@@ -57,12 +57,12 @@ private:
   AVFrame *frame = nullptr;
   AVFrame *frame_bgr = nullptr;
 
-  AVPacket packet;
+  AVPacket *packet = nullptr;
   std::vector<AVMotionVector> mvs;
 
   uint8_t *buffer = nullptr;
 
-  int video_stream;
+  int video_stream = -1;
 
   bool has_frame = true;
   int num_bytes;

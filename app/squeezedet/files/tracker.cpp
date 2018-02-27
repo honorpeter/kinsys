@@ -25,10 +25,14 @@ MVTracker::MVTracker(
   count = 0;
   stateList.reserve(initial_size);
   errorCovList.reserve(initial_size);
+  // inner_mvs.reserve(512);
+  // inner_mvs_line.reserve(512);
 }
 
 MVTracker::~MVTracker()
 {
+  if (thr.joinable())
+  thr.join();
 }
 
 int MVTracker::assign_id()
@@ -87,7 +91,69 @@ void MVTracker::tracking(const Mask& boxes)
 #endif
 }
 
-void MVTracker::find_inner(Mat3D<int>& inner_mvs,
+#if 0
+void Webcam::format_mvs(std::unique_ptr<Image>& img,
+                        const std::vector<AVMotionVector>& mvs)
+{
+  // const int flow_rows = std::min(img.height / mb_size, max_mb_size);
+  // const int flow_cols = std::min(img.width / mb_size, max_mb_size);
+  const int flow_rows = img->height;
+  const int flow_cols = img->width;
+  // auto flow = zeros<int>(flow_rows, flow_cols, 2);
+
+  for (const AVMotionVector& mv : mvs) {
+    int mvdx = mv.dst_x - mv.src_x;
+    int mvdy = mv.dst_y - mv.src_y;
+
+    // size_t i_clipped = std::max(0, std::min(mv.dst_y / mb_size, flow_rows - 1));
+    // size_t j_clipped = std::max(0, std::min(mv.dst_x / mb_size, flow_cols - 1));
+    size_t i_clipped = std::max(0, std::min((int)mv.dst_y, flow_rows - 1));
+    size_t j_clipped = std::max(0, std::min((int)mv.dst_x, flow_cols - 1));
+
+    flow[i_clipped][j_clipped][0] = mvdx;
+    flow[i_clipped][j_clipped][1] = mvdy;
+  }
+
+  img->mvs = std::make_unique<Mat3D<int>>(flow);
+}
+#endif
+
+std::array<float, 2> MVTracker::average_inner(
+  const std::unique_ptr<std::vector<AVMotionVector>>& mvs,
+  const BBox& box,
+  const std::unique_ptr<Image>& frame,
+  const float filling_rate)
+{
+  std::array<float, 2> d_box = {{0.0, 0.0}};
+  if (mvs->size() == 0)
+    return d_box;
+
+  int box_size = 0;
+  for (const AVMotionVector& mv : *mvs) {
+    const int y = std::max(0, std::min((int)mv.dst_y, frame->height - 1));
+    const int x = std::max(0, std::min((int)mv.dst_x, frame->width - 1));
+
+    if ((box.top <= y && y < box.bot) && (box.left <= x && x < box.right)) {
+      const int mvdx = mv.dst_x - mv.src_x;
+      const int mvdy = mv.dst_y - mv.src_y;
+
+      d_box[0] += mvdx;
+      d_box[1] += mvdy;
+
+      ++box_size;
+    }
+  }
+
+  for (int k = 0; k < 2; ++k) {
+    d_box[k] /= static_cast<float>(box_size);
+    d_box[k] *= (1.0f / filling_rate);
+  }
+
+  return d_box;
+}
+
+// void MVTracker::find_inner(Mat3D<int>& inner_mvs,
+Mat3D<int> MVTracker::find_inner(
                            const std::unique_ptr<Mat3D<int>>& mvs,
                            const BBox& box, const std::unique_ptr<Image>& frame)
 {
@@ -97,25 +163,50 @@ void MVTracker::find_inner(Mat3D<int>& inner_mvs,
   const int cols = mvs->at(0).size();
 
   const std::array<int, 2> index_rate = {{frame_rows/rows, frame_cols/cols}};
+  // printf("\tframe: (%d, %d), mvs: (%d, %d), box: (%d, %d, %d, %d)\n",
+  //        frame_rows, frame_cols, rows, cols,
+  //        box.left, box.top, box.right, box.bot);
 
-  inner_mvs.clear();
+  Mat3D<int> inner_mvs(512);
+  // inner_mvs.clear();
+  if (box.right - box.left <= 0 || box.bot - box.top <= 0)
+    return inner_mvs;
+
   for (int y = index_rate[0]/2; y < frame_rows; y += index_rate[0]) {
     if (box.top <= y && y < box.bot) {
-      Mat2D<int> inner_mvs_line;
+      Mat2D<int> inner_mvs_line(512);
+      // inner_mvs_line.clear();
       for (int x = index_rate[1]/2; x < frame_cols; x += index_rate[1])
         if (box.left <= x && x < box.right)
-          inner_mvs_line.emplace_back(mvs->at(y).at(x));
+        {
+          try {
+            Mat1D<int> inner_mv;
+            inner_mv = mvs->at(y).at(x);
+            inner_mvs_line.emplace_back(inner_mv);
+          }
+          catch (std::exception& e) {
+            cout << e.what() << endl;
+            cout << inner_mvs.size() << ", " << inner_mvs.capacity() << endl;
+            cout << inner_mvs_line.size() << ", " << inner_mvs_line.capacity() << endl;
+            exit(1);
+          }
+        }
       inner_mvs.emplace_back(inner_mvs_line);
     }
   }
+
+  return inner_mvs;
 }
 
-void MVTracker::average_mvs(std::array<float, 2>& d_box,
-                            const Mat3D<int>& inner_mvs, float filling_rate)
+// void MVTracker::average_mvs(std::array<float, 2>& d_box,
+std::array<float, 2> MVTracker::average_mvs(
+                                            const Mat3D<int>& inner_mvs,
+                                            float filling_rate)
 {
-  d_box.fill(0.0);
+  std::array<float, 2> d_box = {{0.0, 0.0}};
+  // d_box.fill(0.0);
   if (inner_mvs.size() == 0)
-    return;
+    return d_box;
 
   const int rows = inner_mvs.size();
   const int cols = inner_mvs[0].size();
@@ -129,6 +220,8 @@ void MVTracker::average_mvs(std::array<float, 2>& d_box,
     d_box[k] /= static_cast<float>(rows * cols);
     d_box[k] *= (1.0f / filling_rate);
   }
+
+  return d_box;
 }
 
 void MVTracker::move_bbox(BBox& box,
@@ -188,28 +281,22 @@ void MVTracker::interpolate()
 #ifdef THREAD
 thr = std::thread([&] {
 #endif
-  puts("pop_front(in_fifo)");
   auto frame = pop_front(in_fifo);
 
-  puts("std::move(frame->mvs)");
   auto mvs = std::move(frame->mvs);
   for (auto& box : boxes) {
-    puts("find_inner(inner_mvs, mvs, box, frame)");
-    find_inner(inner_mvs, mvs, box, frame);
-    puts("average_mvs(inner_mvs)");
-    average_mvs(d_box, inner_mvs);
-    puts("move_bbox(box, d_box, frame)");
+    // find_inner(inner_mvs, mvs, box, frame);
+    // average_mvs(d_box, inner_mvs);
+    // auto inner_mvs = find_inner(mvs, box, frame);
+    // auto d_box = average_mvs(inner_mvs);
+    auto d_box = average_inner(mvs, box, frame);
     move_bbox(box, d_box, frame);
   }
 
-  puts("tracking(boxes)");
   tracking(boxes);
 
-  puts("std::make_unique<Track>(tracks)");
   auto fuga = std::make_unique<Track>(tracks);
-  puts("std::make_pair(std::move(frame), std::move(fuga))");
   auto hoge = std::make_pair(std::move(frame), std::move(fuga));
-  puts("push_back(out_fifo, hoge)");
   push_back(out_fifo, hoge);
 #ifdef THREAD
 });

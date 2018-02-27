@@ -41,7 +41,7 @@ inline void set_image(const std::shared_ptr<Image>& in_det,
   in_det->width   = image->width;
   in_det->src     = image->src;
   in_det->mvs     = std::move(image->mvs);
-  memmove(in_det->body, image->body,
+  memmove(in_det->body.get(), image->body.get(),
           sizeof(s16)*3*image->height*image->width);
 }
 
@@ -71,6 +71,8 @@ void loop_scenario()
   SHOW(me.annotate());
   SHOW(cam.sync());
 
+  int index = 0;
+  clk = std::chrono::system_clock::now();
   do {
     SHOW(me.sync());
 
@@ -79,15 +81,14 @@ void loop_scenario()
     SHOW(disp.post_frame());
     SHOW(cam.get_sub_gop());
 
+    cout << "do: " << index++ << " - "
+         << duration_cast<microseconds>(system_clock::now()-clk).count()
+         << " [us]" << endl;
+
     for (int i = 0; i < cam.sub_gop_size-1; ++i) {
       clk = std::chrono::system_clock::now();
 
-      try {
       SHOW(me.interpolate());
-      }
-      catch (std::bad_alloc& e) {
-        cout << e.what() << endl;
-      }
 
       SHOW(disp.sync());
       SHOW(me.sync());
@@ -96,8 +97,13 @@ void loop_scenario()
 
 #ifdef RELEASE
       SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(100)));
+#else
+      cout << "for: " << i << " - "
+           << duration_cast<microseconds>(system_clock::now()-clk).count()
+           << " [us]" << endl;
 #endif
     }
+    clk = std::chrono::system_clock::now();
 
     SHOW(model.sync());
     SHOW(me.annotate());
@@ -108,11 +114,17 @@ void loop_scenario()
 
 int main(void)
 {
-  setbuf(stdout, NULL);
-  printf("\033[2J");
-  puts("### squeezedet\n");
+  // setbuf(stdout, NULL);
+  // printf("\033[2J");
+  // puts("### squeezedet\n");
 
+      try {
   loop_scenario();
+      }
+      catch (std::exception& e) {
+        cout << "loop_scenario" << endl;
+        cout << e.what() << endl;
+      }
 
   return 0;
 }

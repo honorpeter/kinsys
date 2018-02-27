@@ -6,6 +6,13 @@
 #include <memory>
 
 #include <opencv2/opencv.hpp>
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libswscale/swscale.h>
+#include <libavutil/motion_vector.h>
+#include <libavdevice/avdevice.h>
+}
 
 #include "kinpira.h"
 #include "matrix.hpp"
@@ -15,8 +22,10 @@ struct Image {
   int height;
   int width;
   unsigned char *src;
-  std::unique_ptr<Mat3D<int>> mvs;
-  s16 *body;
+  // std::unique_ptr<Mat3D<int>> mvs;
+  std::unique_ptr<std::vector<AVMotionVector>> mvs;
+  std::unique_ptr<s16[]> body;
+  // s16 *body;
 };
 
 struct BBox {

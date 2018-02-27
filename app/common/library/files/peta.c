@@ -14,8 +14,8 @@
 #include <sys/mman.h>
 
 // #define PAGED
-#define __KPR_RELEASE__
-#define __KPR_DEBUG__
+// #define __KPR_RELEASE__
+// #define __KPR_DEBUG__
 
 
 
@@ -40,7 +40,7 @@ int kinpira_init(void)
 #ifdef __KPR_RELEASE__
   system("modprobe uio_pdrv_genirq");
   system("modprobe udmabuf udmabuf0=41943040");
-  sleep(1);
+  usleep(1);
 
   // Open Kinpira slave ports as UIO driver
   __port       = open("/dev/uio0", O_RDWR);
@@ -91,15 +91,15 @@ int kinpira_init(void)
   sscanf(attr, "%x", &phys_addr);
   close(fd);
 #else
-  port = (u32 *)malloc(sizeof(u32)*REGSIZE);
+  port = (u32 *)calloc(REGSIZE, sizeof(u32));
 
   mem_renkon =
-    (u32 (*)[RENKON_WORDS])malloc(sizeof(u32)*RENKON_CORE*RENKON_WORDS);
+    (u32 (*)[RENKON_WORDS])calloc(RENKON_CORE*RENKON_WORDS, sizeof(u32));
 
   mem_gobou =
-    (u32 (*)[GOBOU_WORDS])malloc(sizeof(u32)*GOBOU_CORE*GOBOU_WORDS);
+    (u32 (*)[GOBOU_WORDS])calloc(GOBOU_CORE*GOBOU_WORDS, sizeof(u32));
 
-  mem_image = (s16 *)malloc(sizeof(s16)*20*1048576);
+  mem_image = (s16 *)calloc(20*1048576, sizeof(s16));
 #endif
 
 #ifdef PAGED

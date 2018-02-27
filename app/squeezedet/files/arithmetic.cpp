@@ -244,6 +244,7 @@ int argmin(const Mat1D<T>& x)
   return idx;
 }
 
+#include "wrapper.hpp"
 template <typename T>
 Mat2D<T> transpose(const Mat2D<T>& x)
 {

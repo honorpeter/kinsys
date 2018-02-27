@@ -4,7 +4,7 @@
 
 #include "kinpira.h"
 
-#define __KPR_DEBUG__
+// #define __KPR_DEBUG__
 #define CEIL_DIV(a, b) ((a) % (b) == 0 ? (a) / (b) : (a) / (b) + 1)
 
 

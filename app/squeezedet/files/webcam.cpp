@@ -86,7 +86,14 @@ Webcam::Webcam(
   avpicture_fill((AVPicture *)frame_bgr, buffer, AV_PIX_FMT_BGR24,
                  codec_ctx->width, codec_ctx->height);
 
+  packet = new AVPacket;
+
+#ifdef RELEASE
   flow = zeros<int>(144, 176, 2);
+#else
+  flow = zeros<int>(480, 640, 2);
+#endif
+  imgbuf.reserve(gop_size-1);
 }
 
 Webcam::~Webcam()
@@ -99,9 +106,13 @@ Webcam::~Webcam()
   avformat_close_input(&format_ctx);
   avcodec_close(codec_ctx);
 #endif
+
+  delete packet;
+  if (thr.joinable())
+  thr.join();
 }
 
-void Webcam::extract_mvs(AVFrame *frame, std::vector<AVMotionVector> &mvs)
+void Webcam::extract_mvs(AVFrame *frame, std::vector<AVMotionVector>& mvs)
 {
   AVFrameSideData *side =
     av_frame_get_side_data(frame, AV_FRAME_DATA_MOTION_VECTORS);
@@ -119,6 +130,7 @@ void Webcam::extract_mvs(AVFrame *frame, std::vector<AVMotionVector> &mvs)
 void Webcam::format_mvs(std::unique_ptr<Image>& img,
                         const std::vector<AVMotionVector>& mvs)
 {
+#if 0
   // const int flow_rows = std::min(img.height / mb_size, max_mb_size);
   // const int flow_cols = std::min(img.width / mb_size, max_mb_size);
   const int flow_rows = img->height;
@@ -133,15 +145,19 @@ void Webcam::format_mvs(std::unique_ptr<Image>& img,
     // size_t j_clipped = std::max(0, std::min(mv.dst_x / mb_size, flow_cols - 1));
     size_t i_clipped = std::max(0, std::min((int)mv.dst_y, flow_rows - 1));
     size_t j_clipped = std::max(0, std::min((int)mv.dst_x, flow_cols - 1));
+    // printf("(%d, %d) -> (%d, %d)\n", mv.src_x, mv.src_y, mv.dst_x, mv.dst_y);
 
     flow[i_clipped][j_clipped][0] = mvdx;
     flow[i_clipped][j_clipped][1] = mvdy;
   }
 
   img->mvs = std::make_unique<Mat3D<int>>(flow);
+#else
+  img->mvs = std::make_unique<std::vector<AVMotionVector>>(std::move(mvs));
+#endif
 }
 
-void Webcam::preprocess(cv::Mat& img, const std::vector<AVMotionVector> &mvs)
+void Webcam::preprocess(cv::Mat& img, const std::vector<AVMotionVector>& mvs)
 {
   const int in_c = img.channels();
   const int in_h = img.rows;
@@ -159,8 +175,10 @@ void Webcam::preprocess(cv::Mat& img, const std::vector<AVMotionVector> &mvs)
 
   // img.copyTo(img_i);
   img.convertTo(img_f, CV_32FC3);
-  target->body = new s16[in_c * in_h * in_w];
+  // target->body = new s16[in_c * in_h * in_w];
+  target->body = std::make_unique<s16[]>(in_c * in_h * in_w);
 
+#if 0
   int idx = 0;
   for (int k = 0; k < in_c; ++k) {
     for (int i = 0; i < in_h; ++i) {
@@ -172,25 +190,25 @@ void Webcam::preprocess(cv::Mat& img, const std::vector<AVMotionVector> &mvs)
       }
     }
   }
+#endif
 
   push_back(fifo, target);
 }
 
 void Webcam::get_i_frame()
 {
-  char pict_type;
+  char pict_type = 0;
   do {
-    int read_frame;
-    read_frame = av_read_frame(format_ctx, &packet);
+    int read_frame = av_read_frame(format_ctx, packet);
     if (read_frame < 0)
       continue;
       // throw "read failed";
 
-    if (packet.stream_index != video_stream)
+    if (packet->stream_index != video_stream)
       continue;
 
-    int got_frame;
-    avcodec_decode_video2(codec_ctx, frame, &got_frame, &packet);
+    int got_frame = 0;
+    avcodec_decode_video2(codec_ctx, frame, &got_frame, packet);
     if (!got_frame)
       continue;
       // throw "frame was not obtained";
@@ -204,7 +222,7 @@ void Webcam::get_i_frame()
 
   extract_mvs(frame, mvs);
 
-  av_packet_unref(&packet);
+  av_packet_unref(packet);
 
   // cv::Mat img(codec_ctx->height, codec_ctx->width,
   //             CV_8UC3, frame_bgr->data[0]);
@@ -221,18 +239,19 @@ void Webcam::get_sub_gop()
   thr = std::thread([&] {
 #endif
     if ((int)imgbuf.size() > gop_size+1)
+    // if ((int)imgbuf.size() > 2*sub_gop_size+1)
       imgbuf.clear();
 
     for (int i = 0; i < sub_gop_size; ++i) {
-      if (av_read_frame(format_ctx, &packet) < 0) {
-        // has_frame = false;
-        // return;
+      if (av_read_frame(format_ctx, packet) < 0) {
+        has_frame = false;
+        return;
         --i;
         continue;
         // throw "read failed";
       }
 
-      if (packet.stream_index != video_stream) {
+      if (packet->stream_index != video_stream) {
         // has_frame = false;
         // return;
         --i;
@@ -240,7 +259,7 @@ void Webcam::get_sub_gop()
       }
 
       int got_frame;
-      avcodec_decode_video2(codec_ctx, frame, &got_frame, &packet);
+      avcodec_decode_video2(codec_ctx, frame, &got_frame, packet);
       if (!got_frame) {
         // has_frame = false;
         // return;
