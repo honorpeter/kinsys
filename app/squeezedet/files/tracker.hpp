@@ -45,7 +45,7 @@ private:
   Mat3D<int> find_inner(
                   const std::unique_ptr<Mat3D<int>> &mvs,
                   const BBox& box, const std::unique_ptr<Image>& frame);
-  // std::array<float, 2> average_mvs(std::array<float, 2>& d_box,
+  // void average_mvs(std::array<float, 2>& d_box,
   std::array<float, 2> average_mvs(
                                    const Mat3D<int>& inner_mvs,
                                    float filling_rate=0.5);

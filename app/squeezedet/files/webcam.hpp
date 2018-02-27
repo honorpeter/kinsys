@@ -57,7 +57,7 @@ private:
   AVFrame *frame = nullptr;
   AVFrame *frame_bgr = nullptr;
 
-  AVPacket *packet = nullptr;
+  AVPacket packet;
   std::vector<AVMotionVector> mvs;
 
   uint8_t *buffer = nullptr;

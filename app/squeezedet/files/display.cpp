@@ -25,7 +25,7 @@ Display::Display(
 Display::~Display()
 {
   if (thr.joinable())
-  thr.join();
+    thr.join();
 }
 
 void Display::post_frame()
@@ -58,7 +58,6 @@ void Display::post_frame()
     cv::imshow("display", img);
 #endif
     cv::waitKey(1);
-
 #ifdef THREAD
   });
 #endif

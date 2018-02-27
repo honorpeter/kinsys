@@ -25,14 +25,12 @@ MVTracker::MVTracker(
   count = 0;
   stateList.reserve(initial_size);
   errorCovList.reserve(initial_size);
-  // inner_mvs.reserve(512);
-  // inner_mvs_line.reserve(512);
 }
 
 MVTracker::~MVTracker()
 {
   if (thr.joinable())
-  thr.join();
+    thr.join();
 }
 
 int MVTracker::assign_id()
@@ -91,33 +89,6 @@ void MVTracker::tracking(const Mask& boxes)
 #endif
 }
 
-#if 0
-void Webcam::format_mvs(std::unique_ptr<Image>& img,
-                        const std::vector<AVMotionVector>& mvs)
-{
-  // const int flow_rows = std::min(img.height / mb_size, max_mb_size);
-  // const int flow_cols = std::min(img.width / mb_size, max_mb_size);
-  const int flow_rows = img->height;
-  const int flow_cols = img->width;
-  // auto flow = zeros<int>(flow_rows, flow_cols, 2);
-
-  for (const AVMotionVector& mv : mvs) {
-    int mvdx = mv.dst_x - mv.src_x;
-    int mvdy = mv.dst_y - mv.src_y;
-
-    // size_t i_clipped = std::max(0, std::min(mv.dst_y / mb_size, flow_rows - 1));
-    // size_t j_clipped = std::max(0, std::min(mv.dst_x / mb_size, flow_cols - 1));
-    size_t i_clipped = std::max(0, std::min((int)mv.dst_y, flow_rows - 1));
-    size_t j_clipped = std::max(0, std::min((int)mv.dst_x, flow_cols - 1));
-
-    flow[i_clipped][j_clipped][0] = mvdx;
-    flow[i_clipped][j_clipped][1] = mvdy;
-  }
-
-  img->mvs = std::make_unique<Mat3D<int>>(flow);
-}
-#endif
-
 std::array<float, 2> MVTracker::average_inner(
   const std::unique_ptr<std::vector<AVMotionVector>>& mvs,
   const BBox& box,
@@ -155,7 +126,8 @@ std::array<float, 2> MVTracker::average_inner(
 // void MVTracker::find_inner(Mat3D<int>& inner_mvs,
 Mat3D<int> MVTracker::find_inner(
                            const std::unique_ptr<Mat3D<int>>& mvs,
-                           const BBox& box, const std::unique_ptr<Image>& frame)
+                           const BBox& box,
+                           const std::unique_ptr<Image>& frame)
 {
   const int frame_rows = frame->height;
   const int frame_cols = frame->width;
@@ -163,9 +135,6 @@ Mat3D<int> MVTracker::find_inner(
   const int cols = mvs->at(0).size();
 
   const std::array<int, 2> index_rate = {{frame_rows/rows, frame_cols/cols}};
-  // printf("\tframe: (%d, %d), mvs: (%d, %d), box: (%d, %d, %d, %d)\n",
-  //        frame_rows, frame_cols, rows, cols,
-  //        box.left, box.top, box.right, box.bot);
 
   Mat3D<int> inner_mvs(512);
   // inner_mvs.clear();

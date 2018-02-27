@@ -71,8 +71,6 @@ void loop_scenario()
   SHOW(me.annotate());
   SHOW(cam.sync());
 
-  int index = 0;
-  clk = std::chrono::system_clock::now();
   do {
     SHOW(me.sync());
 
@@ -80,10 +78,6 @@ void loop_scenario()
     SHOW(model.evaluate());
     SHOW(disp.post_frame());
     SHOW(cam.get_sub_gop());
-
-    cout << "do: " << index++ << " - "
-         << duration_cast<microseconds>(system_clock::now()-clk).count()
-         << " [us]" << endl;
 
     for (int i = 0; i < cam.sub_gop_size-1; ++i) {
       clk = std::chrono::system_clock::now();
@@ -97,13 +91,8 @@ void loop_scenario()
 
 #ifdef RELEASE
       SHOW(std::this_thread::sleep_until(clk + std::chrono::milliseconds(100)));
-#else
-      cout << "for: " << i << " - "
-           << duration_cast<microseconds>(system_clock::now()-clk).count()
-           << " [us]" << endl;
 #endif
     }
-    clk = std::chrono::system_clock::now();
 
     SHOW(model.sync());
     SHOW(me.annotate());
@@ -114,17 +103,11 @@ void loop_scenario()
 
 int main(void)
 {
-  // setbuf(stdout, NULL);
-  // printf("\033[2J");
-  // puts("### squeezedet\n");
+  setbuf(stdout, NULL);
+  printf("\033[2J");
+  puts("### squeezedet\n");
 
-      try {
   loop_scenario();
-      }
-      catch (std::exception& e) {
-        cout << "loop_scenario" << endl;
-        cout << e.what() << endl;
-      }
 
   return 0;
 }

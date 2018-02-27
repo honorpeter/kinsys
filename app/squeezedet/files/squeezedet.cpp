@@ -200,7 +200,7 @@ SqueezeDet::~SqueezeDet()
 #endif
 
   if (thr.joinable())
-  thr.join();
+    thr.join();
 }
 
 void SqueezeDet::init_matrix()
