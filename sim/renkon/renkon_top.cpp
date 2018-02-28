@@ -39,7 +39,7 @@ const int out_width   = make_size(fea_width, pool_kern, pool_strid, pool_pad,
 template <typename T>
 T mul(T x, T y)
 {
-  int prod = x * y;
+  int64_t prod = (int64_t)x * (int64_t)y;
 
   if (prod < 0)
     // return prod / static_cast<T>(pow(2, 8)) - 1;
@@ -117,14 +117,16 @@ void pool(Mat3D<T> &output, Mat3D<T> &input)
 
 int main(void)
 {
-  auto input  = zeros<int16_t>(n_in,  img_height, img_width);
-  auto fmap   = zeros<int16_t>(n_out, fea_height, fea_width);
-  auto bmap   = zeros<int16_t>(n_out, fea_height, fea_width);
-  auto amap   = zeros<int16_t>(n_out, fea_height, fea_width);
-  auto pmap   = zeros<int16_t>(n_out, out_height, out_width);
+  using T = int16_t;
 
-  auto W = zeros<int16_t>(n_out, n_in, conv_kern, conv_kern);
-  auto b = zeros<int16_t>(n_out);
+  auto input  = zeros<T>(n_in,  img_height, img_width);
+  auto fmap   = zeros<T>(n_out, fea_height, fea_width);
+  auto bmap   = zeros<T>(n_out, fea_height, fea_width);
+  auto amap   = zeros<T>(n_out, fea_height, fea_width);
+  auto pmap   = zeros<T>(n_out, out_height, out_width);
+
+  auto W = zeros<T>(n_out, n_in, conv_kern, conv_kern);
+  auto b = zeros<T>(n_out);
 
   load(input, "../../data/renkon/input_renkon_top.dat");
   load(W, "../../data/renkon/weight_renkon_top.dat");

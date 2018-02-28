@@ -11,7 +11,7 @@ const int qbits = 8;
 template <typename T>
 T mul(T x, T y)
 {
-  int prod = x * y;
+  int64_t prod = (int64_t)x * (int64_t)y;
 
   if (prod < 0)
     // return prod / static_cast<T>(pow(2, 8)) - 1;
@@ -50,13 +50,15 @@ void relu(Mat1D<T> &output, Mat1D<T> &input)
 
 int main(void)
 {
-  auto input  = zeros<int16_t>(n_in);
-  auto fvec   = zeros<int16_t>(n_out);
-  auto bvec   = zeros<int16_t>(n_out);
-  auto avec   = zeros<int16_t>(n_out);
+  using T = int16_t;
 
-  auto W = zeros<int16_t>(n_out, n_in);
-  auto b = zeros<int16_t>(n_out);
+  auto input  = zeros<T>(n_in);
+  auto fvec   = zeros<T>(n_out);
+  auto bvec   = zeros<T>(n_out);
+  auto avec   = zeros<T>(n_out);
+
+  auto W = zeros<T>(n_out, n_in);
+  auto b = zeros<T>(n_out);
 
   load(input, "../../data/gobou/input_gobou_top.dat");
   load(W, "../../data/gobou/weight_gobou_top.dat");

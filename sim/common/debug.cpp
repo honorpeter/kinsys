@@ -142,19 +142,21 @@ void relu(Mat1D<T> &output, Mat1D<T> &input)
 
 int main(int argc, char **argv)
 {
-  auto input  = zeros<int16_t>(n_im, isize, isize);
+  using T = int16_t;
+
+  auto input  = zeros<T>(n_im, isize, isize);
 
   std::string input_label = argv[1];
   std::string input_name  = argv[2];
   load(input, "../../data/common/"+input_label+"_img"+input_name+".dat");
 
-  auto fmap0  = zeros<int16_t>(n_c0, isize-fsize+1, isize-fsize+1);
-  auto bmap0  = zeros<int16_t>(n_c0, isize-fsize+1, isize-fsize+1);
-  auto amap0  = zeros<int16_t>(n_c0, isize-fsize+1, isize-fsize+1);
-  auto pmap0  = zeros<int16_t>(n_c0, pm0size, pm0size);
+  auto fmap0  = zeros<T>(n_c0, isize-fsize+1, isize-fsize+1);
+  auto bmap0  = zeros<T>(n_c0, isize-fsize+1, isize-fsize+1);
+  auto amap0  = zeros<T>(n_c0, isize-fsize+1, isize-fsize+1);
+  auto pmap0  = zeros<T>(n_c0, pm0size, pm0size);
 
-  auto W_conv0 = zeros<int16_t>(n_c0, n_im, fsize, fsize);
-  auto b_conv0 = zeros<int16_t>(n_c0);
+  auto W_conv0 = zeros<T>(n_c0, n_im, fsize, fsize);
+  auto b_conv0 = zeros<T>(n_c0);
 
   load(W_conv0, "../../data/common/W_conv0.dat");
   load(b_conv0, "../../data/common/b_conv0.dat");
@@ -166,13 +168,13 @@ int main(int argc, char **argv)
 
   save(pmap0, "../../data/common/conv0_tru.dat");
 
-  auto fmap1  = zeros<int16_t>(n_c1, pm0size-fsize+1, pm0size-fsize+1);
-  auto bmap1  = zeros<int16_t>(n_c1, pm0size-fsize+1, pm0size-fsize+1);
-  auto amap1  = zeros<int16_t>(n_c1, pm0size-fsize+1, pm0size-fsize+1);
-  auto pmap1  = zeros<int16_t>(n_c1, pm1size, pm1size);
+  auto fmap1  = zeros<T>(n_c1, pm0size-fsize+1, pm0size-fsize+1);
+  auto bmap1  = zeros<T>(n_c1, pm0size-fsize+1, pm0size-fsize+1);
+  auto amap1  = zeros<T>(n_c1, pm0size-fsize+1, pm0size-fsize+1);
+  auto pmap1  = zeros<T>(n_c1, pm1size, pm1size);
 
-  auto W_conv1 = zeros<int16_t>(n_c1, n_c0, fsize, fsize);
-  auto b_conv1 = zeros<int16_t>(n_c1);
+  auto W_conv1 = zeros<T>(n_c1, n_c0, fsize, fsize);
+  auto b_conv1 = zeros<T>(n_c1);
 
   load(W_conv1, "../../data/common/W_conv1.dat");
   load(b_conv1, "../../data/common/b_conv1.dat");
@@ -184,15 +186,15 @@ int main(int argc, char **argv)
 
   save(pmap1, "../../data/common/conv1_tru.dat");
 
-  auto pmap1_flat  = zeros<int16_t>(n_c1_flat);
+  auto pmap1_flat  = zeros<T>(n_c1_flat);
   load(pmap1_flat, "../../data/common/conv1_tru.dat");
 
-  auto fvec2  = zeros<int16_t>(n_f2);
-  auto bvec2  = zeros<int16_t>(n_f2);
-  auto avec2  = zeros<int16_t>(n_f2);
+  auto fvec2  = zeros<T>(n_f2);
+  auto bvec2  = zeros<T>(n_f2);
+  auto avec2  = zeros<T>(n_f2);
 
-  auto W_full2 = zeros<int16_t>(n_f2, n_c1_flat);
-  auto b_full2 = zeros<int16_t>(n_f2);
+  auto W_full2 = zeros<T>(n_f2, n_c1_flat);
+  auto b_full2 = zeros<T>(n_f2);
 
   load(W_full2, "../../data/common/W_full2.dat");
   load(b_full2, "../../data/common/b_full2.dat");
@@ -203,12 +205,12 @@ int main(int argc, char **argv)
 
   save(avec2, "../../data/common/full2_tru.dat");
 
-  auto fvec3  = zeros<int16_t>(n_f3);
-  auto bvec3  = zeros<int16_t>(n_f3);
-  auto avec3  = zeros<int16_t>(n_f3);
+  auto fvec3  = zeros<T>(n_f3);
+  auto bvec3  = zeros<T>(n_f3);
+  auto avec3  = zeros<T>(n_f3);
 
-  auto W_full3 = zeros<int16_t>(n_f3, n_f2);
-  auto b_full3 = zeros<int16_t>(n_f3);
+  auto W_full3 = zeros<T>(n_f3, n_f2);
+  auto b_full3 = zeros<T>(n_f3);
 
   load(W_full3, "../../data/common/W_full3.dat");
   load(b_full3, "../../data/common/b_full3.dat");

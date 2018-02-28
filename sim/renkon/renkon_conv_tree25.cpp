@@ -29,9 +29,11 @@ T conv_tree(Mat1D<T> &images, Mat1D<T> &filters)
 
 int main(void)
 {
-  auto images  = zeros<int16_t>(number, size);
-  auto filters = zeros<int16_t>(number, size);
-  auto results = zeros<int16_t>(number);
+  using T = int16_t;
+
+  auto images  = zeros<T>(number, size);
+  auto filters = zeros<T>(number, size);
+  auto results = zeros<T>(number);
 
   load(images, "../../data/renkon/input_renkon_conv_tree25.dat");
   load(filters, "../../data/renkon/filter_renkon_conv_tree25.dat");

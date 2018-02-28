@@ -81,7 +81,7 @@ template <typename T>
 void load(Mat1D<T> &x, std::string path)
 {
   std::ifstream ifs(path);
-  int tmp = 0;
+  int64_t tmp = 0;
 
   ifs >> std::hex;
 
@@ -95,7 +95,7 @@ template <typename T>
 void load(Mat2D<T> &x, std::string path)
 {
   std::ifstream ifs(path);
-  int tmp = 0;
+  int64_t tmp = 0;
 
   ifs >> std::hex;
 
@@ -110,7 +110,7 @@ template <typename T>
 void load(Mat3D<T> &x, std::string path)
 {
   std::ifstream ifs(path);
-  int tmp = 0;
+  int64_t tmp = 0;
 
   ifs >> std::hex;
 
@@ -126,7 +126,7 @@ template <typename T>
 void load(Mat4D<T> &x, std::string path)
 {
   std::ifstream ifs(path);
-  int tmp = 0;
+  int64_t tmp = 0;
 
   ifs >> std::hex;
 

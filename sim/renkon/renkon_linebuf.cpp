@@ -6,8 +6,10 @@ const int fsize = 5;
 
 int main(void)
 {
+  using T = int16_t;
+
   const int feature = isize - fsize + 1;
-  auto img = zeros<int16_t>(isize, isize);
+  auto img = zeros<T>(isize, isize);
 
   load(img, "../../data/renkon/input_renkon_linebuf.dat");
 

@@ -23,10 +23,13 @@ int make_after(int size, int kern, int stride, int pad, bool cover_all=false)
 
 int main(void)
 {
+  using T = int16_t;
+
   int fea_h = make_size(height, kern, stride, pad, cover_all);
   int fea_w = make_size(width, kern, stride, pad, cover_all);
-  auto img = zeros<int16_t>(height, width);
-  auto img_pad = zeros<int16_t>(fea_h+kern-1, fea_w+kern-1);
+
+  auto img = zeros<T>(height, width);
+  auto img_pad = zeros<T>(fea_h+kern-1, fea_w+kern-1);
 
   load(img, "../../data/renkon/input_renkon_linebuf_pad.dat");
   for range(i, height)
