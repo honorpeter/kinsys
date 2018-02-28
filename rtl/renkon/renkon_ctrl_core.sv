@@ -12,7 +12,7 @@ module renkon_ctrl_core
   , input  [MEMSIZE-1:0]        in_offset
   , input  [MEMSIZE-1:0]        out_offset
   , input  [RENKON_NETSIZE-1:0] net_offset
-  , input  [DWIDTHLOG-1:0]         qbits
+  , input  [DWIDTHLOG-1:0]      qbits
   , input  [LWIDTH-1:0]         total_out
   , input  [LWIDTH-1:0]         total_in
   , input  [LWIDTH-1:0]         img_height

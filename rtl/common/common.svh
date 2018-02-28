@@ -5,7 +5,7 @@
 `timescale 1 ns / 1 ps
 // DIST will be defined when distributed
 `undef DIST
-`define QUANT
+// `define QUANT
 
 `ifndef DIST
 `include "mem_sp.sv"
@@ -18,7 +18,6 @@ parameter DWIDTH    = 16;
 parameter DWIDTHLOG = 4;
 parameter LWIDTH    = 16;
 parameter QWIDTH    = 8;
-// parameter QWIDTH    = 16;
 
 ////////////////////////////////////////////////////////////
 // User parameters
