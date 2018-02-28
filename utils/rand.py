@@ -6,7 +6,7 @@ import random
 
 LENGTH = int(sys.argv[1])
 WIDTH = 256
-MASK = 0xffff
+MASK = 0xffffffff
 
 random.seed(None)
 for i in range(LENGTH):

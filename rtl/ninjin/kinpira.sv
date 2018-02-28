@@ -383,8 +383,8 @@ module kinpira
   assign b_scale    = in_port[5][DWIDTH-1:0];
   assign b_offset   = in_port[6][DWIDTH-1:0];
 `endif
-  assign in_offset  = in_port[7][MEMSIZE-1+RATELOG:RATELOG];
-  assign out_offset = in_port[8][MEMSIZE-1+RATELOG:RATELOG];
+  assign in_offset  = in_port[7][MEMSIZE-1+LSB-RATELOG:LSB-RATELOG];
+  assign out_offset = in_port[8][MEMSIZE-1+LSB-RATELOG:LSB-RATELOG];
   assign net_offset = in_port[9][BWIDTH-1:0];
   assign pre_req    = in_port[10][0];
   assign pre_base   = in_port[11][WORDSIZE-1+LSB:LSB];
@@ -452,10 +452,10 @@ module kinpira
   assign out_port[38] = 32'd0;
   assign out_port[37] = 32'd0;
   assign out_port[36] = 32'd0;
-  // assign out_port[35] = 32'd0;
-  // assign out_port[34] = 32'd0;
-  // assign out_port[33] = 32'd0;
-  // assign out_port[32] = 32'd0;
+  assign out_port[35] = 32'd0;
+  assign out_port[34] = 32'd0;
+  assign out_port[33] = 32'd0;
+  assign out_port[32] = 32'd0;
 
 
 

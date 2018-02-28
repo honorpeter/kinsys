@@ -4,7 +4,7 @@
 `include "common.svh"
 
 // BWIDTH ~ base width (memory bandwidth for host system.)
-parameter BWIDTH  = 32;
+parameter BWIDTH  = 64;
 
 // parameter RATE    = BWIDTH / DWIDTH;
 parameter RATE    = 2;
@@ -15,7 +15,9 @@ parameter REGSIZE = 6;
 // parameter PORT  = 2 ** REGSIZE;
 parameter PORT    = 64;
 
-parameter LSB     = 2;
+// parameter LSB     = $clog2(BWIDTH/8);
+parameter LSB     = 3;
+// parameter LSB     = 2;
 `ifndef DIST
 parameter WORDSIZE = MEMSIZE - RATELOG;
 `else

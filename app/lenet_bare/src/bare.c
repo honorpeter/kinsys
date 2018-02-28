@@ -12,13 +12,13 @@
 int kinpira_init(void)
 {
 #if defined(zedboard)
-  port       = (u32 *)                  0x43c00000U;
-  mem_renkon = (u32 (*)[RENKON_WORDS])  0x43c10000U;
-  mem_gobou  = (u32 (*)[GOBOU_WORDS])   0x43c80000U;
+  port       = (u64 *)                  0x43c00000U;
+  mem_renkon = (u64 (*)[RENKON_WORDS])  0x43c10000U;
+  mem_gobou  = (u64 (*)[GOBOU_WORDS])   0x43c80000U;
 #elif defined(zcu102)
-  port       = (u32 *)                  0xA0000000U;
-  mem_renkon = (u32 (*)[RENKON_WORDS])  0xA0010000U;
-  mem_gobou  = (u32 (*)[GOBOU_WORDS])   0xA0080000U;
+  port       = (u64 *)                  0xA0000000U;
+  mem_renkon = (u64 (*)[RENKON_WORDS])  0xA0020000U;
+  mem_gobou  = (u64 (*)[GOBOU_WORDS])   0xA0100000U;
 #endif
 
   Xil_DCacheDisable();
@@ -46,9 +46,7 @@ Map *define_map(int map_c, int map_w, int map_h)
   r->shape[1] = map_w;
   r->shape[2] = map_h;
 
-  r->body = (s16 *)calloc(map_c*map_w*map_h, sizeof(s16));
-
-  r->phys_addr = (u32)(UINTPTR)r->body;
+  r->body = (s32 *)calloc(map_c*map_w*map_h, sizeof(s32));
 
   return r;
 }
@@ -61,9 +59,7 @@ Vec *define_vec(int vec_l)
 
   r->shape = vec_l;
 
-  r->body = (s16 *)calloc(vec_l, sizeof(s16));
-
-  r->phys_addr = (u32)(UINTPTR)r->body;
+  r->body = (s32 *)calloc(vec_l, sizeof(s32));
 
   return r;
 }

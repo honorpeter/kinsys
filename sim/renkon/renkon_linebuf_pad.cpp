@@ -23,7 +23,7 @@ int make_after(int size, int kern, int stride, int pad, bool cover_all=false)
 
 int main(void)
 {
-  using T = int16_t;
+  using T = int32_t;
 
   int fea_h = make_size(height, kern, stride, pad, cover_all);
   int fea_w = make_size(width, kern, stride, pad, cover_all);

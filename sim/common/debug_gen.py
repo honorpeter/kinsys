@@ -14,8 +14,8 @@ INPUT_DIR = join(BASE_DIR, "mnist", "test")
 
 def hex_of_float(path):
     floatfile = np.loadtxt(path).astype(np.float) * 256
-    fixed = np.around(floatfile).astype(np.int) & 0xffff
-    return list(map("{:04x}".format, fixed))
+    fixed = np.around(floatfile).astype(np.int) & 0xffffffff
+    return list(map("{:08x}".format, fixed))
 
 def make(src, dst):
     param = hex_of_float(src)

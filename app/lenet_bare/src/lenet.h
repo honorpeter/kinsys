@@ -19,7 +19,7 @@
 #define FM1_SIZE (PM0_SIZE-CONV_KERN+1)
 #define PM1_SIZE (FM1_SIZE/POOL_KERN)
 
-void LeNet_init(s16 **input, s16 **output);
+void LeNet_init(s32 **input, s32 **output);
 void LeNet_eval(void);
 void LeNet_exit(void);
 

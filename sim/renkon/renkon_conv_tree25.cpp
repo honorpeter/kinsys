@@ -29,7 +29,7 @@ T conv_tree(Mat1D<T> &images, Mat1D<T> &filters)
 
 int main(void)
 {
-  using T = int16_t;
+  using T = int32_t;
 
   auto images  = zeros<T>(number, size);
   auto filters = zeros<T>(number, size);

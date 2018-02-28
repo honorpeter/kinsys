@@ -50,7 +50,7 @@ void relu(Mat1D<T> &output, Mat1D<T> &input)
 
 int main(void)
 {
-  using T = int16_t;
+  using T = int32_t;
 
   auto input  = zeros<T>(n_in);
   auto fvec   = zeros<T>(n_out);

@@ -24,7 +24,7 @@ const int n_f3      = 10;
 template <typename T>
 T mul(T x, T y)
 {
-  int prod = x * y;
+  int64_t prod = (int64_t)x * (int64_t)y;
 
   if (prod < 0)
     // return prod / static_cast<T>(pow(2, 8)) - 1;
@@ -142,7 +142,7 @@ void relu(Mat1D<T> &output, Mat1D<T> &input)
 
 int main(int argc, char **argv)
 {
-  using T = int16_t;
+  using T = int32_t;
 
   auto input  = zeros<T>(n_im, isize, isize);
 

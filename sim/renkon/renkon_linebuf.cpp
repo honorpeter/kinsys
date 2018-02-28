@@ -6,7 +6,7 @@ const int fsize = 5;
 
 int main(void)
 {
-  using T = int16_t;
+  using T = int32_t;
 
   const int feature = isize - fsize + 1;
   auto img = zeros<T>(isize, isize);

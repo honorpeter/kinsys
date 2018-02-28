@@ -5,15 +5,15 @@
 extern "C" {
 #endif
 
-#define QUANT
+// #define QUANT
 
 #include <stdint.h>
 
 #define WHICH_RENKON    0
 #define WHICH_GOBOU     1
 
-#define BWIDTH          32
-#define DWIDTH          16
+#define BWIDTH          64
+#define DWIDTH          32
 #define LWIDTH          16
 #define MEMSIZE         31
 #define REGSIZE         64
@@ -25,9 +25,9 @@ extern "C" {
 #define GOBOU_NETSIZE   13
 #define GOBOU_WORDS     8192
 
-uint32_t *port;
-uint32_t (*mem_renkon)[RENKON_WORDS];
-uint32_t (*mem_gobou)[GOBOU_WORDS];
+uint64_t *port;
+uint64_t (*mem_renkon)[RENKON_WORDS];
+uint64_t (*mem_gobou)[GOBOU_WORDS];
 
 // input reg
 #define reg_which       &port[0]

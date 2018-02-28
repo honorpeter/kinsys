@@ -14,8 +14,8 @@
 `endif
 
 parameter STEP      = 10;
-parameter DWIDTH    = 16;
-parameter DWIDTHLOG = 4;
+parameter DWIDTH    = 32;
+parameter DWIDTHLOG = 5;
 parameter LWIDTH    = 16;
 parameter QWIDTH    = 8;
 

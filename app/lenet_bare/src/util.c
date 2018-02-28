@@ -8,7 +8,7 @@
 
 #include <assert.h>
 
-static u32 bit(u32 value, int high, int low)
+static u64 bit(u64 value, int high, int low)
 {
   return value << (BWIDTH-1-high) >> (BWIDTH-1-high) >> low;
 }
@@ -16,12 +16,11 @@ static u32 bit(u32 value, int high, int low)
 
 
 #ifdef QUANT
-// void assign_map_quant(Layer *l, u8 *weight, u8 *bias,
-void assign_map_quant(Layer *l, s16 *weight, s16 *bias,
+void assign_map_quant(Layer *l, s32 *weight, s32 *bias,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max)
 #else
-void assign_map(Layer *l, s16 *weight, s16 *bias)
+void assign_map(Layer *l, s32 *weight, s32 *bias)
 #endif
 {
   const int core  = RENKON_CORE;
@@ -37,10 +36,10 @@ void assign_map(Layer *l, s16 *weight, s16 *bias)
   for (int n = 0; n < n_out/core; n++) {
     for (int dn = 0; dn < core; dn++) {
       for (int i = 0; i < unit; i++)
-        mem_renkon[dn][idx+i] = (u32)weight[idx_w+i];
+        mem_renkon[dn][idx+i] = (u64)weight[idx_w+i];
       idx_w += unit;
 
-      mem_renkon[dn][idx+unit] = (u32)bias[idx_b];
+      mem_renkon[dn][idx+unit] = (u64)bias[idx_b];
       idx_b += 1;
     }
 
@@ -51,15 +50,15 @@ void assign_map(Layer *l, s16 *weight, s16 *bias)
     for (int dn = 0; dn < core; dn++) {
       if (idx_b < n_out) {
         for (int i = 0; i < unit; i++)
-          mem_renkon[dn][idx+i] = (u32)weight[idx_w+i];
+          mem_renkon[dn][idx+i] = (u64)weight[idx_w+i];
         idx_w += unit;
 
-        mem_renkon[dn][idx+unit] = (u32)bias[idx_b];
+        mem_renkon[dn][idx+unit] = (u64)bias[idx_b];
         idx_b += 1;
       }
       else {
         for (int i = 0; i < unit+1; i++)
-          mem_renkon[dn][idx+i] = (u32)0;
+          mem_renkon[dn][idx+i] = (u64)0;
       }
     }
 
@@ -77,12 +76,11 @@ void assign_map(Layer *l, s16 *weight, s16 *bias)
 
 
 #ifdef QUANT
-// void assign_vec_quant(Layer *l, u8 *weight, u8 *bias,
-void assign_vec_quant(Layer *l, s16 *weight, s16 *bias,
+void assign_vec_quant(Layer *l, s32 *weight, s32 *bias,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max)
 #else
-void assign_vec(Layer *l, s16 *weight, s16 *bias)
+void assign_vec(Layer *l, s32 *weight, s32 *bias)
 #endif
 {
   const int core  = GOBOU_CORE;
@@ -96,10 +94,10 @@ void assign_vec(Layer *l, s16 *weight, s16 *bias)
   for (int n = 0; n < n_out/core; n++) {
     for (int dn = 0; dn < core; dn++) {
       for (int i = 0; i < n_in; i++)
-        mem_gobou[dn][idx+i] = (u32)weight[idx_w+i];
+        mem_gobou[dn][idx+i] = (u64)weight[idx_w+i];
       idx_w += n_in;
 
-      mem_gobou[dn][idx+n_in] = (u32)bias[idx_b];
+      mem_gobou[dn][idx+n_in] = (u64)bias[idx_b];
       idx_b += 1;
     }
 
@@ -110,15 +108,15 @@ void assign_vec(Layer *l, s16 *weight, s16 *bias)
     for (int dn = 0; dn < core; dn++) {
       if (idx_b < n_out) {
         for (int i = 0; i < n_in; i++)
-          mem_gobou[dn][idx+i] = (u32)weight[idx_w+i];
+          mem_gobou[dn][idx+i] = (u64)weight[idx_w+i];
         idx_w += n_in;
 
-        mem_gobou[dn][idx+n_in] = (u32)bias[idx_b];
+        mem_gobou[dn][idx+n_in] = (u64)bias[idx_b];
         idx_b += 1;
       }
       else {
         for (int i = 0; i < n_in+1; i++)
-          mem_gobou[dn][idx+i] = (u32)0;
+          mem_gobou[dn][idx+i] = (u64)0;
       }
     }
 
@@ -175,7 +173,7 @@ void exec_core(Layer *l)
   while (!*reg_ack);
 }
 
-void print_result(s16 *output, const int length)
+void print_result(s32 *output, const int length)
 {
   int number  = -1;
   int max     = INT_MIN;
@@ -197,13 +195,13 @@ void print_result(s16 *output, const int length)
 void print_port()
 {
   printf(
-    "&port[0]:  %08x &port[1]:  %08x &port[2]:  %08x &port[3]:  %08x\n"
-    "&port[4]:  %08x &port[5]:  %08x &port[6]:  %08x &port[7]:  %08x\n"
-    "&port[8]:  %08x &port[9]:  %08x &port[10]: %08x &port[11]: %08x\n"
-    "&port[12]: %08x &port[13]: %08x &port[14]: %08x &port[15]: %08x\n"
-    "&port[16]: %08x &port[17]: %08x &port[18]: %08x &port[19]: %08x\n"
-    "&port[20]: %08x &port[21]: %08x &port[22]: %08x\n"
-    "&port[60]: %08x &port[61]: %08x &port[62]: %08x &port[63]: %08x\n"
+    "&port[0]:  %08lx &port[1]:  %08lx &port[2]:  %08lx &port[3]:  %08lx\n"
+    "&port[4]:  %08lx &port[5]:  %08lx &port[6]:  %08lx &port[7]:  %08lx\n"
+    "&port[8]:  %08lx &port[9]:  %08lx &port[10]: %08lx &port[11]: %08lx\n"
+    "&port[12]: %08lx &port[13]: %08lx &port[14]: %08lx &port[15]: %08lx\n"
+    "&port[16]: %08lx &port[17]: %08lx &port[18]: %08lx &port[19]: %08lx\n"
+    "&port[20]: %08lx &port[21]: %08lx &port[22]: %08lx\n"
+    "&port[60]: %08lx &port[61]: %08lx &port[62]: %08lx &port[63]: %08lx\n"
     "\n"
     , port[0], port[1], port[2], port[3]
     , port[4], port[5], port[6], port[7]
