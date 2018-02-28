@@ -57,7 +57,7 @@ module renkon_top
   wire [$clog2(CONV_MAX+1):0]     buf_pix_rsel;
   wire                            buf_pix_we;
   wire [$clog2(D_PIXELBUF+1)-1:0] buf_pix_addr;
-  wire [DWIDTHLOG-1:0]               _qbits;
+  wire [DWIDTHLOG-1:0]            _qbits;
   wire                            _bias_en;
   wire                            _relu_en;
   wire                            _pool_en;

@@ -1,11 +1,11 @@
 `include "renkon.svh"
 
 module renkon_bias
-  ( input clk
-  , input xrst
-  , input enable
-  , input breg_we
-  , input out_en
+  ( input                      clk
+  , input                      xrst
+  , input                      enable
+  , input                      breg_we
+  , input                      out_en
   , input  signed [DWIDTH-1:0] read_bias
   , input  signed [DWIDTH-1:0] pixel_in
   , output signed [DWIDTH-1:0] pixel_out

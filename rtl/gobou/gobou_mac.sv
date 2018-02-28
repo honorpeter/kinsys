@@ -3,7 +3,7 @@
 module gobou_mac
   ( input                      clk
   , input                      xrst
-  , input  [DWIDTHLOG-1:0]        _qbits
+  , input  [DWIDTHLOG-1:0]     _qbits
   , input                      out_en
   , input                      accum_we
   , input                      reset

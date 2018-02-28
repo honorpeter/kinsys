@@ -1,10 +1,10 @@
 `include "renkon.svh"
 
 module renkon_mux_output
-  ( input clk
-  , input xrst
-  , input [RENKON_CORELOG:0] output_re
-  , input signed [DWIDTH-1:0] in_data [RENKON_CORE-1:0]
+  ( input                      clk
+  , input                      xrst
+  , input  [RENKON_CORELOG:0]  output_re
+  , input  signed [DWIDTH-1:0] in_data [RENKON_CORE-1:0]
   , output signed [DWIDTH-1:0] out_data
   );
 

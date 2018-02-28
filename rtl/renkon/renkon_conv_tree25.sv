@@ -4,7 +4,7 @@
 module renkon_conv_tree25
   ( input                       clk
   , input                       xrst
-  , input  [DWIDTHLOG-1:0]         _qbits
+  , input  [DWIDTHLOG-1:0]      _qbits
   , input  signed [DWIDTH-1:0]  pixel  [25-1:0]
   , input  signed [DWIDTH-1:0]  weight [25-1:0]
   , output signed [DWIDTH-1:0]  fmap

@@ -91,23 +91,23 @@ module renkon_ctrl_core
   reg               req$;
   reg               ack$;
 
-  reg [DWIDTHLOG-1:0]  qbits$;
-  reg [LWIDTH-1:0]  total_out$;
-  reg [LWIDTH-1:0]  total_in$;
-  reg [LWIDTH-1:0]  img_height$;
-  reg [LWIDTH-1:0]  img_width$;
-  reg [LWIDTH-1:0]  conv_kern$;
-  reg [LWIDTH-1:0]  conv_strid$;
-  reg [LWIDTH-1:0]  conv_pad$;
-  reg [LWIDTH-1:0]  fea_height$;
-  reg [LWIDTH-1:0]  fea_width$;
+  reg [DWIDTHLOG-1:0] qbits$;
+  reg [LWIDTH-1:0]    total_out$;
+  reg [LWIDTH-1:0]    total_in$;
+  reg [LWIDTH-1:0]    img_height$;
+  reg [LWIDTH-1:0]    img_width$;
+  reg [LWIDTH-1:0]    conv_kern$;
+  reg [LWIDTH-1:0]    conv_strid$;
+  reg [LWIDTH-1:0]    conv_pad$;
+  reg [LWIDTH-1:0]    fea_height$;
+  reg [LWIDTH-1:0]    fea_width$;
 
-  reg [LWIDTH-1:0]  count_out$;
-  reg [LWIDTH-1:0]  count_in$;
-  reg [LWIDTH-1:0]  input_x$;
-  reg [LWIDTH-1:0]  input_y$;
-  reg [LWIDTH-1:0]  weight_x$;
-  reg [LWIDTH-1:0]  weight_y$;
+  reg [LWIDTH-1:0]    count_out$;
+  reg [LWIDTH-1:0]    count_in$;
+  reg [LWIDTH-1:0]    input_x$;
+  reg [LWIDTH-1:0]    input_y$;
+  reg [LWIDTH-1:0]    weight_x$;
+  reg [LWIDTH-1:0]    weight_y$;
 
   reg                       s_output_end$;
   reg                       buf_pix_req$;

@@ -20,7 +20,7 @@ module renkon_core
   , input  [$clog2(POOL_MAX+1):0]     buf_feat_rsel
   , input                             buf_feat_we
   , input  [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
-  , input  [DWIDTHLOG-1:0]               _qbits
+  , input  [DWIDTHLOG-1:0]            _qbits
   , input                             _bias_en
   , input                             _relu_en
   , input                             _pool_en

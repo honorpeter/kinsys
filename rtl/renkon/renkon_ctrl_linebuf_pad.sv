@@ -44,8 +44,8 @@ module renkon_ctrl_linebuf_pad
   wire [SIZEWIDTH-1:0]      row_count;
   wire [SIZEWIDTH-1:0]      str_x_count;
   wire [SIZEWIDTH-1:0]      str_y_count;
-  wire [LWIDTH-1:0] str_x_start;
-  wire [LWIDTH-1:0] str_y_start;
+  wire [LWIDTH-1:0]         str_x_start;
+  wire [LWIDTH-1:0]         str_y_start;
 
   enum reg [2-1:0] {
     S_WAIT, S_CHARGE, S_ACTIVE

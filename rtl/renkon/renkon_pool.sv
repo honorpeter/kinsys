@@ -12,8 +12,8 @@ module renkon_pool
   , input  [$clog2(POOL_MAX+1):0]     buf_feat_rsel
   , input                             buf_feat_we
   , input  [$clog2(D_POOLBUF+1)-1:0]  buf_feat_addr
-  , input  signed [DWIDTH-1:0] pixel_in
-  , output signed [DWIDTH-1:0] pixel_out
+  , input  signed [DWIDTH-1:0]        pixel_in
+  , output signed [DWIDTH-1:0]        pixel_out
   );
 
   localparam MINVAL = $signed({1'b1, {DWIDTH-1{1'b0}}});
