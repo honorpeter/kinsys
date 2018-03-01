@@ -65,8 +65,8 @@ module renkon_top
   wire [CONV_MAX-1:0]             wreg_we;
   wire                            mem_feat_we;
   wire                            mem_feat_rst;
-  wire [FACCUM-1:0]               mem_feat_waddr;
-  wire [FACCUM-1:0]               mem_feat_raddr;
+  wire [FEASIZE-1:0]              mem_feat_waddr;
+  wire [FEASIZE-1:0]              mem_feat_raddr;
   wire                            buf_feat_mask [POOL_MAX-1:0];
   wire                            buf_feat_wcol;
   wire                            buf_feat_rrow [POOL_MAX-1:0];

@@ -19,7 +19,7 @@ parameter RENKON_MAXIMG  = 32;
 `endif
 
 // expected max featuremap size (cf. $clog2(24x24))
-parameter FACCUM  = $clog2(RENKON_MAXIMG**2);
+parameter FEASIZE = $clog2(RENKON_MAXIMG**2);
 parameter OUTSIZE = $clog2(RENKON_MAXIMG**2);
 // parameter CONV_MAX   = 3;
 parameter CONV_MAX   = 5;

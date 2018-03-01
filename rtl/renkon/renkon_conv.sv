@@ -8,8 +8,8 @@ module renkon_conv
   , input  [CONV_MAX-1:0]       wreg_we
   , input                       mem_feat_we
   , input                       mem_feat_rst
-  , input  [FACCUM-1:0]         mem_feat_waddr
-  , input  [FACCUM-1:0]         mem_feat_raddr
+  , input  [FEASIZE-1:0]        mem_feat_waddr
+  , input  [FEASIZE-1:0]        mem_feat_raddr
   , input  signed [DWIDTH-1:0]  pixel_in [CONV_MAX**2-1:0]
   , input  signed [DWIDTH-1:0]  read_weight
   , output signed [DWIDTH-1:0]  pixel_out
@@ -43,7 +43,7 @@ module renkon_conv
     .*
   );
 
-  mem_dp #(DWIDTH, FACCUM) mem_feat(
+  mem_dp #(DWIDTH, FEASIZE) mem_feat(
     .mem_we1    (mem_feat_we),
     .mem_addr1  (mem_feat_waddr),
     .mem_wdata1 (mem_feat_wdata),

@@ -11,8 +11,8 @@ module renkon_core
   , input                             pool_oe
   , input                             mem_feat_rst
   , input                             mem_feat_we
-  , input  [FACCUM-1:0]               mem_feat_raddr
-  , input  [FACCUM-1:0]               mem_feat_waddr
+  , input  [FEASIZE-1:0]              mem_feat_raddr
+  , input  [FEASIZE-1:0]              mem_feat_waddr
   , input                             buf_feat_mask [POOL_MAX-1:0]
   , input                             buf_feat_wcol
   , input                             buf_feat_rrow [POOL_MAX-1:0]

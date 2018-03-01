@@ -53,8 +53,8 @@ module renkon_ctrl
   , output [RENKON_NETSIZE-1:0]       mem_net_addr
   , output                            mem_feat_we
   , output                            mem_feat_rst
-  , output [FACCUM-1:0]               mem_feat_waddr
-  , output [FACCUM-1:0]               mem_feat_raddr
+  , output [FEASIZE-1:0]              mem_feat_waddr
+  , output [FEASIZE-1:0]              mem_feat_raddr
   , output                            buf_feat_mask [POOL_MAX-1:0]
   , output                            buf_feat_wcol
   , output                            buf_feat_rrow [POOL_MAX-1:0]
