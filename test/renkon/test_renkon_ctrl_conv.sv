@@ -24,15 +24,15 @@ module test_renkon_ctrl_conv;
   ctrl_bus          out_ctrl();
   reg               mem_feat_we;
   reg               mem_feat_rst;
-  reg [FACCUM-1:0]  mem_feat_addr;
-  reg [FACCUM-1:0]  mem_feat_addr_d1;
+  reg [FEASIZE-1:0] mem_feat_addr;
+  reg [FEASIZE-1:0] mem_feat_addr_d1;
   reg               conv_oe;
   reg [LWIDTH-1:0]  w_fea_size;
 
-  reg [2-1:0]       core_state$ [D_PIXELBUF-1:0];
-  reg               first_input$ [D_PIXELBUF-1:0];
-  reg               last_input$ [D_PIXELBUF-1:0];
-  ctrl_reg          in_ctrl$ [D_PIXELBUF-1:0];
+  reg [2-1:0]       core_state$   [D_PIXELBUF-1:0];
+  reg               first_input$  [D_PIXELBUF-1:0];
+  reg               last_input$   [D_PIXELBUF-1:0];
+  ctrl_reg          in_ctrl$      [D_PIXELBUF-1:0];
   ctrl_reg          out_ctrl$;
 
   assign in_ctrl.start = in_ctrl$[D_PIXELBUF-1].start;

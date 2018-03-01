@@ -10,12 +10,12 @@ module renkon_ctrl_conv
   , input  [LWIDTH-1:0] _conv_strid
   , input               first_input
   , input               last_input
-  , ctrl_bus.master     out_ctrl
-  , output              mem_feat_we
-  , output              mem_feat_rst
-  , output [FACCUM-1:0] mem_feat_waddr
-  , output [FACCUM-1:0] mem_feat_raddr
-  , output              conv_oe
+  , ctrl_bus.master       out_ctrl
+  , output                mem_feat_we
+  , output                mem_feat_rst
+  , output [FEASIZE-1:0]  mem_feat_waddr
+  , output [FEASIZE-1:0]  mem_feat_raddr
+  , output                conv_oe
   );
 
   localparam S_CORE_WAIT    = 'd0;
@@ -34,7 +34,7 @@ module renkon_ctrl_conv
   reg [LWIDTH-1:0]  fea_width$;
   reg               feat_we$   [D_CONV-1:0];
   reg               feat_rst$  [D_CONV-1:0];
-  reg [FACCUM-1:0]  feat_addr$ [D_CONV:0];
+  reg [FEASIZE-1:0] feat_addr$ [D_CONV:0];
   reg [LWIDTH-1:0]  conv_x$;
   reg [LWIDTH-1:0]  conv_y$;
   ctrl_reg          out_ctrl$  [D_CONV+D_ACCUM-1:0];
