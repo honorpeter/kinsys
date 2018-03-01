@@ -10,8 +10,8 @@ extern "C" {
 #define WHICH_RENKON    0
 #define WHICH_GOBOU     1
 
-#define BWIDTH          32
-#define DWIDTH          16
+#define BWIDTH          64
+#define DWIDTH          32
 #define LWIDTH          16
 #define MEMSIZE         31
 #define REGSIZE         64
@@ -32,10 +32,10 @@ extern "C" {
 #define GOBOU_WORDS     8192
 #endif
 
-extern uint32_t *port;
-extern uint32_t (*mem_renkon)[RENKON_WORDS];
-extern uint32_t (*mem_gobou)[GOBOU_WORDS];
-extern int16_t *mem_image;
+extern uint64_t *port;
+extern uint64_t (*mem_renkon)[RENKON_WORDS];
+extern uint64_t (*mem_gobou)[GOBOU_WORDS];
+extern int32_t *mem_image;
 
 // input reg
 #define reg_which       &port[0]

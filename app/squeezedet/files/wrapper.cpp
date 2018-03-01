@@ -30,8 +30,8 @@ void assign_maps_quant(
 }
 #else
 void assign_maps(const std::vector<Layer *>& ls,
-                 const std::vector<s16 *>& weights,
-                 const std::vector<s16 *>& biases)
+                 const std::vector<s32 *>& weights,
+                 const std::vector<s32 *>& biases)
 {
   const int size = ls.size();
   assert(ls.size() == weights.size() && ls.size() == biases.size());

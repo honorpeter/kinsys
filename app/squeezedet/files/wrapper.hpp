@@ -43,8 +43,8 @@ void assign_maps_quant(
     const std::vector<float>& biases_max);
 #else
 void assign_maps(const std::vector<Layer *>& ls,
-                 const std::vector<s16 *>& weights,
-                 const std::vector<s16 *>& biases);
+                 const std::vector<s32 *>& weights,
+                 const std::vector<s32 *>& biases);
 #endif
 
 void undef_layers(std::vector<Layer *> ls);

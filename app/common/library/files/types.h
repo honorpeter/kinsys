@@ -21,39 +21,39 @@ typedef intptr_t  INTPTR;
 typedef uintptr_t UINTPTR;
 
 typedef struct {
-  u32 which;
-  u32 qbits;
+  u64 which;
+  u64 qbits;
 #ifdef __KPR_QUANT__
-  u32 w_scale;
-  u32 w_offset;
-  u32 b_scale;
-  u32 b_offset;
+  u64 w_scale;
+  u64 w_offset;
+  u64 b_scale;
+  u64 b_offset;
 #endif
-  u32 in_offset;
-  u32 out_offset;
-  u32 net_offset;
-  u32 read_len;
-  u32 write_len;
-  u32 base_param[3];
-  u32 conv_param[2];
-  u32 bias_param;
-  u32 norm_param;
-  u32 actv_param;
-  u32 pool_param[2];
+  u64 in_offset;
+  u64 out_offset;
+  u64 net_offset;
+  u64 read_len;
+  u64 write_len;
+  u64 base_param[3];
+  u64 conv_param[2];
+  u64 bias_param;
+  u64 norm_param;
+  u64 actv_param;
+  u64 pool_param[2];
 } Layer;
 
 typedef struct {
   int shape[3];
   int qbits;
-  u32 phys_addr;
-  s16 *body;
+  u64 phys_addr;
+  s32 *body;
 } Map;
 
 typedef struct {
   int shape;
   int qbits;
-  u32 phys_addr;
-  s16 *body;
+  u64 phys_addr;
+  s32 *body;
 } Vec;
 
 #ifdef __cplusplus

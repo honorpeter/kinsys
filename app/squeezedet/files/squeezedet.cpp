@@ -97,22 +97,22 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
 {
   kinpira_init();
 
-  image  = define_map( 14,                       3, IMG_H,   IMG_W);
-  pmap1  = define_map( 13,                      64, IMG_H/4, IMG_W/4);
-  fmap2  = define_fire(12, fire2_maps,  16, 64, 64, IMG_H/4, IMG_W/4,  false);
-  pmap3  = define_fire(11, fire3_maps,  16, 64, 64, IMG_H/8, IMG_W/8,  true);
-  fmap4  = define_fire(10, fire4_maps,  32,128,128, IMG_H/8, IMG_W/8,  false);
-  pmap5  = define_fire(10, fire5_maps,  32,128,128, IMG_H/16,IMG_W/16, true);
-  fmap6  = define_fire(10, fire6_maps,  48,192,192, IMG_H/16,IMG_W/16, false);
-  fmap7  = define_fire(10, fire7_maps,  48,192,192, IMG_H/16,IMG_W/16, false);
-  fmap8  = define_fire(11, fire8_maps,  64,256,256, IMG_H/16,IMG_W/16, false);
-  fmap9  = define_fire(11, fire9_maps,  64,256,256, IMG_H/16,IMG_W/16, false);
-  fmap10 = define_fire(12, fire10_maps, 96,384,384, IMG_H/16,IMG_W/16, false);
-  fmap11 = define_fire(12, fire11_maps, 96,384,384, IMG_H/16,IMG_W/16, false);
-  fmap12 = define_map( 10,                      72, IMG_H/16,IMG_W/16);
+  image  = define_map( 24,                       3, IMG_H,   IMG_W);
+  pmap1  = define_map( 24,                      64, IMG_H/4, IMG_W/4);
+  fmap2  = define_fire(24, fire2_maps,  16, 64, 64, IMG_H/4, IMG_W/4,  false);
+  pmap3  = define_fire(24, fire3_maps,  16, 64, 64, IMG_H/8, IMG_W/8,  true);
+  fmap4  = define_fire(24, fire4_maps,  32,128,128, IMG_H/8, IMG_W/8,  false);
+  pmap5  = define_fire(24, fire5_maps,  32,128,128, IMG_H/16,IMG_W/16, true);
+  fmap6  = define_fire(24, fire6_maps,  48,192,192, IMG_H/16,IMG_W/16, false);
+  fmap7  = define_fire(24, fire7_maps,  48,192,192, IMG_H/16,IMG_W/16, false);
+  fmap8  = define_fire(24, fire8_maps,  64,256,256, IMG_H/16,IMG_W/16, false);
+  fmap9  = define_fire(24, fire9_maps,  64,256,256, IMG_H/16,IMG_W/16, false);
+  fmap10 = define_fire(24, fire10_maps, 96,384,384, IMG_H/16,IMG_W/16, false);
+  fmap11 = define_fire(24, fire11_maps, 96,384,384, IMG_H/16,IMG_W/16, false);
+  fmap12 = define_map( 24,                      72, IMG_H/16,IMG_W/16);
 
   // in_det->body = image->body;
-  in_det->body = std::unique_ptr<s16[]>(image->body);
+  in_det->body = std::unique_ptr<s32[]>(image->body);
 
   conv1  = conv(image,  pmap1, 3, 2, 1, true);
   fire2  = fire(pmap1,  fire2_maps,  false);
@@ -128,29 +128,29 @@ SqueezeDet::SqueezeDet(const std::shared_ptr<Image> &in_det,
   conv12 = conv(fmap11, fmap12, 3, 1, 1, false);
 
   assign_map_quant( conv1,  W_conv1,  b_conv1,
-    13, W_conv1_min,  W_conv1_max,  b_conv1_min,  b_conv1_max );
+    24, W_conv1_min,  W_conv1_max,  b_conv1_min,  b_conv1_max );
   assign_maps_quant(fire2,  W_fire2,  b_fire2,
-    12, W_fire2_min,  W_fire2_max,  b_fire2_min,  b_fire2_max );
+    24, W_fire2_min,  W_fire2_max,  b_fire2_min,  b_fire2_max );
   assign_maps_quant(fire3,  W_fire3,  b_fire3,
-    11, W_fire3_min,  W_fire3_max,  b_fire3_min,  b_fire3_max );
+    24, W_fire3_min,  W_fire3_max,  b_fire3_min,  b_fire3_max );
   assign_maps_quant(fire4,  W_fire4,  b_fire4,
-    10, W_fire4_min,  W_fire4_max,  b_fire4_min,  b_fire4_max );
+    24, W_fire4_min,  W_fire4_max,  b_fire4_min,  b_fire4_max );
   assign_maps_quant(fire5,  W_fire5,  b_fire5,
-    10, W_fire5_min,  W_fire5_max,  b_fire5_min,  b_fire5_max );
+    24, W_fire5_min,  W_fire5_max,  b_fire5_min,  b_fire5_max );
   assign_maps_quant(fire6,  W_fire6,  b_fire6,
-    10, W_fire6_min,  W_fire6_max,  b_fire6_min,  b_fire6_max );
+    24, W_fire6_min,  W_fire6_max,  b_fire6_min,  b_fire6_max );
   assign_maps_quant(fire7,  W_fire7,  b_fire7,
-    10, W_fire7_min,  W_fire7_max,  b_fire7_min,  b_fire7_max );
+    24, W_fire7_min,  W_fire7_max,  b_fire7_min,  b_fire7_max );
   assign_maps_quant(fire8,  W_fire8,  b_fire8,
-    11, W_fire8_min,  W_fire8_max,  b_fire8_min,  b_fire8_max );
+    24, W_fire8_min,  W_fire8_max,  b_fire8_min,  b_fire8_max );
   assign_maps_quant(fire9,  W_fire9,  b_fire9,
-    11, W_fire9_min,  W_fire9_max,  b_fire9_min,  b_fire9_max );
+    24, W_fire9_min,  W_fire9_max,  b_fire9_min,  b_fire9_max );
   assign_maps_quant(fire10, W_fire10, b_fire10,
-    12, W_fire10_min, W_fire10_max, b_fire10_min, b_fire10_max);
+    24, W_fire10_min, W_fire10_max, b_fire10_min, b_fire10_max);
   assign_maps_quant(fire11, W_fire11, b_fire11,
-    12, W_fire11_min, W_fire11_max, b_fire11_min, b_fire11_max);
+    24, W_fire11_min, W_fire11_max, b_fire11_min, b_fire11_max);
   assign_map_quant( conv12, W_conv12, b_conv12,
-    10, W_conv12_min, W_conv12_max, b_conv12_min, b_conv12_max);
+    24, W_conv12_min, W_conv12_max, b_conv12_min, b_conv12_max);
 
   init_matrix();
 }
@@ -270,14 +270,14 @@ auto SqueezeDet::merge_box_delta(const Mat2D<float>& anchor,
   };
 
   auto delta_t = transpose(delta);
-  // auto delta_x = delta_t[0];
-  // auto delta_y = delta_t[1];
-  // auto delta_w = delta_t[2];
-  // auto delta_h = delta_t[3];
-  auto delta_x = delta_t[0] / 64.0f;
-  auto delta_y = delta_t[1] / 64.0f;
-  auto delta_w = delta_t[2] / 16.0f;
-  auto delta_h = delta_t[3] / 16.0f;
+  auto delta_x = delta_t[0];
+  auto delta_y = delta_t[1];
+  auto delta_w = delta_t[2];
+  auto delta_h = delta_t[3];
+  // auto delta_x = delta_t[0] / 64.0f;
+  // auto delta_y = delta_t[1] / 64.0f;
+  // auto delta_w = delta_t[2] / 16.0f;
+  // auto delta_h = delta_t[3] / 16.0f;
 
   auto anchor_t = transpose(anchor);
   auto anchor_x = anchor_t[0];
@@ -515,7 +515,7 @@ thr = std::thread([&] {
   exec_cores(fire11);
   exec_core(conv12);
 
-#if 0
+#if 1
   PRINT_MAP(image );
   PRINT_MAP(pmap1 );
   PRINT_MAP(fmap2 );

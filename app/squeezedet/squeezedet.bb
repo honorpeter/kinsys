@@ -56,6 +56,7 @@ SRC_URI = "\
   file://data/fire10.hpp \
   file://data/fire11.hpp \
   file://data/conv12.hpp \
+  file://data/taxi.mp4 \
 "
 
 S = "${WORKDIR}"

@@ -35,7 +35,7 @@ public:
   const int sub_gop_size = 12;
   const int mb_size = 16;
   const int max_mb_size = 512;
-  const float pixel_offset = 1 << 14;
+  const float pixel_offset = 1 << 24;
   const float bgr_means[3] = {103.939, 116.779, 123.68};
 
 private:

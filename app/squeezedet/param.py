@@ -17,7 +17,7 @@ sys.path.append("../../utils")
 import save
 
 BASE_DIR = "/home/work/takau/2.mlearn/fixednets/data/kitti"
-PARAM_DIR = join(BASE_DIR, "Q_squeezeDet_01_scaled")
+PARAM_DIR = join(BASE_DIR, "Q_squeezeDet_01")
 DIST_DIR = join("files", "data")
 
 def gen_conv_quant(layer):

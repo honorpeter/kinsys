@@ -32,14 +32,14 @@ static int __mem_image;
 static int pagesize;
 #endif
 
-static u32 phys_addr;
-static u32 offset;
+static u64 phys_addr;
+static u64 offset;
 
 int kinpira_init(void)
 {
 #ifdef __KPR_RELEASE__
   system("modprobe uio_pdrv_genirq");
-  system("modprobe udmabuf udmabuf0=41943040");
+  system("modprobe udmabuf udmabuf0=83886080");
   usleep(1);
 
   // Open Kinpira slave ports as UIO driver
@@ -58,21 +58,21 @@ int kinpira_init(void)
     return errno;
   }
 
-  port = (u32 *)mmap(NULL, sizeof(u32)*REGSIZE,
+  port = (u64 *)mmap(NULL, sizeof(u64)*REGSIZE,
                      PROT_READ | PROT_WRITE, MAP_SHARED,
                      __port, 0);
 
   mem_renkon =
-    (u32 (*)[RENKON_WORDS])mmap(NULL, sizeof(u32)*RENKON_CORE*RENKON_WORDS,
+    (u64 (*)[RENKON_WORDS])mmap(NULL, sizeof(u64)*RENKON_CORE*RENKON_WORDS,
                                 PROT_READ | PROT_WRITE, MAP_SHARED,
                                 __mem_renkon, 0);
 
   mem_gobou =
-    (u32 (*)[GOBOU_WORDS])mmap(NULL, sizeof(u32)*GOBOU_CORE*GOBOU_WORDS,
+    (u64 (*)[GOBOU_WORDS])mmap(NULL, sizeof(u64)*GOBOU_CORE*GOBOU_WORDS,
                                PROT_READ | PROT_WRITE, MAP_SHARED,
                                __mem_gobou, 0);
 
-  mem_image = (s16 *)mmap(NULL, sizeof(s16)*20*1048576,
+  mem_image = (s32 *)mmap(NULL, sizeof(s32)*20*1048576,
                           PROT_READ | PROT_WRITE, MAP_SHARED,
                           __mem_image, 0);
 
@@ -91,15 +91,15 @@ int kinpira_init(void)
   sscanf(attr, "%x", &phys_addr);
   close(fd);
 #else
-  port = (u32 *)calloc(REGSIZE, sizeof(u32));
+  port = (u64 *)calloc(REGSIZE, sizeof(u64));
 
   mem_renkon =
-    (u32 (*)[RENKON_WORDS])calloc(RENKON_CORE*RENKON_WORDS, sizeof(u32));
+    (u64 (*)[RENKON_WORDS])calloc(RENKON_CORE*RENKON_WORDS, sizeof(u64));
 
   mem_gobou =
-    (u32 (*)[GOBOU_WORDS])calloc(GOBOU_CORE*GOBOU_WORDS, sizeof(u32));
+    (u64 (*)[GOBOU_WORDS])calloc(GOBOU_CORE*GOBOU_WORDS, sizeof(u64));
 
-  mem_image = (s16 *)calloc(20*1048576, sizeof(s16));
+  mem_image = (s32 *)calloc(20*1048576, sizeof(s32));
 #endif
 
 #ifdef PAGED
@@ -115,10 +115,10 @@ int kinpira_init(void)
 int kinpira_exit(void)
 {
 #ifdef __KPR_RELEASE__
-  munmap(port, sizeof(u32)*REGSIZE);
-  munmap(mem_renkon, sizeof(u32)*RENKON_CORE*RENKON_WORDS);
-  munmap(mem_gobou, sizeof(u32)*GOBOU_CORE*GOBOU_WORDS);
-  munmap(mem_image, sizeof(s16)*20*1048576);
+  munmap(port, sizeof(u64)*REGSIZE);
+  munmap(mem_renkon, sizeof(u64)*RENKON_CORE*RENKON_WORDS);
+  munmap(mem_gobou, sizeof(u64)*GOBOU_CORE*GOBOU_WORDS);
+  munmap(mem_image, sizeof(s32)*20*1048576);
 
   close(__port);
   close(__mem_renkon);
@@ -149,10 +149,10 @@ Map *define_map(int qbits, int map_c, int map_h, int map_w)
   r->shape[1] = map_h;
   r->shape[2] = map_w;
 
-  int map_size = sizeof(s16)*map_c*map_h*map_w;
+  int map_size = sizeof(s32)*map_c*map_h*map_w;
 
   r->phys_addr = phys_addr + offset;
-  r->body = (s16 *)((UINTPTR)mem_image + offset);
+  r->body = (s32 *)((UINTPTR)mem_image + offset);
 
 #ifdef __KPR_DEBUG__
   printf("offset: %u\n", offset);
@@ -177,10 +177,10 @@ Vec *define_vec(int qbits, int vec_l)
 
   r->shape = vec_l;
 
-  int vec_size = sizeof(s16)*vec_l;
+  int vec_size = sizeof(s32)*vec_l;
 
   r->phys_addr = phys_addr + offset;
-  r->body = (s16 *)((UINTPTR)mem_image + offset);
+  r->body = (s32 *)((UINTPTR)mem_image + offset);
 
 #ifdef __KPR_DEBUG__
   printf("offset: %u\n", offset);

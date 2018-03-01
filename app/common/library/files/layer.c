@@ -9,25 +9,25 @@
 
 
 
-static u32 renkon_offset = 0;
-static u32 gobou_offset  = 0;
+static u64 renkon_offset = 0;
+static u64 gobou_offset  = 0;
 static int kern   = 0;
 static int strid  = 0;
 static int pad    = 0;
 static int bias   = 0;
 
 
-static void define_conv(Layer *l, u32 *param);
-static void define_full(Layer *l, u32 *param);
-static void define_norm(Layer *l, u32 *param);
-static void define_actv(Layer *l, u32 *param);
-static void define_pool(Layer *l, u32 *param);
+static void define_conv(Layer *l, u64 *param);
+static void define_full(Layer *l, u64 *param);
+static void define_norm(Layer *l, u64 *param);
+static void define_actv(Layer *l, u64 *param);
+static void define_pool(Layer *l, u64 *param);
 
 
 
 Layer *map_layer(
   Map *in, Map *out,
-  u32 *conv_param, u32 *norm_param, u32 *actv_param, u32 *pool_param
+  u64 *conv_param, u64 *norm_param, u64 *actv_param, u64 *pool_param
 )
 {
   Layer *l = (Layer *)calloc(1, sizeof(Layer));
@@ -75,7 +75,7 @@ Layer *map_layer(
 
 Layer *vec_layer(
   Vec *in, Vec *out,
-  u32 *full_param, u32 *norm_param, u32 *actv_param
+  u64 *full_param, u64 *norm_param, u64 *actv_param
 )
 {
   Layer *l = (Layer *)calloc(1, sizeof(Layer));
@@ -118,9 +118,9 @@ Layer *vec_layer(
 
 
 
-u32 *convolution_2d(int conv_kern, int conv_strid, int conv_pad, int mode)
+u64 *convolution_2d(int conv_kern, int conv_strid, int conv_pad, int mode)
 {
-  u32 *param = (u32 *)calloc(3, sizeof(u32));
+  u64 *param = (u64 *)calloc(3, sizeof(u64));
 
   param[0] |= conv_kern;
 
@@ -128,7 +128,7 @@ u32 *convolution_2d(int conv_kern, int conv_strid, int conv_pad, int mode)
   param[1] |= conv_pad;
 
   if (mode & CONV_BIAS)
-    param[2] |= 1U << (BWIDTH-1);
+    param[2] |= (u64)1U << (BWIDTH-1);
 
   kern  = conv_kern;
   strid = conv_strid;
@@ -140,7 +140,7 @@ u32 *convolution_2d(int conv_kern, int conv_strid, int conv_pad, int mode)
 
 
 
-static void define_conv(Layer *l, u32 *param)
+static void define_conv(Layer *l, u64 *param)
 {
   if (param == NULL) {
     fprintf(stderr, "map_layer must have convolution_2d attr.\n");
@@ -157,12 +157,12 @@ static void define_conv(Layer *l, u32 *param)
 
 
 
-u32 *fully_connected(int mode)
+u64 *fully_connected(int mode)
 {
-  u32 *param = (u32 *)calloc(2, sizeof(u32));
+  u64 *param = (u64 *)calloc(2, sizeof(u64));
 
   if (mode & FULL_BIAS)
-    param[1] |= 1U << (BWIDTH-1);
+    param[1] |= (u64)1U << (BWIDTH-1);
 
   kern  = 0;
   strid = 0;
@@ -174,7 +174,7 @@ u32 *fully_connected(int mode)
 
 
 
-static void define_full(Layer *l, u32 *param)
+static void define_full(Layer *l, u64 *param)
 {
   if (param == NULL) {
     fprintf(stderr, "vec_layer must have fully_connected attr.\n");
@@ -189,9 +189,9 @@ static void define_full(Layer *l, u32 *param)
 
 
 
-u32 *normalization(int mode)
+u64 *normalization(int mode)
 {
-  u32 *param = (u32 *)calloc(1, sizeof(u32));
+  u64 *param = (u64 *)calloc(1, sizeof(u64));
 
   if (mode & NORM_NIL)
     param[0] = 0;
@@ -201,7 +201,7 @@ u32 *normalization(int mode)
 
 
 
-static void define_norm(Layer *l, u32 *param)
+static void define_norm(Layer *l, u64 *param)
 {
   if (param == NULL) {
     l->norm_param = 0;
@@ -216,12 +216,12 @@ static void define_norm(Layer *l, u32 *param)
 
 
 
-u32 *activation(int mode)
+u64 *activation(int mode)
 {
-  u32 *param = (u32 *)calloc(1, sizeof(u32));
+  u64 *param = (u64 *)calloc(1, sizeof(u64));
 
   if (mode & ACTV_RELU) {
-    param[0] |= 1U << (BWIDTH-1);
+    param[0] |= (u64)1U << (BWIDTH-1);
   }
   else {
     fprintf(stderr, "only relu is implemented.\n");
@@ -233,7 +233,7 @@ u32 *activation(int mode)
 
 
 
-static void define_actv(Layer *l, u32 *param)
+static void define_actv(Layer *l, u64 *param)
 {
   if (param == NULL) {
     l->actv_param = 0;
@@ -247,9 +247,9 @@ static void define_actv(Layer *l, u32 *param)
 
 
 
-u32 *pooling_2d(int pool_kern, int pool_strid, int pool_pad, int mode)
+u64 *pooling_2d(int pool_kern, int pool_strid, int pool_pad, int mode)
 {
-  u32 *param = (u32 *)calloc(2, sizeof(u32));
+  u64 *param = (u64 *)calloc(2, sizeof(u64));
 
   param[0] |= pool_kern;
 
@@ -257,7 +257,7 @@ u32 *pooling_2d(int pool_kern, int pool_strid, int pool_pad, int mode)
   param[1] |= pool_pad;
 
   if (mode & POOL_MAX) {
-    param[0] |= 1U << (BWIDTH-1);
+    param[0] |= (u64)1U << (BWIDTH-1);
   }
   else {
     fprintf(stderr, "only max pooling is implemented.\n");
@@ -269,7 +269,7 @@ u32 *pooling_2d(int pool_kern, int pool_strid, int pool_pad, int mode)
 
 
 
-static void define_pool(Layer *l, u32 *param)
+static void define_pool(Layer *l, u64 *param)
 {
   if (param == NULL) {
     l->pool_param[0] = 0;
@@ -285,7 +285,7 @@ static void define_pool(Layer *l, u32 *param)
 
 
 
-void set_input(s16 **in, Map *out)
+void set_input(s32 **in, Map *out)
 {
   *in = out->body;
 }
@@ -302,7 +302,7 @@ void map2vec(Map *in, Vec *out)
 
 
 
-void set_output(Vec *in, s16 **out)
+void set_output(Vec *in, s32 **out)
 {
   *out = in->body;
 }

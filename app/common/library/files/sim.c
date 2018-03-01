@@ -6,12 +6,12 @@
 #include "kinpira.h"
 #include "sim.h"
 
-static u32 bit(u32 value, int high, int low)
+static u64 bit(u64 value, int high, int low)
 {
   return value << (BWIDTH-1-high) >> (BWIDTH-1-high) >> low;
 }
 
-static inline s16 mlt(unsigned N, s16 a, s16 b)
+static inline s32 mlt(unsigned N, s32 a, s32 b)
 {
   int c = (int)a * (int)b;
 
@@ -22,28 +22,28 @@ static inline s16 mlt(unsigned N, s16 a, s16 b)
 }
 
 #if 0
-static s16** init_2(int a, int b)
+static s32** init_2(int a, int b)
 { // {{{
-  s16** x;
+  s32** x;
 
-  x = (s16**)calloc(a, sizeof(s16*));
+  x = (s32**)calloc(a, sizeof(s32*));
   for (int i = 0; i < a; ++i) {
-    x[i] = (s16*)calloc(b, sizeof(s16));
+    x[i] = (s32*)calloc(b, sizeof(s32));
   }
 
   return x;
 } // }}}
 #endif
 
-static s16*** init_3(int a, int b, int c)
+static s32*** init_3(int a, int b, int c)
 { // {{{
-  s16*** x;
+  s32*** x;
 
-  x = (s16***)calloc(a, sizeof(s16**));
+  x = (s32***)calloc(a, sizeof(s32**));
   for (int i = 0; i < a; ++i) {
-    x[i] = (s16**)calloc(b, sizeof(s16*));
+    x[i] = (s32**)calloc(b, sizeof(s32*));
     for (int j = 0; j < b; ++j) {
-      x[i][j] = (s16*)calloc(c, sizeof(s16));
+      x[i][j] = (s32*)calloc(c, sizeof(s32));
     }
   }
 
@@ -51,17 +51,17 @@ static s16*** init_3(int a, int b, int c)
 } // }}}
 
 #if 0
-static s16**** init_4(int a, int b, int c, int d)
+static s32**** init_4(int a, int b, int c, int d)
 { // {{{
-  s16**** x;
+  s32**** x;
 
-  x = (s16****)calloc(a, sizeof(s16***));
+  x = (s32****)calloc(a, sizeof(s32***));
   for (int i = 0; i < a; ++i) {
-    x[i] = (s16***)calloc(b, sizeof(s16**));
+    x[i] = (s32***)calloc(b, sizeof(s32**));
     for (int j = 0; j < b; ++j) {
-      x[i][j] = (s16**)calloc(c, sizeof(s16*));
+      x[i][j] = (s32**)calloc(c, sizeof(s32*));
       for (int k = 0; k < c; ++k) {
-        x[i][j][k] = (s16*)calloc(d, sizeof(s16));
+        x[i][j][k] = (s32*)calloc(d, sizeof(s32));
       }
     }
   }
@@ -71,7 +71,7 @@ static s16**** init_4(int a, int b, int c, int d)
 #endif
 
 #if 0
-static void kill_2(s16*** x, int a, int b)
+static void kill_2(s32*** x, int a, int b)
 { // {{{
   assert(b);
 
@@ -82,7 +82,7 @@ static void kill_2(s16*** x, int a, int b)
 } // }}}
 #endif
 
-static void kill_3(s16*** x, int a, int b, int c)
+static void kill_3(s32*** x, int a, int b, int c)
 { // {{{
   assert(c);
 
@@ -96,7 +96,7 @@ static void kill_3(s16*** x, int a, int b, int c)
 } // }}}
 
 #if 0
-static void kill_4(s16**** x, int a, int b, int c, int d)
+static void kill_4(s32**** x, int a, int b, int c, int d)
 { // {{{
   assert(d);
 
@@ -128,12 +128,12 @@ static void conv()
   const int strid = bit(*reg_conv_param1, 2*LWIDTH-1, LWIDTH);
   const int pad   = bit(*reg_conv_param1, LWIDTH-1, 0);
 
-  s16 (*input)[img_h][img_w]
-    = (s16 (*)[img_h][img_w])((UINTPTR)mem_image + *reg_in_offset);
-  s16 (*output)[fea_h][fea_w]
-    = (s16 (*)[fea_h][fea_w])((UINTPTR)mem_image + *reg_out_offset);
+  s32 (*input)[img_h][img_w]
+    = (s32 (*)[img_h][img_w])((UINTPTR)mem_image + *reg_in_offset);
+  s32 (*output)[fea_h][fea_w]
+    = (s32 (*)[fea_h][fea_w])((UINTPTR)mem_image + *reg_out_offset);
 
-  s16 weight[n_out][n_in][kern][kern];
+  s32 weight[n_out][n_in][kern][kern];
   for (int n = 0; n < n_out; ++n) {
     int which = (n % RENKON_CORE);
     int addr  = (n / RENKON_CORE) * (n_in*kern*kern + 1) + *reg_net_offset;
@@ -148,7 +148,7 @@ static void conv()
 #endif
   }
 
-  s16*** padded = init_3(n_in, img_h+2*pad, img_w+2*pad);
+  s32*** padded = init_3(n_in, img_h+2*pad, img_w+2*pad);
   for (int m = 0; m < n_in; ++m)
     for (int i = 0; i < img_h; ++i)
       for (int j = 0; j < img_w; ++j)
@@ -157,7 +157,7 @@ static void conv()
   for (int n = 0; n < n_out; ++n) {
     for (int i = 0; i < img_h+2*pad-kern+1; i+=strid) {
       for (int j = 0; j < img_w+2*pad-kern+1; j+=strid) {
-        s16 acc = 0;
+        s32 acc = 0;
         for (int m = 0; m < n_in; ++m)
           for (int k = 0; k < kern; ++k)
             for (int l = 0; l < kern; ++l)
@@ -178,12 +178,12 @@ void bias_renkon()
 
   const int kern  = bit(*reg_conv_param0, LWIDTH-1, 0);
 
-  s16 (*input)[fea_h][fea_w]
-    = (s16 (*)[fea_h][fea_w])((UINTPTR)mem_image + *reg_out_offset);
-  s16 (*output)[fea_h][fea_w]
-    = (s16 (*)[fea_h][fea_w])((UINTPTR)mem_image + *reg_out_offset);
+  s32 (*input)[fea_h][fea_w]
+    = (s32 (*)[fea_h][fea_w])((UINTPTR)mem_image + *reg_out_offset);
+  s32 (*output)[fea_h][fea_w]
+    = (s32 (*)[fea_h][fea_w])((UINTPTR)mem_image + *reg_out_offset);
 
-  s16 bias[n_out];
+  s32 bias[n_out];
   for (int n = 0; n < n_out; ++n) {
     int which = (n % RENKON_CORE);
     int addr  = (n / RENKON_CORE) * (n_in*kern*kern + 1) + *reg_net_offset;
@@ -207,10 +207,10 @@ static void relu_renkon()
   const int fea_h = bit(*reg_base_param2, 2*LWIDTH-1, LWIDTH);
   const int fea_w = bit(*reg_base_param2, LWIDTH-1, 0);
 
-  s16 (*input)[fea_h][fea_w]
-    = (s16 (*)[fea_h][fea_w])((UINTPTR)mem_image + *reg_out_offset);
-  s16 (*output)[fea_h][fea_w]
-    = (s16 (*)[fea_h][fea_w])((UINTPTR)mem_image + *reg_out_offset);
+  s32 (*input)[fea_h][fea_w]
+    = (s32 (*)[fea_h][fea_w])((UINTPTR)mem_image + *reg_out_offset);
+  s32 (*output)[fea_h][fea_w]
+    = (s32 (*)[fea_h][fea_w])((UINTPTR)mem_image + *reg_out_offset);
 
   for (int n = 0; n < n_out; ++n)
     for (int i = 0; i < fea_h; ++i)
@@ -231,12 +231,12 @@ static void pool()
   const int out_h = (fea_h + 2*pad - kern + strid - 1)/strid + 1;
   const int out_w = (fea_w + 2*pad - kern + strid - 1)/strid + 1;
 
-  s16 (*input)[fea_h][fea_w]
-    = (s16 (*)[fea_h][fea_w])((UINTPTR)mem_image + *reg_out_offset);
-  s16 (*output)[out_h][out_w]
-    = (s16 (*)[out_h][out_w])((UINTPTR)mem_image + *reg_out_offset);
+  s32 (*input)[fea_h][fea_w]
+    = (s32 (*)[fea_h][fea_w])((UINTPTR)mem_image + *reg_out_offset);
+  s32 (*output)[out_h][out_w]
+    = (s32 (*)[out_h][out_w])((UINTPTR)mem_image + *reg_out_offset);
 
-  s16*** padded = init_3(n_out, fea_h+2*pad+strid-1, fea_w+2*pad+strid-1);
+  s32*** padded = init_3(n_out, fea_h+2*pad+strid-1, fea_w+2*pad+strid-1);
   for (int m = 0; m < n_out; ++m)
     for (int i = 0; i < fea_h; ++i)
       for (int j = 0; j < fea_w; ++j)
@@ -245,7 +245,7 @@ static void pool()
   for (int n = 0; n < n_out; ++n) {
     for (int i = 0; i < fea_h+2*pad+strid-kern; i+=strid) {
       for (int j = 0; j < fea_w+2*pad+strid-kern; j+=strid) {
-        s16 max = SHRT_MIN;
+        s32 max = SHRT_MIN;
         for (int k = 0; k < kern; ++k)
           for (int l = 0; l < kern; ++l)
             if (padded[n][i+k][j+l] > max) max = padded[n][i+k][j+l];
@@ -263,10 +263,10 @@ static void full()
   const int n_out = bit(*reg_base_param0, 2*LWIDTH-1, LWIDTH);
   const int n_in  = bit(*reg_base_param0, LWIDTH-1, 0);
 
-  s16 *input = (s16 *)((UINTPTR)mem_image + *reg_in_offset);
-  s16 *output = (s16 *)((UINTPTR)mem_image + *reg_out_offset);
+  s32 *input = (s32 *)((UINTPTR)mem_image + *reg_in_offset);
+  s32 *output = (s32 *)((UINTPTR)mem_image + *reg_out_offset);
 
-  s16 weight[n_out][n_in];
+  s32 weight[n_out][n_in];
   for (int n = 0; n < n_out; ++n) {
     int which = (n % GOBOU_CORE);
     int addr  = (n / GOBOU_CORE) * (n_in + 1) + *reg_net_offset;
@@ -280,7 +280,7 @@ static void full()
   }
 
   for (int n = 0; n < n_out; ++n) {
-    s16 acc = 0;
+    s32 acc = 0;
     for (int m = 0; m < n_in; ++m)
       acc += mlt(N, weight[n][m], input[m]);
     output[n] = acc;
@@ -292,10 +292,10 @@ void bias_gobou()
   const int n_out = bit(*reg_base_param0, 2*LWIDTH-1, LWIDTH);
   const int n_in  = bit(*reg_base_param0, LWIDTH-1, 0);
 
-  s16 *input = (s16 *)((UINTPTR)mem_image + *reg_out_offset);
-  s16 *output = (s16 *)((UINTPTR)mem_image + *reg_out_offset);
+  s32 *input = (s32 *)((UINTPTR)mem_image + *reg_out_offset);
+  s32 *output = (s32 *)((UINTPTR)mem_image + *reg_out_offset);
 
-  s16 bias[n_out];
+  s32 bias[n_out];
   for (int n = 0; n < n_out; ++n) {
     const int which = (n % GOBOU_CORE);
     const int addr  = (n / GOBOU_CORE) * (n_in + 1) + *reg_net_offset;
@@ -321,8 +321,8 @@ static void relu_gobou()
 {
   const int n_out = bit(*reg_base_param0, 2*LWIDTH-1, LWIDTH);
 
-  s16 *input = (s16 *)((UINTPTR)mem_image + *reg_out_offset);
-  s16 *output = (s16 *)((UINTPTR)mem_image + *reg_out_offset);
+  s32 *input = (s32 *)((UINTPTR)mem_image + *reg_out_offset);
+  s32 *output = (s32 *)((UINTPTR)mem_image + *reg_out_offset);
 
   for (int n = 0; n < n_out; ++n)
     if (input[n] < 0) output[n] = 0;

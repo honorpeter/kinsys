@@ -5,7 +5,7 @@
 `timescale 1 ns / 1 ps
 // DIST will be defined when distributed
 `undef DIST
-// `define QUANT
+`define QUANT
 
 `ifndef DIST
 `include "mem_sp.sv"

@@ -24,8 +24,8 @@ struct Image {
   unsigned char *src;
   // std::unique_ptr<Mat3D<int>> mvs;
   std::unique_ptr<std::vector<AVMotionVector>> mvs;
-  std::unique_ptr<s16[]> body;
-  // s16 *body;
+  std::unique_ptr<s32[]> body;
+  // s32 *body;
 };
 
 struct BBox {

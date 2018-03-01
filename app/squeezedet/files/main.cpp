@@ -10,10 +10,10 @@
 #include "tracker.hpp"
 #include "wrapper.hpp"
 
-uint32_t *port;
-uint32_t (*mem_renkon)[RENKON_WORDS];
-uint32_t (*mem_gobou)[GOBOU_WORDS];
-int16_t *mem_image;
+uint64_t *port;
+uint64_t (*mem_renkon)[RENKON_WORDS];
+uint64_t (*mem_gobou)[GOBOU_WORDS];
+int32_t *mem_image;
 #ifdef THREAD
 std::mutex mtx;
 #endif
@@ -42,7 +42,7 @@ inline void set_image(const std::shared_ptr<Image>& in_det,
   in_det->src     = image->src;
   in_det->mvs     = std::move(image->mvs);
   memmove(in_det->body.get(), image->body.get(),
-          sizeof(s16)*3*image->height*image->width);
+          sizeof(s32)*3*image->height*image->width);
 }
 
 void loop_scenario()
