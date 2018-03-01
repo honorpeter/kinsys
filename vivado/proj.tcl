@@ -154,4 +154,12 @@ set_property "steps.write_bitstream.args.verbose" "0" $obj
 # set the current impl run
 current_run -implementation [get_runs impl_1]
 
+set_property strategy Flow_PerfOptimized_high [get_runs synth_1]
+set_property strategy Performance_Explore [get_runs impl_1]
+set_property STEPS.POWER_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
+set_property STEPS.POST_PLACE_POWER_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
+set_property STEPS.POST_ROUTE_PHYS_OPT_DESIGN.IS_ENABLED true [get_runs impl_1]
+set_property STEPS.SYNTH_DESIGN.ARGS.RETIMING true [get_runs synth_1]
+set_property STEPS.SYNTH_DESIGN.ARGS.FLATTEN_HIERARCHY full [get_runs synth_1]
+
 puts "INFO: Project created:$proj_name"

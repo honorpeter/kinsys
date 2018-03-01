@@ -123,7 +123,7 @@ u32 *convolution_2d(int conv_kern, int conv_strid, int conv_pad, int mode)
   param[1] |= conv_pad;
 
   if (mode & CONV_BIAS)
-    param[2] |= 1U << (BWIDTH-1);
+    param[2] |= (u32)1U << (BWIDTH-1);
 
   kern  = conv_kern;
   strid = conv_strid;
@@ -157,7 +157,7 @@ u32 *fully_connected(int mode)
   u32 *param = (u32 *)calloc(2, sizeof(u32));
 
   if (mode & FULL_BIAS)
-    param[1] |= 1U << (BWIDTH-1);
+    param[1] |= (u32)1U << (BWIDTH-1);
 
   kern  = 0;
   strid = 0;
@@ -216,7 +216,7 @@ u32 *activation(int mode)
   u32 *param = (u32 *)calloc(1, sizeof(u32));
 
   if (mode & ACTV_RELU) {
-    param[0] |= 1U << (BWIDTH-1);
+    param[0] |= (u32)1U << (BWIDTH-1);
   }
   else {
     fprintf(stderr, "only relu is implemented.\n");
@@ -252,7 +252,7 @@ u32 *pooling_2d(int pool_kern, int pool_strid, int pool_pad, int mode)
   param[1] |= pool_pad;
 
   if (mode & POOL_MAX) {
-    param[0] |= 1U << (BWIDTH-1);
+    param[0] |= (u32)1U << (BWIDTH-1);
   }
   else {
     fprintf(stderr, "only max pooling is implemented.\n");

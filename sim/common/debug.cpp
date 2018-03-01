@@ -24,7 +24,7 @@ const int n_f3      = 10;
 template <typename T>
 T mul(T x, T y)
 {
-  int prod = x * y;
+  int64_t prod = (int64_t)x * (int64_t)y;
 
   if (prod < 0)
     // return prod / static_cast<T>(pow(2, 8)) - 1;

@@ -33,7 +33,7 @@ extern "C" {
 #define assert_rep(a, b, len) do {            \
   for (int i = 0; i < (len); i++) {           \
     if (*((a)+i) != *((b)+i)) {               \
-      printf("\t%d:\t%s == %x, %s == %x\n",   \
+      printf("\t%d:\t%s == %d, %s == %d\n",   \
               i, #a, *((a)+i), #b, *((b)+i)); \
     }                                         \
   }                                           \
@@ -49,12 +49,10 @@ extern "C" {
 } while (0)
 
 #ifdef QUANT
-// void assign_map_quant(Layer *l, u8 *weight, u8 *bias,
-void assign_map_quant(Layer *l, s16 *weight, s16 *bias,
+void assign_map_quant(Layer *l, u8 *weight, u8 *bias,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max);
-// void assign_vec_quant(Layer *l, u8 *weight, u8 *bias,
-void assign_vec_quant(Layer *l, s16 *weight, s16 *bias,
+void assign_vec_quant(Layer *l, u8 *weight, u8 *bias,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max);
 #else

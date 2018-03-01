@@ -2,7 +2,7 @@
 `include "ninjin.svh"
 
 // `define SAIF
-// `define NINJIN
+`define NINJIN
 `define DIRECT
 // `define LENET
 
@@ -133,8 +133,8 @@ module test_renkon_top;
 `ifdef NINJIN
   reg                     pre_req;
   reg [WORDSIZE-1:0]      pre_base;
-  reg [LWIDTH-1:0]        read_len;
-  reg [LWIDTH-1:0]        write_len;
+  reg [MEMSIZE-1:0]       read_len;
+  reg [MEMSIZE-1:0]       write_len;
   reg                     ddr_we;
   reg [WORDSIZE-1:0]      ddr_waddr;
   reg [BWIDTH-1:0]        ddr_wdata;
@@ -143,7 +143,7 @@ module test_renkon_top;
   wire                    ddr_req;
   wire                    ddr_mode;
   wire [WORDSIZE+LSB-1:0] ddr_base;
-  wire [LWIDTH-1:0]       ddr_len;
+  wire [MEMSIZE-1:0]      ddr_len;
   wire [BWIDTH-1:0]       ddr_rdata;
   integer _ddr_base [1:0];
   integer _ddr_len [1:0];

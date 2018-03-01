@@ -15,9 +15,11 @@ parameter REGSIZE = 6;
 // parameter PORT  = 2 ** REGSIZE;
 parameter PORT    = 64;
 
+// parameter LSB     = $clog2(BWIDTH/8);
+// parameter LSB     = 3;
 parameter LSB     = 2;
 `ifndef DIST
-parameter WORDSIZE = MEMSIZE - RATELOG;
+parameter WORDSIZE = MEMSIZE + RATELOG - LSB;
 `else
 // parameter WORDSIZE = MEMSIZE - RATELOG;
 parameter WORDSIZE = 30;

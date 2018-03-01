@@ -86,7 +86,7 @@ module renkon_top
   wire signed [DWIDTH-1:0]        out_wdata;
 
 `ifdef QUANT
-  wire signed [DWIDTH-1:0]        net_quant [RENKON_CORE-1:0];
+  wire [QWIDTH-1:0]               net_quant [RENKON_CORE-1:0];
 `endif
 
   renkon_ctrl ctrl(.*);

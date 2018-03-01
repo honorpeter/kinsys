@@ -14,7 +14,6 @@ module dequant
   , input  signed [DWIDTH-1:0]  b_scale
   , input  signed [DWIDTH-1:0]  b_offset
   , input  [QWIDTH-1:0]         x
-  // , input  signed [QWIDTH-1:0]  x
   , output signed [DWIDTH-1:0]  y
   );
 

@@ -16,8 +16,7 @@ static u32 bit(u32 value, int high, int low)
 
 
 #ifdef QUANT
-// void assign_map_quant(Layer *l, u8 *weight, u8 *bias,
-void assign_map_quant(Layer *l, s16 *weight, s16 *bias,
+void assign_map_quant(Layer *l, u8 *weight, u8 *bias,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max)
 #else
@@ -77,8 +76,7 @@ void assign_map(Layer *l, s16 *weight, s16 *bias)
 
 
 #ifdef QUANT
-// void assign_vec_quant(Layer *l, u8 *weight, u8 *bias,
-void assign_vec_quant(Layer *l, s16 *weight, s16 *bias,
+void assign_vec_quant(Layer *l, u8 *weight, u8 *bias,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max)
 #else
@@ -197,13 +195,13 @@ void print_result(s16 *output, const int length)
 void print_port()
 {
   printf(
-    "&port[0]:  %08x &port[1]:  %08x &port[2]:  %08x &port[3]:  %08x\n"
-    "&port[4]:  %08x &port[5]:  %08x &port[6]:  %08x &port[7]:  %08x\n"
-    "&port[8]:  %08x &port[9]:  %08x &port[10]: %08x &port[11]: %08x\n"
-    "&port[12]: %08x &port[13]: %08x &port[14]: %08x &port[15]: %08x\n"
-    "&port[16]: %08x &port[17]: %08x &port[18]: %08x &port[19]: %08x\n"
-    "&port[20]: %08x &port[21]: %08x &port[22]: %08x\n"
-    "&port[60]: %08x &port[61]: %08x &port[62]: %08x &port[63]: %08x\n"
+    "&port[0]:  %08lx &port[1]:  %08lx &port[2]:  %08lx &port[3]:  %08lx\n"
+    "&port[4]:  %08lx &port[5]:  %08lx &port[6]:  %08lx &port[7]:  %08lx\n"
+    "&port[8]:  %08lx &port[9]:  %08lx &port[10]: %08lx &port[11]: %08lx\n"
+    "&port[12]: %08lx &port[13]: %08lx &port[14]: %08lx &port[15]: %08lx\n"
+    "&port[16]: %08lx &port[17]: %08lx &port[18]: %08lx &port[19]: %08lx\n"
+    "&port[20]: %08lx &port[21]: %08lx &port[22]: %08lx\n"
+    "&port[60]: %08lx &port[61]: %08lx &port[62]: %08lx &port[63]: %08lx\n"
     "\n"
     , port[0], port[1], port[2], port[3]
     , port[4], port[5], port[6], port[7]

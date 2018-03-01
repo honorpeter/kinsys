@@ -53,7 +53,7 @@ module gobou_top
   wire                      relu_oe;
 
 `ifdef QUANT
-  wire signed [DWIDTH-1:0]  net_quant [GOBOU_CORE-1:0];
+  wire [QWIDTH-1:0]         net_quant [GOBOU_CORE-1:0];
 `endif
 
   gobou_ctrl ctrl(.*);
