@@ -16,7 +16,7 @@ static u64 bit(u64 value, int high, int low)
 
 
 #ifdef QUANT
-void assign_map_quant(Layer *l, s32 *weight, s32 *bias,
+void assign_map_quant(Layer *l, u8 *weight, u8 *bias,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max)
 #else
@@ -76,7 +76,7 @@ void assign_map(Layer *l, s32 *weight, s32 *bias)
 
 
 #ifdef QUANT
-void assign_vec_quant(Layer *l, s32 *weight, s32 *bias,
+void assign_vec_quant(Layer *l, u8 *weight, u8 *bias,
                       float weight_min, float weight_max,
                       float bias_min, float bias_max)
 #else
