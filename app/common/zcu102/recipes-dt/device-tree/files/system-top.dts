@@ -33,7 +33,7 @@
 		ranges ;
 
 		m_axi_image: kinpira@00000000 {
-			xlnx,m-axi-image-addr-width = <0x21>;
+			xlnx,m-axi-image-addr-width = <0x20>;
 			xlnx,m-axi-image-aruser-width = <0x0>;
 			xlnx,m-axi-image-awuser-width = <0x0>;
 			xlnx,m-axi-image-burst-max = <0x100>;

@@ -23,7 +23,7 @@ parameter QWIDTH    = 8;
 // User parameters
 ////////////////////////////////////////////////////////////
 `ifdef DIST
-parameter MEMSIZE = 31; // Number of DWIDTH entry
+parameter MEMSIZE = 30; // Number of DWIDTH entry
 `else
 // parameter MEMSIZE = BWIDTH - $clog2(DWIDTH/8);
 parameter MEMSIZE = 15;
