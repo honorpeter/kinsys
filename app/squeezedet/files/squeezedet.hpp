@@ -84,8 +84,10 @@ private:
 
   const int CLASSES         = 3;
 #ifdef RELEASE
-  const int IMG_W           = 176;
-  const int IMG_H           = 144;
+  // const int IMG_W           = 176;
+  // const int IMG_H           = 144;
+  const int IMG_W           = 320;
+  const int IMG_H           = 240;
 #else
   // const int IMG_W           = 240;
   // const int IMG_H           = 240;

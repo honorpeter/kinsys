@@ -11,22 +11,22 @@ Webcam::Webcam(
   avdevice_register_all();
 
 #ifdef RELEASE
-  // const char *name = "/dev/video0";
-  // AVInputFormat *in_format = av_find_input_format("v4l2");
+  const char *name = "/dev/video0";
+  AVInputFormat *in_format = av_find_input_format("v4l2");
+  AVDictionary *format_opts = nullptr;
+  // av_dict_set(&format_opts, "framerate", "10", 0);
+  av_dict_set(&format_opts, "framerate", "30", 0);
+  // av_dict_set(&format_opts, "video_size", "176x144", 0);
+  av_dict_set(&format_opts, "video_size", "320x240", 0);
+  av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
+  av_dict_set(&format_opts, "input_format", "h264", 0);
+
+  // const char *name = "/usr/share/squeezedet/data/taxi.mp4";
+  // AVInputFormat *in_format = av_find_input_format("avc1");
   // AVDictionary *format_opts = nullptr;
-  // // av_dict_set(&format_opts, "framerate", "10", 0);
   // av_dict_set(&format_opts, "framerate", "30", 0);
   // av_dict_set(&format_opts, "video_size", "176x144", 0);
-  // // av_dict_set(&format_opts, "video_size", "320x240", 0);
   // av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
-  // av_dict_set(&format_opts, "input_format", "h264", 0);
-
-  const char *name = "/usr/share/squeezedet/data/taxi.mp4";
-  AVInputFormat *in_format = av_find_input_format("avc1");
-  AVDictionary *format_opts = nullptr;
-  av_dict_set(&format_opts, "framerate", "30", 0);
-  av_dict_set(&format_opts, "video_size", "176x144", 0);
-  av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
 #else
   // const char *name = "car.mp4";
   // AVInputFormat *in_format = av_find_input_format("avc1");
