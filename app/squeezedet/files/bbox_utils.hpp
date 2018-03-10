@@ -40,7 +40,6 @@ struct BBox {
 using Mask = std::vector<BBox>;
 using Track = std::vector<std::pair<int, BBox>>;
 
-std::vector<float> calc_center(const BBox& box);
 float iou_cost(const BBox& next_box, const BBox& prev_box);
 Mat2D<float> calc_cost(const Mask& src_boxes, const Mask& dst_boxes);
 

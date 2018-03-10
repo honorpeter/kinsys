@@ -18,6 +18,36 @@ extern "C" {
 #include "kinpira.h"
 #include "bbox_utils.hpp"
 
+// delegated class for cv::KalmanFilter
+class KalmanInterpolator
+{
+public:
+  KalmanInterpolator(int dp=2, int mp=2, int cp=2,
+                     float processNoise=1.0f, float measurementNoise=0.1f);
+  ~KalmanInterpolator();
+
+  void reset(const Mask& boxes);
+  cv::Mat filter(const cv::Mat& d_box);
+
+private:
+  void predict(cv::Mat& state, const cv::Mat& control);
+  void update(const cv::Mat& measurement);
+
+  cv::KalmanFilter kalman;
+
+  cv::Mat state;
+  cv::Mat noise;
+
+  const int dp = 2, mp = 2, cp = 2;
+  const float processNoise = 1.0f;
+  const float measurementNoise = 0.1f;
+
+  int total;
+  int count;
+  std::vector<cv::Mat> stateList;
+  std::vector<cv::Mat> errorCovList;
+};
+
 class MVTracker
 {
 public:
@@ -41,24 +71,16 @@ private:
   void tracking(const Mask& boxes);
   int assign_id();
 
-  // void find_inner(Mat3D<int>& inner_mvs,
-  Mat3D<int> find_inner(
-                  const std::unique_ptr<Mat3D<int>> &mvs,
-                  const BBox& box, const std::unique_ptr<Image>& frame);
-  // void average_mvs(std::array<float, 2>& d_box,
-  std::array<float, 2> average_mvs(
-                                   const Mat3D<int>& inner_mvs,
-                                   float filling_rate=0.5);
-  std::array<float, 2> average_inner(
+  cv::Mat average_inner(
     const std::unique_ptr<std::vector<AVMotionVector>>& mvs,
     const BBox& box,
     const std::unique_ptr<Image>& frame,
-    const float filling_rate=0.5);
+    const float filling_rate=0.8);
   void move_bbox(BBox& box,
-                 const std::array<float, 2>& d_box,
+                 const cv::Mat& d_box,
                  const std::unique_ptr<Image>& frame);
 
-  cv::KalmanFilter kalman;
+  KalmanInterpolator kalman;
 
   std::shared_ptr<std::deque<std::unique_ptr<Image>>> in_fifo;
   std::shared_ptr<std::deque<
@@ -69,23 +91,9 @@ private:
   Mask boxes;
   Track tracks;
 
-  const int dp = 2, mp = 2, cp = 2;
-  const float processNoise = 1.0;
-  const float measurementNoise = 0.1;
-
-  int total;
-  int count;
-  std::vector<cv::Mat> stateList;
-  std::vector<cv::Mat> errorCovList;
-
+  int id = 0;
   std::unordered_map<int, int> id_map;
   const float cost_thresh = 1.0;
-
-  // std::unique_ptr<Image> frame;
-  // std::unique_ptr<Mat3D<int>> mvs;
-  // Mat3D<int> inner_mvs;
-  // Mat2D<int> inner_mvs_line;
-  // std::array<float, 2> d_box;
 };
 
 #endif

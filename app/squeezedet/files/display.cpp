@@ -14,11 +14,11 @@ Display::Display(
   // out.open(filename, cv::VideoWriter::fourcc('a', 'v', 'c', '1'),
   //          30.0, cv::Size(1248, 384));
 
-  out.open(filename, cv::VideoWriter::fourcc('a', 'v', 'c', '1'),
-           30.0, cv::Size(640, 480));
-
   // out.open(filename, cv::VideoWriter::fourcc('a', 'v', 'c', '1'),
-  //          30.0, cv::Size(320, 240));
+  //          30.0, cv::Size(640, 480));
+
+  out.open(filename, cv::VideoWriter::fourcc('a', 'v', 'c', '1'),
+           30.0, cv::Size(320, 240));
 #endif
 }
 

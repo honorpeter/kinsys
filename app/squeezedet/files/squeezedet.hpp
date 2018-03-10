@@ -92,11 +92,11 @@ private:
   // const int IMG_W           = 1248;
   // const int IMG_H           = 384;
 
-  const int IMG_W           = 640;
-  const int IMG_H           = 480;
+  // const int IMG_W           = 640;
+  // const int IMG_H           = 480;
 
-  // const int IMG_W           = 320;
-  // const int IMG_H           = 240;
+  const int IMG_W           = 320;
+  const int IMG_H           = 240;
 #endif
 
   const int OUT_W           = IMG_W/16;
@@ -112,11 +112,19 @@ private:
   const int ANCHOR_PER_GRID = 9;
   const int ANCHORS         = OUT_W * OUT_H * ANCHOR_PER_GRID;
 
+#if 0
   const std::vector<std::array<float, 2>> anchor_shapes = {
     {{  36.,  37.}}, {{ 366., 174.}}, {{ 115.,  59.}},
     {{ 162.,  87.}}, {{  38.,  90.}}, {{ 258., 173.}},
     {{ 224., 108.}}, {{  78., 170.}}, {{  72.,  43.}}
   };
+#else
+  const std::vector<std::array<float, 2>> anchor_shapes = {
+    {{  36./2,  37./2}}, {{ 366./2, 174./2}}, {{ 115./2,  59./2}},
+    {{ 162./2,  87./2}}, {{  38./2,  90./2}}, {{ 258./2, 173./2}},
+    {{ 224./2, 108./2}}, {{  78./2, 170./2}}, {{  72./2,  43./2}}
+  };
+#endif
 
   const std::array<std::string, 3> class_map =
     {{"car", "pedestrian", "cyclist"}};

@@ -5,14 +5,6 @@
 #include "arithmetic.hpp"
 #include "wrapper.hpp"
 
-std::vector<float> calc_center(const BBox& box)
-{
-  float center_y = static_cast<float>(box.bot + box.top) / 2.0;
-  float center_x = static_cast<float>(box.right + box.left) / 2.0;
-
-  return std::vector<float>{{center_x, center_y}};
-}
-
 float iou_cost(const BBox& next_box, const BBox& prev_box)
 {
   BBox cap;

@@ -13,7 +13,7 @@ static u64 bit(u64 value, int high, int low)
 
 static inline s32 mlt(unsigned N, s32 a, s32 b)
 {
-  int c = (int)a * (int)b;
+  int64_t c = (int64_t)a * (int64_t)b;
 
   if (c < 0)
     return (c >> N) - 1;
@@ -144,7 +144,7 @@ static void conv()
           weight[n][m][k][l] = *reg_w_scale * mem_renkon[which][addr++]
                              + *reg_w_offset;
 #else
-          weight[n][m][k][l] = mem_renkon[which][addr++];
+          weight[n][m][k][l] = (s32)mem_renkon[which][addr++];
 #endif
   }
 
@@ -245,7 +245,7 @@ static void pool()
   for (int n = 0; n < n_out; ++n) {
     for (int i = 0; i < fea_h+2*pad+strid-kern; i+=strid) {
       for (int j = 0; j < fea_w+2*pad+strid-kern; j+=strid) {
-        s32 max = SHRT_MIN;
+        s32 max = INT_MIN;
         for (int k = 0; k < kern; ++k)
           for (int l = 0; l < kern; ++l)
             if (padded[n][i+k][j+l] > max) max = padded[n][i+k][j+l];

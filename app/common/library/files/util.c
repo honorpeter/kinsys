@@ -224,13 +224,13 @@ void print_result(s32 *output, const int length)
 void print_port()
 {
   printf(
-    "&port[0]:  %08lx &port[1]:  %08lx &port[2]:  %08lx &port[3]:  %08lx\n"
-    "&port[4]:  %08lx &port[5]:  %08lx &port[6]:  %08lx &port[7]:  %08lx\n"
-    "&port[8]:  %08lx &port[9]:  %08lx &port[10]: %08lx &port[11]: %08lx\n"
-    "&port[12]: %08lx &port[13]: %08lx &port[14]: %08lx &port[15]: %08lx\n"
-    "&port[16]: %08lx &port[17]: %08lx &port[18]: %08lx &port[19]: %08lx\n"
-    "&port[20]: %08lx &port[21]: %08lx &port[22]: %08lx\n"
-    "&port[60]: %08lx &port[61]: %08lx &port[62]: %08lx &port[63]: %08lx\n"
+    "&port[0]:  %08llx &port[1]:  %08llx &port[2]:  %08llx &port[3]:  %08llx\n"
+    "&port[4]:  %08llx &port[5]:  %08llx &port[6]:  %08llx &port[7]:  %08llx\n"
+    "&port[8]:  %08llx &port[9]:  %08llx &port[10]: %08llx &port[11]: %08llx\n"
+    "&port[12]: %08llx &port[13]: %08llx &port[14]: %08llx &port[15]: %08llx\n"
+    "&port[16]: %08llx &port[17]: %08llx &port[18]: %08llx &port[19]: %08llx\n"
+    "&port[20]: %08llx &port[21]: %08llx &port[22]: %08llx\n"
+    "&port[60]: %08llx &port[61]: %08llx &port[62]: %08llx &port[63]: %08llx\n"
     "\n"
     , port[0], port[1], port[2], port[3]
     , port[4], port[5], port[6], port[7]
