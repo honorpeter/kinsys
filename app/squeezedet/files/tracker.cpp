@@ -74,7 +74,7 @@ void MVTracker::predict(const Mask& boxes)
 
 void MVTracker::tracking(const Mask& boxes)
 {
-#if 0
+#if 1
   predict(boxes);
   associate(boxes);
 
@@ -147,19 +147,7 @@ Mat3D<int> MVTracker::find_inner(
       // inner_mvs_line.clear();
       for (int x = index_rate[1]/2; x < frame_cols; x += index_rate[1])
         if (box.left <= x && x < box.right)
-        {
-          try {
-            Mat1D<int> inner_mv;
-            inner_mv = mvs->at(y).at(x);
-            inner_mvs_line.emplace_back(inner_mv);
-          }
-          catch (std::exception& e) {
-            cout << e.what() << endl;
-            cout << inner_mvs.size() << ", " << inner_mvs.capacity() << endl;
-            cout << inner_mvs_line.size() << ", " << inner_mvs_line.capacity() << endl;
-            exit(1);
-          }
-        }
+          inner_mvs_line.emplace_back(mvs->at(y).at(x));
       inner_mvs.emplace_back(inner_mvs_line);
     }
   }
@@ -222,10 +210,10 @@ thr = std::thread([&] {
   std::tie(frame, boxes) = std::move(*out_det);
   tracking(boxes);
 
-#if 0
+#if 1
   // reset
   total = 0;
-  count = 0;
+  // count = 0;
   stateList.resize(boxes.size());
   errorCovList.resize(boxes.size());
 

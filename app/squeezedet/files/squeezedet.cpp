@@ -274,10 +274,6 @@ auto SqueezeDet::merge_box_delta(const Mat2D<float>& anchor,
   auto delta_y = delta_t[1];
   auto delta_w = delta_t[2];
   auto delta_h = delta_t[3];
-  // auto delta_x = delta_t[0] / 64.0f;
-  // auto delta_y = delta_t[1] / 64.0f;
-  // auto delta_w = delta_t[2] / 16.0f;
-  // auto delta_h = delta_t[3] / 16.0f;
 
   auto anchor_t = transpose(anchor);
   auto anchor_x = anchor_t[0];
@@ -364,8 +360,8 @@ void SqueezeDet::filter()
 { // {{{
   std::vector<int> whole(ANCHORS);
   std::iota(whole.begin(), whole.end(), 0);
-  std::vector<int> order;
 
+  std::vector<int> order;
   if (0 < TOP_N_DETECTION && TOP_N_DETECTION < (int)probs.size()) {
     std::sort(whole.begin(), whole.end(), [&](int i, int j) {
       return probs[i] > probs[j];
@@ -399,7 +395,6 @@ void SqueezeDet::filter()
     }
 
     auto keep = nms(cand_boxes, cand_probs, NMS_THRESH);
-#if 1
     for (int i = 0; i < (int)keep.size(); ++i) {
       if (keep[i]) {
         auto mask_boxes = bbox_transform(cand_boxes[i][0], cand_boxes[i][1],
@@ -414,18 +409,6 @@ void SqueezeDet::filter()
         });
       }
     }
-#else
-    for (int i = 0; i < 2; ++i) {
-      mask.emplace_back(BBox{
-        .name  = class_map[c],
-        .prob  = 0.5,
-        .left  = 10,
-        .top   = 10,
-        .right = 100,
-        .bot   = 100,
-      });
-    }
-#endif
   }
 } // }}}
 
@@ -460,8 +443,9 @@ void SqueezeDet::interpret(const Mat3D<float>& preds)
   merge_box_delta(anchor_box, pred_box_delta);
 
   for (int i = 0; i < ANCHORS; ++i) {
-    for (int j = 0; j < CLASSES; ++j)
+    for (int j = 0; j < CLASSES; ++j) {
       _probs[i][j] = pred_confidence_scores[i] * pred_class_probs[i][j];
+    }
 
     probs[i]   = max(_probs[i]);
     classes[i] = argmax(_probs[i]);
@@ -496,12 +480,13 @@ void SqueezeDet::evaluate()
 thr = std::thread([&] {
 #endif
   // frame = std::move(*in_det);
-  frame.height = in_det->height;
-  frame.width = in_det->width;
-  frame.scales = in_det->scales;
-  frame.src = in_det->src;
-  frame.mvs = std::move(in_det->mvs);
+  frame.height  = in_det->height;
+  frame.width   = in_det->width;
+  frame.scales  = in_det->scales;
+  frame.src     = in_det->src;
+  frame.mvs     = std::move(in_det->mvs);
 
+#if 1
   exec_core(conv1);
   exec_cores(fire2);
   exec_cores(fire3);
@@ -514,8 +499,27 @@ thr = std::thread([&] {
   exec_cores(fire10);
   exec_cores(fire11);
   exec_core(conv12);
+#endif
 
 #if 0
+  std::ofstream ofs("conv1.dat");
+  int W_idx = 0, b_idx = 0;
+  ofs << std::hex;
+  for (int i = 0; i < 64; ++i) {
+  for (int j = 0; j < 3; ++j) {
+  for (int k = 0; k < 3; ++k) {
+  for (int l = 0; l < 3; ++l) {
+          ofs << std::setw(8) << W_conv1[W_idx++] << "\t";
+        }
+        ofs << std::endl;
+      }
+      ofs << std::endl;
+    }
+    ofs << std::setw(8) << b_conv1[b_idx++] << std::endl;
+    ofs << std::endl;
+  }
+  ofs << std::endl << std::endl;
+
   PRINT_MAP(image );
   PRINT_MAP(pmap1 );
   PRINT_MAP(fmap2 );

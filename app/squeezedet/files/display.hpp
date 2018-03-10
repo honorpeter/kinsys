@@ -23,11 +23,15 @@ public:
 
 private:
   std::thread thr;
+
+  void draw_bbox(cv::Mat& img, std::pair<int, BBox>& obj);
+
   std::shared_ptr<std::deque<
     std::pair<std::unique_ptr<Image>, std::unique_ptr<Track>>>> fifo;
 
   std::unordered_map<std::string, cv::Scalar> color_map;
 
+  std::pair<std::unique_ptr<Image>, std::unique_ptr<Track>> trk;
   std::unique_ptr<Image> frame;
   std::unique_ptr<Track> objs;
 

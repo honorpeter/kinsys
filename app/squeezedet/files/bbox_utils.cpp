@@ -3,6 +3,7 @@
 
 #include "bbox_utils.hpp"
 #include "arithmetic.hpp"
+#include "wrapper.hpp"
 
 std::vector<float> calc_center(const BBox& box)
 {
@@ -17,8 +18,8 @@ float iou_cost(const BBox& next_box, const BBox& prev_box)
   BBox cap;
   cap.left  = std::max(next_box.left, prev_box.left);
   cap.top   = std::max(next_box.top, prev_box.top);
-  cap.right = std::max(next_box.right, prev_box.right);
-  cap.bot   = std::max(next_box.bot, prev_box.bot);
+  cap.right = std::min(next_box.right, prev_box.right);
+  cap.bot   = std::min(next_box.bot, prev_box.bot);
 
   float area_cap;
   if (cap.left <= cap.right && cap.top <= cap.bot)
@@ -32,6 +33,8 @@ float iou_cost(const BBox& next_box, const BBox& prev_box)
                 * (prev_box.bot - prev_box.top + 1);
 
   float area_cup = area_next + area_prev - area_cap;
+  if (std::abs(area_cup-0.0) < std::numeric_limits<float>::epsilon())
+    throw std::runtime_error("iou_cost failed");
 
   float iou = area_cap / area_cup;
 
@@ -82,31 +85,31 @@ Mat1D<float> batch_iou(const Mat2D<float>& boxes, const Mat1D<float>& box)
 {
   auto boxes_t = transpose(boxes);
 
-  auto half_width = ((float)0.5 * boxes_t[2]);
-  auto half_height = ((float)0.5 * boxes_t[3]);
+  auto half_width   = (0.5f * boxes_t[2]);
+  auto half_height  = (0.5f * boxes_t[3]);
   auto boxes_right  = boxes_t[0] + half_width;
   auto boxes_left   = boxes_t[0] - half_width;
   auto boxes_bottom = boxes_t[1] + half_height;
   auto boxes_top    = boxes_t[1] - half_height;
-  auto box_right    = box[0] + ((float)0.5 * box[2]);
-  auto box_left     = box[0] - ((float)0.5 * box[2]);
-  auto box_bottom   = box[1] + ((float)0.5 * box[3]);
-  auto box_top      = box[1] - ((float)0.5 * box[3]);
-
-  using std::numeric_limits;
+  auto box_right    = box[0] + (0.5f * box[2]);
+  auto box_left     = box[0] - (0.5f * box[2]);
+  auto box_bottom   = box[1] + (0.5f * box[3]);
+  auto box_top      = box[1] - (0.5f * box[3]);
 
   auto left   = clip<float>(boxes_left,    box_left, max(boxes_left));
   auto right  = clip<float>(boxes_right,   min(boxes_right), box_right);
   auto top    = clip<float>(boxes_top,     box_top, max(boxes_top));
   auto bottom = clip<float>(boxes_bottom,  min(boxes_bottom), box_bottom);
 
-  auto left_right = clip<float>(right-left, (float)0.0, numeric_limits<float>::max());
-  auto top_bottom = clip<float>(bottom-top, (float)0.0, numeric_limits<float>::max());
+  auto left_right = clip<float>(right-left, 0.0f,
+                                std::numeric_limits<float>::max());
+  auto top_bottom = clip<float>(bottom-top, 0.0f,
+                                std::numeric_limits<float>::max());
 
-  auto intersection_area = left_right * top_bottom;
-  auto base_area = boxes_t[2] * boxes_t[3];
-  auto whole_area = base_area + box[2]*box[3];
-  auto union_area = whole_area - intersection_area;
+  auto intersection_area  = left_right * top_bottom;
+  auto base_area          = boxes_t[2] * boxes_t[3];
+  auto whole_area         = base_area + box[2]*box[3];
+  auto union_area         = whole_area - intersection_area;
 
   return intersection_area / union_area;
 }

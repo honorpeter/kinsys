@@ -89,12 +89,14 @@ private:
   const int IMG_W           = 320;
   const int IMG_H           = 240;
 #else
-  // const int IMG_W           = 240;
-  // const int IMG_H           = 240;
   // const int IMG_W           = 1248;
   // const int IMG_H           = 384;
+
   const int IMG_W           = 640;
   const int IMG_H           = 480;
+
+  // const int IMG_W           = 320;
+  // const int IMG_H           = 240;
 #endif
 
   const int OUT_W           = IMG_W/16;

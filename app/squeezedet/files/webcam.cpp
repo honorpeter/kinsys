@@ -28,13 +28,6 @@ Webcam::Webcam(
   // av_dict_set(&format_opts, "video_size", "176x144", 0);
   // av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
 #else
-  // const char *name = "car.mp4";
-  // AVInputFormat *in_format = av_find_input_format("avc1");
-  // AVDictionary *format_opts = nullptr;
-  // av_dict_set(&format_opts, "framerate", "30", 0);
-  // av_dict_set(&format_opts, "video_size", "240x240", 0);
-  // av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
-
   // const char *name = "taxi.mp4";
   // AVInputFormat *in_format = av_find_input_format("avc1");
   // AVDictionary *format_opts = nullptr;
@@ -48,13 +41,20 @@ Webcam::Webcam(
   av_dict_set(&format_opts, "framerate", "30", 0);
   av_dict_set(&format_opts, "video_size", "640x480", 0);
   av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
+
+  // const char *name = "taxi3.mp4";
+  // AVInputFormat *in_format = av_find_input_format("avc1");
+  // AVDictionary *format_opts = nullptr;
+  // av_dict_set(&format_opts, "framerate", "30", 0);
+  // av_dict_set(&format_opts, "video_size", "320x240", 0);
+  // av_dict_set(&format_opts, "pixel_format", "bgr0", 0);
 #endif
 
   if (avformat_open_input(&format_ctx, name, in_format, &format_opts) != 0)
-    throw "input failed";
+    throw std::runtime_error("input failed");
 
   if (avformat_find_stream_info(format_ctx, NULL) < 0)
-    throw "stream info not found";
+    throw std::runtime_error("stream info not found");
 
   video_stream = -1;
   for (int i = 0; i < (int)format_ctx->nb_streams; ++i) {
@@ -64,17 +64,17 @@ Webcam::Webcam(
     }
   }
   if (video_stream == -1)
-    throw "video stream not found";
+    throw std::runtime_error("video stream not found");
 
   codec_ctx = format_ctx->streams[video_stream]->codec;
   AVCodec *codec = avcodec_find_decoder(codec_ctx->codec_id);
   if (codec == NULL)
-    throw "Unsupported codec!";
+    throw std::runtime_error("Unsupported codec!");
 
   AVDictionary *codec_opts = NULL;
   av_dict_set(&codec_opts, "flags2", "+export_mvs", 0);
   if (avcodec_open2(codec_ctx, codec, &codec_opts) < 0)
-    throw "codec open failed";
+    throw std::runtime_error("codec open failed");
 
   sws_ctx =
     sws_getContext(codec_ctx->width, codec_ctx->height, codec_ctx->pix_fmt,
@@ -84,7 +84,7 @@ Webcam::Webcam(
   frame = av_frame_alloc();
   frame_bgr = av_frame_alloc();
   if (frame == NULL || frame_bgr == NULL)
-    throw "frame allocation failed";
+    throw std::runtime_error("frame allocation failed");
 
   num_bytes = avpicture_get_size(AV_PIX_FMT_BGR24,
                                  codec_ctx->width, codec_ctx->height);
@@ -93,11 +93,6 @@ Webcam::Webcam(
   avpicture_fill((AVPicture *)frame_bgr, buffer, AV_PIX_FMT_BGR24,
                  codec_ctx->width, codec_ctx->height);
 
-// #ifdef RELEASE
-//   flow = zeros<int>(144, 176, 2);
-// #else
-//   flow = zeros<int>(480, 640, 2);
-// #endif
   imgbuf.reserve(gop_size-1);
 }
 
@@ -203,7 +198,7 @@ void Webcam::get_i_frame()
     int read_frame = av_read_frame(format_ctx, &packet);
     if (read_frame < 0)
       continue;
-      // throw "read failed";
+      // throw std::runtime_error("read failed");
 
     if (packet.stream_index != video_stream)
       continue;
@@ -212,7 +207,7 @@ void Webcam::get_i_frame()
     avcodec_decode_video2(codec_ctx, frame, &got_frame, &packet);
     if (!got_frame)
       continue;
-      // throw "frame was not obtained";
+      // throw std::runtime_error("frame was not obtained");
 
     pict_type = av_get_picture_type_char(frame->pict_type);
   } while (pict_type != 'I');
@@ -225,8 +220,6 @@ void Webcam::get_i_frame()
 
   av_packet_unref(&packet);
 
-  // cv::Mat img(codec_ctx->height, codec_ctx->width,
-  //             CV_8UC3, frame_bgr->data[0]);
   imgbuf.emplace_back(buffer, buffer+num_bytes);
   cv::Mat img(codec_ctx->height, codec_ctx->width,
               CV_8UC3, imgbuf.back().data());
@@ -248,7 +241,7 @@ void Webcam::get_sub_gop()
         return;
         --i;
         continue;
-        // throw "read failed";
+        // throw std::runtime_error("read failed");
       }
 
       if (packet.stream_index != video_stream) {
@@ -265,7 +258,7 @@ void Webcam::get_sub_gop()
         // return;
         --i;
         continue;
-        // throw "frame was not obtained";
+        // throw std::runtime_error("frame was not obtained");
       }
 
       sws_scale(sws_ctx, (uint8_t const * const *)frame->data,
@@ -274,8 +267,6 @@ void Webcam::get_sub_gop()
 
       extract_mvs(frame, mvs);
 
-      // cv::Mat img(codec_ctx->height, codec_ctx->width,
-      //             CV_8UC3, frame_bgr->data[0]);
       imgbuf.emplace_back(buffer, buffer+num_bytes);
       cv::Mat img(codec_ctx->height, codec_ctx->width,
                   CV_8UC3, imgbuf.back().data());

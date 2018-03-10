@@ -337,12 +337,12 @@ linear_sum_assignment(const std::vector<std::vector<float>>& cost)
     return std::make_pair(std::vector<int>{}, std::vector<int>{});
 
 #if 0
-  cout << "cost.size: " << cost.size() << endl;
+  printf("cost.size: %d\n", static_cast<int>(cost.size()));
   for (auto x : cost) {
     for (auto y : x) {
-      cout << y << " ";
+      printf("%6.3f\t", y);
     }
-    cout << endl;
+    printf("\n");
   }
 #endif
 
