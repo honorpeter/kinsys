@@ -1,8 +1,6 @@
 Kinpira by System Verilog
 ==================================================
 
-This is the ported version of "Kinpira" project.
-
 Kinpira is the hardware accelerator, or platform for neural networks.
 This project aims for the flexibility and the performance
 for various network structures.
