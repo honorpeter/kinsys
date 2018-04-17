@@ -1,4 +1,4 @@
-Kinpira by System Verilog
+Kinpira by System Verilog (Kinsys)
 ==================================================
 
 Kinpira is the hardware accelerator, or platform for neural networks.
