@@ -7,7 +7,7 @@
 BOARD=$1
 APP_NAME=$2
 TOP=`git rev-parse --show-toplevel`
-export TMPDIR=/ldisk/takau/tmp
+export TMPDIR=/ldisk/$USER/tmp
 
 PETA_NAME=linux-$BOARD
 PETA_FPGA=design_1_wrapper.bit
